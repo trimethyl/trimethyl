@@ -40,6 +40,10 @@ var App = {
 };
 ```
 
+## Credits
+
+* **xp.ui.js** forked from https://github.com/FokkeZB/UTiL/tree/master/xp.ui
+* **share.js** forked from https://github.com/FokkeZB/UTiL/tree/master/share 
 
 ## Useful 3-party widgets
 
