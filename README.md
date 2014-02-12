@@ -1,5 +1,9 @@
 # Trimethyl
 
+### Alloy-Titanium framework made in Caffeina
+
+![image](http://f.cl.ly/items/3N362x290A333O2U293Y/tr.png)
+
 ## Installation
 
 Open terminal, move to your Titanium project, and type
