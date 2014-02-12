@@ -2,7 +2,7 @@
 
 ### Alloy-Titanium framework made in Caffeina
 
-![image](http://f.cl.ly/items/3N362x290A333O2U293Y/tr.png)
+![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
 ## Installation
 
