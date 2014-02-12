@@ -177,19 +177,19 @@ Is a proxy module for Titanium App-Event.
 ```javascript
 var E = require('events');
 
-E.add('hello', function hello(e){ alert('Hello '+e.name); });
-E.add('test', function(e){ alert('Test 1'); });
-E.add('test', function(e){ alert('Test 2'); });
+E.on('hello', function hello(e){ alert('Hello '+e.name); });
+E.on('test', function(e){ alert('Test 1'); });
+E.on('test', function(e){ alert('Test 2'); });
 
 E.fire('hello', { name:'Fefifo' });
-E.remove('test'); // remove every event with 'test' key
-E.remove('hello', hello); // remove only 'hello' event with that closure (Classic Titanium style)
+E.off('test'); // remove every event with 'test' key
+E.off('hello', hello); // remove only 'hello' event with that closure (Classic Titanium style)
 ```
 
 Every event fired is fully compatible with `Ti.App`, so:
 
 ```javascript
-E.add('hello', function(){ /* ... */ });
+E.on('hello', function(){ /* ... */ });
 Ti.App.addEventListener('hello', function(){ /*...*/ });
 ```
 
@@ -206,8 +206,6 @@ Ti.App.fireEvent('hello');
 Proxy object for ** Google Analitycs module **.
 
 #### Requirements
-
-https://github.com/MattTuttle/titanium-google-analytics
 
 `gittio install -g analytics.google`
 
@@ -273,6 +271,7 @@ Start the Apple/Google Maps and route to defined coordinates
 Create a route using an external web service.
 
 *networkArgs* MUST be in this format: `{ origin: "Rome", destination: "Paris" }`
+
 *routeArgs* are merged with the route object
 
 **getRouteFromUserLocation(destination, networkArgs, routeArgs, callback)**
@@ -292,7 +291,7 @@ We offering our own clustering ;)
 
 ```javascript
 {
-	pixelRadius: 20
+	pixelRadius: 20 /* set the min distance to cluster */
 }
 ```
 
@@ -337,7 +336,7 @@ $.mapView.addEventListener('regionchanged', function(e){
 
 Make all network request in a very simple way.
 
-All requests are cached reading the `Expires` header.
+All requests are cached reading the `Expires` header, so if you don't specify it in your response, nothing is cached.
 
 If there isn't an active Internet connection, the module read content from its internal cache if exists, otherwise a `network.error` event is fired.
 
@@ -347,7 +346,7 @@ Before and after each request, a `network.start` and `network.end` event is fire
 
 ```javascript
 {	
-	base: 'http://localhost', /* base url for your api service */
+	base: 'http://localhost', /* base url for your api service, you can later refer simply with "/method/foo" */
 	cacheDir: Ti.Filesystem.applicationCacheDirectory,
 	timeout: 10000,
 	useCache: true,
@@ -410,6 +409,130 @@ var hash = require('network').send({ /* ... */ });
 /* ... */
 require('network').abortRequest(hash);
 ```
+
+## Newrelic
+
+Proxy module for newrelic.
+
+http://blog.newrelic.com/2013/08/20/appcelerator-users-you-can-now-easily-add-new-relic-to-your-titanium-studio-apps/
+
+#### Configuration
+
+```javascript
+{
+	token: "[YOUR_TOKEN]"
+}
+```
+
+
+## Flow
+
+Manage your flow and forget closing your controller.
+
+#### Usage
+
+```javascript
+require('flow').open('controller_one');
+require('flow').open('controller_two', { a:1, b:2 }); // this close "controller_one"
+require('flow').back(); // close "controller_two" and open "controller_one"
+
+require('flow').open('controller_three', { /*args*/ }, true); // this doesn't close previous
+```
+
+#### Other method
+
+**reload()** reload current controller
+
+**back()** back to previous controller
+
+**current()** get current controller 
+
+**closeCurrent()** close current controller
+
+
+
+## Share
+
+Useful methods for sharing across platforms.
+
+Simple refactor of https://github.com/FokkeZB/UTiL/tree/master/share.
+
+#### Requirements
+
+`gittio install -g dk.napp.social`
+
+https://github.com/viezel/TiSocial.Framework
+
+#### Usage
+
+```javascript
+/* Share via Facebook */
+require('share').facebook({
+	text: 'Sharing is sexy!',
+	image: 'http://lorempixel.com/640/480/city/',
+	url: 'http://caffeinalab.com'
+});
+
+/* Share on Twitter */
+require('share').twitter({
+	text: 'CaffeinaLab',
+	url: 'http://caffeinalab.com'
+});
+
+/* Send via mail */
+require('share').mail({
+	subject: "Hey, use Trimethyl!",
+	text: "Visit https://github.com/CaffeinaLab/Trimethyl for informations :)"
+}, function(){ alert("Mail sent!"); });
+```
+
+
+
+## Notifications
+
+Cross-platform module for notifications.
+
+We use ACS (Appcelerator Cloud Service) via APN/GCM to send notifications.
+
+Keep in mind that you have to generate .p12 certificates for iOS and api-key for Android in order to use notifications, please first follow this guide http://docs.appcelerator.com/titanium/3.0/#!/guide/Push_Notifications.
+
+#### Requirements
+
+**ti.cloud** and **ti.cloudpush**, but yet integrated in Titanium SDK.
+
+Just add this to your *tiapp.xml*:
+
+```xml
+<module>ti.cloud</module>
+<module platform="android">ti.cloudpush</module>
+```
+
+#### Configuration
+
+```javascript
+{
+	inAppNotification: true, /* provide in app-notification handled automatically */
+	inAppNotificationMethod: 'toast', /* choose between alert, toast */
+	autoReset: true /* autoreset the badge on upcoming notification */
+}
+```
+
+#### Usage
+
+First of all, you have to subscribe to APN/GCM channels
+
+```javascript
+require('notifications').subscribe('channel');
+```
+
+And simply listen for notification for custom actions (optional).
+
+```javascript
+Ti.App.addEventListener('notifications.received', function(e){
+	console.log(e);
+});
+```
+
 
 # Useful 3-party widgets
 
