@@ -40,6 +40,28 @@ var App = {
 };
 ```
 
+## Modules
+
+### [Auth](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/auth.md)
+
+### [Events](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/events.md)
+
+### [Flow](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/flow.md)
+
+### [GA](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/ga)
+
+### [Geo](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/geo.md)
+
+### [Map](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/map.md)
+
+### [Network](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/network.md)
+
+### [NewRelic](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/newrelic.md)
+
+### [Notifications](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/notifications.md)
+
+### [Share](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/share.md)
+
 ## Credits
 
 * **xp.ui.js** forked from https://github.com/FokkeZB/UTiL/tree/master/xp.ui
