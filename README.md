@@ -40,6 +40,10 @@ var App = {
 };
 ```
 
+And all modules set in *config.json* are loaded.
+
+**You can use all modules too without *autoConfModules*, just call `require("MODULE");'**
+
 ## Modules
 
 * [Auth](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/auth.md)
