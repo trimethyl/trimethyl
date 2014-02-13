@@ -4,7 +4,7 @@
 
 A collection of very useful modules to work with Appcelerator Titanium and Alloy.
 
-Most of theese modules are proxy object for Titanium API and some of theese add features missing or expose functions usefuls for UI normalization.
+Most of these modules are proxy object for Titanium API and some of these add features missing or expose functions usefuls for UI normalization.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
