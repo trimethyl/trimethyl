@@ -187,8 +187,8 @@ function onComplete(request, response, e){
 	request.success(returnValue);
 }
 
-exports.isOnline = isOnline = function() {
-	return Titanium.Network.networkType!=Titanium.Network.NETWORK_NONE;
+exports.isOnline = function() {
+	return Ti.Network.online;
 };
 
 exports.getApplicationInfo = function(){
@@ -255,7 +255,7 @@ exports.send = send = function(request) {
 
 	// Try to get the cache, otherwise make the HTTP request
 	if (config.useCache && request.method=='GET') {
-		var cache = getCache(request, !isOnline());
+		var cache = getCache(request, !Ti.Network.online);
 		if (cache) {
 			if (Alloy.CFG.debug) {
 				console.log("------- NETWORK CACHE ("+request.url+")-----------");
@@ -269,7 +269,7 @@ exports.send = send = function(request) {
 	}
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
-	if (!isOnline()) {
+	if (!Ti.Network.online) {
 		Ti.UI.createAlertDialog({
 			title: L('network.offline.title', 'No connectivity'),
 			message: L('network.offline.message', 'You need an active Internet connection in order to make this request. Please connect to Internet.'),
