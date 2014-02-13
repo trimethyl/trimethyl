@@ -12,13 +12,15 @@ Most of these modules are proxy object for Titanium API and some of these add fe
 
 ## Installation
 
-Open terminal, move to your Titanium project, and type
+To install this framework, you have to **replace** your lib directory.
+
+So, open terminal, move to your Titanium project, and type
 
 ```
 git clone https://bitbucket.org/caffeina/trimethyl app/lib
 ```
 
-All your custom code out of the framework can be placed in `app/lib/app/*` 
+All your custom code out of the framework can be placed in `app/lib/app/*`, which is in git-ignore.
 
 ## Configuration
 
@@ -66,6 +68,10 @@ And all modules set in *config.json* are loaded.
 * [NewRelic](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/newrelic.md)
 * [Notifications](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/notifications.md)
 * [Share](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/share.md)
+
+## Other
+
+* [API Sync](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/api-sync.md)
 
 ## Credits
 
