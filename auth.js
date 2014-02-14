@@ -40,13 +40,15 @@ exports.login = login = function(data, driver, cb) {
 		success: function(response){
 			authInfo = response;
 
-			Me = require('alloy').createModel('user', { id:'me' });
+			Me = require('alloy').createModel('user', { id: authInfo.id });
 			Me.fetch({
 				networkArgs: { refresh:true },
 				ready: function(){
+
 					Ti.App.Properties.setObject('auth.me', Me.toJSON());
 					Ti.App.Properties.setString('auth.driver', driver);
-					Ti.App.fireEvent('auth.success', { id: Me.get('id') });
+
+					Ti.App.fireEvent('auth.success', authInfo);
 					if (cb) cb();
 				},
 				mistake: function(msg){

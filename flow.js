@@ -8,7 +8,11 @@ var hist = [];
 function closeController(c) {
 	if (!c) return;
 	try {
-		c.close();
+		if ('close' in c) c.close();
+		else {
+			console.warn("Implement close function in controllers!");
+			c.getView().close();
+		}
 		c.destroy();
 	} catch (e) {
 		console.error(e);
@@ -19,13 +23,18 @@ exports.create = exports.open = create = function(controller, args, unclosePrev)
 	args = args || {};
 
 	var C = require('alloy').createController(controller, args);
-	C.open();
+
+	// Custom code
+	if ('open' in C) C.open();
+	else {
+		console.warn("Implement open function in controllers!");
+		C.getView().open();
+	}
 
 	hist.push({ controller: controller, args: args });
 
 	if (cc && !unclosePrev) closeController(cc);
 	ccs = controller;
-
 	cca = args;
 	cc = C;
 

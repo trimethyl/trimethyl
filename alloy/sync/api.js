@@ -9,12 +9,11 @@ var CRUD_TO_REST = {
 
 exports.sync = function(method, model, opt) {
 
-	model.idAttribute = model.config.adapter.idAttribute || 'id';
-
 	var url = model.config.adapter.baseUrl ? model.config.adapter.baseUrl : '/';
 	url += model.config.adapter.name;
-	if (model[model.idAttribute]) url += '/' + model[model.idAttribute];
+	if (model.id) url += '/' + model.id;
 
+	if (opt.patch) method = 'patch';
 	var data = _.extend(opt.networkArgs || {}, {
 		url: url,
 		method: CRUD_TO_REST[method],
@@ -22,7 +21,7 @@ exports.sync = function(method, model, opt) {
 	});
 
 	if (Alloy.Backbone.emulateHTTP) {
-		if (data.method==='PUT' || data.method==='DELETE') {
+		if (['DELETE','PUT','PATCH'].indexOf(data.method)!==false) {
 			data.headers = _.extend(data.headers || {}, { 'X-HTTP-Method-Override': data.method });
 			data.method = 'POST';
 		}
@@ -30,11 +29,28 @@ exports.sync = function(method, model, opt) {
 
 	switch (method) {
 
+		case 'create':
+		Network.send(_.extend(data, {
+			data: model.toJSON(),
+			success: function(resp) {
+				if (resp.id) opt.success(resp);
+				else opt.success();
+
+				if (opt.ready) opt.ready();
+				model.trigger("fetch");
+			},
+			error: function(msg) {
+				opt.error(model);
+			}
+		}));
+		break;
+
 		case 'read':
 		Network.send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
 				opt.success(resp);
+
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},
@@ -46,23 +62,11 @@ exports.sync = function(method, model, opt) {
 
 		case 'update':
 		Network.send(_.extend(data, {
-			data: model.toJSON(),
+			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
-				opt.success(resp);
-				if (opt.ready) opt.ready();
-				model.trigger("fetch");
-			},
-			error: function(msg) {
-				opt.error(model);
-			}
-		}));
-		break;
+				if (resp.id) opt.success(resp);
+				else opt.success();
 
-		case 'create':
-		Network.send(_.extend(data, {
-			data: model.toJSON(),
-			success: function(resp) {
-				opt.success(resp);
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},
@@ -76,7 +80,8 @@ exports.sync = function(method, model, opt) {
 		Network.send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
-				opt.success(resp);
+				opt.success();
+
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},

@@ -1,4 +1,5 @@
 // Load all modules
+var Alloy = require('alloy');
 
 var loadedModules = {};
 var modules = _.difference(
@@ -12,7 +13,6 @@ _.each(modules, function(m){
 	loadedModules[m] = require(m);
 	loadedModules[m].init(Alloy.CFG[m]||{});
 });
-
 
 // Manage pause and resume events
 
