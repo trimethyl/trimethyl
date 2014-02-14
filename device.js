@@ -33,6 +33,10 @@ exports.onTilt = function(callback) {
 	}
 };
 
+exports.offTilt = function(callback) {
+	Ti.Accelerometer.removeEventListener('update', callback);
+}
+
 exports.init = function(c){
 	config = _.extend(config, c);
 };
