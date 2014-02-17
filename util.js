@@ -22,7 +22,7 @@ exports.getScreenHeight = function(){
 };
 
 exports.openFacebookProfile = function(fbid) {
-	if (OS_IOS && Ti.Platform.canOpenURL("fb://profile/"+fbid)) Ti.Platform.openURL("fb://profile/"+fbid);
+	if (OS_IOS && !isIOS7() && Ti.Platform.canOpenURL("fb://profile/"+fbid)) Ti.Platform.openURL("fb://profile/"+fbid);
 	else Ti.Platform.openURL("http://www.facebook.com/"+fbid);
 };
 
