@@ -4,6 +4,14 @@ var config = {
 	directionUrl: "http://appcaffeina.com/static/maps/directions",
 };
 
+function checkForServices() {
+	if (!Ti.Geolocation.locationServicesEnabled) {
+		require('util').alertError(L('geo.error', "To use this feature, please enable location services."));
+		return false;
+	}
+	return true;
+}
+
 exports.getRoute = getRoute = function(args, rargs, cb) {
 	require('network').send({
 		url: config.directionUrl,
@@ -11,12 +19,12 @@ exports.getRoute = getRoute = function(args, rargs, cb) {
 		success: function(resp){
 			var points = [];
 			for (var k in resp) points.push({ latitude: resp[k][0], longitude: resp[k][1] });
-			return cb(require('ti.map').createRoute(_.extend({
-				name: 'Route',
-				color: '#000',
-				points: points,
-				width: 6
-			}, rargs)));
+				return cb(require('ti.map').createRoute(_.extend({
+					name: 'Route',
+					color: '#000',
+					points: points,
+					width: 6
+				}, rargs)));
 		}
 	});
 };
@@ -31,11 +39,10 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 	});
 };
 
+var locaCallbacks = [];
+
 exports.localize = localize = function(cb) {
-	if (!Ti.Geolocation.locationServicesEnabled) {
-		require('util').alertError(L('geo.error', "To use this feature, please enable location services."));
-		return;
-	}
+	if (!checkForServices()) return;
 
 	Ti.App.fireEvent('geo.start');
 	Ti.Geolocation.purpose = L('geo.purpose', "Let us use your GPS position!");
@@ -48,6 +55,27 @@ exports.localize = localize = function(cb) {
 	});
 };
 
+var gyroCallbacks = [];
+
+exports.gyroscope = gyroscope = function(cb) {
+	if (!checkForServices()) return;
+
+	gyroCallbacks.push(cb);
+
+	Ti.Geolocation.purpose = L('geo.purpose', "Let us use your gyroscope!");
+	Ti.Geolocation.addEventListener('heading', function(e){
+		if (cb) cb(e);
+	});
+};
+
+exports.gyroscopeOff = function(cb) {
+	if (cb) Ti.Geolocation.removeEventListener('heading', cb);
+	else {
+		_.each(gyroCallbacks, function(fun){
+			Ti.Geolocation.removeEventListener('heading', fun);
+		});
+	}
+};
 
 exports.startNavigator = function(lat, lng, mode) {
 	localize(function(e, mylat, mylng) {
