@@ -26,6 +26,12 @@ exports.openFacebookProfile = function(fbid) {
 	else Ti.Platform.openURL("http://www.facebook.com/"+fbid);
 };
 
+exports.addFanOnFacebook = function(fbid) {
+	// Bug: with iOS7 this protocol doesn't work
+	if (OS_IOS && !isIOS7() && Ti.Platform.canOpenURL("fb://profile/"+fbid+"/addfan")) Ti.Platform.openURL("fb://profile/"+fbid+"/addfan");
+	else Ti.Platform.openURL("http://www.facebook.com/"+fbid);
+};
+
 exports.openTwitterProfile = function(twid) {
 	if (OS_IOS && Ti.Platform.canOpenURL("twitter://user?screen_name="+twid)) Ti.Platform.openURL("twitter://user?screen_name="+twid);
 	else Ti.Platform.openURL("http://www.twitter.com/"+twid);
@@ -70,7 +76,7 @@ exports.alertError = function(msg, callback) {
 	return alertDialog(L('alert.error', 'Error'), msg, callback);
 };
 
-exports.isIOS7 = function() {
+exports.isIOS7 = isIOS7 = function() {
 	if (!OS_IOS) return false;
 	var version = Ti.Platform.version.split(".");
 	return (parseInt(version[0],10)>=7);
