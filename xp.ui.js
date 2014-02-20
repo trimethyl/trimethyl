@@ -38,5 +38,5 @@ exports.createNavigationWindow = function(args) {
 };
 
 exports.createWindow = function(args) {
-	return Ti.UI.createWindow(args);
+	return OS_IOS ? Ti.UI.createWindow(args) : Ti.UI.createView(args);
 };

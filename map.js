@@ -2,8 +2,6 @@ var config = {
 	pixelRadius: 20
 };
 
-var MapModule = require('ti.map');
-
 exports.dist = dist = function(a,b) {
 	return Math.sqrt(Math.pow(a,2)+Math.pow(b,2));
 };

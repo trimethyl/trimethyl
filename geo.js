@@ -1,6 +1,5 @@
 var config = {
 	accuracy: "ACCURACY_HIGH",
-	checkForGooglePlayServices: true,
 	directionUrl: "http://appcaffeina.com/static/maps/directions",
 };
 
@@ -86,20 +85,5 @@ exports.startNavigator = function(lat, lng, mode) {
 
 exports.init = function(c) {
 	config = _.extend(config, c);
-	if (OS_ANDROID && config.checkForGooglePlayServices) {
-		try {
-			var rc = M.isGooglePlayServicesAvailable();
-			switch (rc) {
-				case M.SUCCESS: break;
-				case M.SERVICE_MISSING: throw ('Google Play services is missing. Please install Google Play services from the Google Play store.');
-				case M.SERVICE_VERSION_UPDATE_REQUIRED: throw ('Google Play services is out of date. Please update Google Play services.');
-				case M.SERVICE_DISABLED: throw ('Google Play services is disabled. Please enable Google Play services.');
-				case M.SERVICE_INVALID: throw ('Google Play services cannot be authenticated. Reinstall Google Play services.');
-				default: throw ('Unknown Google Play services error.');
-			}
-		} catch (e) {
-			require('util').alertError(e);
-		}
-	}
 };
 
