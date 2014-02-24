@@ -23,10 +23,9 @@ exports.create = exports.open = create = function(controller, args, unclosePrev)
 	args = args || {};
 
 	var C = require('alloy').createController(controller, args);
-
-	// Custom code
-	if ('open' in C) C.open();
-	else {
+	if ('open' in C) {
+		C.open();
+	} else {
 		console.warn("Implement open function in controllers!");
 		C.getView().open();
 	}

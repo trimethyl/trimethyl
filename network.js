@@ -262,6 +262,11 @@ exports.send = send = function(request) {
 				console.log(cache);
 			}
 
+			// if we are offline, but we got cache, fire event to handle
+			if (!Ti.Network.online) {
+				Ti.App.fireEvent('network.offline', { cache: true });
+			}
+
 			if (request.complete) request.complete();
 			request.success(cache);
 			return request.hash;
@@ -270,6 +275,7 @@ exports.send = send = function(request) {
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
 	if (!Ti.Network.online) {
+		Ti.App.fireEvent('network.offline', { cache: false });
 		Ti.UI.createAlertDialog({
 			title: L('network.offline.title', 'No connectivity'),
 			message: L('network.offline.message', 'You need an active Internet connection in order to make this request. Please connect to Internet.'),

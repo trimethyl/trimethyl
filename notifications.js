@@ -21,7 +21,7 @@ function notificationReceived(e) {
 	// Handle foreground notifications
 	if (!e.inBackground && e.data.alert) {
 		if (config.inAppNotification) {
-			if (config.inAppNotificationMethod=='toast') showToast(e.data.alert);
+			if (config.inAppNotificationMethod=='toast') require('toast').show(e.data.alert);
 			else if (config.inAppNotificationMethod=='alert') alert(e.data.alert);
 		}
 	}
@@ -37,50 +37,6 @@ exports.getBadge = getBadge = function() {
 
 exports.incBadge = function(i) {
 	setBadge(getBadge()+i);
-};
-
-exports.showToast = showToast = function(msg, image, timeout) {
-	var INAPP_VIEW_HEIGHT = 65;
-	var inAppNotifView = Ti.UI.createWindow({
-		top: -INAPP_VIEW_HEIGHT,
-		height: INAPP_VIEW_HEIGHT,
-		backgroundColor: '#B000',
-		fullscreen: true
-	});
-	inAppNotifView.addEventListener('touchstart', function(e){
-		clearTimeout(inAppTimeout);
-		inAppNotifView.animate({ top: -INAPP_VIEW_HEIGHT }, function(){ inAppNotifView.close(); });
-	});
-	inAppNotifView.add(Ti.UI.createImageView({
-		left: 10,
-		image: image || '/appicon.png',
-		height: INAPP_VIEW_HEIGHT-20,
-		width: INAPP_VIEW_HEIGHT-20,
-		borderRadius: (INAPP_VIEW_HEIGHT-20)/2,
-		touchEnabled: false
-	}));
-	inAppNotifView.add(Ti.UI.createLabel({
-		color: '#fff',
-		text: msg,
-		touchEnabled: false,
-		left: 10+(INAPP_VIEW_HEIGHT-20)+15,
-		top: 10,
-		bottom: 10,
-		right: 10,
-		textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
-		font: { fontSize: 14 }
-	}));
-	inAppNotifView.add(Ti.UI.createView({
-		height: 0.5,
-		bottom: 0,
-		backgroundColor: '#D000',
-
-	}));
-	inAppNotifView.open();
-	inAppNotifView.animate({ top: 0 });
-	var inAppTimeout = setTimeout(function(){
-		inAppNotifView.animate({ top: -INAPP_VIEW_HEIGHT }, function(){ inAppNotifView.close(); });
-	}, timeout || 4000);
 };
 
 function subscribe(channel, deviceToken, callback) {
