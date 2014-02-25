@@ -11,7 +11,9 @@ var config = {
 var queue = {};
 
 // Contain a JSON received on startup
-var applicationInfo = null;
+var applicationInfo = {
+	timestamp: 0
+};
 
 function calculateHash(request) {
 	return Ti.Utils.md5HexDigest(request.url+JSON.stringify(request.data||{})+JSON.stringify(request.headers||{}));
@@ -51,10 +53,18 @@ function getCache(request, noExpireCheck) {
 	var cacheInfo = getCacheInfo(request);
 	if (!cacheInfo) return false;
 
+	if (Alloy.CFG.debug) {
+		console.log("------- CACHE BEHAVIORS ("+request.url+")-----------");
+		console.log("Info: ", cacheInfo);
+		console.log("Refresh: ", request.refresh?1:0);
+		console.log("Expired: ", +new Date()-(cacheInfo.expire||0));
+		console.log("Apptime: ", ((applicationInfo.timestamp||0)*1000)-(cacheInfo.creation||-1));
+	}
+
 	if (!noExpireCheck) {
 		if (request.refresh) return false;
-		if (cacheInfo.expire<+new Date()) return false;
-		if (applicationInfo && cacheInfo.expire<(applicationInfo.timestamp||0)) {
+		if ((cacheInfo.expire||0)<+new Date()) return false;
+		if (applicationInfo && (cacheInfo.creation||-1)<(applicationInfo.timestamp||0)*1000) {
 			console.warn("Cache is expired for application timestamp");
 			return false;
 		}
@@ -83,10 +93,22 @@ function autoDispatch(msg) {
 
 function getResponseInfo(response) {
 	var info = {};
+
+	// mime type
 	var contentType = response.getResponseHeader('Content-Type');
 	if (contentType=='application/json') info.mime = 'json';
-	try { info.expire = new Date(response.getResponseHeader('Expires')).getTime(); }
-	catch (e) { info.expire = 0; }
+
+	// creation time
+	info.creation = +new Date();
+
+	// expires
+	try {
+		var expire = new Date(response.getResponseHeader('Expires'));
+		if (expire) info.expire = +expire;
+	} catch (e) {
+		info.expire = 0;
+	}
+
 	return info;
 }
 
