@@ -1,7 +1,7 @@
 var config = {
 	pixelRadius: 15,
 	removeOutOfBB: true,
-	maxDeltaToCluster: 0.2
+	maxDeltaToCluster: 0.3
 };
 
 exports.dist = dist = function(a,b) {
@@ -41,13 +41,11 @@ exports.cluster = function(e, markers){
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
+	var zoomToCluster = e.latitudeDelta>config.maxDeltaToCluster || e.longitudeDelta>config.maxDeltaToCluster;
 	for (id in c) {
 		for (jd in c) {
 			if (id==jd) continue;
-			if (
-				(e.latitudeDelta>config.maxDeltaToCluster && e.longitudeDelta>config.maxDeltaToCluster) &&
-				(dist(latR*Math.abs(c[id].lat-c[jd].lat), lngR*Math.abs(c[id].lng-c[jd].lng))<config.pixelRadius)
-				) {
+			if (zoomToCluster && dist(latR*Math.abs(c[id].lat-c[jd].lat), lngR*Math.abs(c[id].lng-c[jd].lng))<config.pixelRadius) {
 				if (!(id in g)) g[id] = [id];
 				g[id].push(jd);
 				delete c[jd];

@@ -22,14 +22,7 @@ exports.getScreenHeight = function(){
 };
 
 exports.openFacebookProfile = function(fbid) {
-	if (OS_IOS && !isIOS7() && Ti.Platform.canOpenURL("fb://profile/"+fbid)) Ti.Platform.openURL("fb://profile/"+fbid);
-	else Ti.Platform.openURL("http://www.facebook.com/"+fbid);
-};
-
-exports.addFanOnFacebook = function(fbid) {
-	// Bug: with iOS7 this protocol doesn't work
-	if (OS_IOS && !isIOS7() && Ti.Platform.canOpenURL("fb://profile/"+fbid+"/addfan")) Ti.Platform.openURL("fb://profile/"+fbid+"/addfan");
-	else Ti.Platform.openURL("http://www.facebook.com/"+fbid);
+	Ti.Platform.openURL("http://www.facebook.com/"+fbid);
 };
 
 exports.openTwitterProfile = function(twid) {
@@ -78,8 +71,7 @@ exports.alertError = function(msg, callback) {
 
 exports.isIOS7 = isIOS7 = function() {
 	if (!OS_IOS) return false;
-	var version = Ti.Platform.version.split(".");
-	return (parseInt(version[0],10)>=7);
+	return parseInt(Ti.Platform.version.split(".")[0],10)>=7;
 };
 
 exports.isIPad = function(){

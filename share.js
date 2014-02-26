@@ -21,7 +21,7 @@ function onSocialCancelled(e) {
 
 function _init(args) {
 	args = args || {};
-	if (args.image) args.image_blob = Ti.UI.createImageView(args.image).toBlob();
+	if (args.image) args.imageBlob = Ti.UI.createImageView(args.image).toBlob();
 	return args;
 }
 
@@ -67,7 +67,7 @@ exports.facebook = function(args, _callback) {
 	callback = _callback || null;
 	args = _init(args);
 
-	if (OS_IOS && Social.isFacebookSupported()) {
+	if (OS_IOS && Social.isFacebookSupported() && !args.useSDK) {
 		Social.facebook({
 			text: args.text,
 			image: args.image,
@@ -100,12 +100,12 @@ exports.mail = function(args, _callback) {
 	args = _init(args);
 
 	var emailDialog = Ti.UI.createEmailDialog({
-		subject: args.description || args.text,
+		subject: args.subject || '',
 		html: true,
-		messageBody: args.body || args.text + (args.url ? "<br><br>" + args.url : ''),
+		messageBody: args.text + (args.url ? "<br><br>" + args.url : ''),
 	});
 
-	if (args.image_blob) emailDialog.addAttachment(args.image_blob);
+	if (args.imageBlob) emailDialog.addAttachment(args.imageBlob);
 
 	emailDialog.addEventListener('complete', function(e) {
 		if (e.result === this.CANCELLED) {
@@ -150,7 +150,7 @@ exports.options = function(args, _callback) {
 		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
 		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
 		if (args.text || args.description) intent.putExtra(Ti.Android.EXTRA_SUBJECT, args.description || args.text);
-		if (args.image_blob) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image_blob);
+		if (args.imageBlob) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.imageBlob);
 		var shareActivity = Ti.Android.createIntentChooser(intent, args.titleid ? L(args.titleid, args.title || 'Share') : (args.title || 'Share'));
 		Ti.Android.currentActivity.startActivity(shareActivity);
 
