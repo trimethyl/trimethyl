@@ -1,5 +1,7 @@
 var config = {
-	pixelRadius: 20
+	pixelRadius: 15,
+	removeOutOfBB: true,
+	maxDeltaToCluster: 0.2
 };
 
 exports.dist = dist = function(a,b) {
@@ -24,18 +26,28 @@ exports.cluster = function(e, markers){
 	];
 
 	// Compile only marker in my bounding box
-	markers.map(function(m){
-		var lat = parseFloat(m.get('lat')), lng = parseFloat(m.get('lng'));
-		if (lat<bb[2] && lat>bb[0] && lng>bb[3] && lng<bb[1]) {
+	if (config.removeOutOfBB) {
+		markers.map(function(m){
+			var lat = parseFloat(m.get('lat')), lng = parseFloat(m.get('lng'));
+			if (lat<bb[2] && lat>bb[0] && lng>bb[3] && lng<bb[1]) {
+				c[m.get('id')] = { lat: lat, lng: lng };
+			}
+		});
+	} else {
+		markers.map(function(m){
+			var lat = parseFloat(m.get('lat')), lng = parseFloat(m.get('lng'));
 			c[m.get('id')] = { lat: lat, lng: lng };
-		}
-	});
+		});
+	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
 	for (id in c) {
 		for (jd in c) {
 			if (id==jd) continue;
-			if (dist(latR*Math.abs(c[id].lat-c[jd].lat), lngR*Math.abs(c[id].lng-c[jd].lng))<config.pixelRadius) {
+			if (
+				(e.latitudeDelta>config.maxDeltaToCluster && e.longitudeDelta>config.maxDeltaToCluster) &&
+				(dist(latR*Math.abs(c[id].lat-c[jd].lat), lngR*Math.abs(c[id].lng-c[jd].lng))<config.pixelRadius)
+				) {
 				if (!(id in g)) g[id] = [id];
 				g[id].push(jd);
 				delete c[jd];
