@@ -120,6 +120,7 @@ function decorateRequest(request) {
 	request.timeout = request.timeout || config.timeout;
 
 	// request.complete = request.complete || null;
+	// request.fail = request.fail || null;
 	request.success = request.success || function(){};
 	request.error = request.error || autoDispatch;
 
@@ -165,7 +166,7 @@ function onComplete(request, response, e){
 	}
 
 	if (!e.success) {
-		var returnError = L('network.error', 'Unrecognized network error');
+		var returnError = L('network_error', 'Unrecognized network error');
 
 		// We parse the message only if is not a critical (>=500) HTTP error
 		if (e.code<500) {
@@ -185,6 +186,7 @@ function onComplete(request, response, e){
 			console.error(returnValue);
 		}
 
+		if (request.fail) request.fail(returnError, returnValue);
 		return request.error(returnError, returnValue);
 	}
 
@@ -289,9 +291,9 @@ exports.send = send = function(request) {
 	if (!Ti.Network.online) {
 		Ti.App.fireEvent('network.offline', { cache: false });
 		Ti.UI.createAlertDialog({
-			title: L('network.offline.title', 'No connectivity'),
-			message: L('network.offline.message', 'You need an active Internet connection in order to make this request. Please connect to Internet.'),
-			ok: L('network.offline.ok', 'Okay!')
+			title: L('network_offline_title', 'No connectivity'),
+			message: L('network_offline_message', 'You need an active Internet connection in order to make this request. Please connect to Internet.'),
+			ok: L('network_offline_ok', 'Okay!')
 		}).show();
 		return false;
 	}
@@ -342,13 +344,13 @@ exports.connectToServer = function(cb) {
 				layout: 'vertical'
 			});
 			errorWindow.add(Ti.UI.createLabel({
-				text: L('network.ping.error.title', 'Server error'),
+				text: L('network_ping_error_title', 'Server error'),
 				font:{ fontSize: 40 },
 				top: 50,
 				textAlign: 'center'
 			}));
 			errorWindow.add(Ti.UI.createLabel({
-				text: L('network.ping.error.description', "Oops, it seems that our server is down.\nPlease check in a while"),
+				text: L('network_ping_error_description', "Oops, it seems that our server is down.\nPlease check in a while"),
 				font: { fontSize: 14 },
 				top: 20, left: 20, right: 20,
 				textAlign: 'center'

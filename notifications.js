@@ -51,7 +51,7 @@ function subscribe(channel, deviceToken, callback) {
 	}, function (e) {
 		if (!e.success) {
 			return Ti.App.fireEvent('notifications.subscription.error',
-				e.message || L('notification.subscription.error.acs', 'Error while subscribing for notifications on ACS.'));
+				e.message || L('notification_subscription_error_acs', 'Error while subscribing for notifications on ACS.'));
 		}
 		Ti.App.fireEvent('notifications.subscription.success', { channel: channel });
 		if (callback) callback();
@@ -64,14 +64,14 @@ function subscribeIOS(cb) {
 		success: function(e){
 			if (!e.deviceToken) {
 				Ti.App.fireEvent('notifications.subscription.error',
-					e.message || L('notification.subscription.error', 'Error while subscribing for notifications.'));
+					e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
 				return;
 			}
 			cb(e.deviceToken);
 		},
 		error: function(e){
 			Ti.App.fireEvent('notifications.subscription.error',
-				e.message || L('notification.subscription.error', 'Error while subscribing for notifications.'));
+				e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
 		},
 		callback: notificationReceived
 	});
@@ -82,7 +82,7 @@ function subscribeAndroid(cb) {
 		success: function(e) {
 			if (!e.deviceToken) {
 				Ti.App.fireEvent('notifications.subscription.error',
-					e.message || L('notification.subscription.error', 'Error while subscribing for notifications.'));
+					e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
 				return;
 			}
 			CloudPush.addEventListener('callback', notificationReceived);
@@ -90,7 +90,7 @@ function subscribeAndroid(cb) {
 		},
 		error: function(e) {
 			Ti.App.fireEvent('notifications.subscription.error',
-				e.message || L('notification.subscription.error', 'Error while subscribing for notifications.'));
+				e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
 		}
 	});
 }

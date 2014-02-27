@@ -14,7 +14,7 @@ var timeout = null;
 function onLogin(e) {
 	if (timeout) clearTimeout(timeout);
 	if (loginTimeout) clearTimeout(loginTimeout);
-	if (!e.success) return Ti.App.fireEvent('auth.fail', { message: e.error || L('auth.facebook.error', 'Facebook login failed for an unknown reason') });
+	if (!e.success) return Ti.App.fireEvent('auth.fail', { message: e.error || L('auth_facebook_error', 'Facebook login failed for an unknown reason') });
 
 	Auth.login({ access_token: FB.getAccessToken() }, 'facebook', function(){
 		// We don't need to store nothing, because the Facebook SDK store internally all data.
@@ -54,13 +54,13 @@ exports.logout = function(){
 exports.init = function(c){
 	config = _.extend(config, c);
 
+	FB.forceDialogAuth = false;
 	if (config.appId) FB.appid = config.appId;
 	if (config.permissions) FB.permissions = config.permissions.split(',');
-	FB.forceDialogAuth = false;
 
 	FB.addEventListener('login', function(e){
 		cachedLoginEvent = e;
-		if (!require('network').isServerConnected()) {
+		if (require('network').isOnline() && !require('network').isServerConnected()) {
 			console.warn("FB.login triggered before /ping");
 			return false;
 		}

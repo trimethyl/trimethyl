@@ -44,7 +44,7 @@ exports.alert = alertDialog = function(title, msg, callback) {
 	var d = Ti.UI.createAlertDialog({
 		title: title,
 		message: msg,
-		ok: L('alert.ok','OK')
+		ok: L('alert_ok','OK')
 	});
 	if (callback) d.addEventListener('click', callback);
 	d.show();
@@ -66,7 +66,7 @@ exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callba
 };
 
 exports.alertError = function(msg, callback) {
-	return alertDialog(L('alert.error', 'Error'), msg, callback);
+	return alertDialog(L('alert_error', 'Error'), msg, callback);
 };
 
 exports.isIOS7 = isIOS7 = function() {

@@ -39,7 +39,7 @@ exports.sync = function(method, model, opt) {
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},
-			error: function(msg) {
+			fail: function(msg) {
 				opt.error(model);
 			}
 		}));
@@ -54,7 +54,7 @@ exports.sync = function(method, model, opt) {
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},
-			error: function(msg) {
+			fail: function(msg) {
 				opt.error(model);
 			}
 		}));
@@ -70,7 +70,7 @@ exports.sync = function(method, model, opt) {
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},
-			error: function(msg) {
+			fail: function(msg) {
 				opt.error(model);
 			}
 		}));
@@ -85,7 +85,7 @@ exports.sync = function(method, model, opt) {
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
 			},
-			error: function(msg) {
+			fail: function(msg) {
 				opt.error(model);
 			}
 		}));

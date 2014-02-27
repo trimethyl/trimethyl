@@ -6,17 +6,18 @@ var config = {
 	ua: null
 };
 
-exports.track = function(cat, act) {
-	if (!$T) return;
-	$T.trackEvent({
-		category: cat,
-		action: act
-	});
-};
 
-exports.trackEvent = function(e){
+exports.trackEvent = function(cat,act,val,lbl){
 	if (!$T) return;
-	$T.trackEvent(e);
+	if (act) {
+		$T.trackEvent(_.extend(
+		{ category: cat, action: act },
+		lbl ? { label: lbl } : { label: '' },
+		val ? { value: val } : { value: 0 }
+		));
+	} else {
+		$T.trackEvent(cat);
+	}
 };
 
 exports.trackScreen = function(name){
@@ -24,9 +25,16 @@ exports.trackScreen = function(name){
 	$T.trackScreen(name);
 };
 
-exports.trackSocial = function(e){
+exports.trackSocial = function(net,act,tar){
 	if (!$T) return;
-	$T.trackSocial(e);
+	if (act) {
+		$T.trackSocial(_.extend(
+		{ network: net, action: act },
+		tar ? { target: tar } : { target: '' }
+		));
+	} else {
+		$T.trackSocial(net);
+	}
 };
 
 exports.init = function(c){

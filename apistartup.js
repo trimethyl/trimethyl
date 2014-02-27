@@ -7,7 +7,7 @@ exports.handle = function(){
 			require('auth').handleLogin();
 		});
 	} else {
-		require('auth').handleLogin();
+		require('auth').handleOfflineLogin();
 	}
 };
 

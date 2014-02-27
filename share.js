@@ -151,7 +151,7 @@ exports.options = function(args, _callback) {
 		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
 		if (args.text || args.description) intent.putExtra(Ti.Android.EXTRA_SUBJECT, args.description || args.text);
 		if (args.imageBlob) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.imageBlob);
-		var shareActivity = Ti.Android.createIntentChooser(intent, args.titleid ? L(args.titleid, args.title || 'Share') : (args.title || 'Share'));
+		var shareActivity = Ti.Android.createIntentChooser(intent, args.titleid ? L(args.titleid, args.title || L('share_title', 'Share')) : (args.title || L('share_title', 'Share')));
 		Ti.Android.currentActivity.startActivity(shareActivity);
 
 	} else {
@@ -167,7 +167,7 @@ exports.options = function(args, _callback) {
 			callbacks.push(_facebook);
 		}
 		if (!args.removeIcons || args.removeIcons.indexOf('mail') === -1) {
-			options.push(L('Mail'));
+			options.push('Mail');
 			callbacks.push(_mail);
 		}
 
@@ -179,7 +179,7 @@ exports.options = function(args, _callback) {
 		}
 
 		if (options.length === 0) return;
-		options.push(L('Cancel'));
+		options.push(L('share_cancel', 'Cancel'));
 
 		var dialog = Ti.UI.createOptionDialog({
 			cancel: options.length - 1,
