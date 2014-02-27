@@ -9,11 +9,7 @@ var config = {
 
 // An object to hold all requests, and to give the possibility to abort it
 var queue = {};
-
-// Contain a JSON received on startup
-var applicationInfo = {
-	timestamp: 0
-};
+var serverConnected = null;
 
 function calculateHash(request) {
 	return Ti.Utils.md5HexDigest(request.url+JSON.stringify(request.data||{})+JSON.stringify(request.headers||{}));
@@ -53,18 +49,10 @@ function getCache(request, noExpireCheck) {
 	var cacheInfo = getCacheInfo(request);
 	if (!cacheInfo) return false;
 
-	if (Alloy.CFG.debug) {
-		console.log("------- CACHE BEHAVIORS ("+request.url+")-----------");
-		console.log("Info: ", cacheInfo);
-		console.log("Refresh: ", request.refresh?1:0);
-		console.log("Expired: ", +new Date()-(cacheInfo.expire||0));
-		console.log("Apptime: ", ((applicationInfo.timestamp||0)*1000)-(cacheInfo.creation||-1));
-	}
-
 	if (!noExpireCheck) {
 		if (request.refresh) return false;
 		if ((cacheInfo.expire||0)<+new Date()) return false;
-		if (applicationInfo && (cacheInfo.creation||-1)<(applicationInfo.timestamp||0)*1000) {
+		if ((cacheInfo.creation||-1)<+Ti.App.Properties.getString('settings.timestamp')*1000) {
 			console.warn("Cache is expired for application timestamp");
 			return false;
 		}
@@ -85,6 +73,12 @@ function buildQuery(a) {
 		r.push(k+'='+encodeURIComponent(a[k]));
 	}
 	return r.join('&');
+}
+
+function setApplicationInfo(appInfo) {
+	for (var key in appInfo) {
+		Ti.App.Properties.setString('settings.'+key, appInfo[key]);
+	}
 }
 
 function autoDispatch(msg) {
@@ -213,20 +207,16 @@ exports.isOnline = function() {
 	return Ti.Network.online;
 };
 
-exports.getApplicationInfo = function(){
-	return applicationInfo;
-};
-
 exports.addHeader = function(a,b) {
 	config.headers[a] = b;
 };
 
-exports.responseetHeaders = function() {
+exports.resetHeaders = function() {
 	config.headers = {};
 };
 
 exports.isServerConnected = isServerConnected = function(){
-	return !!(applicationInfo);
+	return !!serverConnected;
 };
 
 exports.isQueueEmpty = function(){
@@ -337,12 +327,15 @@ exports.connectToServer = function(cb) {
 		url: '/ping',
 		method: 'POST',
 		disableEvent: true,
-		success: function(r){
-			applicationInfo = r;
+		info: { mime: 'json' },
+		success: function(appInfo){
+			serverConnected = true;
+			setApplicationInfo(appInfo);
 			Ti.App.fireEvent('network.ping.success');
-			return cb(applicationInfo);
+			return cb(appInfo);
 		},
 		error: function(message, response){
+			serverConnected = false;
 			var errorWindow = Ti.UI.createWindow({
 				exitOnClose: true,
 				backgroundColor: '#fff',
