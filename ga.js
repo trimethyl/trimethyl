@@ -6,11 +6,17 @@ var config = {
 	ua: null
 };
 
+exports.track = function(cat, act) {
+	if (!$T) return;
+	$T.trackEvent({
+		category: cat,
+		action: act
+	});
+};
+
 exports.trackEvent = function(e){
 	if (!$T) return;
-	e.label = e.label || e.action;
-	e.value = e.value || 0;
-	$$.trackEvent(e);
+	$T.trackEvent(e);
 };
 
 exports.trackScreen = function(name){
@@ -27,5 +33,5 @@ exports.init = function(c){
 	config = _.extend(config, c);
 	$$.trackUncaughtExceptions = true;
 	$$.debug = Alloy.CFG.debug;
-	$T = $$.getTracker(config.ua);
+	if (config.ua) $T = $$.getTracker(config.ua);
 };
