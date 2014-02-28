@@ -99,7 +99,6 @@ exports.facebook = function(args, _callback) {
 		var FB = require('facebook');
 		if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 
-		console.error(args);
 		FB.dialog('feed', {
 			name: args.title,
 			description: args.text,

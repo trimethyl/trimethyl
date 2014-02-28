@@ -3,7 +3,7 @@ var config = {
 	cancelable: true,
 	leftImage: true,
 	timeout: 4000,
-	background: '#7000'
+	background: '#B000'
 };
 
 exports.show = show = function(msg, args) {
@@ -27,9 +27,9 @@ exports.show = show = function(msg, args) {
 	if (args.leftImage) {
 		view.add(Ti.UI.createImageView({
 			left: 10,
-			image: image || '/appicon.png',
-			height: args.height-20,
+			image: '/appicon.png',
 			width: args.height-20,
+			height: args.height-20,
 			borderRadius: (args.height-20)/2,
 			touchEnabled: false
 		}));
@@ -39,7 +39,7 @@ exports.show = show = function(msg, args) {
 		color: '#fff',
 		text: msg,
 		touchEnabled: false,
-		left: 10+(args.leftImage?args.height-5:0),
+		left: 10 + (args.leftImage ? args.height-5 : 0),
 		top: 10,
 		bottom: 10,
 		right: 10,
