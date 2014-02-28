@@ -21,7 +21,25 @@ function onSocialCancelled(e) {
 
 function _init(args) {
 	args = args || {};
-	if (args.image) args.imageBlob = Ti.UI.createImageView(args.image).toBlob();
+	if (args.image) {
+		if (typeof args.image === 'object') {
+			if (args.image.resolve) {
+				args.imageBlob = args.image;
+				args.image = args.imageBlob.resolve();
+			} else if (args.image.nativePath) {
+				args.imageBlob = args.image;
+				args.image = args.imageBlob.nativePath;
+			} else {
+				delete args.image;
+			}
+		} else if (args.image.indexOf('://')>0) {
+			args.imageUrl = args.image;
+		}
+	}
+
+	if (args.imageUrl && !args.image) {
+		args.image = args.imageUrl;
+	}
 	return args;
 }
 
@@ -33,19 +51,21 @@ exports.twitter = function(args, _callback) {
 	var textUrl = (args.url && args.image) ? (args.text ? args.text + ' ' + args.url : args.url) : args.text;
 
 	if (OS_IOS) {
+
 		if (Social.isTwitterSupported()) {
-			// Twitter SDK does not support both URL and image: https://github.com/viezel/TiSocial.Framework/issues/41
 			Social.twitter({
 				text: textUrl,
 				image: args.image,
-				url: args.image ? null : args.url
+				url: args.url
 			});
 		} else {
 			var url = 'twitter://post?message=' + encodeURIComponent(textUrl);
 			if (!Ti.Platform.canOpenURL(url)) url = webUrl;
 			Ti.Platform.openURL(url);
 		}
+
 	} else if (OS_ANDROID) {
+
 		try {
 			var intent = Ti.Android.createIntent({
 				action: Ti.Android.ACTION_SEND,
@@ -58,6 +78,7 @@ exports.twitter = function(args, _callback) {
 		} catch (error) {
 			Ti.Platform.openURL(webUrl);
 		}
+
 	} else {
 		Ti.Platform.openURL(webUrl);
 	}
@@ -74,11 +95,15 @@ exports.facebook = function(args, _callback) {
 			url: args.url
 		});
 	} else {
-		require('facebook').dialog('feed', {
-			link: args.url,
-			caption: args.caption,
-			description: args.description || args.text,
-			picture: args.image
+
+		var FB = require('facebook');
+		if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+
+		console.error(args);
+		FB.dialog('feed', {
+			name: args.title,
+			description: args.text,
+			picture: args.imageUrl
 		}, function(e) {
 			if (e.cancelled) {
 				onSocialCancelled({
@@ -105,7 +130,9 @@ exports.mail = function(args, _callback) {
 		messageBody: args.text + (args.url ? "<br><br>" + args.url : ''),
 	});
 
-	if (args.imageBlob) emailDialog.addAttachment(args.imageBlob);
+	if (args.imageBlob) {
+		emailDialog.addAttachment(args.imageBlob);
+	}
 
 	emailDialog.addEventListener('complete', function(e) {
 		if (e.result === this.CANCELLED) {
@@ -150,7 +177,7 @@ exports.options = function(args, _callback) {
 		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
 		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
 		if (args.text || args.description) intent.putExtra(Ti.Android.EXTRA_SUBJECT, args.description || args.text);
-		if (args.imageBlob) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.imageBlob);
+		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
 		var shareActivity = Ti.Android.createIntentChooser(intent, args.titleid ? L(args.titleid, args.title || L('share_title', 'Share')) : (args.title || L('share_title', 'Share')));
 		Ti.Android.currentActivity.startActivity(shareActivity);
 

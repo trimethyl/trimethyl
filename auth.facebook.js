@@ -55,7 +55,7 @@ exports.init = function(c){
 	config = _.extend(config, c);
 
 	FB.forceDialogAuth = false;
-	if (config.appId) FB.appid = config.appId;
+	if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 	if (config.permissions) FB.permissions = config.permissions.split(',');
 
 	FB.addEventListener('login', function(e){

@@ -6,14 +6,13 @@ var config = {
 	ua: null
 };
 
-
-exports.trackEvent = function(cat,act,val,lbl){
+exports.trackEvent = function(cat,act,lbl,val){
 	if (!$T) return;
 	if (act) {
 		$T.trackEvent(_.extend(
 		{ category: cat, action: act },
 		lbl ? { label: lbl } : { label: '' },
-		val ? { value: val } : { value: 0 }
+		val ? { value: +val } : { value: 0 }
 		));
 	} else {
 		$T.trackEvent(cat);

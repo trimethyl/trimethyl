@@ -16,18 +16,19 @@ _.each(modules, function(m){
 
 // Manage pause and resume events
 
-var launchURL = require('util').parseSchema();
+var U = require('util');
+
+var launchURL = U.parseSchema();
 var pauseURL = null;
 
 if (OS_IOS) {
-
 	Ti.App.addEventListener('pause', function(){
 		pauseURL = launchURL;
 		Ti.App.fireEvent('app.paused');
 	});
 
 	Ti.App.addEventListener('resumed', function() {
-		launchURL = require('util').parseSchema();
+		launchURL = U.parseSchema();
 		if (launchURL!=pauseURL) {
 			Ti.App.fireEvent('app.resumed', { url: launchURL });
 		}
@@ -36,10 +37,9 @@ if (OS_IOS) {
 
 
 // Set some TSS vars
-Alloy.Globals.SCREEN_WIDTH = require('util').getScreenWidth();
-Alloy.Globals.SCREEN_HEIGHT = require('util').getScreenHeight();
-
-// Export
+Alloy.Globals.SCREEN_WIDTH = U.getScreenWidth();
+Alloy.Globals.SCREEN_HEIGHT = U.getScreenHeight();
+Alloy.Globals.IOS7 = U.isIOS7();
 
 exports.getLoadedModules = function(){
 	return loadedModules;

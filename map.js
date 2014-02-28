@@ -14,8 +14,8 @@ exports.cluster = function(e, markers){
 	}
 
 	var c={}, g={}, id, jd, len;
-	var latR = e.source.size.height/e.latitudeDelta;
-	var lngR = e.source.size.width/e.longitudeDelta;
+	var latR = (e.source.size.height||Alloy.Globals.SCREEN_HEIGHT)/e.latitudeDelta;
+	var lngR = (e.source.size.width||Alloy.Globals.SCREEN_WIDTH)/e.longitudeDelta;
 	var degreeLat = config.pixelRadius/latR;
 	var degreeLng = config.pixelRadius/lngR;
 	var bb = [
