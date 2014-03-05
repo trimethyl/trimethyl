@@ -22,6 +22,7 @@ var launchURL = U.parseSchema();
 var pauseURL = null;
 
 if (OS_IOS) {
+
 	Ti.App.addEventListener('pause', function(){
 		pauseURL = launchURL;
 		Ti.App.fireEvent('app.paused');

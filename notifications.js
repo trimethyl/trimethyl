@@ -4,9 +4,6 @@ Cloud.debug = Alloy.CFG.debug;
 if (OS_ANDROID) {
 	var CloudPush = require('ti.cloudpush');
 	CloudPush.debug = Alloy.CFG.debug;
-	CloudPush.enabled = true;
-	CloudPush.showTrayNotificationsWhenFocused = true;
-	CloudPush.focusAppOnPush = false;
 }
 
 var config = {
@@ -85,7 +82,10 @@ function subscribeAndroid(cb) {
 					e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
 				return;
 			}
+			CloudPush.enabled = true;
 			CloudPush.addEventListener('callback', notificationReceived);
+			//CloudPush.addEventListener('trayClickLaunchedApp', notificationReceived);
+			//CloudPush.addEventListener('trayClickFocusedApp', notificationReceived);
 			cb(e.deviceToken);
 		},
 		error: function(e) {

@@ -64,21 +64,6 @@ exports.twitter = function(args, _callback) {
 			Ti.Platform.openURL(url);
 		}
 
-	} else if (OS_ANDROID) {
-
-		try {
-			var intent = Ti.Android.createIntent({
-				action: Ti.Android.ACTION_SEND,
-				packageName: "com.twitter.android",
-				className: "com.twitter.android.PostActivity",
-				type: "text/plain"
-			});
-			intent.putExtra(Ti.Android.EXTRA_TEXT, textUrl);
-			Ti.Android.currentActivity.startActivity(intent);
-		} catch (error) {
-			Ti.Platform.openURL(webUrl);
-		}
-
 	} else {
 		Ti.Platform.openURL(webUrl);
 	}

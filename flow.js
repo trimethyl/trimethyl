@@ -8,12 +8,12 @@ var hist = [];
 function closeController(c) {
 	if (!c) return;
 	try {
-		if ('close' in c) c.close();
-		else {
+		if ('close' in c) {
+			c.close();
+		} else {
 			console.warn("Implement close function in controllers!");
 			c.getView().close();
 		}
-		c.destroy();
 	} catch (e) {
 		console.error(e);
 	}

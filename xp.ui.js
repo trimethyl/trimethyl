@@ -14,19 +14,20 @@ if (!OS_IOS) {
 
 	NavigationWindow.prototype.openWindow = function(window, params) {
 		params = params || {};
-		if (OS_ANDROID && params.animated) {
-			params.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-			params.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+		if (OS_ANDROID && params.animated!==false) {
+			if (params.modal) {
+				params.activityEnterAnimation = Ti.Android.R.anim.fade_in;
+				params.activityExitAnimation = Ti.Android.R.anim.fade_out;
+			} else {
+				params.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
+				params.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+			}
 		}
-		return window.open(params);
+		return window.open(_.extend(params, { modal: false }));
 	};
 
 	NavigationWindow.prototype.closeWindow = function(window, params) {
 		params = params || {};
-		if (OS_ANDROID && params.animated!==false) {
-			params.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-			params.activityExitAnimation = Ti.Android.R.anim.fade_out;
-		}
 		return window.close(params);
 	};
 }

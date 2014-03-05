@@ -14,7 +14,9 @@ var timeout = null;
 function onLogin(e) {
 	if (timeout) clearTimeout(timeout);
 	if (loginTimeout) clearTimeout(loginTimeout);
-	if (!e.success) return Ti.App.fireEvent('auth.fail', { message: e.error || L('auth_facebook_error', 'Facebook login failed for an unknown reason') });
+	if (!e.success) {
+		return Ti.App.fireEvent('auth.fail', { message: e.error || L('auth_facebook_error', 'Facebook login failed for an unknown reason') });
+	}
 
 	Auth.login({ access_token: FB.getAccessToken() }, 'facebook', function(){
 		// We don't need to store nothing, because the Facebook SDK store internally all data.
@@ -28,17 +30,26 @@ exports.handleLogin = function(){
 
 	if (OS_IOS) {
 
-		if (cachedLoginEvent) return onLogin(cachedLoginEvent);
+		if (cachedLoginEvent) {
+			return onLogin(cachedLoginEvent);
+		}
+
 		// if there's no cachedLoginEvent, we wait for the library to trigger automatically the event
 		// But, we are on Titanium, and we know that nothing works fine.. So we just put a timeout
 		// that call the FB.authorize() method. Manually.
 		loginTimeout = setTimeout(function(){
-			if (FB.loggedIn && FB.getAccessToken()) return onLogin({ success:true });
+			if (FB.loggedIn && FB.getAccessToken()) {
+				return onLogin({ success:true });
+			}
+
 			FB.authorize();
 		}, 5000);
 
 	} else {
-		if (FB.loggedIn && FB.getAccessToken()) return onLogin({ success:true });
+		if (FB.loggedIn && FB.getAccessToken()) {
+			return onLogin({ success:true });
+		}
+
 		FB.authorize();
 	}
 };

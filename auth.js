@@ -2,8 +2,7 @@ var config = {};
 var drivers = {};
 
 var Network = require('network');
-var authInfo = null;
-var Me = null;
+var Me, authInfo;
 
 function getCurrentDriver(){
 	if (!Ti.App.Properties.hasProperty('auth.driver')) return false;
@@ -89,30 +88,35 @@ exports.user = exports.me = function(){
 };
 
 exports.logout = logout = function() {
-	var id = null;
-	if (Me) id = Me.get('id');
+	if (!Me) return;
+	var id = Me.get('id');
 
-	var Driver = loadCurrentDriver();
-	if (Driver) Driver.logout();
+	try {
+		var Driver = loadCurrentDriver();
+		if (Driver) Driver.logout();
+	} catch (e) {
+		console.error("Auth driver error: "+e);
+	}
+
+	Me = null;
+	authInfo = null;
 
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
 	Network.resetCache();
 
-	Me = null;
-	authInfo = null;
-
 	if (require('network').isOnline()) {
 		Network.send({
 			url: '/logout',
 			method: 'POST',
+			info: { mime:'json' },
 			disableEvent: true,
 			complete: function(){
 				Network.resetCookies();
 				Ti.App.fireEvent('auth.logout', { id: id });
 			},
 			success: function(){},
-			error: function(){}
+			error: function(){} // suppress all errors
 		});
 	} else {
 		Network.resetCookies();

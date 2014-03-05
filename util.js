@@ -22,12 +22,12 @@ exports.getScreenHeight = function(){
 };
 
 exports.openFacebookProfile = function(fbid) {
-	Ti.Platform.openURL("http://www.facebook.com/"+fbid);
+	Ti.Platform.openURL("http://facebook.com/"+fbid);
 };
 
 exports.openTwitterProfile = function(twid) {
 	if (OS_IOS && Ti.Platform.canOpenURL("twitter://user?screen_name="+twid)) Ti.Platform.openURL("twitter://user?screen_name="+twid);
-	else Ti.Platform.openURL("http://www.twitter.com/"+twid);
+	else Ti.Platform.openURL("http://twitter.com/"+twid);
 };
 
 exports.getFacebookAvatar = function(fbid, w, h) {
@@ -89,7 +89,7 @@ exports.parseSchema = function() {
 		var cmd = Ti.App.getArguments();
 		if (cmd && 'url' in cmd) return cmd.url.replace(/[^:]*\:\/\//, '');
 	} else if (OS_ANDROID) {
-		var url = Ti.Android.currentActivity.getIntent().getData();
+		var url = Ti.Android.currentActivity.intent.data;
 		if (!url) return;
 		return url.replace(/[^:]*\:\/\//, '');
 	}
