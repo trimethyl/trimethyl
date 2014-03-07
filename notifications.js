@@ -1,9 +1,9 @@
 var Cloud = require("ti.cloud");
-Cloud.debug = Alloy.CFG.debug;
+Cloud.debug = !ENV_PRODUCTION;
 
 if (OS_ANDROID) {
 	var CloudPush = require('ti.cloudpush');
-	CloudPush.debug = Alloy.CFG.debug;
+	CloudPush.debug = !ENV_PRODUCTION ;
 }
 
 var config = {
@@ -47,8 +47,9 @@ function subscribe(channel, deviceToken, callback) {
 		})()
 	}, function (e) {
 		if (!e.success) {
-			return Ti.App.fireEvent('notifications.subscription.error',
-				e.message || L('notification_subscription_error_acs', 'Error while subscribing for notifications on ACS.'));
+			return Ti.App.fireEvent('notifications.subscription.error', {
+				message: e.message || L('notification_subscription_error_acs', 'Error while subscribing for notifications on ACS.')
+			});
 		}
 		Ti.App.fireEvent('notifications.subscription.success', { channel: channel });
 		if (callback) callback();
@@ -60,15 +61,17 @@ function subscribeIOS(cb) {
 		types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
 		success: function(e){
 			if (!e.deviceToken) {
-				Ti.App.fireEvent('notifications.subscription.error',
-					e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
+				Ti.App.fireEvent('notifications.subscription.error', {
+					message:  e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
+				});
 				return;
 			}
 			cb(e.deviceToken);
 		},
 		error: function(e){
-			Ti.App.fireEvent('notifications.subscription.error',
-				e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
+			Ti.App.fireEvent('notifications.subscription.error', {
+				message: e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
+			});
 		},
 		callback: notificationReceived
 	});
@@ -78,19 +81,19 @@ function subscribeAndroid(cb) {
 	CloudPush.retrieveDeviceToken({
 		success: function(e) {
 			if (!e.deviceToken) {
-				Ti.App.fireEvent('notifications.subscription.error',
-					e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
+				Ti.App.fireEvent('notifications.subscription.error', {
+					message: e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
+				});
 				return;
 			}
 			CloudPush.enabled = true;
 			CloudPush.addEventListener('callback', notificationReceived);
-			//CloudPush.addEventListener('trayClickLaunchedApp', notificationReceived);
-			//CloudPush.addEventListener('trayClickFocusedApp', notificationReceived);
 			cb(e.deviceToken);
 		},
 		error: function(e) {
-			Ti.App.fireEvent('notifications.subscription.error',
-				e.message || L('notification_subscription_error', 'Error while subscribing for notifications.'));
+			Ti.App.fireEvent('notifications.subscription.error', {
+				message:  e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
+			});
 		}
 	});
 }

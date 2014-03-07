@@ -39,6 +39,6 @@ exports.trackSocial = function(net,act,tar){
 exports.init = function(c){
 	config = _.extend(config, c);
 	$$.trackUncaughtExceptions = true;
-	$$.debug = Alloy.CFG.debug;
+	$$.debug = !ENV_PRODUCTION;
 	if (config.ua) $T = $$.getTracker(config.ua);
 };

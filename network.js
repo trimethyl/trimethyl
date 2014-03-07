@@ -160,7 +160,7 @@ function onComplete(request, response, e){
 	if (info.mime=='json') returnValue = parseJSON(response.responseText);
 	else returnValue = response.responseData;
 
-	if (Alloy.CFG.debug) {
+	if (!ENV_PRODUCTION) {
 		console.log("------- NETWORK INFO ("+request.url+")-----------");
 		console.log(info);
 	}
@@ -180,7 +180,7 @@ function onComplete(request, response, e){
 			}
 		}
 
-		if (Alloy.CFG.debug) {
+		if (!ENV_PRODUCTION) {
 			console.error("------- NETWORK ERROR ("+request.url+") -----------");
 			console.error(e);
 			console.error(returnValue);
@@ -198,7 +198,7 @@ function onComplete(request, response, e){
 	}
 
 	// HTTP code < 400
-	if (Alloy.CFG.debug) {
+	if (!ENV_PRODUCTION) {
 		console.log("------- NETWORK RESPONSE ("+request.url+")-----------");
 		console.log(returnValue);
 	}
@@ -262,7 +262,7 @@ exports.deleteCache = deleteCache = function(request) {
 
 exports.send = send = function(request) {
 	request = decorateRequest(request);
-	if (Alloy.CFG.debug) {
+	if (!ENV_PRODUCTION) {
 		console.log("------- NETWORK REQUEST ("+request.url+")-----------");
 		console.log(request);
 	}
@@ -271,7 +271,7 @@ exports.send = send = function(request) {
 	if (config.useCache && request.method=='GET') {
 		var cache = getCache(request, !Ti.Network.online);
 		if (cache) {
-			if (Alloy.CFG.debug) {
+			if (!ENV_PRODUCTION) {
 				console.log("------- NETWORK CACHE ("+request.url+")-----------");
 				console.log(cache);
 			}
