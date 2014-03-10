@@ -3,7 +3,9 @@ Cloud.debug = !ENV_PRODUCTION;
 
 if (OS_ANDROID) {
 	var CloudPush = require('ti.cloudpush');
-	CloudPush.debug = !ENV_PRODUCTION ;
+	CloudPush.debug = !ENV_PRODUCTION;
+	CloudPush.enabled = true;
+	CloudPush.addEventListener('callback', notificationReceived);
 }
 
 var config = {
@@ -87,7 +89,6 @@ function subscribeAndroid(cb) {
 				return;
 			}
 			CloudPush.enabled = true;
-			CloudPush.addEventListener('callback', notificationReceived);
 			cb(e.deviceToken);
 		},
 		error: function(e) {
@@ -108,7 +109,7 @@ function unsubscribeIOS() {
 }
 
 function unsubscribeAndroid() {
-	CloudPush.removeEventListener('callback', notificationReceived);
+	CloudPush.enabled = false;
 }
 
 function unsubscribe(channel) {
@@ -118,7 +119,8 @@ function unsubscribe(channel) {
 	Cloud.PushNotifications.unsubscribeToken({
 		device_token: token,
 		channel: channel || null
-	}, function(){});
+	}, function(){
+	});
 }
 
 exports.unsubscribe = function(channel) {
