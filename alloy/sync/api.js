@@ -11,9 +11,14 @@ exports.sync = function(method, model, opt) {
 
 	var url = model.config.adapter.baseUrl ? model.config.adapter.baseUrl : '/';
 	url += model.config.adapter.name;
-	if (model.id) url += '/' + model.id;
+	if (model.id) {
+		url += '/' + model.id;
+	}
 
-	if (opt.patch) method = 'patch';
+	if (opt.patch) {
+		method = 'patch';
+	}
+
 	var data = _.extend(opt.networkArgs || {}, {
 		url: url,
 		method: CRUD_TO_REST[method],
@@ -33,10 +38,14 @@ exports.sync = function(method, model, opt) {
 		Network.send(_.extend(data, {
 			data: model.toJSON(),
 			success: function(resp) {
-				if (resp.id) opt.success(resp);
-				else opt.success();
+				if (resp.id) {
+					opt.success(resp);
+				} else {
+					opt.success();
+				}
 
 				if (opt.ready) opt.ready();
+
 				model.trigger("fetch");
 			},
 			fail: function(msg) {
@@ -64,8 +73,11 @@ exports.sync = function(method, model, opt) {
 		Network.send(_.extend(data, {
 			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
-				if (resp.id) opt.success(resp);
-				else opt.success();
+				if (resp.id) {
+					opt.success(resp);
+				} else {
+					opt.success();
+				}
 
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
