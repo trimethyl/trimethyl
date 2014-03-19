@@ -20,9 +20,22 @@ So, open terminal, move to your Titanium project, and type
 git clone https://bitbucket.org/caffeina/trimethyl app/lib
 ```
 
-All your custom code out of the framework can be placed in `app/lib/app/*`, which is in git-ignore.
+All your custom code out of the framework can be placed in `app/lib/app/*`, that is in .gitignore.
 
-## Configuration
+## Initialization
+
+In your *app/alloy.js* file, do something like:
+
+```javascript
+var App = {
+	Framework: require('trimethyl')
+};
+```
+
+And all modules set in *config.json* are loaded.
+
+
+## Configuration with auto-conf
 
 In your *app/config.json* file, add a key `autoConfModules` and specify the modules you want to load as array.
 
@@ -42,19 +55,15 @@ In your *app/config.json* file, add a key `autoConfModules` and specify the modu
 
 For each module, add a key with the exact name of the module and put its configuration: it will be loaded and configured automatically on startup.
 
-## Initialization
+## Configuration without auto-conf
 
-In your *app/alloy.js* file, do something like:
+Just call 
 
 ```javascript
-var App = {
-	Framework: require('trimethyl')
-};
+var Module1 = require('MODULE1').init({ /* ... */ });
 ```
 
-And all modules set in *config.json* are loaded.
-
-**You can use all modules too without *autoConfModules*, just call `require("MODULE");'**
+for each module you want to use.
 
 ## Modules
 

@@ -41,7 +41,9 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 var locaCallbacks = [];
 
 exports.localize = localize = function(cb) {
-	if (!checkForServices()) return;
+	if (!checkForServices()) {
+		return;
+	}
 
 	Ti.App.fireEvent('geo.start');
 	Ti.Geolocation.purpose = L('geo_purpose', "Let us use your GPS position!");
@@ -57,7 +59,9 @@ exports.localize = localize = function(cb) {
 var gyroCallbacks = [];
 
 exports.gyroscope = gyroscope = function(cb) {
-	if (!checkForServices()) return;
+	if (!checkForServices()) {
+		return;
+	}
 
 	gyroCallbacks.push(cb);
 
@@ -68,8 +72,9 @@ exports.gyroscope = gyroscope = function(cb) {
 };
 
 exports.gyroscopeOff = function(cb) {
-	if (cb) Ti.Geolocation.removeEventListener('heading', cb);
-	else {
+	if (cb) {
+		Ti.Geolocation.removeEventListener('heading', cb);
+	} else {
 		_.each(gyroCallbacks, function(fun){
 			Ti.Geolocation.removeEventListener('heading', fun);
 		});

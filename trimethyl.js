@@ -34,8 +34,8 @@ if (OS_IOS) {
 			Ti.App.fireEvent('app.resumed', { url: launchURL });
 		}
 	});
-}
 
+}
 
 // Set some TSS vars
 Alloy.Globals.SCREEN_WIDTH = U.getScreenWidth();

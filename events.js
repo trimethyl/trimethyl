@@ -8,7 +8,10 @@ exports.add = exports.on = function(k, f) {
 };
 
 exports.remove = exports.off = function(k, f) {
-	if (!(k in $$)) return;
+	if (!(k in $$)) {
+		return;
+	}
+
 	for (var _f in $$[k]) {
 		if (!_f || _f===f) {
 			Ti.App.removeEventListener(k, _f);

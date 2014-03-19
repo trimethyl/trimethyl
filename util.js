@@ -7,17 +7,23 @@ exports.getSpinner = function(){
 };
 
 exports.getScreenDensity = function() {
-	if (OS_ANDROID) return Ti.Platform.displayCaps.logicalDensityFactor;
+	if (OS_ANDROID) {
+		return Ti.Platform.displayCaps.logicalDensityFactor;
+	}
 	return Titanium.Platform.displayCaps.dpi/160;
 };
 
 exports.getScreenWidth = function(){
-	if (OS_IOS) return Ti.Platform.displayCaps.platformWidth;
+	if (OS_IOS) {
+		return Ti.Platform.displayCaps.platformWidth;
+	}
 	return Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
 };
 
 exports.getScreenHeight = function(){
-	if (OS_IOS) return Ti.Platform.displayCaps.platformHeight;
+	if (OS_IOS) {
+		return Ti.Platform.displayCaps.platformHeight;
+	}
 	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
 };
 
@@ -26,8 +32,11 @@ exports.openFacebookProfile = function(fbid) {
 };
 
 exports.openTwitterProfile = function(twid) {
-	if (OS_IOS && Ti.Platform.canOpenURL("twitter://user?screen_name="+twid)) Ti.Platform.openURL("twitter://user?screen_name="+twid);
-	else Ti.Platform.openURL("http://twitter.com/"+twid);
+	if (OS_IOS && Ti.Platform.canOpenURL("twitter://user?screen_name="+twid)) {
+		Ti.Platform.openURL("twitter://user?screen_name="+twid);
+	} else {
+		Ti.Platform.openURL("http://twitter.com/"+twid);
+	}
 };
 
 exports.getFacebookAvatar = function(fbid, w, h) {
@@ -36,7 +45,9 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 
 exports.getDomainFromURL = function(url) {
 	var matches = url.match(/https?\:\/\/([^\/]*)/i);
-	if (!matches) return '';
+	if (!matches) {
+		return '';
+	}
 	return matches[1].replace('www.', '');
 };
 
@@ -46,7 +57,9 @@ exports.alert = alertDialog = function(title, msg, callback) {
 		message: msg,
 		ok: L('alert_ok','OK')
 	});
-	if (callback) d.addEventListener('click', callback);
+	if (callback) {
+		d.addEventListener('click', callback);
+	}
 	d.show();
 	return d;
 };
@@ -59,7 +72,9 @@ exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callba
 		title: title
 	});
 	dialog.addEventListener('click', function(e){
-		if (e.index==e.source.cancel) return;
+		if (e.index==e.source.cancel) {
+			return;
+		}
 		if (callback) callback(e.index);
 	});
 	dialog.show();
@@ -70,7 +85,9 @@ exports.alertError = function(msg, callback) {
 };
 
 exports.isIOS7 = isIOS7 = function() {
-	if (!OS_IOS) return false;
+	if (!OS_IOS) {
+		return false;
+	}
 	return parseInt(Ti.Platform.version.split(".")[0],10)>=7;
 };
 
@@ -80,7 +97,9 @@ exports.isIPad = function(){
 
 exports.ellipse = function(text, len){
 	len = len || 12;
-	if (text && text.length>=len) return text.substr(0,len-2)+'..';
+	if (text && text.length>=len) {
+		return text.substr(0,len-2)+'..';
+	}
 	return text;
 };
 

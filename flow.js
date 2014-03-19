@@ -6,7 +6,10 @@ var cca = null;
 var hist = [];
 
 function closeController(c) {
-	if (!c) return;
+	if (!c) {
+		return;
+	}
+
 	try {
 		if ('close' in c) {
 			c.close();
@@ -41,7 +44,10 @@ exports.create = exports.open = create = function(controller, args, unclosePrev)
 };
 
 exports.back = exports.goBack = back = function() {
-	if (hist.length<2) return;
+	if (hist.length<2) {
+		return;
+	}
+
 	var last = hist.pop().pop();
 	create(last.controller, last.args);
 };

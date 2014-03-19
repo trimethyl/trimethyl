@@ -47,11 +47,19 @@ function writeCache(request, response, info) {
 
 function getCache(request, noExpireCheck) {
 	var cacheInfo = getCacheInfo(request);
-	if (!cacheInfo) return false;
+	if (!cacheInfo) {
+		return false;
+	}
 
 	if (!noExpireCheck) {
-		if (request.refresh) return false;
-		if ((cacheInfo.expire||0)<+new Date()) return false;
+		if (request.refresh) {
+			return false;
+		}
+
+		if ((cacheInfo.expire||0)<+new Date()) {
+			return false;
+		}
+
 		if ((cacheInfo.creation||-1)<+Ti.App.Properties.getString('settings.timestamp')*1000) {
 			console.warn("Cache is expired for application timestamp");
 			return false;
@@ -59,11 +67,17 @@ function getCache(request, noExpireCheck) {
 	}
 
 	var stream = getCacheStream(request);
-	if (!stream.exists()) return false;
+	if (!stream.exists()) {
+		return false;
+	}
 
 	var data = stream.read();
-	if (cacheInfo.mime=='json') returnValue = parseJSON(data);
-	else returnValue = data;
+	if (cacheInfo.mime=='json') {
+		returnValue = parseJSON(data);
+	} else {
+		returnValue = data;
+	}
+
 	return returnValue;
 }
 
@@ -90,7 +104,9 @@ function getResponseInfo(response) {
 
 	// mime type
 	var contentType = response.getResponseHeader('Content-Type');
-	if (contentType=='application/json') info.mime = 'json';
+	if (contentType=='application/json') {
+		info.mime = 'json';
+	}
 
 	// creation time
 	info.creation = +new Date();
@@ -107,9 +123,14 @@ function getResponseInfo(response) {
 }
 
 function decorateRequest(request) {
-	if (request.hash) return request;
+	if (request.hash) {
+		return request;
+	}
 
-	if (!request.url) throw 'Please specify almost the URL!';
+	if (!request.url) {
+		throw 'Please specify almost the URL!';
+	}
+
 	if (request.url.substr(0,1)=='/') {
 		request.url = config.base + request.url;
 	}
@@ -137,13 +158,20 @@ function decorateRequest(request) {
 function parseJSON(text) {
 	try {
 		var json = JSON.parse(text);
-		if (!json) return null;
+		if (!json) {
+			return null;
+		}
+
 		return json;
+
 	} catch (ex) { return null; }
 }
 
 function onComplete(request, response, e){
-	if (request.complete) request.complete();
+	if (request.complete) {
+		request.complete();
+	}
+
 	delete queue[request.hash];
 
 	if (!request.disableEvent) {
@@ -154,11 +182,16 @@ function onComplete(request, response, e){
 	}
 
 	var info = getResponseInfo(response);
-	if (request.mime) info.mime = request.mime;
+	if (request.mime) {
+		info.mime = request.mime;
+	}
 
 	var returnValue = null;
-	if (info.mime=='json') returnValue = parseJSON(response.responseText);
-	else returnValue = response.responseData;
+	if (info.mime=='json') {
+		returnValue = parseJSON(response.responseText);
+	} else {
+		returnValue = response.responseData;
+	}
 
 	if (!ENV_PRODUCTION) {
 		console.log("------- NETWORK INFO ("+request.url+")-----------");
@@ -172,8 +205,11 @@ function onComplete(request, response, e){
 		if (e.code<500) {
 			if (returnValue) {
 				if (info.mime=='json' && returnValue.error) {
-					if (returnValue.error.message) returnError = returnValue.error.message;
-					else returnError = returnValue.error;
+					if (returnValue.error.message) {
+						returnError = returnValue.error.message;
+					} else {
+						returnError = returnValue.error;
+					}
 				} else {
 					returnError = returnValue.toString();
 				}
@@ -186,7 +222,10 @@ function onComplete(request, response, e){
 			console.error(returnValue);
 		}
 
-		if (request.fail) request.fail(returnError, returnValue);
+		if (request.fail) {
+			request.fail(returnError, returnValue);
+		}
+
 		return request.error(returnError, returnValue);
 	}
 
@@ -202,6 +241,7 @@ function onComplete(request, response, e){
 		console.log("------- NETWORK RESPONSE ("+request.url+")-----------");
 		console.log(returnValue);
 	}
+
 	request.success(returnValue);
 }
 
@@ -230,14 +270,18 @@ exports.getQueue = function(){
 };
 
 exports.getQueuedRequest = getQueuedRequest = function(hash) {
-	if (typeof(hash)!='object') hash = decorateRequest(hash).hash;
+	if (typeof(hash)!='object') {
+		hash = decorateRequest(hash).hash;
+	}
 	var httpClient = queue[hash];
 	return httpClient ? httpClient : null;
 };
 
 exports.abortRequest = abortRequest = function(hash) {
 	var httpClient = getQueuedRequest(hash);
-	if (!httpClient) return;
+	if (!httpClient) {
+		return;
+	}
 	httpClient.abort();
 };
 
@@ -256,7 +300,9 @@ exports.deleteCache = deleteCache = function(request) {
 	request = decorateRequest(request);
 	Ti.App.Property.removeProperty(config.cacheNamespace+request.hash);
 	var stream = getCacheStream(request);
-	if (!stream.exists()) return true;
+	if (!stream.exists()) {
+		return true;
+	}
 	return stream.deleteFile();
 };
 
@@ -281,7 +327,10 @@ exports.send = send = function(request) {
 				Ti.App.fireEvent('network.offline', { cache: true });
 			}
 
-			if (request.complete) request.complete();
+			if (request.complete) {
+				request.complete();
+			}
+
 			request.success(cache);
 			return request.hash;
 		}
@@ -318,8 +367,11 @@ exports.send = send = function(request) {
 		H.setRequestHeader(k, request.headers[k]);
 	}
 
-	if (request.data) H.send(request.data);
-	else H.send();
+	if (request.data) {
+		H.send(request.data);
+	} else {
+		H.send();
+	}
 
 	return request.hash;
 };

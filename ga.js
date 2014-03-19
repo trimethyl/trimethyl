@@ -7,30 +7,39 @@ var config = {
 };
 
 exports.trackEvent = function(cat,act,lbl,val){
-	if (!$T) return;
+	if (!$T) {
+		return;
+	}
+
 	if (act) {
 		$T.trackEvent(_.extend(
-		{ category: cat, action: act },
-		lbl ? { label: lbl } : { label: '' },
-		val ? { value: +val } : { value: 0 }
-		));
+			{ category: cat, action: act },
+			lbl ? { label: lbl } : { label: '' },
+			val ? { value: +val } : { value: 0 }
+			));
 	} else {
 		$T.trackEvent(cat);
 	}
 };
 
 exports.trackScreen = function(name){
-	if (!$T) return;
+	if (!$T) {
+		return;
+	}
+
 	$T.trackScreen(name);
 };
 
 exports.trackSocial = function(net,act,tar){
-	if (!$T) return;
+	if (!$T) {
+		return;
+	}
+
 	if (act) {
 		$T.trackSocial(_.extend(
-		{ network: net, action: act },
-		tar ? { target: tar } : { target: '' }
-		));
+			{ network: net, action: act },
+			tar ? { target: tar } : { target: '' }
+			));
 	} else {
 		$T.trackSocial(net);
 	}

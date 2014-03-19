@@ -27,11 +27,19 @@ function notificationReceived(e) {
 }
 
 exports.setBadge = setBadge = function(x) {
-	if (OS_IOS) Ti.UI.iPhone.setAppBadge(Math.max(x,0));
+	if (OS_IOS) {
+		Ti.UI.iPhone.setAppBadge(Math.max(x,0));
+	} else if (OS_ANDROID) {
+		// TODO
+	}
 };
 
 exports.getBadge = getBadge = function() {
-	if (OS_IOS) return Ti.UI.iPhone.getAppBadge();
+	if (OS_IOS) {
+		return Ti.UI.iPhone.getAppBadge();
+	} else if (OS_ANDROID) {
+		// TODO
+	}
 };
 
 exports.incBadge = function(i) {
@@ -68,6 +76,7 @@ function subscribeIOS(cb) {
 				});
 				return;
 			}
+
 			cb(e.deviceToken);
 		},
 		error: function(e){
@@ -88,6 +97,7 @@ function subscribeAndroid(cb) {
 				});
 				return;
 			}
+
 			CloudPush.enabled = true;
 			cb(e.deviceToken);
 		},
@@ -114,7 +124,10 @@ function unsubscribeAndroid() {
 
 function unsubscribe(channel) {
 	var token = Ti.App.Properties.getString('notifications.token');
-	if (!token) return;
+	if (!token) {
+		return;
+	}
+
 	Ti.App.Properties.removeProperty('notifications.token');
 	Cloud.PushNotifications.unsubscribeToken({
 		device_token: token,

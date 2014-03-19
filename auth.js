@@ -5,13 +5,21 @@ var Network = require('network');
 var Me, authInfo;
 
 function getCurrentDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver')) return false;
+	if (!Ti.App.Properties.hasProperty('auth.driver')) {
+		return false;
+	}
+
 	return Ti.App.Properties.getString('auth.driver');
 }
 
 exports.loadDriver = loadDriver = function(d) {
-	if (!d) return false;
-	if (drivers[d]) return drivers[d];
+	if (!d) {
+		return false;
+	}
+
+	if (drivers[d]) {
+		return drivers[d];
+	}
 
 	try {
 		drivers[d] = require('auth.'+d);
@@ -61,16 +69,22 @@ exports.login = login = function(data, driver, cb) {
 
 			Me = Alloy.createModel('user', { id: authInfo.id });
 			Me.fetch({
-				networkArgs: { refresh:true },
+
+				networkArgs: {
+					refresh: true
+				},
+
 				ready: function(){
 					Ti.App.Properties.setObject('auth.me', Me.toJSON());
 					Ti.App.Properties.setString('auth.driver', driver);
 					Ti.App.fireEvent('auth.success', authInfo);
 					if (cb) cb();
 				},
+
 				error: function(msg){
 					Ti.App.fireEvent('auth.fail', { message: (msg || L('auth_fail', 'Authentication failed')) });
 				}
+
 			});
 		},
 		error: function(msg){
@@ -88,7 +102,10 @@ exports.user = exports.me = function(){
 };
 
 exports.logout = logout = function() {
-	if (!Me) return;
+	if (!Me) {
+		return;
+	}
+
 	var id = Me.get('id');
 
 	try {
@@ -109,7 +126,9 @@ exports.logout = logout = function() {
 		Network.send({
 			url: '/logout',
 			method: 'POST',
-			info: { mime:'json' },
+			info: {
+				mime:'json'
+			},
 			disableEvent: true,
 			complete: function(){
 				Network.resetCookies();
