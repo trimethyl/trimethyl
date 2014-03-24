@@ -82,13 +82,13 @@ exports.login = login = function(data, driver, cb) {
 				},
 
 				error: function(msg){
-					Ti.App.fireEvent('auth.fail', { message: (msg || L('auth_fail', 'Authentication failed')) });
+					Ti.App.fireEvent('auth.fail', { message: msg || L('auth_fail') });
 				}
 
 			});
 		},
 		error: function(msg){
-			Ti.App.fireEvent('auth.fail', { message: (msg || L('auth_fail', 'Authentication failed')) });
+			Ti.App.fireEvent('auth.fail', { message: msg || L('auth_fail') });
 		}
 	});
 };

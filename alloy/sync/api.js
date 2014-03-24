@@ -9,8 +9,15 @@ var CRUD_TO_REST = {
 
 exports.sync = function(method, model, opt) {
 
-	var url = model.config.adapter.baseUrl ? model.config.adapter.baseUrl : '/';
+	var url = '';
+	if (model.config.adapter.baseUrl && model.config.adapter.baseUrl.length>0) {
+		url = model.config.adapter.baseUrl;
+	} else {
+		url = '/';
+	}
+
 	url += model.config.adapter.name;
+
 	if (model.id) {
 		url += '/' + model.id;
 	}

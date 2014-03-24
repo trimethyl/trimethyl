@@ -3,13 +3,20 @@ var Alloy = require('alloy');
 
 var loadedModules = {};
 var modules = _.difference(
-	_.union(Alloy.CFG.autoConfModules||[], Alloy.CFG.additionalAutoConfModules||[]),
-	Alloy.CFG.excludedAutoConfModules||[]);
+	_.union(
+		Alloy.CFG.autoConfModules||[],
+		Alloy.CFG.additionalAutoConfModules||[]
+		),
+	Alloy.CFG.excludedAutoConfModules||[]
+	);
+
 _.each(modules, function(m){
 	if (m in loadedModules) {
 		console.warn("Can't load this module, already loaded");
 		return;
 	}
+
+	console.log("Module "+m+" loaded with: "+JSON.stringify(Alloy.CFG[m]));
 	loadedModules[m] = require(m);
 	loadedModules[m].init(Alloy.CFG[m]||{});
 });

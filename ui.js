@@ -2,17 +2,27 @@ var config = {};
 
 exports.ListView = {
 
-	createFromCollection: function(C, groupBy, datasetCb) {
+	createFromCollection: function(C, opt) {
 		var sec = [];
-		_.each(C.groupBy(function(e){ return e.get(groupBy); }), function(els, key){
+		_.each(C.groupBy(function(e){
+			return e.get(opt.groupBy);
+
+		}), function(els, key){
+
 			var dataset = [];
 			_.each(els, function(el){
-				dataset.push(datasetCb(el));
+				dataset.push(opt.datasetCb(el));
 			});
-			sec.push(Ti.UI.createListSection({
-				headerTitle: key,
-				items: dataset
-			}));
+
+			var s = Ti.UI.createListSection({ items: dataset });
+
+			if (opt.headerViewCb) {
+				s.headerView = opt.headerViewCb(key);
+			} else {
+				s.headerTitle = key;
+			}
+
+			sec.push(s);
 		});
 		return sec;
 	}

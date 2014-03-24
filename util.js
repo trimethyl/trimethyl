@@ -1,5 +1,17 @@
 var config = {};
 
+exports.openURL = openURL = function(url, fallback, error) {
+	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
+		Ti.Platform.openURL(url);
+	}
+	if (fallback) {
+		return Ti.Platform.openURL(fallback);
+	}
+	if (error) {
+		alertError(error);
+	}
+};
+
 exports.getSpinner = function(){
 	return Ti.UI.createActivityIndicator({
 		style: OS_IOS ? Ti.UI.iPhone.ActivityIndicatorStyle.DARK : Ti.UI.ActivityIndicatorStyle.DARK
@@ -32,11 +44,7 @@ exports.openFacebookProfile = function(fbid) {
 };
 
 exports.openTwitterProfile = function(twid) {
-	if (OS_IOS && Ti.Platform.canOpenURL("twitter://user?screen_name="+twid)) {
-		Ti.Platform.openURL("twitter://user?screen_name="+twid);
-	} else {
-		Ti.Platform.openURL("http://twitter.com/"+twid);
-	}
+	return openURL("twitter://user?screen_name="+twid, "http://twitter.com/"+twid);
 };
 
 exports.getFacebookAvatar = function(fbid, w, h) {
@@ -55,7 +63,7 @@ exports.alert = alertDialog = function(title, msg, callback) {
 	var d = Ti.UI.createAlertDialog({
 		title: title,
 		message: msg,
-		ok: L('alert_ok','OK')
+		ok: L('OK','OK')
 	});
 	if (callback) {
 		d.addEventListener('click', callback);
@@ -80,8 +88,8 @@ exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callba
 	dialog.show();
 };
 
-exports.alertError = function(msg, callback) {
-	return alertDialog(L('alert_error', 'Error'), msg, callback);
+exports.alertError = alertError = function(msg, callback) {
+	return alertDialog(L('Error', 'Error'), msg, callback);
 };
 
 exports.isIOS7 = isIOS7 = function() {

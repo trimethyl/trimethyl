@@ -84,13 +84,15 @@ exports.cluster = function(e, markers){
 				count: c[id].count
 			});
 		} else {
-			data.push(parseInt(id,10)); // make sure that typeof is number
+			data.push(+id);
 		}
 	}
 
 	return data;
 };
 
+
 exports.init = function(c) {
 	config = _.extend(config, c);
 };
+

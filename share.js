@@ -109,7 +109,7 @@ exports.mail = function(args, _callback) {
 	args = _init(args);
 
 	var emailDialog = Ti.UI.createEmailDialog({
-		subject: args.subject || '',
+		subject: args.title,
 		html: true,
 		messageBody: args.text + (args.url ? "<br><br>" + args.url : ''),
 	});
@@ -162,7 +162,7 @@ exports.options = function(args, _callback) {
 		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
 		if (args.text || args.description) intent.putExtra(Ti.Android.EXTRA_SUBJECT, args.description || args.text);
 		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
-		var shareActivity = Ti.Android.createIntentChooser(intent, args.titleid ? L(args.titleid, args.title || L('share_title', 'Share')) : (args.title || L('share_title', 'Share')));
+		var shareActivity = Ti.Android.createIntentChooser(intent, args.title);
 		Ti.Android.currentActivity.startActivity(shareActivity);
 
 	} else {
@@ -190,7 +190,7 @@ exports.options = function(args, _callback) {
 		}
 
 		if (options.length === 0) return;
-		options.push(L('share_cancel', 'Cancel'));
+		options.push('Cancel');
 
 		var dialog = Ti.UI.createOptionDialog({
 			cancel: options.length - 1,

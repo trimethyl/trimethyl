@@ -5,7 +5,7 @@ var config = {
 
 function checkForServices() {
 	if (!Ti.Geolocation.locationServicesEnabled) {
-		require('util').alertError(L('geo_error', "To use this feature, please enable location services."));
+		require('util').alertError(L('geo_error'));
 		return false;
 	}
 	return true;
@@ -46,12 +46,12 @@ exports.localize = localize = function(cb) {
 	}
 
 	Ti.App.fireEvent('geo.start');
-	Ti.Geolocation.purpose = L('geo_purpose', "Let us use your GPS position!");
+	Ti.Geolocation.purpose = L('geo_purpose');
 	Ti.Geolocation.accuracy = Ti.Geolocation[config.accuracy];
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
-		if (e.error) return require('util').alertError( e.error || L('geo_error', 'Unkown GPS error') );
+		if (e.error) return require('util').alertError( e.error || L('geo_error') );
 		if (cb) cb(e, e.coords.latitude, e.coords.longitude);
 	});
 };
@@ -65,7 +65,7 @@ exports.gyroscope = gyroscope = function(cb) {
 
 	gyroCallbacks.push(cb);
 
-	Ti.Geolocation.purpose = L('geo_purpose', "Let us use your gyroscope!");
+	Ti.Geolocation.purpose = L('geo_purpose');
 	Ti.Geolocation.addEventListener('heading', function(e){
 		if (cb) cb(e);
 	});

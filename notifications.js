@@ -57,9 +57,7 @@ function subscribe(channel, deviceToken, callback) {
 		})()
 	}, function (e) {
 		if (!e.success) {
-			return Ti.App.fireEvent('notifications.subscription.error', {
-				message: e.message || L('notification_subscription_error_acs', 'Error while subscribing for notifications on ACS.')
-			});
+			return Ti.App.fireEvent('notifications.subscription.error', e);
 		}
 		Ti.App.fireEvent('notifications.subscription.success', { channel: channel });
 		if (callback) callback();
@@ -71,18 +69,14 @@ function subscribeIOS(cb) {
 		types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
 		success: function(e){
 			if (!e.deviceToken) {
-				Ti.App.fireEvent('notifications.subscription.error', {
-					message:  e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
-				});
+				Ti.App.fireEvent('notifications.subscription.error', e);
 				return;
 			}
 
 			cb(e.deviceToken);
 		},
 		error: function(e){
-			Ti.App.fireEvent('notifications.subscription.error', {
-				message: e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
-			});
+			Ti.App.fireEvent('notifications.subscription.error', e);
 		},
 		callback: notificationReceived
 	});
@@ -92,9 +86,7 @@ function subscribeAndroid(cb) {
 	CloudPush.retrieveDeviceToken({
 		success: function(e) {
 			if (!e.deviceToken) {
-				Ti.App.fireEvent('notifications.subscription.error', {
-					message: e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
-				});
+				Ti.App.fireEvent('notifications.subscription.error', e);
 				return;
 			}
 
@@ -102,9 +94,7 @@ function subscribeAndroid(cb) {
 			cb(e.deviceToken);
 		},
 		error: function(e) {
-			Ti.App.fireEvent('notifications.subscription.error', {
-				message:  e.message || L('notification_subscription_error', 'Error while subscribing for notifications.')
-			});
+			Ti.App.fireEvent('notifications.subscription.error', e);
 		}
 	});
 }

@@ -131,8 +131,8 @@ function decorateRequest(request) {
 		throw 'Please specify almost the URL!';
 	}
 
-	if (request.url.substr(0,1)=='/') {
-		request.url = config.base + request.url;
+	if (!request.url.match(/\:\/\//)) {
+		request.url = config.base.replace(/\/$/,'') + '/' + request.url.replace(/^\//, '');
 	}
 
 	request.method = request.method ? request.method.toUpperCase() : 'GET';
@@ -199,7 +199,7 @@ function onComplete(request, response, e){
 	}
 
 	if (!e.success) {
-		var returnError = L('network_error', 'Unrecognized network error');
+		var returnError = L('network_error');
 
 		// We parse the message only if is not a critical (>=500) HTTP error
 		if (e.code<500) {
@@ -340,9 +340,9 @@ exports.send = send = function(request) {
 	if (!Ti.Network.online) {
 		Ti.App.fireEvent('network.offline', { cache: false });
 		Ti.UI.createAlertDialog({
-			title: L('network_offline_title', 'No connectivity'),
-			message: L('network_offline_message', 'You need an active Internet connection in order to make this request. Please connect to Internet.'),
-			ok: L('network_offline_ok', 'Okay!')
+			title: L('network_offline_title'),
+			message: L('network_offline_message'),
+			ok: 'OK'
 		}).show();
 		return false;
 	}
@@ -396,13 +396,13 @@ exports.connectToServer = function(cb) {
 				layout: 'vertical'
 			});
 			errorWindow.add(Ti.UI.createLabel({
-				text: L('network_ping_error_title', 'Server error'),
+				text: L('network_ping_error_title'),
 				font:{ fontSize: 40 },
 				top: 50,
 				textAlign: 'center'
 			}));
 			errorWindow.add(Ti.UI.createLabel({
-				text: L('network_ping_error_description', "Oops, it seems that our server is down.\nPlease check in a while"),
+				text: L('network_ping_error_description'),
 				font: { fontSize: 14 },
 				top: 20, left: 20, right: 20,
 				textAlign: 'center'
