@@ -1,8 +1,9 @@
 var config = {
 	height: 65,
 	cancelable: true,
-	leftImage: true,
+	leftImage: null,
 	timeout: 4000,
+	autoHide: true,
 	background: '#B000'
 };
 
@@ -24,28 +25,26 @@ exports.show = show = function(msg, args) {
 		});
 	}
 
-	if (args.leftImage) {
-		view.add(Ti.UI.createImageView({
-			left: 10,
-			image: '/appicon.png',
-			width: args.height-20,
-			height: args.height-20,
-			borderRadius: (args.height-20)/2,
-			touchEnabled: false
-		}));
-	}
+	view.add(Ti.UI.createImageView({
+		left: 10,
+		image: args.leftImage || '/appicon.png',
+		width: args.height-20,
+		height: args.height-20,
+		borderRadius: (args.height-20)/2,
+		touchEnabled: false
+	}));
 
-	view.add(Ti.UI.createLabel({
+	view.add(Ti.UI.createLabel(_.extend({
 		color: '#fff',
 		text: msg,
 		touchEnabled: false,
-		left: 10 + (args.leftImage ? args.height-5 : 0),
+		left: 10 + args.height-5,
 		top: 10,
 		bottom: 10,
 		right: 10,
 		textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
 		font: { fontSize: 14 }
-	}));
+	}, args.label || {})));
 
 	// border bottom
 	view.add(Ti.UI.createView({

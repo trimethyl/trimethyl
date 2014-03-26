@@ -11,6 +11,6 @@ exports.handle = function(){
 	}
 };
 
-exports.init = function(c, channel){
+exports.init = function(c) {
 	config = _.extend(config, c);
 };

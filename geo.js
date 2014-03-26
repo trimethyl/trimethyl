@@ -88,6 +88,20 @@ exports.startNavigator = function(lat, lng, mode) {
 	});
 };
 
+exports.geocode = function(address, cb) {
+	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json?address='+address+'&sensor=false', function(res){
+		if (res.status!='OK') return false;
+		if (cb) cb(res.results);
+	});
+};
+
+exports.reverseGeocode = function(lat, lng, cb) {
+	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&sensor=false', function(res){
+		if (res.status!='OK') return false;
+		if (cb) cb(res.results);
+	});
+};
+
 exports.init = function(c) {
 	config = _.extend(config, c);
 };

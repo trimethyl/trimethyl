@@ -1,27 +1,11 @@
-// Load all modules
 var Alloy = require('alloy');
 
-var loadedModules = {};
-var modules = _.difference(
-	_.union(
-		Alloy.CFG.autoConfModules||[],
-		Alloy.CFG.additionalAutoConfModules||[]
-		),
-	Alloy.CFG.excludedAutoConfModules||[]
-	);
-
-_.each(modules, function(m){
-	if (m in loadedModules) {
-		console.warn("Can't load this module, already loaded");
-		return;
-	}
-
-	console.log("Module "+m+" loaded with: "+JSON.stringify(Alloy.CFG[m]));
-	loadedModules[m] = require(m);
-	loadedModules[m].init(Alloy.CFG[m]||{});
+// Load the modules
+_.each(Alloy.CFG.autoConfModules || [], function(m){
+	require(m).init( Alloy.CFG[m] || {} );
 });
 
-// Manage pause and resume events
+// Set the parse schema
 
 var U = require('util');
 
@@ -45,13 +29,10 @@ if (OS_IOS) {
 }
 
 // Set some TSS vars
+//
 Alloy.Globals.SCREEN_WIDTH = U.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT = U.getScreenHeight();
 Alloy.Globals.IOS7 = U.isIOS7();
-
-exports.getLoadedModules = function(){
-	return loadedModules;
-};
 
 exports.getLaunchURL = function() {
 	return launchURL;

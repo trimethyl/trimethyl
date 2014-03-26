@@ -18,25 +18,16 @@ exports.getSpinner = function(){
 	});
 };
 
-exports.getScreenDensity = function() {
-	if (OS_ANDROID) {
-		return Ti.Platform.displayCaps.logicalDensityFactor;
-	}
-	return Titanium.Platform.displayCaps.dpi/160;
+/* @deprecated */ exports.getScreenDensity = function() {
+	return require('device').getScreenDensity();
 };
 
-exports.getScreenWidth = function(){
-	if (OS_IOS) {
-		return Ti.Platform.displayCaps.platformWidth;
-	}
-	return Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
+/* @deprecated */ exports.getScreenWidth = function(){
+	return require('device').getScreenWidth();
 };
 
-exports.getScreenHeight = function(){
-	if (OS_IOS) {
-		return Ti.Platform.displayCaps.platformHeight;
-	}
-	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
+/* @deprecated */ exports.getScreenHeight = function(){
+	return require('device').getScreenHeight();
 };
 
 exports.openFacebookProfile = function(fbid) {
@@ -72,15 +63,29 @@ exports.alert = alertDialog = function(title, msg, callback) {
 	return d;
 };
 
-exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callback) {
-	var dialog = Ti.UI.createAlertDialog({
+exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callback, opt) {
+	var dialog = Ti.UI.createAlertDialog(_.extend({
 		cancel: cancelIndex,
 		buttonNames: buttons,
 		message: msg,
 		title: title
-	});
+	}, opt || {}));
 	dialog.addEventListener('click', function(e){
-		if (e.index==e.source.cancel) {
+		if (e.index==cancelIndex) {
+			return;
+		}
+		if (callback) callback(e.index);
+	});
+	dialog.show();
+};
+
+exports.option = optionDialog = function(options, cancelIndex, callback, opt) {
+	var dialog = Ti.UI.createOptionDialog(_.extend({
+		options: options,
+		cancel: cancelIndex
+	}, opt || {}));
+	dialog.addEventListener('click', function(e){
+		if (e.index==cancelIndex) {
 			return;
 		}
 		if (callback) callback(e.index);

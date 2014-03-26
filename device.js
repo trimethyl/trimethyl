@@ -41,6 +41,28 @@ exports.offTilt = offTilt = function(callback) {
 	}
 };
 
+exports.getScreenDensity = function() {
+	if (OS_ANDROID) {
+		return Ti.Platform.displayCaps.logicalDensityFactor;
+	}
+	return Titanium.Platform.displayCaps.dpi/160;
+};
+
+exports.getScreenWidth = function(){
+	if (OS_IOS) {
+		return Ti.Platform.displayCaps.platformWidth;
+	}
+	return Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
+};
+
+exports.getScreenHeight = function(){
+	if (OS_IOS) {
+		return Ti.Platform.displayCaps.platformHeight;
+	}
+	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
+};
+
+
 exports.init = function(c){
 	config = _.extend(config, c);
 };
