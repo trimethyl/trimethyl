@@ -1,5 +1,12 @@
-var Network = require('network');
+/*
 
+API REST sync for Alloy
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
+var Network = require('network');
 var CRUD_TO_REST = {
 	'create' : 'POST',
 	'read' : 'GET',

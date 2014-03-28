@@ -1,3 +1,11 @@
+/*
+
+XP.UI module (non-standard require module)
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 if (!OS_IOS) {
 
 	var NavigationWindow = function(args) {

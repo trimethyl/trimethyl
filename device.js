@@ -1,3 +1,11 @@
+/*
+
+Device module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var config = {};
 
 var onTiltCallbacks = [];

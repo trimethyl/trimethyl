@@ -1,3 +1,11 @@
+/*
+
+Feedback module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var isOpen = false;
 var config = {};
 

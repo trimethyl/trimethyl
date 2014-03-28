@@ -1,3 +1,11 @@
+/*
+
+Newrelic module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var config = {};
 var $$ = require('ti.newrelic');
 

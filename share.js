@@ -1,3 +1,13 @@
+/*
+
+Share module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+Be more social
+
+*/
+
 var callback = null;
 if (OS_IOS) {
 	var Social = require('dk.napp.social');

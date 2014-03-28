@@ -1,3 +1,11 @@
+/*
+
+Notifications module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var Cloud = require("ti.cloud");
 Cloud.debug = !ENV_PRODUCTION;
 

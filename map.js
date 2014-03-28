@@ -1,3 +1,11 @@
+/*
+
+Map module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var config = {
 	pixelRadius: 15,
 	removeOutOfBB: true,

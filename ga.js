@@ -1,10 +1,19 @@
-// Requirements: gittio install -g analytics.google
+/*
 
-var $$ = require('analytics.google');
-var $T = null;
+Notifications module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+Requirements: gittio install -g analytics.google
+
+*/
+
 var config = {
 	ua: null
 };
+var $$ = require('analytics.google');
+var $T = null;
+
 
 exports.trackEvent = function(cat,act,lbl,val){
 	if (!$T) {

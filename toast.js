@@ -1,3 +1,13 @@
+/*
+
+Toast module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+Provide a toast notification
+
+*/
+
 var config = {
 	height: 65,
 	cancelable: true,

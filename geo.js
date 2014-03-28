@@ -1,3 +1,11 @@
+/*
+
+Geo module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var config = {
 	accuracy: "ACCURACY_HIGH",
 	directionUrl: "http://appcaffeina.com/static/maps/directions",
@@ -51,7 +59,11 @@ exports.localize = localize = function(cb) {
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
-		if (e.error) return require('util').alertError( e.error || L('geo_error') );
+		if (e.error) {
+			require('util').alertError( e.error || L('geo_error') );
+			return false;
+		}
+
 		if (cb) cb(e, e.coords.latitude, e.coords.longitude);
 	});
 };
@@ -89,16 +101,26 @@ exports.startNavigator = function(lat, lng, mode) {
 };
 
 exports.geocode = function(address, cb) {
-	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json?address='+address+'&sensor=false', function(res){
+	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json', {
+		address: address,
+		sensor: 'false'
+	}, function(res){
 		if (res.status!='OK') return false;
 		if (cb) cb(res.results);
+	}, function(){
+		require('util').alertError(L('geo_unabletogeocode'));
 	});
 };
 
 exports.reverseGeocode = function(lat, lng, cb) {
-	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&sensor=false', function(res){
+	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json', {
+		latlng: lat.toFixed(6)+','+lng.toFixed(6),
+		sensor: 'false'
+	}, function(res){
 		if (res.status!='OK') return false;
 		if (cb) cb(res.results);
+	}, function(){
+		require('util').alertError(L('geo_unabletoreversegeocode'));
 	});
 };
 

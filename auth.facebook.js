@@ -1,3 +1,11 @@
+/*
+
+Auth Facebook module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var FB = require('facebook');
 var Auth = require('auth');
 var config = {};

@@ -1,3 +1,11 @@
+/*
+
+Auth Standard module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var Auth = require('auth');
 var config = {};
 

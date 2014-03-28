@@ -1,3 +1,11 @@
+/*
+
+Trimethyl
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
+
 var Alloy = require('alloy');
 
 // Load the modules
@@ -29,9 +37,11 @@ if (OS_IOS) {
 }
 
 // Set some TSS vars
-//
+
 Alloy.Globals.SCREEN_WIDTH = U.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT = U.getScreenHeight();
+Alloy.Globals.SCREEN_DENSITY = U.getScreenDensity();
+
 Alloy.Globals.IOS7 = U.isIOS7();
 
 exports.getLaunchURL = function() {
