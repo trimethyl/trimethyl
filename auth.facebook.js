@@ -92,7 +92,7 @@ exports.init = function(c){
 
 	FB.addEventListener('login', function(e){
 		cachedLoginEvent = e;
-		if (require('network').isOnline() && !require('network').isServerConnected()) {
+		if (require('net').isOnline() && !require('net').isServerConnected()) {
 			console.warn("FB.login triggered before /ping");
 			return false;
 		}

@@ -24,7 +24,7 @@ exports.logout = function(){
 };
 
 exports.signup = function(data, cb) {
-	require('network').send({
+	require('net').send({
 		url: '/signup',
 		method: 'POST',
 		data: data,
@@ -35,7 +35,7 @@ exports.signup = function(data, cb) {
 };
 
 exports.lost = function(data, cb){
-	require('network').send({
+	require('net').send({
 		url: '/lost',
 		method: 'POST',
 		data: data,

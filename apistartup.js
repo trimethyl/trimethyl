@@ -6,12 +6,12 @@ Company: Caffeina SRL
 
 */
 
-var Network = require('network');
+var Net = require('net');
 var config = {};
 
 exports.handle = function(){
-	if (Network.isOnline()) {
-		Network.connectToServer(function(){
+	if (Net.isOnline()) {
+		Net.connectToServer(function(){
 			require('auth').handleLogin();
 		});
 	} else {

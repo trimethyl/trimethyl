@@ -187,8 +187,11 @@ exports.uniqid = function(prefix, more_entropy) {
  return retId;
 };
 
-exports.timestamp = function(){
-	return (+new Date()/1000).toFixed(0);
+exports.timestamp = function(t){
+	if (t) {
+		return parseInt(+new Date(t)/1000,10);
+	}
+	return parseInt(+new Date()/1000, 10);
 };
 
 exports.parseJSON = function(json) {

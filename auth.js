@@ -9,7 +9,6 @@ Company: Caffeina SRL
 var config = {};
 var drivers = {};
 
-var Network = require('network');
 var Me, authInfo;
 
 function getCurrentDriver(){
@@ -68,7 +67,7 @@ exports.handleOfflineLogin = function(cb){
 
 exports.login = login = function(data, driver, cb) {
 	data.method = driver;
-	Network.send({
+	require('net').send({
 		url: '/auth',
 		method: 'POST',
 		data: data,
@@ -128,10 +127,10 @@ exports.logout = logout = function() {
 
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
-	Network.resetCache();
+	require('net').resetCache();
 
-	if (require('network').isOnline()) {
-		Network.send({
+	if (require('net').isOnline()) {
+		require('net').send({
 			url: '/logout',
 			method: 'POST',
 			info: {
@@ -139,14 +138,14 @@ exports.logout = logout = function() {
 			},
 			disableEvent: true,
 			complete: function(){
-				Network.resetCookies();
+				require('net').resetCookies();
 				Ti.App.fireEvent('auth.logout', { id: id });
 			},
 			success: function(){},
 			error: function(){} // suppress all errors
 		});
 	} else {
-		Network.resetCookies();
+		require('net').resetCookies();
 		Ti.App.fireEvent('auth.logout', { id: id });
 	}
 };

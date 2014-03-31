@@ -1,6 +1,6 @@
 /*
 
-Network module
+net module
 Author: Flavio De Stefano
 Company: Caffeina SRL
 
@@ -30,11 +30,11 @@ function calculateHash(request) {
 
 function writeCache(request, response, info) {
 	if (!DB) {
-		console.error("Network DB Cache not open.");
+		console.error("NETCache Database not open.");
 		return false;
 	}
 
-	DB.execute('INSERT OR REPLACE INTO cache (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
+	DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
 		request.hash,
 		info.expire,
 		require('util').timestamp(),
@@ -45,7 +45,7 @@ function writeCache(request, response, info) {
 
 function getCache(request, getIfExpired) {
 	if (!DB) {
-		console.error("Network DB Cache not open.");
+		console.error("NETCache Database not open.");
 		return false;
 	}
 
@@ -53,7 +53,7 @@ function getCache(request, getIfExpired) {
 		return false;
 	}
 
-	var cacheRow = DB.execute('SELECT expire, creation FROM cache WHERE id = ? LIMIT 1', request.hash);
+	var cacheRow = DB.execute('SELECT expire, creation FROM net WHERE id = ? LIMIT 1', request.hash);
 	if (!cacheRow || !cacheRow.isValidRow()) {
 		return false;
 	}
@@ -68,7 +68,7 @@ function getCache(request, getIfExpired) {
 		if (appTimestamp && creation<appTimestamp) { return false; }
 	}
 
-	var cache = DB.execute('SELECT info, content FROM cache WHERE id = ? LIMIT 1', request.hash);
+	var cache = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
 	var content = cache.fieldByName('content');
 	if (!content) {
 		return false;
@@ -148,7 +148,7 @@ function onComplete(request, response, e){
 	delete queue[request.hash];
 
 	if (!request.disableEvent) {
-		Ti.App.fireEvent('network.end', {
+		Ti.App.fireEvent('net.end', {
 			id: request.hash,
 			eventName: request.eventName || null
 		});
@@ -167,7 +167,8 @@ function onComplete(request, response, e){
 	}
 
 	if (!e.success) {
-		var returnError = L('network_error');
+		console.error(e);
+		var returnError = L('net_error');
 
 		// We parse the message only if is not a critical (>=500) HTTP error
 		if (e.code<500) {
@@ -245,10 +246,10 @@ exports.abortRequest = abortRequest = function(hash) {
 
 exports.resetCache = exports.pruneCache = function() {
 	if (!DB) {
-		console.error("Network DB Cache not open.");
+		console.error("NETCache Database not open.");
 		return false;
 	}
-	DB.execute('DROP TABLE IF EXISTS cache');
+	DB.execute('DROP TABLE IF EXISTS net');
 };
 
 exports.resetCookies = function(host) {
@@ -257,28 +258,28 @@ exports.resetCookies = function(host) {
 
 exports.deleteCache = function(request) {
 	if (!DB) {
-		console.error("Network DB Cache not open.");
+		console.error("NETCache Database not open.");
 		return false;
 	}
 	request = decorateRequest(request);
-	DB.execute('DELETE FROM cache WHERE id = ?', request.hash);
+	DB.execute('DELETE FROM net WHERE id = ?', request.hash);
 };
 
-exports.send = send = function(request) {
+function makeRequest(request) {
 	request = decorateRequest(request);
 
 	// Try to get the cache, otherwise make the HTTP request
 	if (config.useCache && request.method=='GET') {
 
-		Ti.App.fireEvent('network.cache.start', { id: request.hash });
+		Ti.App.fireEvent('net.cache.start', { id: request.hash });
 		var cache = getCache(request, !Ti.Network.online);
-		Ti.App.fireEvent('network.cache.end', { id: request.hash });
+		Ti.App.fireEvent('net.cache.end', { id: request.hash });
 
 		if (cache) {
 
 			// if we are offline, but we got cache, fire event to handle
 			if (!Ti.Network.online) {
-				Ti.App.fireEvent('network.offline', { cache: true });
+				Ti.App.fireEvent('net.offline', { cache: true });
 			}
 
 			if (request.complete) { request.complete(); }
@@ -291,13 +292,13 @@ exports.send = send = function(request) {
 	// If we aren't online and we are here, we can't proceed, so STOP!
 	if (!Ti.Network.online) {
 
-		Ti.App.fireEvent('network.offline', {
+		Ti.App.fireEvent('net.offline', {
 			cache: false
 		});
 
 		Ti.UI.createAlertDialog({
-			title: L('network_offline_title'),
-			message: L('network_offline_message'),
+			title: L('net_offline_title'),
+			message: L('net_offline_message'),
 			ok: 'OK'
 		}).show();
 		return false;
@@ -307,7 +308,7 @@ exports.send = send = function(request) {
 
 	// Add this request to the queue
 	if (!request.disableEvent) {
-		Ti.App.fireEvent('network.start', {
+		Ti.App.fireEvent('net.start', {
 			id: request.hash,
 			eventName: request.eventName || null
 		});
@@ -334,7 +335,7 @@ exports.send = send = function(request) {
 };
 
 exports.connectToServer = function(cb) {
-	send({
+	makeRequest({
 		url: '/ping',
 		method: 'POST',
 		disableEvent: true,
@@ -342,7 +343,7 @@ exports.connectToServer = function(cb) {
 		success: function(appInfo){
 			serverConnected = true;
 			setApplicationInfo(appInfo);
-			Ti.App.fireEvent('network.ping.success');
+			Ti.App.fireEvent('net.ping.success');
 			return cb(appInfo);
 		},
 		error: function(message, response){
@@ -353,13 +354,13 @@ exports.connectToServer = function(cb) {
 				layout: 'vertical'
 			});
 			errorWindow.add(Ti.UI.createLabel({
-				text: L('network_ping_error_title'),
+				text: L('net_ping_error_title'),
 				font:{ fontSize: 40 },
 				top: 50,
 				textAlign: 'center'
 			}));
 			errorWindow.add(Ti.UI.createLabel({
-				text: L('network_ping_error_description'),
+				text: L('net_ping_error_description'),
 				font: { fontSize: 14 },
 				top: 20, left: 20, right: 20,
 				textAlign: 'center'
@@ -369,7 +370,7 @@ exports.connectToServer = function(cb) {
 				top: 30
 			}));
 			errorWindow.open();
-			Ti.App.fireEvent('network.ping.error');
+			Ti.App.fireEvent('net.ping.error');
 		}
 	});
 };
@@ -377,7 +378,7 @@ exports.connectToServer = function(cb) {
 // Aliases
 
 exports.get = function(url, cb) {
-	return send({
+	return makeRequest({
 		url: url,
 		method: 'GET',
 		success: cb
@@ -385,7 +386,7 @@ exports.get = function(url, cb) {
 };
 
 exports.post = function(url, data, cb) {
-	return send({
+	return makeRequest({
 		url: url,
 		method: 'POST',
 		data: data,
@@ -394,7 +395,7 @@ exports.post = function(url, data, cb) {
 };
 
 exports.getJSON = function(url, data, success, error) {
-	return send({
+	return makeRequest({
 		url: url,
 		data: data,
 		method: 'GET',
@@ -404,11 +405,16 @@ exports.getJSON = function(url, data, success, error) {
 	});
 };
 
+exports.send = makeRequest;
+exports.makeRequest = makeRequest;
+
 exports.init = init = function(c) {
 	config = _.extend(config, c);
 
 	if (config.useCache) {
-		DB = Ti.Database.open('network');
-		DB.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
+		DB = require('db').open();
+		if (DB) {
+			DB.execute('CREATE TABLE IF NOT EXISTS net (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
+		}
 	}
 };

@@ -6,7 +6,6 @@ Company: Caffeina SRL
 
 */
 
-var Network = require('network');
 var CRUD_TO_REST = {
 	'create' : 'POST',
 	'read' : 'GET',
@@ -33,7 +32,7 @@ exports.sync = function(method, model, opt) {
 		method = 'patch';
 	}
 
-	var data = _.extend(opt.networkArgs || {}, {
+	var data = _.extend(opt.netArgs || {}, {
 		url: url,
 		method: CRUD_TO_REST[method],
 		info: { mime: 'json' }
@@ -49,7 +48,7 @@ exports.sync = function(method, model, opt) {
 	switch (method) {
 
 		case 'create':
-		Network.send(_.extend(data, {
+		require('net').send(_.extend(data, {
 			data: model.toJSON(),
 			success: function(resp) {
 				if (resp.id) {
@@ -69,7 +68,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'read':
-		Network.send(_.extend(data, {
+		require('net').send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
 				opt.success(resp);
@@ -84,7 +83,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'update':
-		Network.send(_.extend(data, {
+		require('net').send(_.extend(data, {
 			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
 				if (resp.id) {
@@ -103,7 +102,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'delete':
-		Network.send(_.extend(data, {
+		require('net').send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
 				opt.success();

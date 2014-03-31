@@ -12,11 +12,23 @@ exports.ListView = {
 
 	createFromCollection: function(C, opt) {
 		var sec = [];
-		_.each(C.groupBy(function(e){
-			return e.get(opt.groupBy);
+		var array = [];
 
-		}), function(els, key){
+		if (opt.groupBy) {
+			if (C instanceof Backbone.Collection) {
+				array = C.groupBy(opt.groupBy);
+			} else {
+				array = _.groupBy(C, opt.groupBy);
+			}
+		} else {
+			if (C instanceof Backbone.Collection) {
+				array = C.toJSON();
+			} else {
+				array = C;
+			}
+		}
 
+		_.each(array, function(els, key){
 			var dataset = [];
 			_.each(els, function(el){
 				dataset.push(opt.datasetCb(el));
@@ -32,6 +44,7 @@ exports.ListView = {
 
 			sec.push(s);
 		});
+
 		return sec;
 	}
 

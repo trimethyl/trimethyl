@@ -20,7 +20,7 @@ function checkForServices() {
 }
 
 exports.getRoute = getRoute = function(args, rargs, cb) {
-	require('network').send({
+	require('net').send({
 		url: config.directionUrl,
 		data: args,
 		success: function(resp){
@@ -60,7 +60,7 @@ exports.localize = localize = function(cb) {
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
 		if (e.error) {
-			require('util').alertError( e.error || L('geo_error') );
+			require('util').alertError(e.error || L('geo_error'));
 			return false;
 		}
 
@@ -101,26 +101,44 @@ exports.startNavigator = function(lat, lng, mode) {
 };
 
 exports.geocode = function(address, cb) {
-	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json', {
-		address: address,
-		sensor: 'false'
-	}, function(res){
-		if (res.status!='OK') return false;
-		if (cb) cb(res.results);
-	}, function(){
-		require('util').alertError(L('geo_unabletogeocode'));
+	require('net').send({
+		url: 'https://maps.googleapis.com/maps/api/geocode/json',
+		data: {
+			address: address,
+			sensor: 'false'
+		},
+		mime: 'json',
+		success: function(res){
+			if (res.status!='OK' || !res.results.length) {
+				require('util').alertError(L('geo_unabletoreversegeocode'));
+			}
+			if (cb) cb(res.results);
+		},
+		error: function(err){
+			console.error(err);
+			require('util').alertError(L('geo_unabletoreversegeocode'));
+		}
 	});
 };
 
 exports.reverseGeocode = function(lat, lng, cb) {
-	require('network').getJSON('https://maps.googleapis.com/maps/api/geocode/json', {
-		latlng: lat.toFixed(6)+','+lng.toFixed(6),
-		sensor: 'false'
-	}, function(res){
-		if (res.status!='OK') return false;
-		if (cb) cb(res.results);
-	}, function(){
-		require('util').alertError(L('geo_unabletoreversegeocode'));
+	require('net').send({
+		url: 'https://maps.googleapis.com/maps/api/geocode/json',
+		data: {
+			latlng: lat.toFixed(8)+','+lng.toFixed(8),
+			sensor: 'false'
+		},
+		mime: 'json',
+		success: function(res){
+			if (res.status!='OK' || !res.results.length) {
+				require('util').alertError(L('geo_unabletoreversegeocode'));
+			}
+			if (cb) cb(res.results);
+		},
+		error: function(err){
+			console.error(err);
+			require('util').alertError(L('geo_unabletoreversegeocode'));
+		}
 	});
 };
 

@@ -6,8 +6,6 @@ Company: Caffeina SRL
 
 */
 
-var Alloy = require('alloy');
-
 // Load the modules
 _.each(Alloy.CFG.autoConfModules || [], function(m){
 	require(m).init( Alloy.CFG[m] || {} );
@@ -15,9 +13,9 @@ _.each(Alloy.CFG.autoConfModules || [], function(m){
 
 // Set the parse schema
 
-var U = require('util');
+var Util = require('util');
 
-var launchURL = U.parseSchema();
+var launchURL = Util.parseSchema();
 var pauseURL = null;
 
 if (OS_IOS) {
@@ -28,7 +26,7 @@ if (OS_IOS) {
 	});
 
 	Ti.App.addEventListener('resumed', function() {
-		launchURL = U.parseSchema();
+		launchURL = Util.parseSchema();
 		if (launchURL!=pauseURL) {
 			Ti.App.fireEvent('app.resumed', { url: launchURL });
 		}
@@ -38,11 +36,11 @@ if (OS_IOS) {
 
 // Set some TSS vars
 
-Alloy.Globals.SCREEN_WIDTH = U.getScreenWidth();
-Alloy.Globals.SCREEN_HEIGHT = U.getScreenHeight();
-Alloy.Globals.SCREEN_DENSITY = U.getScreenDensity();
+Alloy.Globals.SCREEN_WIDTH = Util.getScreenWidth();
+Alloy.Globals.SCREEN_HEIGHT = Util.getScreenHeight();
+Alloy.Globals.SCREEN_DENSITY = Util.getScreenDensity();
 
-Alloy.Globals.IOS7 = U.isIOS7();
+Alloy.Globals.IOS7 = Util.isIOS7();
 
 exports.getLaunchURL = function() {
 	return launchURL;
