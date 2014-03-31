@@ -1,12 +1,12 @@
-# Network
+# Net
 
-Make all network request in a very simple way.
+Make all net request in a very simple way.
 
 All requests are cached reading the `Expires` header, so if you don't specify it in your response, nothing is cached.
 
-If there isn't an active Internet connection, the module read content from its internal cache if exists, otherwise a `network.error` event is fired.
+If there isn't an active Internet connection, the module read content from its internal cache if exists, otherwise a `net.error` event is fired.
 
-Before and after each request, a `network.start` and `network.end` event is fired.
+Before and after each request, a `net.start` and `net.end` event is fired.
 
 ## Configuration
 
@@ -28,7 +28,7 @@ Before and after each request, a `network.start` and `network.end` event is fire
 **Example: simple request**
 
 ```javascript
-require('network').send({
+require('net').send({
     url: 'http://your-api-server.com/json_response',
     method: 'POST',
     info: {
@@ -46,7 +46,7 @@ require('network').send({
 **Example: download an image and cache for a specific TTL**
 
 ```javascript
-require('network').send({
+require('net').send({
     url: 'http://graph.facebook.com/4/picture',
     info: {
         expire: (+new Date()+60*60*24) /* optional, force TTL */
@@ -63,7 +63,7 @@ require('network').send({
 **Example: retrieve Facebook info**
 
 ```javascript
-require('network').getJSON('http://graph.facebook.com/4', function(info){
+require('net').getJSON('http://graph.facebook.com/4', function(info){
     alert('Hello, '+info.first_name);
 });
 ```
@@ -71,7 +71,7 @@ require('network').getJSON('http://graph.facebook.com/4', function(info){
 **Example: Abort an active request**
 
 ```javascript
-var hash = require('network').send({ /* ... */ });
+var hash = require('net').send({ /* ... */ });
 /* ... */
-require('network').abortRequest(hash);
+require('net').abortRequest(hash);
 ```
