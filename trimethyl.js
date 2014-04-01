@@ -9,6 +9,7 @@ Company: Caffeina SRL
 // Load the modules
 _.each(Alloy.CFG.autoConfModules || [], function(m){
 	require(m).init( Alloy.CFG[m] || {} );
+	console.log("Trimethyl::"+m+" loaded.");
 });
 
 // Set the parse schema

@@ -9,7 +9,10 @@ Company: Caffeina SRL
 var config = {};
 var drivers = {};
 
-var Me, authInfo;
+var Me = null;
+var authInfo = null;
+
+var Net = require('net');
 
 function getCurrentDriver(){
 	if (!Ti.App.Properties.hasProperty('auth.driver')) {
@@ -67,7 +70,7 @@ exports.handleOfflineLogin = function(cb){
 
 exports.login = login = function(data, driver, cb) {
 	data.method = driver;
-	require('net').send({
+	Net.send({
 		url: '/auth',
 		method: 'POST',
 		data: data,
@@ -127,10 +130,10 @@ exports.logout = logout = function() {
 
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
-	require('net').resetCache();
+	Net.resetCache();
 
-	if (require('net').isOnline()) {
-		require('net').send({
+	if (Net.isOnline()) {
+		Net.send({
 			url: '/logout',
 			method: 'POST',
 			info: {
