@@ -26,15 +26,15 @@ exports.getSpinner = function(){
 	});
 };
 
-/* @deprecated */ exports.getScreenDensity = function() {
+/* @deprecated -> device.getScreenDensity() */ exports.getScreenDensity = function() {
 	return require('device').getScreenDensity();
 };
 
-/* @deprecated */ exports.getScreenWidth = function(){
+/* @deprecated -> device.getScreenWidth() */ exports.getScreenWidth = function(){
 	return require('device').getScreenWidth();
 };
 
-/* @deprecated */ exports.getScreenHeight = function(){
+/* @deprecated -> device.getScreenHeight() */ exports.getScreenHeight = function(){
 	return require('device').getScreenHeight();
 };
 
@@ -48,6 +48,10 @@ exports.openTwitterProfile = function(twid) {
 
 exports.getFacebookAvatar = function(fbid, w, h) {
 	return 'http://graph.facebook.com/'+fbid+'/picture/?width='+(w||150)+'&height='+(h||150);
+};
+
+exports.reviewInStore = function() {
+	alert("WORK IN PROGRESS");
 };
 
 exports.getDomainFromURL = function(url) {

@@ -332,7 +332,7 @@ function makeRequest(request) {
 	}
 
 	return request.hash;
-};
+}
 
 exports.connectToServer = function(cb) {
 	makeRequest({

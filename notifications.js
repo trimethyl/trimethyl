@@ -13,7 +13,7 @@ if (OS_ANDROID) {
 	var CloudPush = require('ti.cloudpush');
 	CloudPush.debug = !ENV_PRODUCTION;
 	CloudPush.enabled = true;
-	CloudPush.addEventListener('callback', notificationReceived);
+	CloudPush.addEventListener('callback', onNotificationReceived);
 }
 
 var config = {
@@ -22,14 +22,24 @@ var config = {
 	autoReset: true
 };
 
-function notificationReceived(e) {
+function onNotificationReceived(e) {
 	Ti.App.fireEvent('notifications.received', e);
-	if (config.autoReset) setBadge(0);
+
+	// reset the badge
+	if (config.autoReset) {
+		setBadge(0);
+	}
+
 	// Handle foreground notifications
 	if (!e.inBackground && e.data.alert) {
 		if (config.inAppNotification) {
-			if (config.inAppNotificationMethod=='toast') require('toast').show(e.data.alert);
-			else if (config.inAppNotificationMethod=='alert') alert(e.data.alert);
+
+			if (config.inAppNotificationMethod=='toast') {
+				require('toast').show(e.data.alert);
+			} else if (config.inAppNotificationMethod=='alert') {
+				alert(e.data.alert);
+			}
+
 		}
 	}
 }
@@ -56,6 +66,7 @@ exports.incBadge = function(i) {
 
 function subscribe(channel, deviceToken, callback) {
 	Ti.App.Properties.setString('notifications.token', deviceToken);
+
 	Cloud.PushNotifications.subscribeToken({
 		device_token: deviceToken,
 		channel: channel || 'none',
@@ -67,6 +78,7 @@ function subscribe(channel, deviceToken, callback) {
 		if (!e.success) {
 			return Ti.App.fireEvent('notifications.subscription.error', e);
 		}
+
 		Ti.App.fireEvent('notifications.subscription.success', { channel: channel });
 		if (callback) callback();
 	});
@@ -86,7 +98,7 @@ function subscribeIOS(cb) {
 		error: function(e){
 			Ti.App.fireEvent('notifications.subscription.error', e);
 		},
-		callback: notificationReceived
+		callback: onNotificationReceived
 	});
 }
 
@@ -109,7 +121,7 @@ function subscribeAndroid(cb) {
 
 exports.subscribe = function(channel) {
 	if (OS_IOS) return subscribeIOS(function(token){ subscribe(channel, token); });
-	if (OS_ANDROID) return subscribeAndroid(function(token){ subscribe(channel, token); });
+	else if (OS_ANDROID) return subscribeAndroid(function(token){ subscribe(channel, token); });
 };
 
 function unsubscribeIOS() {
@@ -136,7 +148,7 @@ function unsubscribe(channel) {
 
 exports.unsubscribe = function(channel) {
 	if (OS_IOS) unsubscribeIOS();
-	if (OS_ANDROID) unsubscribeAndroid();
+	else if (OS_ANDROID) unsubscribeAndroid();
 	unsubscribe(channel);
 };
 

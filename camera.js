@@ -11,7 +11,6 @@ var config = {};
 function getPhoto(method, opt, cb){
 	Ti.Media[method](_.extend(opt || {}, {
 		mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO, Ti.Media.MEDIA_TYPE_VIDEO ],
-		saveToPhotoGallery: (method=='takePhoto'),
 		success: cb,
 		cancel: function(e) {
 			console.warn(e);
@@ -25,7 +24,7 @@ function getPhoto(method, opt, cb){
 
 exports.savePhoto = function(opt) {
 	if (opt.uniqFileName) {
-		opt.fileName = require('util').uniqId() + (opt.suffixFileName || '') + '.jpg';
+		opt.fileName = require('util').uniqid() + (opt.suffixFileName || '') + '.jpg';
 	}
 	if (!opt.fileName) { throw 'Please specify a filename or set uniqFileName: true'; }
 

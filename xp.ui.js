@@ -47,10 +47,6 @@ exports.createNavigationWindow = function(args) {
 exports.createWindow = function(args) {
 	return OS_IOS ? Ti.UI.createWindow(args) : Ti.UI.createView(args);
 };
-
-/*
-Fix TextArea.hintText property
-*/
 exports.createTextArea = function(args) {
 	var $textArea = Ti.UI.createTextArea(args);
 
