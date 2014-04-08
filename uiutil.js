@@ -1,6 +1,6 @@
 /*
 
-UI module
+UI-Util module
 Author: Flavio De Stefano
 Company: Caffeina SRL
 
