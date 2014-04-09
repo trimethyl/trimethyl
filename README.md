@@ -17,7 +17,7 @@ To install this framework, you have to **replace** your lib directory.
 So, open terminal, move to your Titanium project, and type
 
 ```
-git clone https://bitbucket.org/caffeina/trimethyl app/lib
+git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib
 ```
 
 All your custom code out of the framework can be placed in `app/lib/app/*`, that is in .gitignore.
