@@ -6,18 +6,17 @@ Company: Caffeina SRL
 
 */
 
-if (!OS_IOS) {
-
+if (OS_ANDROID) {
 	var NavigationWindow = function(args) {
 		this.args = args;
 	};
 
 	NavigationWindow.prototype.open = function(params) {
-		return this.openWindow(this.args.window, params||{});
+		return this.openWindow(this.args.window, params || {});
 	};
 
 	NavigationWindow.prototype.close = function(params) {
-		return this.closeWindow(this.args.window, params||{});
+		return this.closeWindow(this.args.window, params || {});
 	};
 
 	NavigationWindow.prototype.openWindow = function(window, params) {
@@ -31,12 +30,11 @@ if (!OS_IOS) {
 				params.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 			}
 		}
-		return window.open(_.extend(params, { modal: false }));
+		return window.open(_.extend(params, { modal: false })); // Heavyweight
 	};
 
 	NavigationWindow.prototype.closeWindow = function(window, params) {
-		params = params || {};
-		return window.close(params);
+		return window.close(params || {});
 	};
 }
 

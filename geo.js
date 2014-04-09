@@ -9,6 +9,7 @@ Company: Caffeina SRL
 var config = {
 	accuracy: "ACCURACY_HIGH",
 	directionUrl: "http://appcaffeina.com/static/maps/directions",
+	useGoogleForGeocode: true
 };
 
 function checkForServices() {
@@ -47,6 +48,18 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 };
 
 var locaCallbacks = [];
+
+exports.localizeSilent = function(cb) {
+	if (!checkForServices()) {
+		return cb();
+	}
+
+	Ti.Geolocation.purpose = L('geo_purpose');
+	Ti.Geolocation.accuracy = Ti.Geolocation.ACCURACY_LOW;
+	Ti.Geolocation.getCurrentPosition(function(e){
+		cb(e, e.coords.latitude, e.coords.longitude);
+	});
+};
 
 exports.localize = localize = function(cb) {
 	if (!checkForServices()) {
@@ -101,45 +114,68 @@ exports.startNavigator = function(lat, lng, mode) {
 };
 
 exports.geocode = function(address, cb) {
-	require('net').send({
-		url: 'https://maps.googleapis.com/maps/api/geocode/json',
-		data: {
-			address: address,
-			sensor: 'false'
-		},
-		mime: 'json',
-		success: function(res){
-			if (res.status!='OK' || !res.results.length) {
-				require('util').alertError(L('geo_unabletoreversegeocode'));
+	if (config.useGoogleForGeocode) {
+		require('net').send({
+			url: 'https://maps.googleapis.com/maps/api/geocode/json',
+			data: {
+				address: address,
+				sensor: 'false'
+			},
+			mime: 'json',
+			success: function(res){
+				if (res.status!='OK' || !res.results.length) {
+					require('util').alertError(L('geo_unabletogeocode'));
+					return;
+				}
+				if (cb) cb(res.results[0].geometry.location.lat, res.results[0].geometry.location.lng);
+			},
+			error: function(err){
+				console.error(err);
+				require('util').alertError(L('geo_unabletogeocode'));
 			}
-			if (cb) cb(res.results);
-		},
-		error: function(err){
-			console.error(err);
-			require('util').alertError(L('geo_unabletoreversegeocode'));
-		}
-	});
+		});
+	} else {
+		Ti.Geolocation.forwardGeocoder(address, function(res){
+			if (!res.success) {
+				require('util').alertError(L('geo_unabletogeocode'));
+				return;
+			}
+			if (cb) cb(res.latitude, res.longitude);
+		});
+	}
 };
 
 exports.reverseGeocode = function(lat, lng, cb) {
-	require('net').send({
-		url: 'https://maps.googleapis.com/maps/api/geocode/json',
-		data: {
-			latlng: lat.toFixed(8)+','+lng.toFixed(8),
-			sensor: 'false'
-		},
-		mime: 'json',
-		success: function(res){
-			if (res.status!='OK' || !res.results.length) {
+	if (config.useGoogleForGeocode) {
+		require('net').send({
+			url: 'https://maps.googleapis.com/maps/api/geocode/json',
+			data: {
+				latlng: lat.toFixed(8)+','+lng.toFixed(8),
+				sensor: 'false'
+			},
+			mime: 'json',
+			success: function(res){
+				if (res.status!='OK' || !res.results.length) {
+					require('util').alertError(L('geo_unabletoreversegeocode'));
+					return;
+				}
+				if (cb) cb(res.results[0].formatted_address, res.results);
+			},
+			error: function(err){
+				console.error(err);
 				require('util').alertError(L('geo_unabletoreversegeocode'));
 			}
-			if (cb) cb(res.results);
-		},
-		error: function(err){
-			console.error(err);
-			require('util').alertError(L('geo_unabletoreversegeocode'));
-		}
-	});
+		});
+	} else {
+		Ti.Geolocation.reverseGeocoder(lat, lng, function(res){
+			console.log(res);
+			if (!res.success || !res.places || !res.places.length) {
+				require('util').alertError(L('geo_unabletoreversegeocode'));
+				return;
+			}
+			if (cb) cb(res.places[0].address, res.places);
+		});
+	}
 };
 
 exports.init = function(c) {
