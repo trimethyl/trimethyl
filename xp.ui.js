@@ -152,6 +152,11 @@ exports.createLabel = function(args) {
 		return Ti.UI.createLabel(args);
 	}
 
+	// Convert <br> to \n
+	args.html = args.html.replace(/<br\/?>/g, "\n");
+
+	// Convert <b>, <u>, <i> to attributedString
+
 	var htmlToAttrMap = {
 		'u': {
 			type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
