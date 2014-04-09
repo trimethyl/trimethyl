@@ -148,53 +148,57 @@ exports.createTextArea = function(args) {
 };
 
 exports.createLabel = function(args) {
-	if (!OS_IOS || !args.html) {
+	if (!OS_IOS) {
 		return Ti.UI.createLabel(args);
 	}
 
-	// Convert <br> to \n
-	args.html = args.html.replace(/<br\/?>/g, "\n");
+	var $ui = Ti.UI.createLabel(args);
 
-	// Convert <p> to \n\n
-	args.html = args.html.replace(/<p>/g, '').replace(/<\/p>/g, "\n\n");
+	$ui.setHTML = function(html){
+		html = html.replace(/<br\/?>/g, "\n");
+		html = html.replace(/<p>/g, '').replace(/<\/p>/g, "\n\n");
 
-	// Convert <b>, <u>, <i> to attributedString
+		var htmlToAttrMap = {
+			'u': {
+				type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
+				value: Ti.UI.iOS.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
+			},
+			'i': {
+				type: Ti.UI.iOS.ATTRIBUTE_FONT,
+				value: /-Regular/.test(args.font.fontFamily) ?
+				{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
+				{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
+			},
+			'b': {
+				type: Ti.UI.iOS.ATTRIBUTE_FONT,
+				value: /-Regular/.test(args.font.fontFamily) ?
+				{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
+				{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
+			}
+		};
 
-	var htmlToAttrMap = {
-		'u': {
-			type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
-			value: Ti.UI.iOS.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
-		},
-		'i': {
-			type: Ti.UI.iOS.ATTRIBUTE_FONT,
-			value: /-Regular/.test(args.font.fontFamily) ?
-			{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
-			{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
-		},
-		'b': {
-			type: Ti.UI.iOS.ATTRIBUTE_FONT,
-			value: /-Regular/.test(args.font.fontFamily) ?
-			{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
-			{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
-		}
+		var parseResult = simpleHTMLParser(html);
+		var attributedString = {
+			text: parseResult.text,
+			attributes: []
+		};
+
+		_.each(parseResult.style, function(v){
+			if (v.type in htmlToAttrMap) {
+				attributedString.attributes.push(_.extend(_.clone(htmlToAttrMap[v.type]), {
+					range: [ v.start, v.length ]
+				}));
+			}
+		});
+
+		console.log(attributedString);
+
+		$ui.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
 	};
 
-	var parseResult = simpleHTMLParser(args.html);
-	var attributedString = {
-		text: parseResult.text,
-		attributes: []
-	};
+	if (args.html) {
+		$ui.setHTML(args.html);
+	}
 
-	_.each(parseResult.style, function(v){
-		if (v.type in htmlToAttrMap) {
-			attributedString.attributes.push(_.extend(htmlToAttrMap[v.type], {
-				range: [ v.start, v.length ]
-			}));
-		}
-	});
-
-	delete args.html;
-	args.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
-
-	return Ti.UI.createLabel(args);
+	return $ui;
 };
