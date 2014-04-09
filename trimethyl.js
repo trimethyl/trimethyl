@@ -9,12 +9,13 @@ Company: Caffeina SRL
 // Load the modules
 _.each(Alloy.CFG.autoConfModules || [], function(m){
 	require(m).init( Alloy.CFG[m] || {} );
-	console.log("Trimethyl::"+m+" loaded.");
+	console.log('Trimethyl::'+m+' loaded.');
 });
 
 // Set the parse schema
 
 var Util = require('util');
+var Device = require('device');
 
 var launchURL = Util.parseSchema();
 var pauseURL = null;
@@ -36,13 +37,7 @@ if (OS_IOS) {
 }
 
 // Set some TSS vars
-
-Alloy.Globals.SCREEN_WIDTH = Util.getScreenWidth();
-Alloy.Globals.SCREEN_HEIGHT = Util.getScreenHeight();
-Alloy.Globals.SCREEN_DENSITY = Util.getScreenDensity();
-
-Alloy.Globals.IOS7 = Util.isIOS7();
-
-exports.getLaunchURL = function() {
-	return launchURL;
-};
+Alloy.Globals.SCREEN_WIDTH 		= Device.getScreenWidth();
+Alloy.Globals.SCREEN_HEIGHT 		= Device.getScreenHeight();
+Alloy.Globals.SCREEN_DENSITY 		= Device.getScreenDensity();
+Alloy.Globals.IOS7 					= Util.isIOS7();

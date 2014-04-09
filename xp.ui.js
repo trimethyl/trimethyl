@@ -6,7 +6,51 @@ Company: Caffeina SRL
 
 */
 
+/*
+Thanks to @lastguest
+https://gist.github.com/lastguest/10277461
+*/
+function simpleHTMLParser(text) {
+	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm,
+	partial,
+	tag,
+	temp_style;
+
+	var last_idx = 0,
+	last_text_idx = 0;
+
+	var style = [],
+	style_stack = [],
+	clean_text = [];
+
+	while ((tag=tags_rx.exec(text))!==null) {
+		partial = text.substr(last_idx, tag.index - last_idx);
+		clean_text.push(partial);
+		last_text_idx += partial.length;
+
+		if (tag[1][0]=='/'){
+			temp_style = style_stack.pop();
+			temp_style.length = last_text_idx - temp_style.start;
+			style.push(temp_style);
+		} else {
+			style_stack.push({
+				type: tag[1],
+				start: last_text_idx,
+			});
+		}
+		last_idx = tags_rx.lastIndex;
+	}
+
+	clean_text.push(text.substr(last_idx));
+
+	return {
+		text: clean_text.join(''),
+		style: style
+	};
+}
+
 if (OS_ANDROID) {
+
 	var NavigationWindow = function(args) {
 		this.args = args;
 	};
@@ -101,4 +145,48 @@ exports.createTextArea = function(args) {
 	}
 
 	return ui;
+};
+
+exports.createLabel = function(args) {
+	if (!OS_IOS || !args.html) {
+		return Ti.UI.createLabel(args);
+	}
+
+	var htmlToAttrMap = {
+		'u': {
+			type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
+			value: Ti.UI.iOS.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
+		},
+		'i': {
+			type: Ti.UI.iOS.ATTRIBUTE_FONT,
+			value: /-Regular/.test(args.font.fontFamily) ?
+			{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
+			{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
+		},
+		'b': {
+			type: Ti.UI.iOS.ATTRIBUTE_FONT,
+			value: /-Regular/.test(args.font.fontFamily) ?
+			{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
+			{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
+		}
+	};
+
+	var parseResult = simpleHTMLParser(args.html);
+	var attributedString = {
+		text: parseResult.text,
+		attributes: []
+	};
+
+	_.each(parseResult.style, function(v){
+		if (v.type in htmlToAttrMap) {
+			attributedString.attributes.push(_.extend(htmlToAttrMap[v.type], {
+				range: [ v.start, v.length ]
+			}));
+		}
+	});
+
+	delete args.html;
+	args.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
+
+	return Ti.UI.createLabel(args);
 };

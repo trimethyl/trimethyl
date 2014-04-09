@@ -26,18 +26,6 @@ exports.getSpinner = function(){
 	});
 };
 
-/* @deprecated -> device.getScreenDensity() */ exports.getScreenDensity = function() {
-	return require('device').getScreenDensity();
-};
-
-/* @deprecated -> device.getScreenWidth() */ exports.getScreenWidth = function(){
-	return require('device').getScreenWidth();
-};
-
-/* @deprecated -> device.getScreenHeight() */ exports.getScreenHeight = function(){
-	return require('device').getScreenHeight();
-};
-
 exports.openFacebookProfile = function(fbid) {
 	Ti.Platform.openURL("http://facebook.com/"+fbid);
 };
@@ -56,9 +44,7 @@ exports.reviewInStore = function() {
 
 exports.getDomainFromURL = function(url) {
 	var matches = url.match(/https?\:\/\/([^\/]*)/i);
-	if (!matches) {
-		return '';
-	}
+	if (!matches) { return ''; }
 	return matches[1].replace('www.', '');
 };
 
@@ -74,6 +60,9 @@ exports.alert = alertDialog = function(title, msg, callback) {
 };
 
 exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callback, opt) {
+	if (OS_ANDROID && cancelIndex>=0) {
+		options.splice(cancelIndex,1);
+	}
 	var dialog = Ti.UI.createAlertDialog(_.extend({
 		cancel: cancelIndex,
 		buttonNames: buttons,
@@ -81,19 +70,26 @@ exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callba
 		title: title
 	}, opt || {}));
 	dialog.addEventListener('click', function(e){
-		if (e.index==cancelIndex) { return; }
+		if (!OS_ANDROID && e.index==cancelIndex) {
+			return;
+		}
 		if (callback) callback(e.index);
 	});
 	dialog.show();
 };
 
 exports.option = optionDialog = function(options, cancelIndex, callback, opt) {
+	if (OS_ANDROID && cancelIndex>=0) {
+		options.splice(cancelIndex,1);
+	}
 	var dialog = Ti.UI.createOptionDialog(_.extend({
 		options: options,
 		cancel: cancelIndex
 	}, opt || {}));
 	dialog.addEventListener('click', function(e){
-		if (e.index==cancelIndex) { return; }
+		if (!OS_ANDROID && e.index==cancelIndex) {
+			return;
+		}
 		if (callback) callback(e.index);
 	});
 	dialog.show();
@@ -106,10 +102,6 @@ exports.alertError = alertError = function(msg, callback) {
 exports.isIOS7 = isIOS7 = function() {
 	if (!OS_IOS) { return false; }
 	return parseInt(Ti.Platform.version.split(".")[0],10)>=7;
-};
-
-exports.isIPad = function(){
-	return (OS_IOS && Ti.Platform.osname === 'ipad');
 };
 
 exports.parseSchema = function() {
