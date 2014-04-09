@@ -62,11 +62,6 @@ if (OS_ANDROID) {
 	};
 }
 
-exports.createMenuItem = function(args){
-	alert("HERE");
-	return Ti.Android.Menu.add(args);
-};
-
 exports.createNavigationWindow = function(args) {
 	return OS_IOS ? Ti.UI.iOS.createNavigationWindow(args) : new NavigationWindow(args);
 };
