@@ -22,28 +22,6 @@ function getPhoto(method, opt, cb){
 	}));
 }
 
-exports.savePhoto = function(opt) {
-	if (opt.uniqFileName) {
-		opt.fileName = require('util').uniqid() + (opt.suffixFileName || '') + '.jpg';
-	}
-	if (!opt.fileName) { throw 'Please specify a filename or set uniqFileName: true'; }
-
-	var imageFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, opt.fileName);
-	if (!imageFile.writable) {
-		console.error("Image file is not writable");
-		if (opt.error) opt.error();
-		return false;
-	}
-
-	if (!imageFile.write(opt.blob)) {
-		if (opt.error) opt.error();
-		console.error("Can't write the image");
-		return false;
-	}
-
-	if (opt.success) opt.success(imageFile);
-};
-
 exports.takePhoto = takePhoto = function(opt, cb) {
 	getPhoto('showCamera', opt, cb);
 };

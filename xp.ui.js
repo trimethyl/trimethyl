@@ -98,7 +98,7 @@ if (OS_ANDROID) {
 
 		}
 
-		return window.open(_.extend(params));
+		return window.open(_.extend(params, { modal:false }));
 	};
 
 	NavigationWindow.prototype.closeWindow = function(window, params) {
@@ -154,7 +154,7 @@ exports.createLabel = function(args) {
 
 	var $ui = Ti.UI.createLabel(args);
 
-	$ui.setHTML = function(html){
+	$ui.setHtml = function(html){
 		html = html.replace(/<br\/?>/g, "\n");
 		html = html.replace(/<p>/g, '').replace(/<\/p>/g, "\n\n");
 

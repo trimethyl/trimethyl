@@ -169,6 +169,13 @@ exports.parseJSON = function(json) {
 	}
 };
 
+exports.getAppDataDirectory = function() {
+	if (Ti.Filesystem.isExternalStoragePresent()) {
+		return Ti.Filesystem.externalStorageDirectory;
+	}
+	return Ti.Filesystem.applicationDataDirectory;
+};
+
 exports.init = function(c) {
 	config = _.extend(config, c);
 };
