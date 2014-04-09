@@ -152,8 +152,13 @@ exports.createLabel = function(args) {
 		return Ti.UI.createLabel(args);
 	}
 
+	var html = args.html;
+
 	// Convert <br> to \n
-	args.html = args.html.replace(/<br\/?>/g, "\n");
+	html = html.replace(/<br\/?>/g, "\n");
+
+	// Convert <p> to \n\n
+	html = html.replace(/<p>/g, '').replace(/<\/p>/g, "\n\n");
 
 	// Convert <b>, <u>, <i> to attributedString
 
@@ -176,7 +181,7 @@ exports.createLabel = function(args) {
 		}
 	};
 
-	var parseResult = simpleHTMLParser(args.html);
+	var parseResult = simpleHTMLParser(html);
 	var attributedString = {
 		text: parseResult.text,
 		attributes: []
