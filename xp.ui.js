@@ -191,8 +191,6 @@ exports.createLabel = function(args) {
 			}
 		});
 
-		console.log(attributedString);
-
 		$ui.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
 	};
 
