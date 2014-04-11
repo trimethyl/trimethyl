@@ -9,15 +9,29 @@ Company: Caffeina SRL
 var config = {};
 
 exports.openURL = openURL = function(url, fallback, error) {
-	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
-		Ti.Platform.openURL(url);
+	if (OS_IOS && Ti.Platform.canOpenURL(url)) { Ti.Platform.openURL(url); }
+	if (fallback) { return Ti.Platform.openURL(fallback); }
+	if (error) { alertError(error); }
+};
+
+exports.startActivity = startActivity = function(opt, error) {
+	try {
+		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
+	} catch (ex) {
+		if (error) {
+			alertError(error);
+		}
 	}
-	if (fallback) {
-		return Ti.Platform.openURL(fallback);
-	}
-	if (error) {
-		alertError(error);
-	}
+};
+
+exports.fixAutoFocusTextArea = function($textarea, $ui) {
+	if (!OS_ANDROID) return false;
+	$textarea.focusable = false;
+	var foo = function(e){
+		$textarea.focusable = true;
+	};
+	$ui.addEventListener('open', foo);
+	return foo;
 };
 
 exports.getSpinner = function(){
@@ -39,7 +53,6 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 };
 
 exports.reviewInStore = function() {
-	alert("WORK IN PROGRESS");
 };
 
 exports.getDomainFromURL = function(url) {
@@ -61,7 +74,7 @@ exports.alert = alertDialog = function(title, msg, callback) {
 
 exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
-		options.splice(cancelIndex,1);
+		buttons.splice(cancelIndex,1);
 	}
 	var dialog = Ti.UI.createAlertDialog(_.extend({
 		cancel: cancelIndex,
@@ -174,6 +187,20 @@ exports.getAppDataDirectory = function() {
 		return Ti.Filesystem.externalStorageDirectory;
 	}
 	return Ti.Filesystem.applicationDataDirectory;
+};
+
+exports.dial = function(tel) {
+	tel = tel.match(/[0-9]/g).join('');
+	if (OS_ANDROID) {
+
+		startActivity({
+			action: Ti.Android.ACTION_CALL,
+			data: 'tel:'+tel
+		}, String.format(L('cant_call_number'), tel));
+
+	} else {
+		openURL('tel:'+tel, null, String.format(L('cant_call_number'), tel));
+	}
 };
 
 exports.init = function(c) {

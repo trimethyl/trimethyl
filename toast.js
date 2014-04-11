@@ -24,7 +24,8 @@ exports.show = show = function(msg, args) {
 				top: -20,
 				height: 20,
 				backgroundColor: args.background,
-				fullscreen: true
+				fullscreen: true,
+				touchEnabled: false
 			});
 
 			$view.addEventListener('touchstart', function(e){
@@ -34,7 +35,6 @@ exports.show = show = function(msg, args) {
 
 			$view.add(Ti.UI.createLabel({
 				text: msg,
-				apiName: 'Label',
 				touchEnabled: false,
 				left: 10,
 				right: 10,

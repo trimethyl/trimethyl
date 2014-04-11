@@ -128,7 +128,7 @@ function decorateRequest(request) {
 	request.headers = _.extend(config.headers, request.headers || {});
 	if (!request.timeout) { request.timeout = config.timeout; }
 
-	if (!request.success) { request.success = function(response){ console.log(response); }; }
+	if (!request.success) { request.success = function(){}; }
 	if (!request.error) { request.error = autoDispatch; }
 
 	if (request.method=='GET' && request.data) {

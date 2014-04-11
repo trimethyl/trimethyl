@@ -114,37 +114,40 @@ exports.createWindow = function(args) {
 	return OS_IOS ? Ti.UI.createWindow(args) : Ti.UI.createView(args);
 };
 
-exports.createTextArea = function(args) {
-	var ui = Ti.UI.createTextArea(args);
-
-	if (OS_IOS && args.hintText) {
-
-		ui.originalColor = ui.color || '#000';
-		if (!ui.value) {
-			ui.applyProperties({
-				value: ui.hintText,
-				color: '#ccc'
-			});
-		}
-
-		ui.addEventListener('focus', function(e){
-			if (e.source.value!=e.source.hintText) return;
-			e.source.applyProperties({
-				value: '',
-				color: e.source.originalColor
-			});
-		});
-
-		ui.addEventListener('blur', function(e){
-			if (e.source.value) return;
-			e.source.applyProperties({
-				value: e.source.hintText,
-				color: '#ccc'
-			});
+function __onTextAreaFocus(e) {
+	if (e.source.hintText==e.source.value) {
+		e.source.applyProperties({
+			value: '',
+			color: e.source.originalColor
 		});
 	}
+}
 
-	return ui;
+function __onTextAreaBlur(e) {
+	if (!e.source.value) {
+		e.source.applyProperties({
+			value: e.source.hintText,
+			color: '#ccc'
+		});
+	}
+}
+
+exports.createTextArea = function(args) {
+	var $ui = Ti.UI.createTextArea(args);
+
+	if (OS_IOS && args.hintText) {
+		$ui.originalColor = $ui.color || '#000';
+		if (!$ui.value) {
+			$ui.applyProperties({
+				value: $ui.hintText,
+				color: '#aaa'
+			});
+		}
+		$ui.addEventListener('focus', __onTextAreaFocus);
+		$ui.addEventListener('blur', __onTextAreaBlur);
+	}
+
+	return $ui;
 };
 
 exports.createLabel = function(args) {

@@ -10,7 +10,8 @@ var config = {};
 
 function getPhoto(method, opt, cb){
 	Ti.Media[method](_.extend(opt || {}, {
-		mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO, Ti.Media.MEDIA_TYPE_VIDEO ],
+		mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
+		saveToPhotoGallery: (method=='showCamera'),
 		success: cb,
 		cancel: function(e) {
 			console.warn(e);
@@ -31,9 +32,7 @@ exports.choosePhoto = choosePhoto = function(opt, cb) {
 };
 
 exports.selectPhoto = function(opt, cb){
-	require('util').option([
-		L('camera_takephoto'), L('camera_choosephoto'), L('Cancel') ],
-		2, function(i){
+	require('util').option([ L('camera_takephoto'), L('camera_choosephoto'), L('Cancel') ], 2, function(i){
 			switch (i) {
 				case 0: takePhoto(opt, cb); break;
 				case 1: choosePhoto(opt, cb); break;

@@ -6,15 +6,14 @@ Company: Caffeina SRL
 
 */
 
-var Auth = require('auth');
 var config = {};
 
 exports.handleLogin = function(){
-	Auth.login(Ti.App.Properties.getObject('auth.std.data'), 'std');
+	require('auth').login(Ti.App.Properties.getObject('auth.std.data'), 'std');
 };
 
 exports.login = function(data){
-	Auth.login(data, 'std', function(){
+	require('auth').login(data, 'std', function(){
 		Ti.App.Properties.setObject('auth.std.data', data);
 	});
 };

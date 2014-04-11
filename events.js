@@ -10,8 +10,11 @@ var $$ = {};
 var config = {};
 
 exports.add = exports.on = function(k, f) {
-	if (k in $$) $$[k].push(f);
-	else $$[k] = [f];
+	if (k in $$) {
+		$$[k].push(f);
+	} else {
+		$$[k] = [f];
+	}
 	Ti.App.addEventListener(k, f);
 };
 

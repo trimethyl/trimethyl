@@ -1,17 +1,19 @@
 /*
 
-Notifications module
+Google Analitycs module
 Author: Flavio De Stefano
 Company: Caffeina SRL
 
-Requirements: gittio install -g analytics.google
+Requirements:
+gittio install -g analytics.google
 
 */
 
 var config = {
 	ua: null
 };
-var $$ = require('analytics.google');
+
+var $$ = null;
 var $T = null;
 
 
@@ -39,7 +41,7 @@ exports.trackScreen = function(name){
 	$T.trackScreen(name);
 };
 
-exports.trackSocial = function(net,act,tar){
+exports.trackSocial = function(net, act, tar){
 	if (!$T) {
 		return;
 	}
@@ -56,7 +58,12 @@ exports.trackSocial = function(net,act,tar){
 
 exports.init = function(c){
 	config = _.extend(config, c);
+
+	$$ = require('analytics.google');
 	$$.trackUncaughtExceptions = true;
-	$$.debug = !ENV_PRODUCTION;
-	if (config.ua) $T = $$.getTracker(config.ua);
+	$$.debug = false;
+
+	if (config.ua) {
+		$T = $$.getTracker(config.ua);
+	}
 };

@@ -109,7 +109,8 @@ exports.gyroscopeOff = function(cb) {
 exports.startNavigator = function(lat, lng, mode) {
 	localize(function(e, mylat, mylng) {
 		var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps";
-		Ti.Platform.openURL(D+"?directionsmode="+(mode||'walking')+"&daddr="+lat+","+lng+"&saddr="+mylat+","+mylng);
+		var url = D+"?directionsmode="+(mode||'walking')+"&daddr="+lat+","+lng+"&saddr="+mylat+","+mylng;
+		require('util').openURL(url);
 	});
 };
 
@@ -168,7 +169,6 @@ exports.reverseGeocode = function(lat, lng, cb) {
 		});
 	} else {
 		Ti.Geolocation.reverseGeocoder(lat, lng, function(res){
-			console.log(res);
 			if (!res.success || !res.places || !res.places.length) {
 				require('util').alertError(L('geo_unabletoreversegeocode'));
 				return;
