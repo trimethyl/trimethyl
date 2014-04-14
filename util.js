@@ -25,7 +25,10 @@ exports.startActivity = startActivity = function(opt, error) {
 };
 
 exports.fixAutoFocusTextArea = function($textarea, $ui) {
-	if (!OS_ANDROID) return false;
+	if (!OS_ANDROID) {
+		return false;
+	}
+
 	$textarea.focusable = false;
 	var foo = function(e){
 		$textarea.focusable = true;
@@ -45,7 +48,7 @@ exports.openFacebookProfile = function(fbid) {
 };
 
 exports.openTwitterProfile = function(twid) {
-	return openURL("twitter://user?screen_name="+twid, "http://twitter.com/"+twid);
+	return Ti.Platform.openURL("twitter://user?screen_name="+twid, "http://twitter.com/"+twid);
 };
 
 exports.getFacebookAvatar = function(fbid, w, h) {
@@ -53,6 +56,11 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 };
 
 exports.reviewInStore = function() {
+	if (OS_IOS) {
+		Ti.Platform.openURL('itms-apps://itunes.apple.com/app/id'+Ti.App.Properties.getString('appstoreid', 0));
+	} else if (OS_ANDROID) {
+		Ti.Platform.openURL('https://play.google.com/store/apps/details?id='+Ti.App.Properties.getString('id',0)+'&reviewId=0');
+	}
 };
 
 exports.getDomainFromURL = function(url) {
@@ -74,7 +82,7 @@ exports.alert = alertDialog = function(title, msg, callback) {
 
 exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
-		buttons.splice(cancelIndex,1);
+		buttons.splice(cancelIndex, 1);
 	}
 	var dialog = Ti.UI.createAlertDialog(_.extend({
 		cancel: cancelIndex,
@@ -113,17 +121,20 @@ exports.alertError = alertError = function(msg, callback) {
 };
 
 exports.isIOS7 = isIOS7 = function() {
-	if (!OS_IOS) { return false; }
-	return parseInt(Ti.Platform.version.split(".")[0],10)>=7;
+	return OS_IOS && +(Ti.Platform.version.split(".")[0])>=7;
 };
 
 exports.parseSchema = function() {
 	if (OS_IOS) {
 		var cmd = Ti.App.getArguments();
-		if (cmd && 'url' in cmd) { return cmd.url.replace(/[^:]*\:\/\//, ''); }
+		if (cmd && 'url' in cmd) {
+			return cmd.url.replace(/[^:]*\:\/\//, '');
+		}
 	} else if (OS_ANDROID) {
 		var url = Ti.Android.currentActivity.intent.data;
-		if (url) { return url.replace(/[^:]*\:\/\//, ''); }
+		if (url) {
+			return url.replace(/[^:]*\:\/\//, '');
+		}
 	}
 
 	return '';
@@ -202,6 +213,26 @@ exports.dial = function(tel) {
 		openURL('tel:'+tel, null, String.format(L('cant_call_number'), tel));
 	}
 };
+
+/* Modal Prototype */
+
+var __Modal = function(args) {
+	var self = this;
+
+	self._Window =  Ti.UI.createWindow(args || {});
+	var $leftButton = Ti.UI.createButton({ title: L('Cancel') });
+	$leftButton.addEventListener('click', function(){ self.close(); });
+	self._Window.leftNavButton = $leftButton;
+
+	self._Navigator = require('xp.ui').createNavigationWindow({ window: self._Window });
+};
+
+__Modal.prototype.close = function(){ this._Navigator.close(); };
+__Modal.prototype.open = function(){ this._Navigator.open({ modal: true }); };
+__Modal.prototype.add = function($ui){ this._Window.add($ui); };
+exports.modal = function(args) { return new __Modal(args); };
+
+/* End modal prototype */
 
 exports.init = function(c) {
 	config = _.extend(config, c);

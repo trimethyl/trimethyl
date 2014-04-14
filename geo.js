@@ -57,7 +57,7 @@ exports.localizeSilent = function(cb) {
 	Ti.Geolocation.purpose = L('geo_purpose');
 	Ti.Geolocation.accuracy = Ti.Geolocation.ACCURACY_LOW;
 	Ti.Geolocation.getCurrentPosition(function(e){
-		cb(e, e.coords.latitude, e.coords.longitude);
+		cb(e);
 	});
 };
 
@@ -110,7 +110,7 @@ exports.startNavigator = function(lat, lng, mode) {
 	localize(function(e, mylat, mylng) {
 		var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps";
 		var url = D+"?directionsmode="+(mode||'walking')+"&daddr="+lat+","+lng+"&saddr="+mylat+","+mylng;
-		require('util').openURL(url);
+		Ti.Platform.openURL(url);
 	});
 };
 

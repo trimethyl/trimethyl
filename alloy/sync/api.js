@@ -35,7 +35,7 @@ exports.sync = function(method, model, opt) {
 	var data = _.extend(opt.netArgs || {}, {
 		url: url,
 		method: CRUD_TO_REST[method],
-		info: { mime: 'json' }
+		mime: 'json'
 	});
 
 	if (Alloy.Backbone.emulateHTTP) {

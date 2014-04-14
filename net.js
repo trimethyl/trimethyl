@@ -159,6 +159,7 @@ function onComplete(request, response, e){
 		info.mime = request.mime;
 	}
 
+
 	var returnValue = null;
 	if (info.mime=='json') {
 		returnValue = require('util').parseJSON(response.responseText);
@@ -201,6 +202,7 @@ function onComplete(request, response, e){
 			}, 0);
 		}
 	}
+
 
 	request.success(returnValue);
 	return true;

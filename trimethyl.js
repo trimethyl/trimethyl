@@ -6,6 +6,10 @@ Company: Caffeina SRL
 
 */
 
+var Alloy = require('alloy'),
+_ = require("alloy/underscore")._,
+Backbone = require("alloy/backbone");
+
 // Load the modules
 _.each(Alloy.CFG.autoConfModules || [], function(m){
 	require(m).init( Alloy.CFG[m] || {} );

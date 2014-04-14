@@ -9,28 +9,34 @@ Be more social
 */
 
 var callback = null;
+
 if (OS_IOS) {
 	var Social = require('dk.napp.social');
-	Social.addEventListener('complete', onSocialComplete);
-	Social.addEventListener('cancelled', onSocialCancelled);
+	Social.addEventListener('complete', __onSocialComplete);
+	Social.addEventListener('cancelled', __onSocialCancelled);
 }
 
-function onSocialComplete(e) {
-	if (!callback) return;
+function __onSocialComplete(e) {
+	if (!callback) {
+		return;
+	}
 	e.type = 'complete';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
 }
 
-function onSocialCancelled(e) {
-	if (!callback) return;
+function __onSocialCancelled(e) {
+	if (!callback) {
+		return;
+	}
 	e.type = 'cancelled';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
 }
 
-function _init(args) {
+function __parseArgs(args) {
 	args = args || {};
+
 	if (args.image) {
 		if (typeof args.image === 'object') {
 			if (args.image.resolve) {
@@ -50,73 +56,88 @@ function _init(args) {
 	if (args.imageUrl && !args.image) {
 		args.image = args.imageUrl;
 	}
+
+	if (args.removeIcons=='ALL') {
+		args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
+	}
+
 	return args;
 }
 
-exports.twitter = function(args, _callback) {
-	callback = _callback || null;
-	_init(args);
+exports.twitter = function(args) {
+	callback = args.callback || null;
+	__parseArgs(args);
 
-	var webUrl = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(args.url) + '&text=' + encodeURIComponent(args.text);
-	var textUrl = (args.url && args.image) ? (args.text ? args.text + ' ' + args.url : args.url) : args.text;
+	var intentUrl = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(args.url) + '&text=' + encodeURIComponent(args.text);
 
 	if (OS_IOS) {
 
 		if (Social.isTwitterSupported()) {
+
 			Social.twitter({
-				text: textUrl,
+				text: args.text,
 				image: args.image,
 				url: args.url
 			});
+
 		} else {
-			var url = 'twitter://post?message=' + encodeURIComponent(textUrl);
-			if (!Ti.Platform.canOpenURL(url)) url = webUrl;
-			Ti.Platform.openURL(url);
+			if (args.url) { args.text += ' ' + args.url; }
+			require('util').openURL('twitter://post?message='+encodeURIComponent(args.text), intentUrl);
 		}
 
 	} else {
-		Ti.Platform.openURL(webUrl);
+		Ti.Platform.openURL(intentUrl);
 	}
 };
 
 exports.facebook = function(args, _callback) {
-	callback = _callback || null;
-	args = _init(args);
+	callback = args.callback || null;
+	args = __parseArgs(args);
 
 	if (OS_IOS && Social.isFacebookSupported() && !args.useSDK) {
+
 		Social.facebook({
 			text: args.text,
 			image: args.image,
 			url: args.url
 		});
+
 	} else {
 
 		var FB = require('facebook');
-		if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+		if (!FB) {
+			return;
+		}
+
+		if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+		}
 
 		FB.dialog('feed', {
 			name: args.title,
 			description: args.text,
 			picture: args.imageUrl
 		}, function(e) {
+
 			if (e.cancelled) {
-				onSocialCancelled({
+				__onSocialCancelled({
 					success: false,
 					platform: 'facebook'
 				});
 			} else {
-				onSocialComplete({
+				__onSocialComplete({
 					success: e.success,
 					platform: 'facebook'
 				});
 			}
+
 		});
 	}
 };
 
 exports.mail = function(args, _callback) {
-	callback = _callback || null;
-	args = _init(args);
+	callback = args.callback || null;
+	args = __parseArgs(args);
 
 	var emailDialog = Ti.UI.createEmailDialog({
 		subject: args.title,
@@ -129,14 +150,14 @@ exports.mail = function(args, _callback) {
 	}
 
 	emailDialog.addEventListener('complete', function(e) {
-		if (e.result === this.CANCELLED) {
-			onSocialCancelled({
+		if (e.result===this.CANCELLED) {
+			__onSocialCancelled({
 				success: false,
 				platform: 'mail'
 			});
 		} else {
-			onSocialComplete({
-				success: (e.result === this.SENT),
+			__onSocialComplete({
+				success: (e.result===this.SENT),
 				platform: 'mail'
 			});
 		}
@@ -145,85 +166,51 @@ exports.mail = function(args, _callback) {
 	emailDialog.open();
 };
 
-exports.options = function(args, _callback) {
-	callback = _callback || null;
-	args = _init(args);
+exports.googleplus = function(args, _callback) {
+	args = __parseArgs(args);
+	webview("https://plus.google.com/share?url="+encodeURIComponent(args.url));
+};
 
-	if (OS_IOS && Social.isActivityViewSupported()) {
+exports.webview = webview = function(url) {
+	var M = require('util').modal({
+		title: L('Share on Google+')
+	});
+	M.add(Ti.UI.createWebView({ url: url }));
+	M.open();
+};
 
-		if (require('util').isIPad()) {
+exports.options = exports.multi = function(args, _callback) {
+	callback = 	callback = args.callback || null;
+	args = __parseArgs(args);
+
+	if (OS_IOS) {
+
+		if (Ti.Platform.osname=='ipad') {
 			Social.activityPopover({
-				text: args.url ? (args.text ? args.text + ' ' + args.url : args.url) : args.text,
+				text: args.text,
+				title: args.title,
 				image: args.image,
 				removeIcons: args.removeIcons,
-				view: args.view
+				view: args.view,
+				url: args.url
 			}, args.customIcons || []);
 		} else {
 			Social.activityView({
-				text: args.url ? (args.text ? args.text + ' ' + args.url : args.url) : args.text,
+				text: args.text,
+				title: args.title,
 				image: args.image,
-				removeIcons: args.removeIcons
+				removeIcons: args.removeIcons,
+				//view: args.view,
+				url: args.url
 			}, args.customIcons || []);
 		}
 
 	} else if (OS_ANDROID) {
 
 		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
-		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
-		if (args.text || args.description) intent.putExtra(Ti.Android.EXTRA_SUBJECT, args.description || args.text);
-		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
-		var shareActivity = Ti.Android.createIntentChooser(intent, args.title);
-		Ti.Android.currentActivity.startActivity(shareActivity);
+		if (args.text) { intent.putExtra(Ti.Android.EXTRA_TEXT, args.text); }
+		if (args.image){ intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image); }
 
-	} else {
-
-		var options = [];
-		var callbacks = [];
-		if (!args.removeIcons || args.removeIcons.indexOf('twitter') === -1) {
-			options.push('Twitter');
-			callbacks.push(_twitter);
-		}
-		if (!args.removeIcons || args.removeIcons.indexOf('facebook') === -1) {
-			options.push('Facebook');
-			callbacks.push(_facebook);
-		}
-		if (!args.removeIcons || args.removeIcons.indexOf('mail') === -1) {
-			options.push('Mail');
-			callbacks.push(_mail);
-		}
-
-		if (args.customIcons) {
-			args.customIcons.forEach(function (customIcon) {
-				options.push(customIcon.title);
-				callbacks.push(customIcon.callback);
-			});
-		}
-
-		if (options.length === 0) return;
-		options.push('Cancel');
-
-		var dialog = Ti.UI.createOptionDialog({
-			cancel: options.length - 1,
-			options: options,
-			title: args.title,
-			titleid: args.titleid,
-			androidView: args.androidView,
-			tizenView: args.tizenView
-		});
-
-		dialog.addEventListener('click', function(e) {
-			if (e.index === e.source.cancel) return;
-			callbacks[e.index](args);
-		});
-
-		if (require('util').isIPad()) {
-			dialog.show({
-				animated: args.animated,
-				rect: args.rect,
-				view: args.view
-			});
-		} else {
-			dialog.show();
-		}
+		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, args.title));
 	}
 };
