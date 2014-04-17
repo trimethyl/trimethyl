@@ -131,6 +131,7 @@ function decorateRequest(request) {
 	if (!request.success) { request.success = function(){}; }
 	if (!request.error) { request.error = autoDispatch; }
 
+	// Rebuild the URL if is a GET and there's data
 	if (request.method=='GET' && request.data) {
 		var query = buildQuery(request.data);
 		delete request.data;
@@ -143,10 +144,16 @@ function decorateRequest(request) {
 	return request;
 }
 
+
 function onComplete(request, response, e){
-	if (request.complete) { request.complete(); }
+	if (request.complete) {
+		request.complete();
+	}
+
+	// Delete request from queue
 	delete queue[request.hash];
 
+	// Fire the global event
 	if (!request.disableEvent) {
 		Ti.App.fireEvent('net.end', {
 			id: request.hash,
@@ -154,58 +161,64 @@ function onComplete(request, response, e){
 		});
 	}
 
+	// Get the response information
 	var info = getResponseInfo(response);
+
+	// Override response info
 	if (request.mime) {
 		info.mime = request.mime;
 	}
 
 
 	var returnValue = null;
+	var returnError = null;
+
+	// Parse based on response info
 	if (info.mime=='json') {
 		returnValue = require('util').parseJSON(response.responseText);
 	} else {
 		returnValue = response.responseData;
 	}
 
-	if (!e.success) {
-		console.error(e);
-		var returnError = L('net_error');
+	if (e.success) {
 
-		// We parse the message only if is not a critical (>=500) HTTP error
-		if (e.code<500) {
-			if (returnValue) {
-				if (info.mime=='json' && returnValue.error) {
-					if (returnValue.error.message) {
-						returnError = returnValue.error.message;
-					} else {
-						returnError = returnValue.error;
-					}
-				} else {
-					returnError = returnValue.toString();
-				}
+		/*
+		SUCCESS
+		*/
+
+		// Write cache (async)
+		if (config.useCache && !request.noCache) {
+			if (request.method=='GET') {
+				setTimeout(function(){
+					writeCache(request, response, info);
+				}, 0);
 			}
 		}
 
-		if (request.fail) {
-			request.fail(returnError, returnValue);
+		// Success callback
+		request.success(returnValue);
+		return true;
+
+	} else {
+
+		/*
+		ERROR
+		*/
+
+		// Parse the error returned from the server
+		if (returnValue && returnValue.error) {
+			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
+		} else if (returnValue) {
+			returnError = returnValue.toString();
+		} else {
+			returnError = L('net_error');
 		}
 
-		request.error(returnError, returnValue);
+		// Error callback
+		request.error(returnError, returnValue, e);
 		return false;
+
 	}
-
-	// Write cache async
-	if (config.useCache) {
-		if (request.method=='GET') {
-			setTimeout(function(){
-				writeCache(request, response, info);
-			}, 0);
-		}
-	}
-
-
-	request.success(returnValue);
-	return true;
 }
 
 exports.isOnline = function() {
@@ -319,20 +332,23 @@ function makeRequest(request) {
 	queue[request.hash] = H;
 	H.timeout = request.timeout;
 
-	// onLoad && onError are the same because we have an internal parser that discern the event.success property
+	// onLoad && onError are the same because we have an internal parser that discern the event.success property; WOW!
 	H.onload = H.onerror = function(e){ onComplete(request, this, e); };
 	H.open(request.method, request.url);
 
+	// Set the headers
 	_.each(request.headers, function(h, k) {
 		H.setRequestHeader(k, h);
 	});
 
+	// Finally, send the request
 	if (request.data) {
 		H.send(request.data);
 	} else {
 		H.send();
 	}
 
+	// And return the hash of this request
 	return request.hash;
 }
 

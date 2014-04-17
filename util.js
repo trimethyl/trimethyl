@@ -9,9 +9,18 @@ Company: Caffeina SRL
 var config = {};
 
 exports.openURL = openURL = function(url, fallback, error) {
-	if (OS_IOS && Ti.Platform.canOpenURL(url)) { Ti.Platform.openURL(url); }
-	if (fallback) { return Ti.Platform.openURL(fallback); }
-	if (error) { alertError(error); }
+	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
+		Ti.Platform.openURL(url);
+	}
+	if (fallback) {
+		console.log( fallback );
+		if (typeof(fallback)==='function') fallback();
+		else Ti.Platform.openURL(fallback);
+		return;
+	}
+	if (error) {
+		alertError(error);
+	}
 };
 
 exports.startActivity = startActivity = function(opt, error) {
@@ -29,12 +38,10 @@ exports.fixAutoFocusTextArea = function($textarea, $ui) {
 		return false;
 	}
 
-	$textarea.focusable = false;
-	var foo = function(e){
-		$textarea.focusable = true;
-	};
-	$ui.addEventListener('open', foo);
-	return foo;
+	$textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
+	function onOpen(e) { $textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS; }
+	$ui.addEventListener('open', onOpen);
+	return onOpen;
 };
 
 exports.getSpinner = function(){

@@ -49,21 +49,10 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 
 var locaCallbacks = [];
 
-exports.localizeSilent = function(cb) {
-	if (!checkForServices()) {
-		return cb();
-	}
-
-	Ti.Geolocation.purpose = L('geo_purpose');
-	Ti.Geolocation.accuracy = Ti.Geolocation.ACCURACY_LOW;
-	Ti.Geolocation.getCurrentPosition(function(e){
-		cb(e);
-	});
-};
 
 exports.localize = localize = function(cb) {
 	if (!checkForServices()) {
-		return;
+		return cb({ error: true });
 	}
 
 	Ti.App.fireEvent('geo.start');
@@ -73,11 +62,11 @@ exports.localize = localize = function(cb) {
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
 		if (e.error) {
-			require('util').alertError(e.error || L('geo_error'));
-			return false;
+			require('util').alertError(L('geo_error'));
+			return cb(e);
 		}
 
-		if (cb) cb(e, e.coords.latitude, e.coords.longitude);
+		cb(e);
 	});
 };
 
@@ -85,7 +74,7 @@ var gyroCallbacks = [];
 
 exports.gyroscope = gyroscope = function(cb) {
 	if (!checkForServices()) {
-		return;
+		return cb({ error: true });
 	}
 
 	gyroCallbacks.push(cb);
@@ -147,11 +136,16 @@ exports.geocode = function(address, cb) {
 };
 
 exports.reverseGeocode = function(lat, lng, cb) {
+	if (!lat || !lng) {
+		require('util').alertError(L('geo_unabletoreversegeocode'));
+		return;
+	}
+
 	if (config.useGoogleForGeocode) {
 		require('net').send({
 			url: 'https://maps.googleapis.com/maps/api/geocode/json',
 			data: {
-				latlng: lat.toFixed(8)+','+lng.toFixed(8),
+				latlng: lat+','+lng,
 				sensor: 'false'
 			},
 			mime: 'json',

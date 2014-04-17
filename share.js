@@ -20,6 +20,7 @@ function __onSocialComplete(e) {
 	if (!callback) {
 		return;
 	}
+
 	e.type = 'complete';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
@@ -29,6 +30,7 @@ function __onSocialCancelled(e) {
 	if (!callback) {
 		return;
 	}
+
 	e.type = 'cancelled';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
@@ -68,21 +70,21 @@ exports.twitter = function(args) {
 	callback = args.callback || null;
 	__parseArgs(args);
 
-	var intentUrl = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(args.url) + '&text=' + encodeURIComponent(args.text);
+	var intentUrl = 'https://twitter.com/intent/tweet?url='+encodeURIComponent(args.url)+'&text='+encodeURIComponent(args.text);
 
 	if (OS_IOS) {
 
 		if (Social.isTwitterSupported()) {
-
 			Social.twitter({
 				text: args.text,
 				image: args.image,
 				url: args.url
 			});
-
 		} else {
-			if (args.url) { args.text += ' ' + args.url; }
-			require('util').openURL('twitter://post?message='+encodeURIComponent(args.text), intentUrl);
+			var shareUrl = 'twitter://post?message='+encodeURIComponent(args.text+' ('+args.url+')');
+			require('util').openURL(shareUrl, function(){
+				webviewShare(intentUrl);
+			});
 		}
 
 	} else {
@@ -105,33 +107,34 @@ exports.facebook = function(args, _callback) {
 	} else {
 
 		var FB = require('facebook');
-		if (!FB) {
-			return;
+		if (FB && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+			if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid');
+
+			FB.dialog('feed', {
+				name: args.title,
+				description: args.text,
+				link: args.url,
+				picture: args.imageUrl
+			}, function(e) {
+
+				if (e.cancelled) {
+					__onSocialCancelled({
+						success: false,
+						platform: 'facebook'
+					});
+				} else {
+					__onSocialComplete({
+						success: e.success,
+						platform: 'facebook'
+					});
+				}
+
+			});
+
+		} else {
+
+
 		}
-
-		if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-		}
-
-		FB.dialog('feed', {
-			name: args.title,
-			description: args.text,
-			picture: args.imageUrl
-		}, function(e) {
-
-			if (e.cancelled) {
-				__onSocialCancelled({
-					success: false,
-					platform: 'facebook'
-				});
-			} else {
-				__onSocialComplete({
-					success: e.success,
-					platform: 'facebook'
-				});
-			}
-
-		});
 	}
 };
 
@@ -145,9 +148,7 @@ exports.mail = function(args, _callback) {
 		messageBody: args.text + (args.url ? "<br><br>" + args.url : ''),
 	});
 
-	if (args.imageBlob) {
-		emailDialog.addAttachment(args.imageBlob);
-	}
+	if (args.imageBlob) emailDialog.addAttachment(args.imageBlob);
 
 	emailDialog.addEventListener('complete', function(e) {
 		if (e.result===this.CANCELLED) {
@@ -168,13 +169,17 @@ exports.mail = function(args, _callback) {
 
 exports.googleplus = function(args, _callback) {
 	args = __parseArgs(args);
-	webview("https://plus.google.com/share?url="+encodeURIComponent(args.url));
+	webviewShare("https://plus.google.com/share?url="+encodeURIComponent(args.url));
 };
 
-exports.webview = webview = function(url) {
-	var M = require('util').modal({
-		title: L('Share on Google+')
-	});
+exports.whatsapp = function(args, _callback) {
+	args = __parseArgs(args);
+	if (args.url) args.text += ' (' + args.url + ')';
+	Ti.Platform.openURL('whatsapp://send?text='+args.text);
+};
+
+exports.webviewShare = webviewShare = function(url) {
+	var M = require('util').modal({ title: L('Share') });
 	M.add(Ti.UI.createWebView({ url: url }));
 	M.open();
 };
@@ -208,8 +213,8 @@ exports.options = exports.multi = function(args, _callback) {
 	} else if (OS_ANDROID) {
 
 		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
-		if (args.text) { intent.putExtra(Ti.Android.EXTRA_TEXT, args.text); }
-		if (args.image){ intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image); }
+		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
+		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
 
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, args.title));
 	}

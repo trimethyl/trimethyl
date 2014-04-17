@@ -157,7 +157,7 @@ exports.createLabel = function(args) {
 
 	var $ui = Ti.UI.createLabel(args);
 
-	$ui.setHtml = function(html){
+	$ui.setHtml = $ui.setHTML = function(html){
 		html = html.replace(/<br\/?>/g, "\n");
 		html = html.replace(/<p>/g, '').replace(/<\/p>/g, "\n\n");
 

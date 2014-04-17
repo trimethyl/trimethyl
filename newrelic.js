@@ -7,9 +7,15 @@ Company: Caffeina SRL
 */
 
 var config = {};
-var $$ = require('ti.newrelic');
+var $$ = null;
 
 exports.init = function(c) {
+	if (!OS_IOS) {
+		return;
+	}
+
+	$$ = require('ti.newrelic');
 	config = _.extend(config, c);
+
 	$$.start(config.token);
 };
