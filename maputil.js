@@ -116,6 +116,42 @@ exports.cluster = function(e, markers){
 	return data;
 };
 
+exports.checkForDependencies = function() {
+	if (!OS_ANDROID) {
+		return false;
+	}
+
+	var $$ = require('ti.map');
+	var rc = $$.isGooglePlayServicesAvailable();
+
+	if (rc==$$.SUCCESS) {
+		return true;
+	}
+
+	var errorMessage = null;
+	switch (rc) {
+		case $$.SERVICE_MISSING:
+		errorMessage = L('geo_googleplayservices_missing', 'Google Play services is missing. Please install Google Play services from the Google Play store in order to use the application.');
+		break;
+		case $$.SERVICE_VERSION_UPDATE_REQUIRED:
+		errorMessage = L('geo_googleplayservices_outdated', 'Google Play services is out of date. Please update Google Play services in order to use the application.');
+		break;
+		case $$.SERVICE_DISABLED:
+		errorMessage = L('geo_googleplayservices_disabled', 'Google Play services is disabled. Please enable Google Play services in order to use the application.');
+		break;
+		case $$.SERVICE_INVALID:
+		errorMessage = L('geo_googleplayservices_auth', 'Google Play services cannot be authenticated. Reinstall Google Play services in order to use the application.');
+		break;
+		default:
+		errorMessage = L('geo_googleplayservices_error', 'Google Play services generated an uknown error. Reinstall Google Play services in order to use the application.');
+		break;
+	}
+
+	require('util').alertError(errorMessage, function(){
+		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
+		Ti.Android.currentActivity.finish();
+	});
+};
 
 exports.init = function(c) {
 	config = _.extend(config, c);
