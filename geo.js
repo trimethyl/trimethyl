@@ -20,7 +20,7 @@ function checkForServices() {
 	return true;
 }
 
-exports.getRoute = getRoute = function(args, rargs, cb) {
+exports.getRoute =  function getRoute(args, rargs, cb) {
 	require('net').send({
 		url: config.directionUrl,
 		data: args,
@@ -50,7 +50,7 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 var locaCallbacks = [];
 
 
-exports.localize = localize = function(cb) {
+exports.localize = function localize(cb) {
 	if (!checkForServices()) {
 		return cb({ error: true });
 	}
@@ -72,7 +72,7 @@ exports.localize = localize = function(cb) {
 
 var gyroCallbacks = [];
 
-exports.gyroscope = gyroscope = function(cb) {
+exports.gyroscope = function gyroscope(cb) {
 	if (!checkForServices()) {
 		return cb({ error: true });
 	}

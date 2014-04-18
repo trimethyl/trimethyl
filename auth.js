@@ -22,7 +22,7 @@ function getCurrentDriver(){
 	return Ti.App.Properties.getString('auth.driver');
 }
 
-exports.loadDriver = loadDriver = function(d) {
+exports.loadDriver = function loadDriver(d) {
 	if (!d) {
 		return false;
 	}
@@ -68,7 +68,7 @@ exports.handleOfflineLogin = function(cb){
 	if (cb) cb();
 };
 
-exports.login = login = function(data, driver, cb) {
+exports.login = function login(data, driver, cb) {
 	data.method = driver;
 	Net.send({
 		url: '/auth',
@@ -111,7 +111,7 @@ exports.user = exports.me = function(){
 	return Me;
 };
 
-exports.logout = logout = function() {
+exports.logout = function logout() {
 	if (!Me) {
 		return;
 	}

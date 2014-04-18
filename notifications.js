@@ -44,7 +44,7 @@ function onNotificationReceived(e) {
 	}
 }
 
-exports.setBadge = setBadge = function(x) {
+exports.setBadge = function setBadge(x) {
 	if (OS_IOS) {
 		Ti.UI.iPhone.setAppBadge(Math.max(x,0));
 	} else if (OS_ANDROID) {
@@ -52,7 +52,7 @@ exports.setBadge = setBadge = function(x) {
 	}
 };
 
-exports.getBadge = getBadge = function() {
+exports.getBadge = function getBadge() {
 	if (OS_IOS) {
 		return Ti.UI.iPhone.getAppBadge();
 	} else if (OS_ANDROID) {

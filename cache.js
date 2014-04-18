@@ -48,7 +48,7 @@ exports.get = function(id, value, expire) {
 	return value;
 };
 
-exports.set = set = function(id, value, expire) {
+exports.set = function set(id, value, expire) {
 	if (!DB) {
 		console.error("Database cache not open.");
 		return false;

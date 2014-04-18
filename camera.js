@@ -23,11 +23,11 @@ function getPhoto(method, opt, cb){
 	}));
 }
 
-exports.takePhoto = takePhoto = function(opt, cb) {
+exports.takePhoto = function takePhoto(opt, cb) {
 	getPhoto('showCamera', opt, cb);
 };
 
-exports.choosePhoto = choosePhoto = function(opt, cb) {
+exports.choosePhoto = function choosePhoto(opt, cb) {
 	getPhoto('openPhotoGallery', opt, cb);
 };
 

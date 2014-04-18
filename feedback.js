@@ -9,7 +9,7 @@ Company: Caffeina SRL
 var isOpen = false;
 var config = {};
 
-exports.show = _show = function() {
+exports.show = function show() {
 	if (!OS_IOS) return;
 	Ti.App.fireEvent('loader.start');
 
@@ -78,6 +78,6 @@ exports.init = function(c) {
 	config = _.extend(config, c);
 	Ti.Gesture.addEventListener('shake', function(e){
 		if (isOpen) return; isOpen = true;
-		_show();
+		show();
 	});
 };

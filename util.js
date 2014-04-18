@@ -8,7 +8,7 @@ Company: Caffeina SRL
 
 var config = {};
 
-exports.openURL = openURL = function(url, fallback, error) {
+exports.openURL = function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
 		Ti.Platform.openURL(url);
 	}
@@ -23,7 +23,7 @@ exports.openURL = openURL = function(url, fallback, error) {
 	}
 };
 
-exports.startActivity = startActivity = function(opt, error) {
+exports.startActivity = function startActivity(opt, error) {
 	try {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
@@ -76,7 +76,7 @@ exports.getDomainFromURL = function(url) {
 	return matches[1].replace('www.', '');
 };
 
-exports.alert = alertDialog = function(title, msg, callback) {
+exports.alert = function alertDialog(title, msg, callback) {
 	var dialog = Ti.UI.createAlertDialog({
 		title: title,
 		message: msg,
@@ -87,7 +87,7 @@ exports.alert = alertDialog = function(title, msg, callback) {
 	return dialog;
 };
 
-exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callback, opt) {
+exports.prompt = function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
 		buttons.splice(cancelIndex, 1);
 	}
@@ -106,7 +106,7 @@ exports.prompt = alertPrompt = function(title, msg, buttons, cancelIndex, callba
 	dialog.show();
 };
 
-exports.option = optionDialog = function(options, cancelIndex, callback, opt) {
+exports.option = function optionDialog(options, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
 		options.splice(cancelIndex,1);
 	}
@@ -123,11 +123,11 @@ exports.option = optionDialog = function(options, cancelIndex, callback, opt) {
 	dialog.show();
 };
 
-exports.alertError = alertError = function(msg, callback) {
+exports.alertError = function alertError(msg, callback) {
 	return alertDialog(L('Error', 'Error'), msg, callback);
 };
 
-exports.isIOS7 = isIOS7 = function() {
+exports.isIOS7 = function isIOS7() {
 	return OS_IOS && +(Ti.Platform.version.split(".")[0])>=7;
 };
 
@@ -227,6 +227,7 @@ var __Modal = function(args) {
 	var self = this;
 
 	self._Window =  Ti.UI.createWindow(args || {});
+
 	var $leftButton = Ti.UI.createButton({ title: L('Cancel') });
 	$leftButton.addEventListener('click', function(){ self.close(); });
 	self._Window.leftNavButton = $leftButton;
@@ -237,6 +238,7 @@ var __Modal = function(args) {
 __Modal.prototype.close = function(){ this._Navigator.close(); };
 __Modal.prototype.open = function(){ this._Navigator.open({ modal: true }); };
 __Modal.prototype.add = function($ui){ this._Window.add($ui); };
+
 exports.modal = function(args) { return new __Modal(args); };
 
 /* End modal prototype */

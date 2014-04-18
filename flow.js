@@ -30,7 +30,7 @@ function closeController(c) {
 	}
 }
 
-exports.create = exports.open = create = function(controller, args, unclosePrev) {
+exports.create = exports.open = function create(controller, args, unclosePrev) {
 	args = args || {};
 
 	var C = require('alloy').createController(controller, args);
@@ -66,7 +66,7 @@ exports.current = exports.getCurrentController = function() { return cc; };
 exports.closeCurrent = function() { closeController(cc); };
 
 exports.getHistory = function() { return hist; };
-exports.clearHistory = function(){ hist = []; };
+exports.clearHistory = function() { hist = []; };
 
 exports.reload = function() { open(ccs, cca); };
 

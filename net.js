@@ -233,7 +233,7 @@ exports.resetHeaders = function() {
 	config.headers = {};
 };
 
-exports.isServerConnected = isServerConnected = function(){
+exports.isServerConnected = function isServerConnected(){
 	return !!serverConnected;
 };
 
@@ -245,7 +245,7 @@ exports.getQueue = function(){
 	return queue;
 };
 
-exports.getQueuedRequest = getQueuedRequest = function(hash) {
+exports.getQueuedRequest = function getQueuedRequest(hash) {
 	if (typeof(hash)!='object') {
 		hash = decorateRequest(hash).hash;
 	}
@@ -253,7 +253,7 @@ exports.getQueuedRequest = getQueuedRequest = function(hash) {
 	return httpClient ? httpClient : null;
 };
 
-exports.abortRequest = abortRequest = function(hash) {
+exports.abortRequest = function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
 	if (!httpClient) { return; }
 	httpClient.abort();
@@ -426,7 +426,7 @@ exports.getJSON = function(url, data, success, error) {
 exports.send = makeRequest;
 exports.makeRequest = makeRequest;
 
-exports.init = init = function(c) {
+exports.init = function(c) {
 	config = _.extend(config, c);
 
 	if (config.useCache) {
