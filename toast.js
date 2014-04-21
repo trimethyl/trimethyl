@@ -97,7 +97,7 @@ function showAndroid(msg, args) {
 	return toast;
 }
 
-exports.show = function show(msg, args) {
+function show(msg, args) {
 	args = _.extend(config, args || {});
 	if (OS_IOS && Ti.UI.iOS.createAnimator) {
 		return showIOS7(msg, args);
@@ -107,7 +107,7 @@ exports.show = function show(msg, args) {
 		return showBasic(msg, args);
 	}
 };
-
+exports.show = show;
 
 exports.init = function(c) {
 	config = _.extend(config, c);

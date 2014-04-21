@@ -10,7 +10,7 @@ var config = {};
 
 var onTiltCallbacks = [];
 
-exports.onTilt = function onTilt(callback) {
+exports.onTilt = function(callback) {
 	if (Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1){
 		console.warn("Accelerometer doesn't work on virtual devices.");
 
@@ -39,7 +39,7 @@ exports.onTilt = function onTilt(callback) {
 	}
 };
 
-exports.offTilt = function offTilt(callback) {
+exports.offTilt = function(callback) {
 	if (callback) {
 		Ti.Accelerometer.removeEventListener('update', callback);
 	} else {

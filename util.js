@@ -8,7 +8,7 @@ Company: Caffeina SRL
 
 var config = {};
 
-exports.openURL = function openURL(url, fallback, error) {
+function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
 		Ti.Platform.openURL(url);
 	}
@@ -22,8 +22,9 @@ exports.openURL = function openURL(url, fallback, error) {
 		alertError(error);
 	}
 };
+exports.openURL = openURL;
 
-exports.startActivity = function startActivity(opt, error) {
+function startActivity(opt, error) {
 	try {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
@@ -32,6 +33,7 @@ exports.startActivity = function startActivity(opt, error) {
 		}
 	}
 };
+exports.startActivity = startActivity;
 
 exports.fixAutoFocusTextArea = function($textarea, $ui) {
 	if (!OS_ANDROID) {
@@ -76,7 +78,7 @@ exports.getDomainFromURL = function(url) {
 	return matches[1].replace('www.', '');
 };
 
-exports.alert = function alertDialog(title, msg, callback) {
+function alertDialog(title, msg, callback) {
 	var dialog = Ti.UI.createAlertDialog({
 		title: title,
 		message: msg,
@@ -86,8 +88,9 @@ exports.alert = function alertDialog(title, msg, callback) {
 	dialog.show();
 	return dialog;
 };
+exports.alert = alertDialog;
 
-exports.prompt = function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
+function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
 		buttons.splice(cancelIndex, 1);
 	}
@@ -105,8 +108,9 @@ exports.prompt = function alertPrompt(title, msg, buttons, cancelIndex, callback
 	});
 	dialog.show();
 };
+exports.prompt = alertPrompt;
 
-exports.option = function optionDialog(options, cancelIndex, callback, opt) {
+function optionDialog(options, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
 		options.splice(cancelIndex,1);
 	}
@@ -122,14 +126,17 @@ exports.option = function optionDialog(options, cancelIndex, callback, opt) {
 	});
 	dialog.show();
 };
+exports.option = optionDialog;
 
-exports.alertError = function alertError(msg, callback) {
+function alertError(msg, callback) {
 	return alertDialog(L('Error', 'Error'), msg, callback);
 };
+exports.alertError = alertError;
 
-exports.isIOS7 = function isIOS7() {
+function isIOS7() {
 	return OS_IOS && +(Ti.Platform.version.split(".")[0])>=7;
 };
+exports.isIOS7 = isIOS7;
 
 exports.parseSchema = function() {
 	if (OS_IOS) {

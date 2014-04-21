@@ -9,7 +9,7 @@ Company: Caffeina SRL
 var isOpen = false;
 var config = {};
 
-exports.show = function show() {
+function show() {
 	if (!OS_IOS) return;
 	Ti.App.fireEvent('loader.start');
 
@@ -73,6 +73,8 @@ exports.show = function show() {
 		Ti.App.fireEvent('loader.end');
 	});
 };
+
+exports.show = show;
 
 exports.init = function(c) {
 	config = _.extend(config, c);

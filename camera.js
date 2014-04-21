@@ -23,21 +23,23 @@ function getPhoto(method, opt, cb){
 	}));
 }
 
-exports.takePhoto = function takePhoto(opt, cb) {
+function takePhoto(opt, cb) {
 	getPhoto('showCamera', opt, cb);
 };
+exports.takePhoto = takePhoto;
 
-exports.choosePhoto = function choosePhoto(opt, cb) {
+function choosePhoto(opt, cb) {
 	getPhoto('openPhotoGallery', opt, cb);
 };
+exports.choosePhoto = choosePhoto;
 
 exports.selectPhoto = function(opt, cb){
 	require('util').option([ L('camera_takephoto'), L('camera_choosephoto'), L('Cancel') ], 2, function(i){
-			switch (i) {
-				case 0: takePhoto(opt, cb); break;
-				case 1: choosePhoto(opt, cb); break;
-			}
-		});
+		switch (i) {
+			case 0: takePhoto(opt, cb); break;
+			case 1: choosePhoto(opt, cb); break;
+		}
+	});
 };
 
 exports.init = function(c) {

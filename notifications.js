@@ -44,21 +44,23 @@ function onNotificationReceived(e) {
 	}
 }
 
-exports.setBadge = function setBadge(x) {
+function setBadge(x) {
 	if (OS_IOS) {
 		Ti.UI.iPhone.setAppBadge(Math.max(x,0));
 	} else if (OS_ANDROID) {
 		// TODO
 	}
 };
+exports.setBadge = setBadge;
 
-exports.getBadge = function getBadge() {
+function getBadge() {
 	if (OS_IOS) {
 		return Ti.UI.iPhone.getAppBadge();
 	} else if (OS_ANDROID) {
 		// TODO
 	}
 };
+exprorts.getBadge = getBadge;
 
 exports.incBadge = function(i) {
 	setBadge(getBadge()+i);

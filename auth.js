@@ -22,7 +22,7 @@ function getCurrentDriver(){
 	return Ti.App.Properties.getString('auth.driver');
 }
 
-exports.loadDriver = function loadDriver(d) {
+function loadDriver(d) {
 	if (!d) {
 		return false;
 	}
@@ -40,6 +40,7 @@ exports.loadDriver = function loadDriver(d) {
 
 	return drivers[d];
 };
+exports.loadDriver = loadDriver;
 
 function loadCurrentDriver() {
 	return loadDriver(getCurrentDriver());
@@ -68,7 +69,7 @@ exports.handleOfflineLogin = function(cb){
 	if (cb) cb();
 };
 
-exports.login = function login(data, driver, cb) {
+function login(data, driver, cb) {
 	data.method = driver;
 	Net.send({
 		url: '/auth',
@@ -102,6 +103,7 @@ exports.login = function login(data, driver, cb) {
 		}
 	});
 };
+exports.login = login;
 
 exports.getAuthInfo = function(){
 	return authInfo;
@@ -111,7 +113,7 @@ exports.user = exports.me = function(){
 	return Me;
 };
 
-exports.logout = function logout() {
+function logout() {
 	if (!Me) {
 		return;
 	}
@@ -152,6 +154,8 @@ exports.logout = function logout() {
 		Ti.App.fireEvent('auth.logout', { id: id });
 	}
 };
+exports.logout = logout;
+
 
 exports.init = init = function(c){
 	config = _.extend(config, c);

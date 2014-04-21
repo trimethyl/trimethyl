@@ -178,11 +178,12 @@ exports.whatsapp = function(args, _callback) {
 	Ti.Platform.openURL('whatsapp://send?text='+args.text);
 };
 
-exports.webviewShare = function webviewShare(url) {
+function webviewShare(url) {
 	var M = require('util').modal({ title: L('Share') });
 	M.add(Ti.UI.createWebView({ url: url }));
 	M.open();
 };
+exports.webview = webviewShare;
 
 exports.options = exports.multi = function(args, _callback) {
 	callback = 	callback = args.callback || null;

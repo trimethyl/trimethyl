@@ -30,7 +30,7 @@ function closeController(c) {
 	}
 }
 
-exports.create = exports.open = function create(controller, args, unclosePrev) {
+function create(controller, args, unclosePrev) {
 	args = args || {};
 
 	var C = require('alloy').createController(controller, args);
@@ -51,7 +51,9 @@ exports.create = exports.open = function create(controller, args, unclosePrev) {
 	return cc;
 };
 
-exports.back = exports.goBack = back = function() {
+exports.create = exports.open = create;
+
+exports.back = exports.goBack = function() {
 	if (hist.length<2) {
 		return;
 	}
@@ -59,6 +61,7 @@ exports.back = exports.goBack = back = function() {
 	var last = hist.pop().pop();
 	create(last.controller, last.args);
 };
+
 
 exports.getCurrentControllerStr = function(){ return ccs; };
 exports.getCurrentControllerArgs = function() { return cca; };

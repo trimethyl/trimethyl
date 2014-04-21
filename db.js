@@ -2,7 +2,11 @@ var config = {};
 var $$ = null;
 
 exports.open = function() {
-	if ($$) { return $$; } // singleton
+	if ($$) {
+		// singleton
+		return $$;
+	}
+
 	try {
 		$$ = Ti.Database.open('app');
 		return $$;

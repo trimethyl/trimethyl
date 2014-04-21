@@ -233,9 +233,10 @@ exports.resetHeaders = function() {
 	config.headers = {};
 };
 
-exports.isServerConnected = function isServerConnected(){
+function isServerConnected(){
 	return !!serverConnected;
 };
+exports.isServerConnected = isServerConnected;
 
 exports.isQueueEmpty = function(){
 	return !queue.length;
@@ -245,19 +246,21 @@ exports.getQueue = function(){
 	return queue;
 };
 
-exports.getQueuedRequest = function getQueuedRequest(hash) {
+function getQueuedRequest(hash) {
 	if (typeof(hash)!='object') {
 		hash = decorateRequest(hash).hash;
 	}
 	var httpClient = queue[hash];
 	return httpClient ? httpClient : null;
 };
+exports.getQueuedRequest = getQueuedRequest;
 
-exports.abortRequest = function abortRequest(hash) {
+function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
 	if (!httpClient) { return; }
 	httpClient.abort();
 };
+exports.abortRequest = abortRequest;
 
 exports.resetCache = exports.pruneCache = function() {
 	if (!DB) {
@@ -352,6 +355,9 @@ function makeRequest(request) {
 	return request.hash;
 }
 
+exports.send = makeRequest;
+exports.makeRequest = makeRequest;
+
 exports.connectToServer = function(cb) {
 	makeRequest({
 		url: '/ping',
@@ -422,9 +428,6 @@ exports.getJSON = function(url, data, success, error) {
 		error: error
 	});
 };
-
-exports.send = makeRequest;
-exports.makeRequest = makeRequest;
 
 exports.init = function(c) {
 	config = _.extend(config, c);

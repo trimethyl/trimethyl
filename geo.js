@@ -20,7 +20,7 @@ function checkForServices() {
 	return true;
 }
 
-exports.getRoute =  function getRoute(args, rargs, cb) {
+function getRoute(args, rargs, cb) {
 	require('net').send({
 		url: config.directionUrl,
 		data: args,
@@ -36,6 +36,7 @@ exports.getRoute =  function getRoute(args, rargs, cb) {
 		}
 	});
 };
+exports.getRoute = getRoute;
 
 exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 	localize(function(e){
@@ -50,7 +51,7 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 var locaCallbacks = [];
 
 
-exports.localize = function localize(cb) {
+function localize(cb) {
 	if (!checkForServices()) {
 		return cb({ error: true });
 	}
@@ -69,10 +70,11 @@ exports.localize = function localize(cb) {
 		cb(e);
 	});
 };
+exports.localize = localize;
 
 var gyroCallbacks = [];
 
-exports.gyroscope = function gyroscope(cb) {
+function gyroscope(cb) {
 	if (!checkForServices()) {
 		return cb({ error: true });
 	}
@@ -84,6 +86,7 @@ exports.gyroscope = function gyroscope(cb) {
 		if (cb) cb(e);
 	});
 };
+exports.gyroscope = gyroscope;
 
 exports.gyroscopeOff = function(cb) {
 	if (cb) {

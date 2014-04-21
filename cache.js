@@ -48,7 +48,7 @@ exports.get = function(id, value, expire) {
 	return value;
 };
 
-exports.set = function set(id, value, expire) {
+function set(id, value, expire) {
 	if (!DB) {
 		console.error("Database cache not open.");
 		return false;
@@ -61,6 +61,7 @@ exports.set = function set(id, value, expire) {
 	}
 	DB.execute('INSERT OR REPLACE INTO cache (id, expire, value) VALUES (?,?,?)', id, expire, JSON.stringify(value));
 };
+exports.set = set;
 
 exports.init = function(c) {
 	config = _.extend(config, c);
