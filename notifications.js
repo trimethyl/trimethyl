@@ -50,7 +50,7 @@ function setBadge(x) {
 	} else if (OS_ANDROID) {
 		// TODO
 	}
-};
+}
 exports.setBadge = setBadge;
 
 function getBadge() {
@@ -59,8 +59,8 @@ function getBadge() {
 	} else if (OS_ANDROID) {
 		// TODO
 	}
-};
-exprorts.getBadge = getBadge;
+}
+exports.getBadge = getBadge;
 
 exports.incBadge = function(i) {
 	setBadge(getBadge()+i);

@@ -25,12 +25,12 @@ function getPhoto(method, opt, cb){
 
 function takePhoto(opt, cb) {
 	getPhoto('showCamera', opt, cb);
-};
+}
 exports.takePhoto = takePhoto;
 
 function choosePhoto(opt, cb) {
 	getPhoto('openPhotoGallery', opt, cb);
-};
+}
 exports.choosePhoto = choosePhoto;
 
 exports.selectPhoto = function(opt, cb){

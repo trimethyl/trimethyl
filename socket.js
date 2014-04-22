@@ -1,7 +1,10 @@
 /*
-Socket module
-*/
 
+Socket module
+Author: Flavio De Stefano
+Company: Caffeina SRL
+
+*/
 var config = {};
 
 var Socket = function(args) {
@@ -50,11 +53,11 @@ var Socket = function(args) {
 	});
 
 	this.$$.connect();
-}
+};
 
 exports.create = function(args) {
 	return new Socket(args);
-}
+};
 
 exports.init = function(c){
 	config = _.extend(config, c);

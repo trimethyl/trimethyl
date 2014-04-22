@@ -72,8 +72,7 @@ function show() {
 		nav.open({ modal: true, fullscreen: true });
 		Ti.App.fireEvent('loader.end');
 	});
-};
-
+}
 exports.show = show;
 
 exports.init = function(c) {

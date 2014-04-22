@@ -182,7 +182,7 @@ function webviewShare(url) {
 	var M = require('util').modal({ title: L('Share') });
 	M.add(Ti.UI.createWebView({ url: url }));
 	M.open();
-};
+}
 exports.webview = webviewShare;
 
 exports.options = exports.multi = function(args, _callback) {

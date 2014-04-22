@@ -235,7 +235,7 @@ exports.resetHeaders = function() {
 
 function isServerConnected(){
 	return !!serverConnected;
-};
+}
 exports.isServerConnected = isServerConnected;
 
 exports.isQueueEmpty = function(){
@@ -252,14 +252,14 @@ function getQueuedRequest(hash) {
 	}
 	var httpClient = queue[hash];
 	return httpClient ? httpClient : null;
-};
+}
 exports.getQueuedRequest = getQueuedRequest;
 
 function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
 	if (!httpClient) { return; }
 	httpClient.abort();
-};
+}
 exports.abortRequest = abortRequest;
 
 exports.resetCache = exports.pruneCache = function() {

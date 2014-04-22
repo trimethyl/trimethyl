@@ -106,7 +106,7 @@ function show(msg, args) {
 	} else {
 		return showBasic(msg, args);
 	}
-};
+}
 exports.show = show;
 
 exports.init = function(c) {

@@ -60,7 +60,7 @@ function set(id, value, expire) {
 		expire = -1;
 	}
 	DB.execute('INSERT OR REPLACE INTO cache (id, expire, value) VALUES (?,?,?)', id, expire, JSON.stringify(value));
-};
+}
 exports.set = set;
 
 exports.init = function(c) {

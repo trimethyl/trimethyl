@@ -87,7 +87,7 @@ function alertDialog(title, msg, callback) {
 	if (callback) dialog.addEventListener('click', callback);
 	dialog.show();
 	return dialog;
-};
+}
 exports.alert = alertDialog;
 
 function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
@@ -107,7 +107,7 @@ function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 		if (callback) callback(e.index);
 	});
 	dialog.show();
-};
+}
 exports.prompt = alertPrompt;
 
 function optionDialog(options, cancelIndex, callback, opt) {
@@ -125,17 +125,17 @@ function optionDialog(options, cancelIndex, callback, opt) {
 		if (callback) callback(e.index);
 	});
 	dialog.show();
-};
+}
 exports.option = optionDialog;
 
 function alertError(msg, callback) {
 	return alertDialog(L('Error', 'Error'), msg, callback);
-};
+}
 exports.alertError = alertError;
 
 function isIOS7() {
 	return OS_IOS && +(Ti.Platform.version.split(".")[0])>=7;
-};
+}
 exports.isIOS7 = isIOS7;
 
 exports.parseSchema = function() {

@@ -102,7 +102,7 @@ function login(data, driver, cb) {
 			Ti.App.fireEvent('auth.fail', { message: msg || L('auth_fail') });
 		}
 	});
-};
+}
 exports.login = login;
 
 exports.getAuthInfo = function(){
@@ -153,7 +153,7 @@ function logout() {
 		require('net').resetCookies();
 		Ti.App.fireEvent('auth.logout', { id: id });
 	}
-};
+}
 exports.logout = logout;
 
 

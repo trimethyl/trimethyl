@@ -35,7 +35,7 @@ function getRoute(args, rargs, cb) {
 				}, rargs)));
 		}
 	});
-};
+}
 exports.getRoute = getRoute;
 
 exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
@@ -69,7 +69,7 @@ function localize(cb) {
 
 		cb(e);
 	});
-};
+}
 exports.localize = localize;
 
 var gyroCallbacks = [];
@@ -85,7 +85,7 @@ function gyroscope(cb) {
 	Ti.Geolocation.addEventListener('heading', function(e){
 		if (cb) cb(e);
 	});
-};
+}
 exports.gyroscope = gyroscope;
 
 exports.gyroscopeOff = function(cb) {

@@ -49,7 +49,7 @@ function create(controller, args, unclosePrev) {
 	cc = C;
 
 	return cc;
-};
+}
 
 exports.create = exports.open = create;
 
