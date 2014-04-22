@@ -13,24 +13,19 @@ var config = {
 };
 
 function deg2rad(deg) {
-	return deg * (Math.PI/180);
+	return deg * 0.017453;
+	// return deg * (Math.PI/180);
 }
 
 function dist(a,b) {
 	return Math.sqrt(Math.pow(a,2)+Math.pow(b,2)).toFixed(2);
 }
 
-exports.distanceInKm = function(lat1,lon1,lat2,lon2) {
-	var R = 6371;
-	var dLat = deg2rad(lat2-lat1);
-	var dLon = deg2rad(lon2-lon1);
-	var a =
-	Math.sin(dLat/2) * Math.sin(dLat/2) +
-	Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-	Math.sin(dLon/2) * Math.sin(dLon/2);
-	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-	var d = R * c;
-	return d;
+exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
+	var dLat = deg2rad(lat2-lat1)/2;
+	var dLon = deg2rad(lon2-lon1)/2;
+	var a = Math.sin(dLat)*Math.sin(dLat) + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLon)*Math.sin(dLon);
+	return 12742 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 };
 
 exports.cluster = function(e, markers){

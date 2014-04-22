@@ -21,7 +21,7 @@ function openURL(url, fallback, error) {
 	if (error) {
 		alertError(error);
 	}
-};
+}
 exports.openURL = openURL;
 
 function startActivity(opt, error) {
@@ -32,7 +32,7 @@ function startActivity(opt, error) {
 			alertError(error);
 		}
 	}
-};
+}
 exports.startActivity = startActivity;
 
 exports.fixAutoFocusTextArea = function($textarea, $ui) {
@@ -109,6 +109,10 @@ function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 	dialog.show();
 }
 exports.prompt = alertPrompt;
+
+exports.confirm = function(title, msg, cb) {
+	return alertPrompt(title, msg, [ L('Cancel'), L('Yes') ], 0, cb, { selectedIndex: 1 });
+};
 
 function optionDialog(options, cancelIndex, callback, opt) {
 	if (OS_ANDROID && cancelIndex>=0) {
@@ -230,7 +234,7 @@ exports.dial = function(tel) {
 
 /* Modal Prototype */
 
-var __Modal = function(args) {
+var Modal = function(args) {
 	var self = this;
 
 	self._Window =  Ti.UI.createWindow(args || {});
@@ -242,11 +246,11 @@ var __Modal = function(args) {
 	self._Navigator = require('xp.ui').createNavigationWindow({ window: self._Window });
 };
 
-__Modal.prototype.close = function(){ this._Navigator.close(); };
-__Modal.prototype.open = function(){ this._Navigator.open({ modal: true }); };
-__Modal.prototype.add = function($ui){ this._Window.add($ui); };
+Modal.prototype.close = function(){ this._Navigator.close(); };
+Modal.prototype.open = function(){ this._Navigator.open({ modal: true }); };
+Modal.prototype.add = function($ui){ this._Window.add($ui); };
 
-exports.modal = function(args) { return new __Modal(args); };
+exports.modal = function(args) { return new Modal(args); };
 
 /* End modal prototype */
 

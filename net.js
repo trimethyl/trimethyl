@@ -205,6 +205,14 @@ function onComplete(request, response, e){
 		ERROR
 		*/
 
+		if (ENV_DEVELOPMENT) {
+			console.error({
+				request: request,
+				response: response.responseText,
+				event: e
+			});
+		}
+
 		// Parse the error returned from the server
 		if (returnValue && returnValue.error) {
 			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
