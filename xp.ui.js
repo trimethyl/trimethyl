@@ -53,36 +53,48 @@ if (OS_ANDROID) {
 
 	var NavigationWindow = function(args) {
 		this.args = args;
+		this.windows = [];
 	};
 
-	NavigationWindow.prototype.open = function(params) {
-		return this.openWindow(this.args.window, params || {});
+	NavigationWindow.prototype.open = function(args) {
+		return this.openWindow(this.args.window, args);
 	};
 
-	NavigationWindow.prototype.close = function(params) {
-		return this.closeWindow(this.args.window, params || {});
+	NavigationWindow.prototype.close = function() {
+		var w = null;
+		while (this.windows.length) {
+			w = this.windows.pop();
+			w.navigationIndex = null; // prevent that the splice occurs
+			this.closeWindow(w);
+		}
 	};
 
-	NavigationWindow.prototype.openWindow = function(window, params) {
-		params = params || {};
+	NavigationWindow.prototype.openWindow = function(window, args) {
+		var self = this;
+		args = args || {};
 
 		if (OS_ANDROID) {
 
-			// Perform animations
-			if (params.animated!==false) {
-				if (params.modal) {
-					params.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-					params.activityExitAnimation = Ti.Android.R.anim.fade_out;
+			if (args.animated!==false) {
+				if (args.modal) {
+					args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
+					args.activityExitAnimation = Ti.Android.R.anim.fade_out;
 				} else {
-					params.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-					params.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+					args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
+					args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 				}
 			}
 
-			// Auto add the RightNavButton
+			window.addEventListener('close', function(e){
+				try {
+					if (window.navigationIndex) {
+						self.windows.splice(window.navigationIndex, 1);
+					}
+				} catch (ex) {}
+			});
+
 			if (window.rightNavButton && window.rightNavButton.children[0]) {
-				while (window.rightNavButton.children[0])
-					window.rightNavButton = window.rightNavButton.children[0];
+				while (window.rightNavButton.children[0]) window.rightNavButton = window.rightNavButton.children[0];
 
 				window.activity.onCreateOptionsMenu = function(e){
 					var menuItem = e.menu.add({
@@ -95,111 +107,112 @@ if (OS_ANDROID) {
 					});
 				};
 			}
-
 		}
 
-		return window.open(_.extend(params, { modal:false }));
+		this.windows.push(window);
+		window.navigationIndex = this.windows.length-1;
+		return window.open(_.extend(args, { modal: false }));
 	};
 
-	NavigationWindow.prototype.closeWindow = function(window, params) {
-		return window.close(params || {});
+	NavigationWindow.prototype.closeWindow = function(window) {
+		return window.close();
 	};
+
 }
 
 exports.createNavigationWindow = function(args) {
-	return OS_IOS ? Ti.UI.iOS.createNavigationWindow(args) : new NavigationWindow(args);
+	if (OS_IOS) {
+		return Ti.UI.iOS.createNavigationWindow(args);
+	}
+
+	return new NavigationWindow(args);
 };
 
 exports.createWindow = function(args) {
-	return OS_IOS ? Ti.UI.createWindow(args) : Ti.UI.createView(args);
+	return Ti.UI.createWindow(args);
 };
 
 function __onTextAreaFocus(e) {
-	if (e.source.hintText==e.source.value) {
-		e.source.applyProperties({
+	var $this = e.source || e;
+	if ($this.hintText==$this.value) {
+		$this.applyProperties({
 			value: '',
-			color: e.source.originalColor
+			color: $this.__color
 		});
 	}
 }
 
 function __onTextAreaBlur(e) {
-	if (!e.source.value) {
-		e.source.applyProperties({
-			value: e.source.hintText,
-			color: '#ccc'
+	var $this = e.source || e;
+	if (!$this.value) {
+		$this.applyProperties({
+			value: $this.hintText,
+			color: $this.hintTextColor
 		});
 	}
 }
 
 exports.createTextArea = function(args) {
-	var $ui = Ti.UI.createTextArea(args);
+	var $this = Ti.UI.createTextArea(args);
 
-	if (OS_IOS && args.hintText) {
-		$ui.originalColor = $ui.color || '#000';
-		if (!$ui.value) {
-			$ui.applyProperties({
-				value: $ui.hintText,
-				color: '#aaa'
-			});
-		}
-		$ui.addEventListener('focus', __onTextAreaFocus);
-		$ui.addEventListener('blur', __onTextAreaBlur);
+	if (OS_IOS) {
+		$this.__color = $this.color || '#000';
+		if (!$this.hintTextColor) $this.hintTextColor = '#ccc';
+
+		$this.addEventListener('focus', __onTextAreaFocus);
+		$this.addEventListener('blur', __onTextAreaBlur);
+		__onTextAreaBlur($this);
 	}
 
-	return $ui;
+	return $this;
 };
 
 exports.createLabel = function(args) {
-	if (!OS_IOS) {
-		return Ti.UI.createLabel(args);
-	}
+	var $this = Ti.UI.createLabel(args);
 
-	var $ui = Ti.UI.createLabel(args);
+	if (OS_IOS) {
 
-	$ui.setHtml = $ui.setHTML = function(html){
-		html = html.replace(/<br\/?>/g, "\n");
-		html = html.replace(/<p>/g, '').replace(/<\/p>/g, "\n\n");
+		$this.setHtml = function(value) {
+			var htmlToAttrMap = {
+				'u': {
+					type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
+					value: Ti.UI.iOS.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
+				},
+				'i': {
+					type: Ti.UI.iOS.ATTRIBUTE_FONT,
+					value: /-Regular/.test(args.font.fontFamily) ?
+					{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
+					{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
+				},
+				'b': {
+					type: Ti.UI.iOS.ATTRIBUTE_FONT,
+					value: /-Regular/.test(args.font.fontFamily) ?
+					{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
+					{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
+				}
+			};
 
-		var htmlToAttrMap = {
-			'u': {
-				type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
-				value: Ti.UI.iOS.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
-			},
-			'i': {
-				type: Ti.UI.iOS.ATTRIBUTE_FONT,
-				value: /-Regular/.test(args.font.fontFamily) ?
-				{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
-				{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
-			},
-			'b': {
-				type: Ti.UI.iOS.ATTRIBUTE_FONT,
-				value: /-Regular/.test(args.font.fontFamily) ?
-				{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
-				{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
-			}
+			var parseResult = simpleHTMLParser(value.replace(/<br\/?>/g, "\n").replace(/<p>/g, '').replace(/<\/p>/g, "\n\n"));
+			var attributedString = {
+				text: parseResult.text,
+				attributes: []
+			};
+
+			_.each(parseResult.style, function(v){
+				if (v.type in htmlToAttrMap) {
+					attributedString.attributes.push(_.extend(_.clone(htmlToAttrMap[v.type]), {
+						range: [ v.start, v.length ]
+					}));
+				}
+			});
+
+			$this.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
 		};
 
-		var parseResult = simpleHTMLParser(html);
-		var attributedString = {
-			text: parseResult.text,
-			attributes: []
-		};
-
-		_.each(parseResult.style, function(v){
-			if (v.type in htmlToAttrMap) {
-				attributedString.attributes.push(_.extend(_.clone(htmlToAttrMap[v.type]), {
-					range: [ v.start, v.length ]
-				}));
-			}
-		});
-
-		$ui.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
-	};
-
-	if (args.html) {
-		$ui.setHTML(args.html);
+		if ($this.html) {
+			$this.setHtml($this.html);
+		}
 	}
 
-	return $ui;
+	return $this;
 };

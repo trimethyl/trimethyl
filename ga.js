@@ -13,18 +13,16 @@ var config = {
 	ua: null
 };
 
-var $$ = null;
+var $$ = require('analytics.google');
 var $T = null;
 
 
-exports.trackEvent = function(cat,act,lbl,val){
-	if (!$T) {
-		return;
-	}
+exports.trackEvent = exports.event = function(cat, act, lbl, val){
+	if (!$T) { return; }
 
 	if (act) {
 		$T.trackEvent(_.extend(
-			{ category: cat, action: act },
+			{ category: cat || '', action: act || '' },
 			lbl ? { label: lbl } : { label: '' },
 			val ? { value: +val } : { value: 0 }
 			));
@@ -33,18 +31,14 @@ exports.trackEvent = function(cat,act,lbl,val){
 	}
 };
 
-exports.trackScreen = function(name){
-	if (!$T) {
-		return;
-	}
+exports.trackScreen = exports.screen = function(name){
+	if (!$T) { return; }
 
 	$T.trackScreen(name);
 };
 
-exports.trackSocial = function(net, act, tar){
-	if (!$T) {
-		return;
-	}
+exports.trackSocial = exports.social = function(net, act, tar){
+	if (!$T) { return; }
 
 	if (act) {
 		$T.trackSocial(_.extend(
@@ -58,8 +52,6 @@ exports.trackSocial = function(net, act, tar){
 
 exports.init = function(c){
 	config = _.extend(config, c);
-
-	$$ = require('analytics.google');
 	$$.trackUncaughtExceptions = true;
 	$$.debug = false;
 

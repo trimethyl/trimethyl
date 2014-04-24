@@ -4,9 +4,14 @@ Share module
 Author: Flavio De Stefano
 Company: Caffeina SRL
 
+Requirements:
+gittio install -g dk.napp.social
+
 Be more social
 
 */
+
+var config = {};
 
 var callback = null;
 
@@ -37,7 +42,7 @@ function __onSocialCancelled(e) {
 }
 
 function __parseArgs(args) {
-	args = args || {};
+	if (!args) return {};
 
 	if (args.image) {
 		if (typeof args.image === 'object') {
@@ -50,13 +55,9 @@ function __parseArgs(args) {
 			} else {
 				delete args.image;
 			}
-		} else if (args.image.indexOf('://')>0) {
+		} else if (args.image.indexOf('://')) {
 			args.imageUrl = args.image;
 		}
-	}
-
-	if (args.imageUrl && !args.image) {
-		args.image = args.imageUrl;
 	}
 
 	if (args.removeIcons=='ALL') {
@@ -143,12 +144,14 @@ exports.mail = function(args, _callback) {
 	args = __parseArgs(args);
 
 	var emailDialog = Ti.UI.createEmailDialog({
-		subject: args.title,
 		html: true,
-		messageBody: args.text + (args.url ? "<br><br>" + args.url : ''),
+		subject: args.title,
+		messageBody: args.text + (args.url ? ("<br><br>"+args.url) : ''),
 	});
 
-	if (args.imageBlob) emailDialog.addAttachment(args.imageBlob);
+	if (args.imageBlob) {
+		emailDialog.addAttachment(args.imageBlob);
+	}
 
 	emailDialog.addEventListener('complete', function(e) {
 		if (e.result===this.CANCELLED) {
@@ -183,6 +186,7 @@ function webviewShare(url) {
 	M.add(Ti.UI.createWebView({ url: url }));
 	M.open();
 }
+
 exports.webview = webviewShare;
 
 exports.options = exports.multi = function(args, _callback) {
@@ -219,4 +223,8 @@ exports.options = exports.multi = function(args, _callback) {
 
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, args.title));
 	}
+};
+
+exports.init = function(c) {
+	config = _.extend(config, c);
 };

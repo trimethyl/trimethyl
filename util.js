@@ -11,9 +11,9 @@ var config = {};
 function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
 		Ti.Platform.openURL(url);
+		return;
 	}
 	if (fallback) {
-		console.log( fallback );
 		if (typeof(fallback)==='function') fallback();
 		else Ti.Platform.openURL(fallback);
 		return;
@@ -35,15 +35,15 @@ function startActivity(opt, error) {
 }
 exports.startActivity = startActivity;
 
-exports.fixAutoFocusTextArea = function($textarea, $ui) {
+exports.fixAutoFocusTextArea = function($textarea) {
 	if (!OS_ANDROID) {
 		return false;
 	}
 
 	$textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
-	function onOpen(e) { $textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS; }
-	$ui.addEventListener('open', onOpen);
-	return onOpen;
+	$textarea.addEventListener('touchstart', function(e){
+		$textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
+	});
 };
 
 exports.getSpinner = function(){
@@ -91,9 +91,6 @@ function alertDialog(title, msg, callback) {
 exports.alert = alertDialog;
 
 function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
-	if (OS_ANDROID && cancelIndex>=0) {
-		buttons.splice(cancelIndex, 1);
-	}
 	var dialog = Ti.UI.createAlertDialog(_.extend({
 		cancel: cancelIndex,
 		buttonNames: buttons,
@@ -101,9 +98,8 @@ function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 		title: title
 	}, opt || {}));
 	dialog.addEventListener('click', function(e){
-		if (!OS_ANDROID && e.index==cancelIndex) {
-			return;
-		}
+		if (OS_IOS && e.index==cancelIndex) return;
+		if (OS_ANDROID && e.cancel) return;
 		if (callback) callback(e.index);
 	});
 	dialog.show();
@@ -115,17 +111,14 @@ exports.confirm = function(title, msg, cb) {
 };
 
 function optionDialog(options, cancelIndex, callback, opt) {
-	if (OS_ANDROID && cancelIndex>=0) {
-		options.splice(cancelIndex,1);
-	}
+	if (OS_ANDROID && cancelIndex>=0) { options.splice(cancelIndex,1); }
 	var dialog = Ti.UI.createOptionDialog(_.extend({
 		options: options,
 		cancel: cancelIndex
 	}, opt || {}));
 	dialog.addEventListener('click', function(e){
-		if (!OS_ANDROID && e.index==cancelIndex) {
-			return;
-		}
+		if (OS_IOS && e.index==cancelIndex) return;
+		if (OS_ANDROID && e.cancel) return;
 		if (callback) callback(e.index);
 	});
 	dialog.show();
@@ -209,6 +202,14 @@ exports.parseJSON = function(json) {
 	} catch (ex) {
 		return null;
 	}
+};
+
+exports.buildQuery = function(obj) {
+	if (!obj || _.isEmpty(obj)) return '';
+	var q = [];
+	_.each(obj, function(v, k) { q.push( k + '=' + encodeURIComponent(v) ); });
+	if (!q.length) return '';
+	return '?' + q.join('&');
 };
 
 exports.getAppDataDirectory = function() {

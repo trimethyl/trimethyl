@@ -62,7 +62,7 @@ function localize(cb) {
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
-		if (e.error) {
+		if (!e.success || !e.coords) {
 			require('util').alertError(L('geo_error'));
 			return cb(e);
 		}
@@ -99,10 +99,19 @@ exports.gyroscopeOff = function(cb) {
 };
 
 exports.startNavigator = function(lat, lng, mode) {
-	localize(function(e, mylat, mylng) {
-		var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps";
-		var url = D+"?directionsmode="+(mode||'walking')+"&daddr="+lat+","+lng+"&saddr="+mylat+","+mylng;
-		Ti.Platform.openURL(url);
+	localize(function(e) {
+		if (e.success && e.coords) {
+
+			var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
+			Ti.Platform.openURL(D + require('util').buildQuery({
+				directionsmode: mode || 'walking',
+				daddr: e.coords.latitude + "," + e.coords.longitude,
+				saddr: lat + "," + lng
+			}));
+
+		} else  {
+			require('util').alertError(L('geo_unabletonavigate'));
+		}
 	});
 };
 

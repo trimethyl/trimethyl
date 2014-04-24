@@ -82,12 +82,6 @@ function getCache(request, getIfExpired) {
 	}
 }
 
-function buildQuery(a) {
-	var r = [];
-	_.each(a, function(v,k){ r.push(k+'='+encodeURIComponent(v)); });
-	return r.join('&');
-}
-
 function setApplicationInfo(appInfo) {
 	_.each(appInfo, function(v,k){
 		Ti.App.Properties.setString('settings.'+k, v);
@@ -133,11 +127,9 @@ function decorateRequest(request) {
 
 	// Rebuild the URL if is a GET and there's data
 	if (request.method=='GET' && request.data) {
-		var query = buildQuery(request.data);
+		var buildedQuery = require('util').buildQuery(request.data);
 		delete request.data;
-		if (query) {
-			request.url = request.url + '?' + query;
-		}
+		request.url = request.url + buildedQuery.toString();
 	}
 
 	request.hash = calculateHash(request);
