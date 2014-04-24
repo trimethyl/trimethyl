@@ -143,17 +143,17 @@ exports.mail = function(args, _callback) {
 	callback = args.callback || null;
 	args = __parseArgs(args);
 
-	var emailDialog = Ti.UI.createEmailDialog({
+	var $dialog = Ti.UI.createEmailDialog({
 		html: true,
 		subject: args.title,
 		messageBody: args.text + (args.url ? ("<br><br>"+args.url) : ''),
 	});
 
 	if (args.imageBlob) {
-		emailDialog.addAttachment(args.imageBlob);
+		$dialog.addAttachment(args.imageBlob);
 	}
 
-	emailDialog.addEventListener('complete', function(e) {
+	$dialog.addEventListener('complete', function(e) {
 		if (e.result===this.CANCELLED) {
 			__onSocialCancelled({
 				success: false,
@@ -167,7 +167,7 @@ exports.mail = function(args, _callback) {
 		}
 	});
 
-	emailDialog.open();
+	$dialog.open();
 };
 
 exports.googleplus = function(args, _callback) {

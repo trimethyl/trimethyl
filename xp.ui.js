@@ -60,12 +60,17 @@ if (OS_ANDROID) {
 		return this.openWindow(this.args.window, args);
 	};
 
-	NavigationWindow.prototype.close = function() {
-		var w = null;
-		while (this.windows.length) {
-			w = this.windows.pop();
-			w.navigationIndex = null; // prevent that the splice occurs
-			this.closeWindow(w);
+	NavigationWindow.prototype.close = function(callback) {
+		if (callback) this.closeCallback = callback;
+
+		if (this.windows.length>0) {
+			var w = this.windows.pop();
+			w.navigationIndex = null;
+			w.popToRoot = true;
+			w.close({ animated: false });
+		} else {
+			if (this.closeCallback) this.closeCallback();
+			this.closeCallback = null;
 		}
 	};
 
@@ -86,15 +91,18 @@ if (OS_ANDROID) {
 			}
 
 			window.addEventListener('close', function(e){
-				try {
-					if (window.navigationIndex) {
-						self.windows.splice(window.navigationIndex, 1);
-					}
-				} catch (ex) {}
+				if (e.source.navigationIndex>=0) {
+					self.windows.splice(e.source.navigationWindow, 1);
+				}
+				if (e.source.popToRoot) {
+					self.close();
+				}
 			});
 
 			if (window.rightNavButton && window.rightNavButton.children[0]) {
-				while (window.rightNavButton.children[0]) window.rightNavButton = window.rightNavButton.children[0];
+				while (window.rightNavButton.children[0]) {
+					window.rightNavButton = window.rightNavButton.children[0];
+				}
 
 				window.activity.onCreateOptionsMenu = function(e){
 					var menuItem = e.menu.add({
@@ -109,13 +117,18 @@ if (OS_ANDROID) {
 			}
 		}
 
+		window.navigationIndex = this.windows.length;
 		this.windows.push(window);
-		window.navigationIndex = this.windows.length-1;
+
 		return window.open(_.extend(args, { modal: false }));
 	};
 
 	NavigationWindow.prototype.closeWindow = function(window) {
 		return window.close();
+	};
+
+	NavigationWindow.prototype.getWindowsStack = function() {
+		return this.windows;
 	};
 
 }
