@@ -6,72 +6,123 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
+var config = {
+	useNav: true,
+	trackWithGA: true
+};
+
+var Alloy = require('alloy');
 
 var cc = null;
 var ccs = null;
 var cca = null;
 var hist = [];
 
-function closeController(c) {
-	if (!c) {
-		return;
-	}
+var $nav = null;
 
-	try {
-		if ('close' in c) {
-			c.close();
-		} else {
-			console.warn("Implement close function in controllers!");
-			c.getView().close();
-		}
-	} catch (e) {
-		console.error(e);
+exports.setNavigationController = function(e) {
+	$nav = e;
+};
+
+exports.getNavigationController = function() {
+	return $nav;
+};
+
+function closeController($c) {
+	if (!$c) return;
+
+	if ('close' in $c) {
+		$c.close();
+	} else {
+		console.warn("Implement close function in controllers.");
+		$c.getView().close();
 	}
 }
 
-function create(controller, args, unclosePrev) {
+exports.open = function(controller, args, opt) {
 	args = args || {};
+	opt = opt || {};
 
-	var C = require('alloy').createController(controller, args);
-	if ('open' in C) {
-		C.open();
+	var $C = Alloy.createController(controller, args);
+
+	if (config.useNav) {
+
+		if (!$nav) {
+			console.error("Please define a NavigationController");
+			return;
+		}
+
+		$nav.openWindow($C.getView());
+
 	} else {
-		console.warn("Implement open function in controllers!");
-		C.getView().open();
+
+		if ('open' in $C) {
+			$C.open();
+		} else {
+			console.warn("Implement open function in controllers.");
+			$C.getView().open(opt.openArgs || {});
+		}
+
 	}
 
-	hist.push({ controller: controller, args: args });
+	if (config.trackWithGA) {
+		require('ga').trackScreen(controller);
+	}
 
-	if (cc && !unclosePrev) closeController(cc);
+	hist.push({
+		controller: controller,
+		args: args
+	});
+
+	if (!config.useNav && !opt.singleTask) {
+		closeController(cc);
+	}
+
 	ccs = controller;
 	cca = args;
-	cc = C;
+	cc = $C;
 
 	return cc;
-}
+};
 
-exports.create = exports.open = create;
-
-exports.back = exports.goBack = function() {
+exports.back = exports.goBack = back = function() {
 	if (hist.length<2) {
 		return;
 	}
 
 	var last = hist.pop().pop();
-	create(last.controller, last.args);
+	open(last.controller, last.args);
 };
 
+exports.current = function(){
+	return {
+		controller: cc,
+		info : {
+			name: ccs,
+			args: cca
+		}
+	};
+};
 
-exports.getCurrentControllerStr = function(){ return ccs; };
-exports.getCurrentControllerArgs = function() { return cca; };
-exports.current = exports.getCurrentController = function() { return cc; };
-exports.closeCurrent = function() { closeController(cc); };
+exports.closeCurrent = function() {
+	closeController(cc);
+};
 
-exports.getHistory = function() { return hist; };
-exports.clearHistory = function() { hist = []; };
+exports.getHistory = function() {
+	return hist;
+};
 
-exports.reload = function() { open(ccs, cca); };
+exports.clearHistory = function(){
+	hist = [];
+};
+
+exports.reload = function() {
+	if (config.useNav) {
+		return;
+	}
+
+	return open(ccs, cca);
+};
 
 exports.init = function(c) {
 	config = _.extend(config, c);
