@@ -6,7 +6,7 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.auth);
 var drivers = {};
 
 var Me = null;
@@ -39,7 +39,7 @@ function loadDriver(d) {
 	}
 
 	return drivers[d];
-};
+}
 exports.loadDriver = loadDriver;
 
 function loadCurrentDriver() {
@@ -155,8 +155,3 @@ function logout() {
 	}
 }
 exports.logout = logout;
-
-
-exports.init = init = function(c){
-	config = _.extend(config, c);
-};

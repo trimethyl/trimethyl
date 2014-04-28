@@ -6,8 +6,6 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
-
 exports.ListView = {
 
 	createFromCollection: function(C, opt) {
@@ -48,8 +46,4 @@ exports.ListView = {
 		return sec;
 	}
 
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

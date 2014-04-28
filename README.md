@@ -27,43 +27,17 @@ All your custom code out of the framework can be placed in `app/lib/app/*`, that
 In your *app/alloy.js* file, do something like:
 
 ```javascript
-var App = {
-	Framework: require('trimethyl')
-};
+var Framework = require('trimethyl');
 ```
 
-And all modules set in *config.json* are loaded.
-
-
-## Configuration with auto-conf
-
-In your *app/config.json* file, add a key `autoConfModules` and specify the modules you want to load as array.
+Now, just call 
 
 ```javascript
-{
-	"global": {
-		"autoConfModules": [ "MODULE1", "MODULE2", "MODULE3" ],
-		"MODULE1": {
-			...
-		},
-		"MODULE2": {
-			...
-		}
-	}
-}
-```
-
-For each module, add a key with the exact name of the module and put its configuration: it will be loaded and configured automatically on startup.
-
-## Configuration without auto-conf
-
-Just call 
-
-```javascript
-var Module1 = require('MODULE1').init({ /* ... */ });
+var Module1 = require('MODULE1');
 ```
 
 for each module you want to use.
+Each module read the `Alloy.CFG.$$MODULENAME$$` properties in your *config.json* file to configure itself.
 
 ## Modules
 

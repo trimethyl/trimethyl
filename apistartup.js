@@ -6,10 +6,11 @@ Company: Caffeina SRL
 
 */
 
-var Net = require('net');
-var config = {};
+var config = _.extend({}, Alloy.CFG.apistartup);
 
 exports.handle = function(){
+	var Net = require('net');
+
 	if (Net.isOnline()) {
 		Net.connectToServer(function(){
 			require('auth').handleLogin();
@@ -17,8 +18,4 @@ exports.handle = function(){
 	} else {
 		require('auth').handleOfflineLogin();
 	}
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

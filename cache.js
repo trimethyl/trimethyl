@@ -6,7 +6,7 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.cache);
 var DB = null;
 
 function get(id) {
@@ -63,10 +63,9 @@ function set(id, value, expire) {
 }
 exports.set = set;
 
-exports.init = function(c) {
-	config = _.extend(config, c);
+(function init(c) {
 	DB = require('db').open();
 	if (DB) {
 		DB.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
 	}
-};
+})();

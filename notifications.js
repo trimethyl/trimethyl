@@ -6,6 +6,12 @@ Company: Caffeina SRL
 
 */
 
+var config = _.extend({
+	inAppNotification: true,
+	inAppNotificationMethod: 'toast',
+	autoReset: true
+}, Alloy.CFG.notifications);
+
 var Cloud = require("ti.cloud");
 Cloud.debug = !ENV_PRODUCTION;
 
@@ -15,12 +21,6 @@ if (OS_ANDROID) {
 	CloudPush.enabled = true;
 	CloudPush.addEventListener('callback', onNotificationReceived);
 }
-
-var config = {
-	inAppNotification: true,
-	inAppNotificationMethod: 'toast',
-	autoReset: true
-};
 
 function onNotificationReceived(e) {
 	Ti.App.fireEvent('notifications.received', e);
@@ -152,8 +152,4 @@ exports.unsubscribe = function(channel) {
 	if (OS_IOS) unsubscribeIOS();
 	else if (OS_ANDROID) unsubscribeAndroid();
 	unsubscribe(channel);
-};
-
-exports.init = function(c, channel){
-	config = _.extend(config, c);
 };

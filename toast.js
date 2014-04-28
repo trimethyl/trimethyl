@@ -8,13 +8,13 @@ Provide a toast notification
 
 */
 
-var config = {
+var config = _.extend({
 	timeout: 2000,
 	backgroundColor: '#B000',
 	color: '#fff',
 	elasticity: 0.5,
 	pushForce: 30
-};
+}, Alloy.CFG.toast);
 
 function showIOS7(msg, args) {
 	var HEIGHT = 64;
@@ -108,7 +108,3 @@ function show(msg, args) {
 	}
 }
 exports.show = show;
-
-exports.init = function(c) {
-	config = _.extend(config, c);
-};

@@ -6,11 +6,11 @@ Company: Caffeina SRL
 
 */
 
-var config = {
+var config = _.extend({
 	accuracy: "ACCURACY_HIGH",
 	directionUrl: "http://appcaffeina.com/static/maps/directions",
 	useGoogleForGeocode: true
-};
+}, Alloy.CFG.geo);
 
 function checkForServices() {
 	if (!Ti.Geolocation.locationServicesEnabled) {
@@ -183,8 +183,3 @@ exports.reverseGeocode = function(lat, lng, cb) {
 		});
 	}
 };
-
-exports.init = function(c) {
-	config = _.extend(config, c);
-};
-

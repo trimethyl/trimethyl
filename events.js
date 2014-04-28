@@ -6,8 +6,9 @@ Company: Caffeina SRL
 
 */
 
+var config = _.extend({}, Alloy.CFG.events);
+
 var $$ = {};
-var config = {};
 
 exports.add = exports.on = function(k, f) {
 	if (k in $$) {
@@ -33,8 +34,4 @@ exports.remove = exports.off = function(k, f) {
 
 exports.fire = exports.trigger = function(k, a) {
 	Ti.App.fireEvent(k, a);
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

@@ -6,11 +6,12 @@ Company: Caffeina SRL
 
 */
 
-var config = {
+var config = _.extend({
 	pixelRadius: 15,
 	removeOutOfBB: true,
 	maxDeltaToCluster: 0.3
-};
+}, Alloy.CFG.maputil);
+
 
 function deg2rad(deg) {
 	return deg * 0.017453;
@@ -147,8 +148,3 @@ exports.checkForDependencies = function() {
 		Ti.Android.currentActivity.finish();
 	});
 };
-
-exports.init = function(c) {
-	config = _.extend(config, c);
-};
-

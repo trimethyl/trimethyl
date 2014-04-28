@@ -6,16 +6,21 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
-var $$ = null;
+var config = _.extend({
+	token: null
+}, Alloy.CFG.newrelic);
 
-exports.init = function(c) {
+var $ = null;
+
+(function init() {
 	if (!OS_IOS) {
 		return;
 	}
 
-	$$ = require('ti.newrelic');
+	$ = require('ti.newrelic');
 	config = _.extend(config, c);
 
-	$$.start(config.token);
-};
+	if (config.token) {
+		$.start(config.token);
+	}
+})();

@@ -6,44 +6,47 @@ Company: Caffeina SRL
 
 */
 
-var config = {
+var config = _.extend({
 	useNav: true,
 	trackWithGA: true
-};
+}, Alloy.CFG.flow);
 
-var Alloy = require('alloy');
-
-var cc = null;
-var ccs = null;
-var cca = null;
+var $_CC = null;
+var $_CCS = null;
+var $_CCA = null;
 var hist = [];
 
 var $nav = null;
 
-exports.setNavigationController = function(e) {
+exports.setNavigationController = function(e, open) {
 	$nav = e;
+	if (open) {
+		$nav.open();
+	}
 };
 
 exports.getNavigationController = function() {
 	return $nav;
 };
 
-function closeController($c) {
-	if (!$c) return;
+function closeController(controller) {
+	if (!controller) {
+		return;
+	}
 
-	if ('close' in $c) {
-		$c.close();
+	if ('close' in controller) {
+		controller.close();
 	} else {
-		console.warn("Implement close function in controllers.");
-		$c.getView().close();
+		controller.getView().close();
 	}
 }
 
 exports.open = function(controller, args, opt) {
-	args = args || {};
-	opt = opt || {};
+	if (!args) args = {};
+	if (!opt) opt = {};
 
 	var $C = Alloy.createController(controller, args);
+	var $W = $C.getView();
 
 	if (config.useNav) {
 
@@ -51,20 +54,27 @@ exports.open = function(controller, args, opt) {
 			console.error("Please define a NavigationController");
 			return;
 		}
-
-		$nav.openWindow($C.getView());
+		$nav.openWindow($W, opt.openArgs || {});
 
 	} else {
 
 		if ('open' in $C) {
 			$C.open();
 		} else {
-			console.warn("Implement open function in controllers.");
-			$C.getView().open(opt.openArgs || {});
+			$W.open(opt.openArgs || {});
 		}
 
 	}
 
+
+	// Attach events
+	$W.addEventListener('close', function(e){
+		$C.destroy();
+		$C = null;
+		$W = null;
+	});
+
+	// Track with Google Analitycs
 	if (config.trackWithGA) {
 		require('ga').trackScreen(controller);
 	}
@@ -75,37 +85,33 @@ exports.open = function(controller, args, opt) {
 	});
 
 	if (!config.useNav && !opt.singleTask) {
-		closeController(cc);
+		if ($_CC) closeController($_CC);
 	}
 
-	ccs = controller;
-	cca = args;
-	cc = $C;
-
-	return cc;
+	$_CCS = controller;
+	$_CCA = args;
+	$_CC = $C;
+	return $_CC;
 };
 
-exports.back = exports.goBack = back = function() {
-	if (hist.length<2) {
-		return;
-	}
-
+exports.back = function() {
+	if (hist.length<2) return;
 	var last = hist.pop().pop();
 	open(last.controller, last.args);
 };
 
 exports.current = function(){
 	return {
-		controller: cc,
+		controller: $_CC,
 		info : {
-			name: ccs,
-			args: cca
+			name: $_CCS,
+			args: $_CCA
 		}
 	};
 };
 
 exports.closeCurrent = function() {
-	closeController(cc);
+	closeController($_CC);
 };
 
 exports.getHistory = function() {
@@ -114,16 +120,4 @@ exports.getHistory = function() {
 
 exports.clearHistory = function(){
 	hist = [];
-};
-
-exports.reload = function() {
-	if (config.useNav) {
-		return;
-	}
-
-	return open(ccs, cca);
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

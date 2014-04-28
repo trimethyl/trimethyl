@@ -6,9 +6,9 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.device);
 
-var onTiltCallbacks = [];
+var __onTiltCallbacks = [];
 
 exports.onTilt = function(callback) {
 	if (Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1){
@@ -25,7 +25,7 @@ exports.onTilt = function(callback) {
 		return;
 	}
 
-	onTiltCallbacks.push(callback);
+	__onTiltCallbacks.push(callback);
 	Ti.Accelerometer.addEventListener('update', callback);
 
 	// remove listener on android to preserve battery life
@@ -43,7 +43,7 @@ exports.offTilt = function(callback) {
 	if (callback) {
 		Ti.Accelerometer.removeEventListener('update', callback);
 	} else {
-		_.each(onTiltCallbacks, function(_callback){
+		_.each(__onTiltCallbacks, function(_callback){
 			Ti.Accelerometer.removeEventListener('update', _callback);
 		});
 	}
@@ -68,9 +68,4 @@ exports.getScreenHeight = function(){
 		return Ti.Platform.displayCaps.platformHeight;
 	}
 	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
-};
-
-
-exports.init = function(c){
-	config = _.extend(config, c);
 };

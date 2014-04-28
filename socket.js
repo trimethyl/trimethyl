@@ -5,7 +5,8 @@ Author: Flavio De Stefano
 Company: Caffeina SRL
 
 */
-var config = {};
+
+var config = _.extend({}, Alloy.CFG.socket);
 
 var Socket = function(args) {
 	var self = this;
@@ -57,8 +58,4 @@ var Socket = function(args) {
 
 exports.create = function(args) {
 	return new Socket(args);
-};
-
-exports.init = function(c){
-	config = _.extend(config, c);
 };

@@ -9,7 +9,7 @@ gittio -g install ti.imagefactory
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.image);
 
 function fsave(opt) {
 	var file = Ti.Filesystem.getFile(require('util').getAppDataDirectory(), opt.filename);
@@ -62,8 +62,4 @@ exports.process = function(opt) {
 	} else {
 		return opt.callback(R);
 	}
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

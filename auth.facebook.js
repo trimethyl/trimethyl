@@ -8,7 +8,7 @@ Company: Caffeina SRL
 
 var FB = require('facebook');
 var Auth = require('auth');
-var config = {};
+var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.facebook : {});
 
 /*
 This variable is needed to balance the differences between iOS & Android
@@ -83,12 +83,14 @@ exports.logout = function(){
 	FB.logout();
 };
 
-exports.init = function(c){
-	config = _.extend(config, c);
-
+(function init(){
 	FB.forceDialogAuth = false;
-	if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-	if (config.permissions) FB.permissions = config.permissions.split(',');
+	if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+		FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+	}
+	if (config.permissions) {
+		FB.permissions = config.permissions.split(',');
+	}
 
 	FB.addEventListener('login', function(e){
 		cachedLoginEvent = e;
@@ -100,4 +102,4 @@ exports.init = function(c){
 		onLogin(cachedLoginEvent);
 
 	});
-};
+})();

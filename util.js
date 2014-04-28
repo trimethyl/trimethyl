@@ -6,8 +6,6 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
-
 function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
 		Ti.Platform.openURL(url);
@@ -254,7 +252,3 @@ Modal.prototype.add = function($ui){ this._Window.add($ui); };
 exports.modal = function(args) { return new Modal(args); };
 
 /* End modal prototype */
-
-exports.init = function(c) {
-	config = _.extend(config, c);
-};

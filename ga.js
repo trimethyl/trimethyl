@@ -9,9 +9,9 @@ gittio install -g analytics.google
 
 */
 
-var config = {
+var config = _.extend({
 	ua: null
-};
+}, Alloy.CFG.ga);
 
 var $$ = require('analytics.google');
 var $T = null;
@@ -50,12 +50,11 @@ exports.trackSocial = exports.social = function(net, act, tar){
 	}
 };
 
-exports.init = function(c){
-	config = _.extend(config, c);
+(function init(){
 	$$.trackUncaughtExceptions = true;
 	$$.debug = false;
 
 	if (config.ua) {
 		$T = $$.getTracker(config.ua);
 	}
-};
+})();

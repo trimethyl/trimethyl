@@ -229,3 +229,25 @@ exports.createLabel = function(args) {
 
 	return $this;
 };
+
+exports.createTableView = function(args) {
+	if (args.animateRows) {
+		args.__data = args.data;
+		delete args.data;
+	}
+
+	var $ui = Ti.UI.createTableView(args || {});
+
+	if (args.animateRows) {
+		_.each(args.__data, function(row, i){
+			setTimeout(function(){
+				$ui.appendRow(row, {
+					animated: true,
+					animationStyle: Ti.UI.iPhone.RowAnimationStyle[i%2===0?'LEFT':'RIGHT']
+				});
+			}, i*100);
+		});
+	}
+
+	return $ui;
+};

@@ -6,12 +6,13 @@ Company: Caffeina SRL
 
 */
 
-var config = {
+var config = _.extend( {
 	base: 'http://localhost',
 	timeout: 10000,
 	useCache: true,
 	headers: {}
-};
+}, Alloy.CFG.net);
+
 
 // the database that store the cache
 var DB = null;
@@ -429,13 +430,11 @@ exports.getJSON = function(url, data, success, error) {
 	});
 };
 
-exports.init = function(c) {
-	config = _.extend(config, c);
-
+(function init(){
 	if (config.useCache) {
 		DB = require('db').open();
 		if (DB) {
 			DB.execute('CREATE TABLE IF NOT EXISTS net (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
 		}
 	}
-};
+})();

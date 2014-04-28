@@ -11,7 +11,7 @@ Be more social
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.sharer);
 
 var callback = null;
 
@@ -223,8 +223,4 @@ exports.options = exports.multi = function(args, _callback) {
 
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, args.title));
 	}
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

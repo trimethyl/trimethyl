@@ -6,7 +6,7 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.camera);
 
 function getPhoto(method, opt, cb){
 	Ti.Media[method](_.extend(opt || {}, {
@@ -40,8 +40,4 @@ exports.selectPhoto = function(opt, cb){
 			case 1: choosePhoto(opt, cb); break;
 		}
 	});
-};
-
-exports.init = function(c) {
-	config = _.extend(config, c);
 };

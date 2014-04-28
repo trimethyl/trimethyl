@@ -6,7 +6,7 @@ Company: Caffeina SRL
 
 */
 
-var config = {};
+var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
 
 exports.handleLogin = function(){
 	require('auth').login(Ti.App.Properties.getObject('auth.std.data'), 'std');
@@ -42,8 +42,4 @@ exports.lost = function(data, cb){
 			if (cb) cb();
 		}
 	});
-};
-
-exports.init = function(c){
-	config = _.extend(config, c);
 };
