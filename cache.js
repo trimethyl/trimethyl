@@ -7,15 +7,15 @@ Company: Caffeina SRL
 */
 
 var config = _.extend({}, Alloy.CFG.cache);
-var DB = null;
+var $ = null;
 
 function get(id) {
-	if (!DB) {
+	if (!$) {
 		console.error("Database cache not open.");
 		return false;
 	}
 
-	var row = DB.execute('SELECT expire FROM cache WHERE id = ? LIMIT 1', id);
+	var row = $.execute('SELECT expire FROM cache WHERE id = ? LIMIT 1', id);
 	if (!row.isValidRow()) {
 		return false;
 	}
@@ -27,7 +27,7 @@ function get(id) {
 		return false;
 	}
 
-	row = DB.execute('SELECT value FROM cache WHERE id = ? LIMIT 1', id);
+	row = $.execute('SELECT value FROM cache WHERE id = ? LIMIT 1', id);
 	if (!row.isValidRow()) {
 		return false;
 	}
@@ -36,9 +36,9 @@ function get(id) {
 }
 
 exports.get = function(id, value, expire) {
-	var dbvalue = get(id);
-	if (dbvalue) {
-		return dbvalue;
+	var $value = get(id);
+	if ($value) {
+		return $value;
 	}
 
 	if (!value) return false;
@@ -49,7 +49,7 @@ exports.get = function(id, value, expire) {
 };
 
 function set(id, value, expire) {
-	if (!DB) {
+	if (!$) {
 		console.error("Database cache not open.");
 		return false;
 	}
@@ -59,13 +59,13 @@ function set(id, value, expire) {
 	} else {
 		expire = -1;
 	}
-	DB.execute('INSERT OR REPLACE INTO cache (id, expire, value) VALUES (?,?,?)', id, expire, JSON.stringify(value));
+	$.execute('INSERT OR REPLACE INTO cache (id, expire, value) VALUES (?,?,?)', id, expire, JSON.stringify(value));
 }
 exports.set = set;
 
 (function init(c) {
-	DB = require('db').open();
-	if (DB) {
-		DB.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
+	$ = require('$').open();
+	if ($) {
+		$.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
 	}
 })();
