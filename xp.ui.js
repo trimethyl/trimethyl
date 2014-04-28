@@ -6,11 +6,12 @@ Company: Caffeina SRL
 
 */
 
-/*
-Thanks to @lastguest
-https://gist.github.com/lastguest/10277461
-*/
+
 function simpleHTMLParser(text) {
+	/*
+	Thanks to @lastguest
+	https://gist.github.com/lastguest/10277461
+	*/
 	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm,
 	partial,
 	tag,

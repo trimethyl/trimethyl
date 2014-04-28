@@ -8,26 +8,26 @@ Company: Caffeina SRL
 
 var config = _.extend({}, Alloy.CFG.events);
 
-var $$ = {};
+var $ = {};
 
 exports.add = exports.on = function(k, f) {
-	if (k in $$) {
-		$$[k].push(f);
+	if (k in $) {
+		$[k].push(f);
 	} else {
-		$$[k] = [f];
+		$[k] = [f];
 	}
 	Ti.App.addEventListener(k, f);
 };
 
 exports.remove = exports.off = function(k, f) {
-	if (!(k in $$)) {
+	if (!(k in $)) {
 		return;
 	}
 
-	for (var _f in $$[k]) {
+	for (var _f in $[k]) {
 		if (!_f || _f===f) {
 			Ti.App.removeEventListener(k, _f);
-			$$[k].splice(_f);
+			$[k].splice(_f);
 		}
 	}
 };

@@ -13,7 +13,7 @@ var config = _.extend({
 	ua: null
 }, Alloy.CFG.ga);
 
-var $$ = require('analytics.google');
+var $ = require('analytics.google');
 var $T = null;
 
 
@@ -51,10 +51,10 @@ exports.trackSocial = exports.social = function(net, act, tar){
 };
 
 (function init(){
-	$$.trackUncaughtExceptions = true;
-	$$.debug = false;
+	$.trackUncaughtExceptions = true;
+	$.debug = false;
 
 	if (config.ua) {
-		$T = $$.getTracker(config.ua);
+		$T = $.getTracker(config.ua);
 	}
 })();

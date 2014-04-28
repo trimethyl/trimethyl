@@ -8,8 +8,6 @@ Most of these modules are proxy object for Titanium API and some of these add fe
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
-
-
 ## Installation
 
 To install this framework, you have to **replace** your lib directory.
@@ -33,33 +31,11 @@ var Framework = require('trimethyl');
 Now, just call 
 
 ```javascript
-var Module1 = require('MODULE1');
+var Net = require('net');
 ```
 
 for each module you want to use.
-Each module read the `Alloy.CFG.$$MODULENAME$$` properties in your *config.json* file to configure itself.
-
-## Modules
-
-* [Auth](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/auth.md)
-* [Events](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/events.md)
-* [Flow](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/flow.md)
-* [GA](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/ga)
-* [Geo](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/geo.md)
-* [Map](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/map.md)
-* [Network](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/network.md)
-* [NewRelic](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/newrelic.md)
-* [Notifications](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/notifications.md)
-* [Share](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/share.md)
-
-## Other
-
-* [API Sync](https://github.com/CaffeinaLab/Trimethyl/blob/master/docs/api-sync.md)
-
-## Credits
-
-* **xp.ui.js** forked from https://github.com/FokkeZB/UTiL/tree/master/xp.ui
-* **share.js** forked from https://github.com/FokkeZB/UTiL/tree/master/share 
+Each module read the `Alloy.CFG.__MODULENAME__` properties in your *config.json* file to configure itself.
 
 ## Useful 3-party widgets
 

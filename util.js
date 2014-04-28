@@ -231,8 +231,6 @@ exports.dial = function(tel) {
 	}
 };
 
-/* Modal Prototype */
-
 var Modal = function(args) {
 	var self = this;
 
@@ -250,5 +248,3 @@ Modal.prototype.open = function(){ this._Navigator.open({ modal: true }); };
 Modal.prototype.add = function($ui){ this._Window.add($ui); };
 
 exports.modal = function(args) { return new Modal(args); };
-
-/* End modal prototype */
