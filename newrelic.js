@@ -18,7 +18,6 @@ var $ = null;
 	}
 
 	$ = require('ti.newrelic');
-	config = _.extend(config, c);
 
 	if (config.token) {
 		$.start(config.token);
