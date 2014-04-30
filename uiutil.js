@@ -6,44 +6,57 @@ Company: Caffeina SRL
 
 */
 
+var config = _.extend({}, Alloy.CFG.uiutil);
+
 exports.ListView = {
 
 	createFromCollection: function(C, opt) {
-		var sec = [];
 		var array = [];
+		var dataset = [];
 
 		if (opt.groupBy) {
+
 			if (C instanceof Backbone.Collection) {
 				array = C.groupBy(opt.groupBy);
 			} else {
 				array = _.groupBy(C, opt.groupBy);
 			}
+
+			var sec = [];
+			_.each(array, function(els, key){
+				_.each(els, function(el){
+					dataset.push(opt.datasetCb(el));
+				});
+
+				var s = Ti.UI.createListSection({ items: dataset });
+
+				if (opt.headerViewCb) {
+					s.headerView = opt.headerViewCb(key);
+				} else {
+					s.headerTitle = key;
+				}
+
+				sec.push(s);
+			});
+
+			return sec;
+
 		} else {
+
 			if (C instanceof Backbone.Collection) {
 				array = C.toJSON();
 			} else {
 				array = C;
 			}
-		}
 
-		_.each(array, function(els, key){
-			var dataset = [];
-			_.each(els, function(el){
+			_.each(array, function(el){
 				dataset.push(opt.datasetCb(el));
 			});
 
-			var s = Ti.UI.createListSection({ items: dataset });
+			return [ Ti.UI.createListSection({ items: dataset }) ];
 
-			if (opt.headerViewCb) {
-				s.headerView = opt.headerViewCb(key);
-			} else {
-				s.headerTitle = key;
-			}
+		}
 
-			sec.push(s);
-		});
-
-		return sec;
 	}
 
 };
