@@ -64,9 +64,9 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 
 exports.reviewInStore = function() {
 	if (OS_IOS) {
-		Ti.Platform.openURL('itms-apps://itunes.apple.com/app/id'+Ti.App.Properties.getString('appstoreid', 0));
+		Ti.Platform.openURL('itms-apps://itunes.apple.com/app/id'+Alloy.CFG.app.itunes);
 	} else if (OS_ANDROID) {
-		Ti.Platform.openURL('https://play.google.com/store/apps/details?id='+Ti.App.Properties.getString('id',0)+'&reviewId=0');
+		Ti.Platform.openURL('https://play.google.com/store/apps/details?id='+Alloy.CFG.app.id+'&reviewId=0');
 	}
 };
 
@@ -188,9 +188,7 @@ exports.uniqid = function(prefix, more_entropy) {
 };
 
 exports.timestamp = function(t){
-	if (t) {
-		return parseInt(+new Date(t)/1000,10);
-	}
+	if (t) return parseInt(+new Date(t)/1000,10);
 	return parseInt(+new Date()/1000, 10);
 };
 
@@ -231,6 +229,14 @@ exports.dial = function(tel) {
 	}
 };
 
+exports.isAppFirstUsage = function(){
+	return !Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'appusage.txt').exists();
+};
+
+exports.setAppFirstUsage = function(){
+	Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'appusage.txt').createFile();
+};
+
 var Modal = function(args) {
 	var self = this;
 
@@ -243,8 +249,16 @@ var Modal = function(args) {
 	self._Navigator = require('xp.ui').createNavigationWindow({ window: self._Window });
 };
 
-Modal.prototype.close = function(){ this._Navigator.close(); };
-Modal.prototype.open = function(){ this._Navigator.open({ modal: true }); };
-Modal.prototype.add = function($ui){ this._Window.add($ui); };
+Modal.prototype.close = function(){
+	this._Navigator.close();
+};
+
+Modal.prototype.open = function(){
+	this._Navigator.open({ modal: true });
+};
+
+Modal.prototype.add = function($ui){
+	this._Window.add($ui);
+};
 
 exports.modal = function(args) { return new Modal(args); };
