@@ -20,34 +20,34 @@ so we simple trigger the FB.authorize() to regrant permissions and start the aut
 var cachedLoginEvent = null;
 var loginTimeout = null;
 var timeout = null;
+var successLogin = null;
+var silent = true;
 
 function onLogin(e) {
-	if (timeout) {
-		clearTimeout(timeout);
-	}
-
-	if (loginTimeout) {
-		clearTimeout(loginTimeout);
-	}
-
+	if (timeout) clearTimeout(timeout);
+	if (loginTimeout) clearTimeout(loginTimeout);
 	if (!e.success) {
-		return Ti.App.fireEvent('auth.fail', { message: e.error || L('auth_facebook_error', 'Facebook login failed for an unknown reason') });
+		return Ti.App.fireEvent('auth.fail', {
+			message: e.error || L('auth_facebook_error')
+		});
 	}
 
 	Auth.login({
-		access_token: FB.getAccessToken()
+		access_token: FB.accessToken,
+		silent: silent
 	}, 'facebook', function(){
-		// We don't need to store nothing, because the Facebook SDK store internally all data.
+		if (successLogin) successLogin();
 	});
 }
 
 exports.handleLogin = function(){
+	silent = true;
+
 	timeout = setTimeout(function(){
-		return onLogin({ success:false });
+		return onLogin({ success: false });
 	}, 10000);
 
 	if (OS_IOS) {
-
 		if (cachedLoginEvent) {
 			return onLogin(cachedLoginEvent);
 		}
@@ -58,25 +58,38 @@ exports.handleLogin = function(){
 		that call the FB.authorize() method. Manually.
 		*/
 		loginTimeout = setTimeout(function(){
-			if (FB.loggedIn && FB.getAccessToken()) {
-				return onLogin({ success:true });
+			if (FB.loggedIn && FB.accessToken) {
+				onLogin({ success:true });
+			} else {
+				FB.authorize();
 			}
-
-			FB.authorize();
-
 		}, 5000);
 
 	} else {
-		if (FB.loggedIn && FB.getAccessToken()) {
-			return onLogin({ success:true });
+
+		if (FB.loggedIn && FB.accessToken) {
+			onLogin({ success:true });
+		} else {
+			FB.authorize();
 		}
 
-		FB.authorize();
 	}
 };
 
-exports.login = function(){
-	FB.authorize();
+exports.login = function(success){
+	silent = false;
+	successLogin = success;
+
+	// If there's an error, try the legacy mode of Facebook login, that we are sure that works.
+	if (cachedLoginEvent && !cachedLoginEvent.success) {
+		FB.forceDialogAuth = true;
+	}
+
+	if (FB.loggedIn && FB.accessToken) {
+		onLogin({ success: true });
+	} else {
+		FB.authorize();
+	}
 };
 
 exports.logout = function(){
@@ -85,21 +98,33 @@ exports.logout = function(){
 
 (function init(){
 	FB.forceDialogAuth = false;
-	if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-		FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+
+	if (!FB.appid) {
+		if (config.appid) {
+			FB.appid = config.appid;
+		} else if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);	// Legacy mode
+		} else {
+			console.warn("Please specify a Facebook AppID");
+		}
 	}
+
 	if (config.permissions) {
 		FB.permissions = config.permissions.split(',');
 	}
 
 	FB.addEventListener('login', function(e){
 		cachedLoginEvent = e;
-		if (require('net').isOnline() && !require('net').isServerConnected()) {
-			console.warn("FB.login triggered before /ping");
-			return false;
+
+		var Net = require('net');
+		if (Net.usePingServer()) {
+			if (Net.isOnline() && !Net.isServerConnected()) {
+				console.warn("FB.login triggered before /ping");
+				return false;
+			}
 		}
 
 		onLogin(cachedLoginEvent);
-
 	});
+
 })();

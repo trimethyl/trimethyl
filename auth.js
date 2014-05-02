@@ -15,30 +15,12 @@ var authInfo = null;
 var Net = require('net');
 
 function getCurrentDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver')) {
-		return false;
-	}
-
+	if (!Ti.App.Properties.hasProperty('auth.driver')) return false;
 	return Ti.App.Properties.getString('auth.driver');
 }
 
 function loadDriver(d) {
-	if (!d) {
-		return false;
-	}
-
-	if (drivers[d]) {
-		return drivers[d];
-	}
-
-	try {
-		drivers[d] = require('auth.'+d);
-		drivers[d].init(config.drivers[d]);
-	} catch (e) {
-		return false;
-	}
-
-	return drivers[d];
+	return require('auth.'+d);
 }
 exports.loadDriver = loadDriver;
 
@@ -48,10 +30,6 @@ function loadCurrentDriver() {
 
 exports.handleLogin = function(){
 	var driver = loadCurrentDriver();
-	if (!driver) {
-		return Ti.App.fireEvent('app.login');
-	}
-
 	try {
 		driver.handleLogin();
 	} catch (e) {
@@ -61,7 +39,8 @@ exports.handleLogin = function(){
 
 exports.handleOfflineLogin = function(cb){
 	if (!Ti.App.Properties.hasProperty('auth.me')) {
-		return Ti.App.fireEvent('app.login');
+		Ti.App.fireEvent('app.login');
+		return;
 	}
 
 	Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
@@ -75,31 +54,32 @@ function login(data, driver, cb) {
 		url: '/auth',
 		method: 'POST',
 		data: data,
+		silent: data.silent,
 		success: function(response){
 			authInfo = response;
 
-			Me = Alloy.createModel('user', { id: authInfo.id });
+			Me = Alloy.createModel('user', {
+				id: authInfo.id
+			});
+
 			Me.fetch({
+				networkArgs: { refresh: true },
 
-				networkArgs: {
-					refresh: true
-				},
-
-				ready: function(){
+				success: function(){
 					Ti.App.Properties.setObject('auth.me', Me.toJSON());
 					Ti.App.Properties.setString('auth.driver', driver);
 					Ti.App.fireEvent('auth.success', authInfo);
+
 					if (cb) cb();
 				},
 
-				error: function(msg){
-					Ti.App.fireEvent('auth.fail', { message: msg || L('auth_fail') });
+				error: function(e){
+					Ti.App.fireEvent('auth.fail', { message: e.message });
 				}
-
 			});
 		},
-		error: function(msg){
-			Ti.App.fireEvent('auth.fail', { message: msg || L('auth_fail') });
+		error: function(e){
+			Ti.App.fireEvent('auth.fail', { message: e.message });
 		}
 	});
 }
@@ -114,15 +94,12 @@ exports.user = exports.me = function(){
 };
 
 function logout() {
-	if (!Me) {
-		return;
-	}
+	if (!Me) return;
 
 	var id = Me.get('id');
 
 	try {
-		var Driver = loadCurrentDriver();
-		if (Driver) Driver.logout();
+		loadCurrentDriver().logout();
 	} catch (e) {
 		console.error("Auth driver error: "+e);
 	}
@@ -138,10 +115,8 @@ function logout() {
 		Net.send({
 			url: '/logout',
 			method: 'POST',
-			info: {
-				mime:'json'
-			},
-			disableEvent: true,
+			info: { mime:'json' },
+			silent: true,
 			complete: function(){
 				require('net').resetCookies();
 				Ti.App.fireEvent('auth.logout', { id: id });

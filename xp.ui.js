@@ -252,3 +252,23 @@ exports.createTableView = function(args) {
 
 	return $ui;
 };
+
+exports.createTabView = function(args) {
+	var $ui = Ti.UI.createView(args);
+
+	$ui.setActive = function(i) {
+		$ui.activeViewIndex = +i;
+		_.each($ui.children, function($el, k){
+			if (i==+k) {
+				$el.visible = true;
+				if ($el.id) {
+					$ui.activeViewId = $el.id;
+				}
+			} else {
+				$el.visible = false;
+			}
+		});
+	};
+
+	return $ui;
+};

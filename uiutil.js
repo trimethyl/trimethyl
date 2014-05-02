@@ -10,9 +10,9 @@ var config = _.extend({}, Alloy.CFG.uiutil);
 
 exports.ListView = {
 
-	createFromCollection: function(C, opt) {
+	createFromCollection: function(C, opt, $ui) {
 		var array = [];
-		var dataset = [];
+		var sec = [];
 
 		if (opt.groupBy) {
 
@@ -22,8 +22,8 @@ exports.ListView = {
 				array = _.groupBy(C, opt.groupBy);
 			}
 
-			var sec = [];
 			_.each(array, function(els, key){
+				var dataset = [];
 				_.each(els, function(el){
 					dataset.push(opt.datasetCb(el));
 				});
@@ -39,7 +39,13 @@ exports.ListView = {
 				sec.push(s);
 			});
 
-			return sec;
+			if ($ui && opt.sectionIndex) {
+				var sit = [];
+				_.each(_.keys(array), function(u,k){
+					sit.push({ title: u, index: k });
+				});
+				$ui.sectionIndexTitles = sit;
+			}
 
 		} else {
 
@@ -49,12 +55,18 @@ exports.ListView = {
 				array = C;
 			}
 
+			var dataset = [];
 			_.each(array, function(el){
 				dataset.push(opt.datasetCb(el));
 			});
 
-			return [ Ti.UI.createListSection({ items: dataset }) ];
+			sec = [ Ti.UI.createListSection({ items: dataset }) ];
+		}
 
+		if ($ui) {
+			$ui.sections = sec;
+		} else {
+			return sec;
 		}
 
 	}

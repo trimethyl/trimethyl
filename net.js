@@ -6,11 +6,12 @@ Company: Caffeina SRL
 
 */
 
-var config = _.extend( {
+var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	useCache: true,
-	headers: {}
+	headers: {},
+	usePingServer: true
 }, Alloy.CFG.net);
 
 
@@ -42,6 +43,8 @@ function writeCache(request, response, info) {
 		response.responseData,
 		JSON.stringify(info)
 		);
+
+	response = null;
 }
 
 function getCache(request, getIfExpired) {
@@ -89,8 +92,8 @@ function setApplicationInfo(appInfo) {
 	});
 }
 
-function autoDispatch(msg) {
-	return require('util').alertError(msg);
+function autoDispatch(e) {
+	return require('util').alertError(e.message);
 }
 
 function getResponseInfo(response) {
@@ -113,6 +116,8 @@ function decorateRequest(request) {
 	if (request.hash) {
 		return request;
 	}
+
+	if (!request.url) request.url = '/';
 
 	// if the url is not matching :// (a protocol), assign the base URL
 	if (!request.url.match(/\:\/\//)) {
@@ -147,7 +152,7 @@ function onComplete(request, response, e){
 	delete queue[request.hash];
 
 	// Fire the global event
-	if (!request.disableEvent) {
+	if (!request.silent) {
 		Ti.App.fireEvent('net.end', {
 			id: request.hash,
 			eventName: request.eventName || null
@@ -179,17 +184,21 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
-		// Write cache (async)
+		if (ENV_DEVELOPMENT) {
+			console.warn(response);
+		}
+
+		// Write cache
 		if (config.useCache && !request.noCache) {
 			if (request.method=='GET') {
-				setTimeout(function(){
-					writeCache(request, response, info);
-				}, 0);
+				writeCache(request, response, info);
 			}
 		}
 
 		// Success callback
 		request.success(returnValue);
+
+		response = null;
 		return true;
 
 	} else {
@@ -199,24 +208,29 @@ function onComplete(request, response, e){
 		*/
 
 		if (ENV_DEVELOPMENT) {
-			console.error({
-				request: request,
-				response: response.responseText,
-				event: e
-			});
+			console.error(response);
 		}
 
 		// Parse the error returned from the server
-		if (returnValue && returnValue.error) {
-			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
-		} else if (returnValue) {
-			returnError = returnValue.toString();
-		} else {
-			returnError = L('net_error');
-		}
+		if (returnValue) {
+			if (returnValue.error) {
+				returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
+			} else {
+				// don't do it on API, please.
+				returnError = returnValue.toString();
+			}
+		} else returnError = L('net_error');
+
+		// Build the error
+		var E = {
+			message: returnError,
+			code: response.status
+		};
 
 		// Error callback
-		request.error(returnError, returnValue, e);
+		request.error(E);
+
+		response = null;
 		return false;
 
 	}
@@ -234,10 +248,41 @@ exports.resetHeaders = function() {
 	config.headers = {};
 };
 
+/*
+PING SERVER
+*/
+
 function isServerConnected(){
-	return !!serverConnected;
+	return config.usePingServer && !!serverConnected;
 }
 exports.isServerConnected = isServerConnected;
+
+exports.usePingServer = function(){
+	return !!config.usePingServer;
+};
+
+exports.connectToServer = function(cb) {
+	return makeRequest({
+		url: '/ping',
+		method: 'POST',
+		disableEvent: true,
+		info: { mime: 'json' },
+		success: function(appInfo){
+			serverConnected = true;
+			setApplicationInfo(appInfo);
+			Ti.App.fireEvent('net.ping.success');
+			return cb(appInfo);
+		},
+		error: function(message, response){
+			serverConnected = false;
+			Ti.App.fireEvent('net.ping.error');
+		}
+	});
+};
+
+/*
+END PING SERVER
+*/
 
 exports.isQueueEmpty = function(){
 	return !queue.length;
@@ -248,18 +293,19 @@ exports.getQueue = function(){
 };
 
 function getQueuedRequest(hash) {
-	if (typeof(hash)!='object') {
-		hash = decorateRequest(hash).hash;
-	}
-	var httpClient = queue[hash];
-	return httpClient ? httpClient : null;
+	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
+	return queue[hash];
 }
 exports.getQueuedRequest = getQueuedRequest;
 
 function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
-	if (!httpClient) { return; }
-	httpClient.abort();
+	if (!httpClient) return;
+	try {
+		httpClient.abort();
+	} catch (e) {
+		console.error(e);
+	}
 }
 exports.abortRequest = abortRequest;
 
@@ -286,6 +332,10 @@ exports.deleteCache = function(request) {
 
 function makeRequest(request) {
 	request = decorateRequest(request);
+
+	if (ENV_DEVELOPMENT) {
+		console.log(request);
+	}
 
 	// Try to get the cache, otherwise make the HTTP request
 	if (config.useCache && request.method=='GET') {
@@ -325,14 +375,14 @@ function makeRequest(request) {
 
 	var H = Ti.Network.createHTTPClient();
 
-	// Add this request to the queue
-	if (!request.disableEvent) {
+	if (!request.silent) {
 		Ti.App.fireEvent('net.start', {
 			id: request.hash,
 			eventName: request.eventName || null
 		});
 	}
 
+	// Add this request to the queue
 	queue[request.hash] = H;
 	H.timeout = request.timeout;
 
@@ -357,48 +407,6 @@ function makeRequest(request) {
 }
 
 exports.send = makeRequest;
-exports.makeRequest = makeRequest;
-
-exports.connectToServer = function(cb) {
-	makeRequest({
-		url: '/ping',
-		method: 'POST',
-		disableEvent: true,
-		info: { mime: 'json' },
-		success: function(appInfo){
-			serverConnected = true;
-			setApplicationInfo(appInfo);
-			Ti.App.fireEvent('net.ping.success');
-			return cb(appInfo);
-		},
-		error: function(message, response){
-			serverConnected = false;
-			var errorWindow = Ti.UI.createWindow({
-				exitOnClose: true,
-				backgroundColor: '#fff',
-				layout: 'vertical'
-			});
-			errorWindow.add(Ti.UI.createLabel({
-				text: L('net_ping_error_title'),
-				font:{ fontSize: 40 },
-				top: 50,
-				textAlign: 'center'
-			}));
-			errorWindow.add(Ti.UI.createLabel({
-				text: L('net_ping_error_description'),
-				font: { fontSize: 14 },
-				top: 20, left: 20, right: 20,
-				textAlign: 'center'
-			}));
-			errorWindow.add(Ti.UI.createImageView({
-				image: '/images/offline.png',
-				top: 30
-			}));
-			errorWindow.open();
-			Ti.App.fireEvent('net.ping.error');
-		}
-	});
-};
 
 // Aliases
 
@@ -424,6 +432,17 @@ exports.getJSON = function(url, data, success, error) {
 		url: url,
 		data: data,
 		method: 'GET',
+		mime: 'json',
+		success: success,
+		error: error
+	});
+};
+
+exports.postJSON = function(url, data, success, error) {
+	return makeRequest({
+		url: url,
+		data: data,
+		method: 'POST',
 		mime: 'json',
 		success: success,
 		error: error

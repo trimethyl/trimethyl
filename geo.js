@@ -62,11 +62,6 @@ function localize(cb) {
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
-		if (!e.success || !e.coords) {
-			require('util').alertError(L('geo_error'));
-			return cb(e);
-		}
-
 		cb(e);
 	});
 }
@@ -117,6 +112,7 @@ exports.startNavigator = function(lat, lng, mode) {
 
 exports.geocode = function(address, cb) {
 	if (config.useGoogleForGeocode) {
+
 		require('net').send({
 			url: 'https://maps.googleapis.com/maps/api/geocode/json',
 			data: {
@@ -126,34 +122,43 @@ exports.geocode = function(address, cb) {
 			mime: 'json',
 			success: function(res){
 				if (res.status!='OK' || !res.results.length) {
-					require('util').alertError(L('geo_unabletogeocode'));
-					return;
+					return cb({ error: true });
 				}
-				if (cb) cb(res.results[0].geometry.location.lat, res.results[0].geometry.location.lng);
+
+				cb({
+					success: true,
+					latitude: res.results[0].geometry.location.lat,
+					longitude: res.results[0].geometry.location.lng
+				});
 			},
 			error: function(err){
 				console.error(err);
-				require('util').alertError(L('geo_unabletogeocode'));
+				cb({ error: true });
 			}
 		});
 	} else {
+
 		Ti.Geolocation.forwardGeocoder(address, function(res){
 			if (!res.success) {
-				require('util').alertError(L('geo_unabletogeocode'));
-				return;
+				return cb({ error: true });
 			}
-			if (cb) cb(res.latitude, res.longitude);
+
+			cb({
+				success: true,
+				latitude: res.latitude,
+				longitude: res.longitude
+			});
 		});
 	}
 };
 
 exports.reverseGeocode = function(lat, lng, cb) {
 	if (!lat || !lng) {
-		require('util').alertError(L('geo_unabletoreversegeocode'));
-		return;
+		return cb({ error: true });
 	}
 
 	if (config.useGoogleForGeocode) {
+
 		require('net').send({
 			url: 'https://maps.googleapis.com/maps/api/geocode/json',
 			data: {
@@ -163,23 +168,33 @@ exports.reverseGeocode = function(lat, lng, cb) {
 			mime: 'json',
 			success: function(res){
 				if (res.status!='OK' || !res.results.length) {
-					require('util').alertError(L('geo_unabletoreversegeocode'));
-					return;
+					return cb({ error: true });
 				}
-				if (cb) cb(res.results[0].formatted_address, res.results);
+
+				cb({
+					success: true,
+					address: res.results[0].formatted_address,
+					results: res.results
+				});
 			},
 			error: function(err){
 				console.error(err);
-				require('util').alertError(L('geo_unabletoreversegeocode'));
+				cb({ error: true });
 			}
 		});
+
 	} else {
+
 		Ti.Geolocation.reverseGeocoder(lat, lng, function(res){
 			if (!res.success || !res.places || !res.places.length) {
-				require('util').alertError(L('geo_unabletoreversegeocode'));
-				return;
+				return cb({ error: true });
 			}
-			if (cb) cb(res.places[0].address, res.places);
+
+			cb({
+				success: true,
+				address: res.places[0].address,
+				results: res.places
+			});
 		});
 	}
 };

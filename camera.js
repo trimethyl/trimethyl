@@ -18,7 +18,7 @@ function getPhoto(method, opt, cb){
 		},
 		error: function(e) {
 			console.error(e);
-			require('util').alertError(e.message || L('camera_error'));
+			require('util').alertError(L('camera_error'));
 		},
 	}));
 }

@@ -126,7 +126,7 @@ exports.option = optionDialog;
 function alertError(msg, callback) {
 	return alertDialog(L('Error', 'Error'), msg, callback);
 }
-exports.alertError = alertError;
+exports.alertError = exports.error = alertError;
 
 function isIOS7() {
 	return OS_IOS && +(Ti.Platform.version.split(".")[0])>=7;
@@ -203,9 +203,13 @@ exports.parseJSON = function(json) {
 };
 
 exports.buildQuery = function(obj) {
-	if (!obj || _.isEmpty(obj)) return '';
+	if (_.isEmpty(obj)) return '';
 	var q = [];
-	_.each(obj, function(v, k) { q.push( k + '=' + encodeURIComponent(v) ); });
+	_.each(obj, function(v, k) {
+		if (v!==null && v!==false && v!==undefined) {
+			q.push( k + '=' + encodeURIComponent(v) );
+		}
+	});
 	if (!q.length) return '';
 	return '?' + q.join('&');
 };

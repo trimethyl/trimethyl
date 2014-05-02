@@ -18,6 +18,7 @@ var hist = [];
 
 var $nav = null;
 
+
 exports.setNavigationController = function(e, open) {
 	$nav = e;
 	if (open) {
@@ -40,6 +41,16 @@ function closeController(controller) {
 		controller.getView().close();
 	}
 }
+
+exports.openDirect = function(controller, args) {
+	// Open the controller
+	Alloy.createController(controller, args || {});
+
+	// Track with Google Analitycs
+	if (config.trackWithGA) {
+		require('ga').trackScreen(controller);
+	}
+};
 
 exports.open = function(controller, args, opt) {
 	if (!args) args = {};
