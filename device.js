@@ -13,15 +13,6 @@ var __onTiltCallbacks = [];
 exports.onTilt = function(callback) {
 	if (Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1){
 		console.warn("Accelerometer doesn't work on virtual devices.");
-
-		/* Simulator havent accelerometer, so we simualte it now */
-		var i = 0;
-		setInterval(function(){
-			callback({
-				x: Math.cos(i+=0.1),
-				y: 0
-			});
-		}, 100);
 		return;
 	}
 

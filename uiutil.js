@@ -16,10 +16,14 @@ exports.ListView = {
 
 		if (opt.groupBy) {
 
-			if (C instanceof Backbone.Collection) {
-				array = C.groupBy(opt.groupBy);
+			if (_.isFunction(opt.groupBy)) {
+				if (C instanceof Backbone.Collection) {
+					array = C.groupBy(opt.groupBy);
+				} else {
+					array = _.groupBy(C, opt.groupBy);
+				}
 			} else {
-				array = _.groupBy(C, opt.groupBy);
+				array = C;
 			}
 
 			_.each(array, function(els, key){

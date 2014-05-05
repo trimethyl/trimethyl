@@ -184,10 +184,6 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
-		if (ENV_DEVELOPMENT) {
-			console.warn(response);
-		}
-
 		// Write cache
 		if (config.useCache && !request.noCache) {
 			if (request.method=='GET') {
@@ -198,7 +194,6 @@ function onComplete(request, response, e){
 		// Success callback
 		request.success(returnValue);
 
-		response = null;
 		return true;
 
 	} else {

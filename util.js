@@ -234,11 +234,11 @@ exports.dial = function(tel) {
 };
 
 exports.isAppFirstUsage = function(){
-	return !Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'appusage.txt').exists();
+	return !Ti.App.Properties.hasProperty('app.firstusage');
 };
 
 exports.setAppFirstUsage = function(){
-	Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'appusage.txt').createFile();
+	Ti.App.Properties.setString('app.firstusage', +new Date().toString());
 };
 
 var Modal = function(args) {

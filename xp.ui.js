@@ -107,7 +107,7 @@ if (OS_ANDROID) {
 
 				window.activity.onCreateOptionsMenu = function(e){
 					var menuItem = e.menu.add({
-						title: window.rightNavButton.title || 'Button',
+						title: window.rightNavButton.title || '',
 						icon: window.rightNavButton.icon || window.rightNavButton.image || '',
 						showAsAction: Ti.Android.SHOW_AS_ACTION_ALWAYS
 					});

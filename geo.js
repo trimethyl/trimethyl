@@ -13,11 +13,7 @@ var config = _.extend({
 }, Alloy.CFG.geo);
 
 function checkForServices() {
-	if (!Ti.Geolocation.locationServicesEnabled) {
-		require('util').alertError(L('geo_error'));
-		return false;
-	}
-	return true;
+	return Ti.Geolocation.locationServicesEnabled;
 }
 
 function getRoute(args, rargs, cb) {
@@ -26,13 +22,15 @@ function getRoute(args, rargs, cb) {
 		data: args,
 		success: function(resp){
 			var points = [];
-			for (var k in resp) points.push({ latitude: resp[k][0], longitude: resp[k][1] });
-				return cb(require('ti.map').createRoute(_.extend({
-					name: 'Route',
-					color: '#000',
-					points: points,
-					width: 6
-				}, rargs)));
+			for (var k in resp) {
+				points.push({ latitude: resp[k][0], longitude: resp[k][1] });
+			}
+			return cb(require('ti.map').createRoute(_.extend({
+				name: 'Route',
+				color: '#000',
+				points: points,
+				width: 6
+			}, rargs)));
 		}
 	});
 }
@@ -114,7 +112,8 @@ exports.geocode = function(address, cb) {
 	if (config.useGoogleForGeocode) {
 
 		require('net').send({
-			url: 'https://maps.googleapis.com/maps/api/geocode/json',
+			url: 'http://maps.googleapis.com/maps/api/geocode/json',
+			noCache: true,
 			data: {
 				address: address,
 				sensor: 'false'
@@ -160,7 +159,8 @@ exports.reverseGeocode = function(lat, lng, cb) {
 	if (config.useGoogleForGeocode) {
 
 		require('net').send({
-			url: 'https://maps.googleapis.com/maps/api/geocode/json',
+			url: 'http://maps.googleapis.com/maps/api/geocode/json',
+			noCache: true,
 			data: {
 				latlng: lat+','+lng,
 				sensor: 'false'
