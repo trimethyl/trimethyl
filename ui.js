@@ -67,5 +67,5 @@ ModalWindow.prototype = {
 };
 
 exports.createModalWindow = function(args) {
-	return new Modal(args);
+	return new ModalWindow(args);
 };
