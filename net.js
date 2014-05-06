@@ -43,8 +43,6 @@ function writeCache(request, response, info) {
 		response.responseData,
 		JSON.stringify(info)
 		);
-
-	response = null;
 }
 
 function getCache(request, getIfExpired) {
@@ -144,10 +142,6 @@ function decorateRequest(request) {
 
 
 function onComplete(request, response, e){
-	if (request.complete) {
-		request.complete();
-	}
-
 	// Delete request from queue
 	delete queue[request.hash];
 
@@ -157,6 +151,10 @@ function onComplete(request, response, e){
 			id: request.hash,
 			eventName: request.eventName || null
 		});
+	}
+
+	if (request.complete) {
+		request.complete();
 	}
 
 	// Get the response information
@@ -199,7 +197,6 @@ function onComplete(request, response, e){
 
 		// Success callback
 		request.success(returnValue);
-
 		return true;
 
 	} else {
@@ -230,8 +227,6 @@ function onComplete(request, response, e){
 
 		// Error callback
 		request.error(E);
-
-		response = null;
 		return false;
 
 	}
@@ -253,10 +248,9 @@ exports.resetHeaders = function() {
 PING SERVER
 */
 
-function isServerConnected(){
+exports.isServerConnected = function(){
 	return !!serverConnected;
-}
-exports.isServerConnected = isServerConnected;
+};
 
 exports.usePingServer = function(){
 	return !!config.usePingServer;
@@ -317,6 +311,7 @@ exports.resetCache = exports.pruneCache = function() {
 		console.error("NETCache Database not open.");
 		return false;
 	}
+
 	DB.execute('DROP TABLE IF EXISTS net');
 };
 
@@ -329,6 +324,7 @@ exports.deleteCache = function(request) {
 		console.error("NETCache Database not open.");
 		return false;
 	}
+
 	request = decorateRequest(request);
 	DB.execute('DELETE FROM net WHERE id = ?', request.hash);
 };
@@ -342,21 +338,21 @@ function makeRequest(request) {
 
 	// Try to get the cache, otherwise make the HTTP request
 	if (config.useCache && request.method=='GET') {
-
-		Ti.App.fireEvent('net.cache.start', { id: request.hash });
 		var cache = getCache(request, !Ti.Network.online);
-		Ti.App.fireEvent('net.cache.end', { id: request.hash });
-
 		if (cache) {
 
 			// if we are offline, but we got cache, fire event to handle
 			if (!Ti.Network.online) {
-				Ti.App.fireEvent('net.offline', { cache: true });
+				Ti.App.fireEvent('net.offline', {
+					cache: true
+				});
 			}
 
-			if (request.complete) { request.complete(); }
-			request.success(cache);
+			if (request.complete) {
+				request.complete();
+			}
 
+			request.success(cache);
 			return request.hash;
 		}
 	}
@@ -388,6 +384,7 @@ function makeRequest(request) {
 	// Add this request to the queue
 	queue[request.hash] = H;
 	H.timeout = request.timeout;
+	H.cache = false;
 
 	// onLoad && onError are the same because we have an internal parser that discern the event.success property; WOW!
 	H.onload = H.onerror = function(e){ onComplete(request, this, e); };

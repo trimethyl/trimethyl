@@ -94,8 +94,8 @@ if (OS_ANDROID) {
 }
 
 exports.createNavigationWindow = function(args) {
-	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args || {});
-	return new NavigationWindow(args || {});
+	if (!OS_IOS) return new NavigationWindow(args || {});
+	return Ti.UI.iOS.createNavigationWindow(args || {});
 };
 
 /*
@@ -110,19 +110,68 @@ exports.createWindow = function(args) {
 /*
 TextField
 - removed autofocus on Android
+- hintTextColor workaround
 */
+
+function __onTextAreaFocus(e) {
+	if (!e.source.getRealValue().length) {
+		e.source.applyProperties({
+			value: '',
+			color: e.source.originalColor
+		});
+	}
+}
+
+function __onTextAreaBlur(e) {
+	if (!e.source.value.length) {
+		e.source.applyProperties({
+			value: e.source.__hintText,
+			color: e.source.hintTextColor || '#5000'
+		});
+	} else {
+		e.source.color = e.source.originalColor;
+	}
+}
 
 function __enableAutoFocus(e) {
 	e.source.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
 }
 
 exports.createTextField = function(args) {
-	var $this = Ti.UI.createTextField(args || {});
+	args = args || {};
+
+	if (args.hintTextColor) {
+		args.__hintText = args.hintText;
+		delete args.hintText;
+	}
+
+	switch (args.textType) {
+		case 'email':
+		args.keyboardType = Ti.UI.KEYBOARD_EMAIL;
+		break;
+		case 'password':
+		args.passwordMask = true;
+		break;
+	}
+
+	var $this = Ti.UI.createTextField(args);
+
+	if (args.hintTextColor) {
+		$this.originalColor = $this.color || '#000';
+		$this.addEventListener('focus', __onTextAreaFocus);
+		$this.addEventListener('blur', __onTextAreaBlur);
+		__onTextAreaBlur({ source: $this });
+	}
 
 	if (OS_ANDROID) {
 		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
 		$this.addEventListener('touchstart', __enableAutoFocus);
 	}
+
+	$this.getRealValue = function(){
+		if ($this.__hintText==$this.value) return '';
+		return $this.value;
+	};
 
 	return $this;
 };
@@ -130,45 +179,34 @@ exports.createTextField = function(args) {
 /*
 TextArea
 - hintText now work on iOS
+- hintTextColor workaround
 - removed autofocus on Android
 */
 
-function __onTextAreaFocus(e) {
-	var $this = e.source || e;
-	if ($this.hintText==$this.value) {
-		$this.applyProperties({
-			value: '',
-			color: $this.__color
-		});
-	}
-}
-
-function __onTextAreaBlur(e) {
-	var $this = e.source || e;
-	if (!$this.value) {
-		$this.applyProperties({
-			value: $this.hintText,
-			color: $this.hintTextColor
-		});
-	}
-}
-
 exports.createTextArea = function(args) {
+	if (args.hintTextColor) {
+		args.__hintText = args.hintText;
+		delete args.hintText;
+	}
+
 	var $this = Ti.UI.createTextArea(args || {});
 
-	if (OS_IOS) {
-		$this.__color = $this.color || '#000';
-		if (!$this.hintTextColor) $this.hintTextColor = '#ccc';
-
+	if (args.hintTextColor || OS_IOS) {
+		$this.originalColor = $this.color || '#000';
 		$this.addEventListener('focus', __onTextAreaFocus);
 		$this.addEventListener('blur', __onTextAreaBlur);
-		__onTextAreaBlur($this);
+		__onTextAreaBlur({ source: $this });
 	}
 
 	if (OS_ANDROID) {
 		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
 		$this.addEventListener('touchstart', __enableAutoFocus);
 	}
+
+	$this.getRealValue = function(){
+		if ($this.__hintText==$this.value) return '';
+		return $this.value;
+	};
 
 	return $this;
 };

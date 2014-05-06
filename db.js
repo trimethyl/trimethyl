@@ -10,9 +10,7 @@ var config = _.extend({}, Alloy.CFG.db);
 var $ = null;
 
 exports.open = function() {
-	if ($) {
-		return $;
-	}
+	if ($) return $;
 
 	try {
 		$ = Ti.Database.open('app');
