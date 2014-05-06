@@ -98,8 +98,8 @@ exports.startNavigator = function(lat, lng, mode) {
 			var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
 			Ti.Platform.openURL(D + require('util').buildQuery({
 				directionsmode: mode || 'walking',
-				daddr: e.coords.latitude + "," + e.coords.longitude,
-				saddr: lat + "," + lng
+				saddr: e.coords.latitude + "," + e.coords.longitude,
+				daddr: lat + "," + lng
 			}));
 
 		} else  {

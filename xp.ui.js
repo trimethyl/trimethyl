@@ -112,7 +112,7 @@ TextField
 - removed autofocus on Android
 */
 
-function __enableAutoFocus() {
+function __enableAutoFocus(e) {
 	e.source.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
 }
 
