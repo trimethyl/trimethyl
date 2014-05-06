@@ -73,12 +73,11 @@ function __parseArgs(args) {
 
 
 function webviewShare(url) {
-	return require('ui').createModalWindow({
-		title: L('Share'),
-		children: [
-		Ti.UI.createWebView({ url: url })
-		]
-	}).open();
+	var $modal = require('ui').createModalWindow({
+		title: L('Share')
+	});
+	$modal.add(Ti.UI.createWebView({ url: url }));
+	$modal.open();
 }
 exports.webview = webviewShare;
 
