@@ -11,11 +11,13 @@ var drivers = {};
 
 var Me = null;
 var authInfo = null;
-
 var Net = require('net');
 
 function getCurrentDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver')) return false;
+	if (!Ti.App.Properties.hasProperty('auth.driver')) {
+		return false;
+	}
+
 	return Ti.App.Properties.getString('auth.driver');
 }
 
@@ -28,16 +30,21 @@ function loadCurrentDriver() {
 	return loadDriver(getCurrentDriver());
 }
 
-exports.handleLogin = function(){
-	var driver = loadCurrentDriver();
+function handleLogin() {
+	if (!getCurrentDriver()) {
+		console.warn("No driver stored to handle authentication");
+		return;
+	}
+
 	try {
-		driver.handleLogin();
+		loadCurrentDriver().handleLogin();
 	} catch (e) {
 		Ti.App.fireEvent('app.login');
 	}
-};
+}
+exports.handleLogin = handleLogin;
 
-exports.handleOfflineLogin = function(cb){
+function handleOfflineLogin(cb){
 	if (!Ti.App.Properties.hasProperty('auth.me')) {
 		Ti.App.fireEvent('app.login');
 		return;
@@ -46,10 +53,25 @@ exports.handleOfflineLogin = function(cb){
 	Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 	Ti.App.fireEvent('auth.success');
 	if (cb) cb();
+}
+exports.handleOfflineLogin = handleOfflineLogin;
+
+
+exports.handle = function() {
+	if (Net.isOnline()) {
+		if (Net.usePingServer()) {
+			Net.connectToServer(handleLogin);
+		} else {
+			handleLogin();
+		}
+	} else {
+		handleOfflineLogin();
+	}
 };
 
 function login(data, driver, cb) {
 	data.method = driver;
+
 	Net.send({
 		url: '/auth',
 		method: 'POST',
@@ -57,13 +79,23 @@ function login(data, driver, cb) {
 		silent: data.silent,
 		success: function(response){
 			authInfo = response;
+			if (!authInfo.id) {
+				Ti.App.fireEvent('auth.fail', {
+					message: L('auth_error'),
+					silent: data.silent
+				});
+				return;
+			}
 
 			Me = Alloy.createModel('user', {
 				id: authInfo.id
 			});
 
 			Me.fetch({
-				networkArgs: { refresh: true },
+				networkArgs: {
+					refresh: true,
+					silent: data.silent
+				},
 
 				success: function(){
 					Ti.App.Properties.setObject('auth.me', Me.toJSON());
@@ -74,12 +106,18 @@ function login(data, driver, cb) {
 				},
 
 				error: function(e){
-					Ti.App.fireEvent('auth.fail', { message: e.message });
+					Ti.App.fireEvent('auth.fail', {
+						message: e.message,
+						silent: data.silent
+					});
 				}
 			});
 		},
 		error: function(e){
-			Ti.App.fireEvent('auth.fail', { message: e.message });
+			Ti.App.fireEvent('auth.fail', {
+				message: e.message,
+				silent: data.silent
+			});
 		}
 	});
 }
@@ -94,14 +132,10 @@ exports.user = exports.me = function(){
 };
 
 function logout() {
-	if (!Me) return;
+	var id = Me ? Me.get('id') : null;
 
-	var id = Me.get('id');
-
-	try {
+	if (getCurrentDriver()) {
 		loadCurrentDriver().logout();
-	} catch (e) {
-		console.error("Auth driver error: "+e);
 	}
 
 	Me = null;
@@ -112,21 +146,23 @@ function logout() {
 	Net.resetCache();
 
 	if (Net.isOnline()) {
+
 		Net.send({
 			url: '/logout',
 			method: 'POST',
-			info: { mime:'json' },
 			silent: true,
 			complete: function(){
-				require('net').resetCookies();
+				Net.resetCookies();
 				Ti.App.fireEvent('auth.logout', { id: id });
 			},
 			success: function(){},
 			error: function(){} // suppress all errors
 		});
+
 	} else {
-		require('net').resetCookies();
+		Net.resetCookies();
 		Ti.App.fireEvent('auth.logout', { id: id });
 	}
+
 }
 exports.logout = logout;

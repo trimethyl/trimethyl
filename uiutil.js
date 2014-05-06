@@ -6,10 +6,7 @@ Company: Caffeina SRL
 
 */
 
-var config = _.extend({}, Alloy.CFG.uiutil);
-
 exports.ListView = {
-
 	createFromCollection: function(C, opt, $ui) {
 		var array = [];
 		var sec = [];
@@ -17,11 +14,8 @@ exports.ListView = {
 		if (opt.groupBy) {
 
 			if (_.isFunction(opt.groupBy)) {
-				if (C instanceof Backbone.Collection) {
-					array = C.groupBy(opt.groupBy);
-				} else {
-					array = _.groupBy(C, opt.groupBy);
-				}
+				if (C instanceof Backbone.Collection) array = C.groupBy(opt.groupBy);
+				else array = _.groupBy(C, opt.groupBy);
 			} else {
 				array = C;
 			}
@@ -33,12 +27,8 @@ exports.ListView = {
 				});
 
 				var s = Ti.UI.createListSection({ items: dataset });
-
-				if (opt.headerViewCb) {
-					s.headerView = opt.headerViewCb(key);
-				} else {
-					s.headerTitle = key;
-				}
+				if (opt.headerViewCb) s.headerView = opt.headerViewCb(key);
+				else s.headerTitle = key;
 
 				sec.push(s);
 			});
@@ -53,11 +43,8 @@ exports.ListView = {
 
 		} else {
 
-			if (C instanceof Backbone.Collection) {
-				array = C.toJSON();
-			} else {
-				array = C;
-			}
+			if (C instanceof Backbone.Collection) array = C.toJSON();
+			else array = C;
 
 			var dataset = [];
 			_.each(array, function(el){
@@ -67,12 +54,7 @@ exports.ListView = {
 			sec = [ Ti.UI.createListSection({ items: dataset }) ];
 		}
 
-		if ($ui) {
-			$ui.sections = sec;
-		} else {
-			return sec;
-		}
-
+		if ($ui) $ui.sections = sec;
+		else return sec;
 	}
-
 };

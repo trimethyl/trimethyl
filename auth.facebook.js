@@ -6,74 +6,59 @@ Company: Caffeina SRL
 
 */
 
-var FB = require('facebook');
-var Auth = require('auth');
 var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.facebook : {});
 
-/*
-This variable is needed to balance the differences between iOS & Android
-On IOS, if the user is logged in, the Facebook library automatically trigger a 'login' event in FB.
-But we need to check is the server is connected before the auth request, so we store globally this object
-to use when we need. On Android, the behavior is different, the library doesn't trigger anything
-so we simple trigger the FB.authorize() to regrant permissions and start the auth cycle.
-*/
-var cachedLoginEvent = null;
-var loginTimeout = null;
+var FB = require('facebook');
+var Auth = require('auth');
+
+var authorized = false;
+var lastEvent = null;
 var timeout = null;
 var successLogin = null;
 var silent = true;
 
-function onLogin(e) {
+function loginToServer(e) {
 	if (timeout) clearTimeout(timeout);
-	if (loginTimeout) clearTimeout(loginTimeout);
-	if (!e.success) {
-		return Ti.App.fireEvent('auth.fail', {
-			message: e.error || L('auth_facebook_error')
-		});
-	}
 
-	Auth.login({
-		access_token: FB.accessToken,
-		silent: silent
-	}, 'facebook', function(){
-		if (successLogin) successLogin();
-	});
+	if (!e.success) {
+		console.error(e);
+
+		var error = L('auth_facebook_error');
+		if (e.cancelled) error = L('auth_facebook_cancelled_error');
+
+		Ti.App.fireEvent('auth.fail', {
+			silent: silent,
+			message: error
+		});
+
+	} else {
+
+		Auth.login({
+			access_token: FB.accessToken,
+			silent: silent
+		}, 'facebook', successLogin);
+	}
+}
+
+function authorize() {
+	if (FB.loggedIn && FB.accessToken) {
+		loginToServer({ success: true });
+	} else {
+		authorized = true;
+		FB.authorize();
+	}
 }
 
 exports.handleLogin = function(){
 	silent = true;
+	authorized = false;
 
+	// Prevent app freezing
 	timeout = setTimeout(function(){
-		return onLogin({ success: false });
+		return loginToServer({ success: false });
 	}, 10000);
 
-	if (OS_IOS) {
-		if (cachedLoginEvent) {
-			return onLogin(cachedLoginEvent);
-		}
-
-		/*
-		if there's no cachedLoginEvent, we wait for the library to trigger automatically the event
-		But, we are on Titanium, and we know that nothing works fine.. So we just put a timeout
-		that call the FB.authorize() method. Manually.
-		*/
-		loginTimeout = setTimeout(function(){
-			if (FB.loggedIn && FB.accessToken) {
-				onLogin({ success:true });
-			} else {
-				FB.authorize();
-			}
-		}, 5000);
-
-	} else {
-
-		if (FB.loggedIn && FB.accessToken) {
-			onLogin({ success:true });
-		} else {
-			FB.authorize();
-		}
-
-	}
+	authorize();
 };
 
 exports.login = function(success){
@@ -81,15 +66,11 @@ exports.login = function(success){
 	successLogin = success;
 
 	// If there's an error, try the legacy mode of Facebook login, that we are sure that works.
-	if (cachedLoginEvent && !cachedLoginEvent.success) {
+	if (lastEvent && !lastEvent.success) {
 		FB.forceDialogAuth = true;
 	}
 
-	if (FB.loggedIn && FB.accessToken) {
-		onLogin({ success: true });
-	} else {
-		FB.authorize();
-	}
+	authorize();
 };
 
 exports.logout = function(){
@@ -110,21 +91,17 @@ exports.logout = function(){
 	}
 
 	if (config.permissions) {
-		FB.permissions = config.permissions.split(',');
+		FB.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
 	}
 
 	FB.addEventListener('login', function(e){
-		cachedLoginEvent = e;
+		lastEvent = e;
 
-		var Net = require('net');
-		if (Net.usePingServer()) {
-			if (Net.isOnline() && !Net.isServerConnected()) {
-				console.warn("FB.login triggered before /ping");
-				return false;
-			}
-		}
-
-		onLogin(cachedLoginEvent);
+		/*
+		checking the authorized flag, we are sure that loginToServer is not called automatically on startup,
+		because on iOS the SDK automatically trigger the login event
+		*/
+		if (authorized) loginToServer(e);
 	});
 
 })();

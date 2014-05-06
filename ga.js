@@ -16,37 +16,42 @@ var config = _.extend({
 var $ = require('analytics.google');
 var $T = null;
 
-
 exports.trackEvent = exports.event = function(cat, act, lbl, val){
-	if (!$T) { return; }
+	if (!$T) return;
 
-	if (act) {
-		$T.trackEvent(_.extend(
-			{ category: cat || '', action: act || '' },
-			lbl ? { label: lbl } : { label: '' },
-			val ? { value: +val } : { value: 0 }
-			));
-	} else {
+	if (_.isObject(cat)) {
 		$T.trackEvent(cat);
+	} else {
+
+		var obj = {};
+		obj.category = cat;
+		obj.action = act;
+		obj.label = lbl ? lbl : '';
+		obj.value = val ? +val : 0;
+
+		$T.trackEvent(obj);
 	}
 };
 
 exports.trackScreen = exports.screen = function(name){
-	if (!$T) { return; }
+	if (!$T) return;
 
 	$T.trackScreen(name);
 };
 
 exports.trackSocial = exports.social = function(net, act, tar){
-	if (!$T) { return; }
+	if (!$T) return;
 
-	if (act) {
-		$T.trackSocial(_.extend(
-			{ network: net, action: act },
-			tar ? { target: tar } : { target: '' }
-			));
-	} else {
+	if (_.isObject(net)) {
 		$T.trackSocial(net);
+	} else {
+
+		var obj = {};
+		obj.network = net;
+		obj.action = act || 'share';
+		obj.target = tar || '';
+
+		$T.trackSocial(obj);
 	}
 };
 

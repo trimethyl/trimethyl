@@ -7,16 +7,20 @@ Company: Caffeina SRL
 Requirements:
 gittio install -g dk.napp.social
 
-Be more social
+Documentation:
+https://github.com/viezel/TiSocial.Framework
+
+Be more social!
 
 */
 
 var config = _.extend({}, Alloy.CFG.sharer);
 
 var callback = null;
+var Social = null;
 
 if (OS_IOS) {
-	var Social = require('dk.napp.social');
+	Social = require('dk.napp.social');
 	Social.addEventListener('complete', __onSocialComplete);
 	Social.addEventListener('cancelled', __onSocialCancelled);
 }
@@ -67,7 +71,19 @@ function __parseArgs(args) {
 	return args;
 }
 
-exports.twitter = function(args) {
+
+function webviewShare(url) {
+	return require('ui').createModalWindow({
+		title: L('Share'),
+		children: [
+		Ti.UI.createWebView({ url: url })
+		]
+	}).open();
+}
+exports.webview = webviewShare;
+
+
+function shareOnTwitter(args) {
 	callback = args.callback || null;
 	__parseArgs(args);
 
@@ -91,9 +107,11 @@ exports.twitter = function(args) {
 	} else {
 		Ti.Platform.openURL(intentUrl);
 	}
-};
+}
+exports.twitter = shareOnTwitter;
 
-exports.facebook = function(args, _callback) {
+
+function shareOnFacebook(args, _callback) {
 	callback = args.callback || null;
 	args = __parseArgs(args);
 
@@ -137,9 +155,11 @@ exports.facebook = function(args, _callback) {
 
 		}
 	}
-};
+}
+exports.facebook = shareOnFacebook;
 
-exports.mail = function(args, _callback) {
+
+function shareViaMail(args, _callback) {
 	callback = args.callback || null;
 	args = __parseArgs(args);
 
@@ -168,52 +188,43 @@ exports.mail = function(args, _callback) {
 	});
 
 	$dialog.open();
-};
+}
+exports.mail = shareViaMail;
 
-exports.googleplus = function(args, _callback) {
+
+function shareOnGooglePlus(args, _callback) {
 	args = __parseArgs(args);
 	webviewShare("https://plus.google.com/share?url="+encodeURIComponent(args.url));
-};
+}
+exports.googleplus = exports.googlePlus = shareOnGooglePlus;
 
-exports.whatsapp = function(args, _callback) {
+
+function shareOnWhatsApp(args, _callback) {
 	args = __parseArgs(args);
 	if (args.url) args.text += ' (' + args.url + ')';
 	Ti.Platform.openURL('whatsapp://send?text='+args.text);
-};
-
-function webviewShare(url) {
-	var M = require('util').modal({ title: L('Share') });
-	M.add(Ti.UI.createWebView({ url: url }));
-	M.open();
 }
+exports.whatsapp = exports.whatsApp = shareOnWhatsApp;
 
-exports.webview = webviewShare;
+/*
+ActivityView
+*/
 
-exports.options = exports.multi = function(args, _callback) {
+exports.options = exports.multi = exports.activity = function(args, _callback) {
 	callback = 	callback = args.callback || null;
 	args = __parseArgs(args);
 
 	if (OS_IOS) {
 
-		if (Ti.Platform.osname=='ipad') {
-			Social.activityPopover({
-				text: args.text,
-				title: args.title,
-				image: args.image,
-				removeIcons: args.removeIcons,
-				view: args.view,
-				url: args.url
-			}, args.customIcons || []);
-		} else {
-			Social.activityView({
-				text: args.text,
-				title: args.title,
-				image: args.image,
-				removeIcons: args.removeIcons,
-				//view: args.view,
-				url: args.url
-			}, args.customIcons || []);
-		}
+		Social[Ti.Platform.osname=='ipad'?'activityPopover':'activityView']
+		({
+			text: args.text,
+			title: args.title,
+			image: args.image,
+			removeIcons: args.removeIcons,
+			view: args.view,
+			url: args.url
+		}, args.customIcons || []);
 
 	} else if (OS_ANDROID) {
 

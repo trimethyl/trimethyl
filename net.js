@@ -184,8 +184,14 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
+		if (ENV_DEVELOPMENT) {
+			if (response.responseText.length<1000) {
+				console.log(response);
+			}
+		}
+
 		// Write cache
-		if (config.useCache && !request.noCache) {
+		if (config.useCache && !request.noCache && request.cache!==false) {
 			if (request.method=='GET') {
 				writeCache(request, response, info);
 			}
@@ -248,7 +254,7 @@ PING SERVER
 */
 
 function isServerConnected(){
-	return config.usePingServer && !!serverConnected;
+	return !!serverConnected;
 }
 exports.isServerConnected = isServerConnected;
 
@@ -260,12 +266,14 @@ exports.connectToServer = function(cb) {
 	return makeRequest({
 		url: '/ping',
 		method: 'POST',
-		disableEvent: true,
+		silent: true,
 		info: { mime: 'json' },
 		success: function(appInfo){
 			serverConnected = true;
 			setApplicationInfo(appInfo);
+
 			Ti.App.fireEvent('net.ping.success');
+
 			return cb(appInfo);
 		},
 		error: function(message, response){

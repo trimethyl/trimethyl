@@ -33,7 +33,18 @@ if (OS_IOS) {
 var Device 	= require('device');
 
 // Set some TSS vars
+
 Alloy.Globals.SCREEN_WIDTH 		= Device.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT 		= Device.getScreenHeight();
 Alloy.Globals.SCREEN_DENSITY 		= Device.getScreenDensity();
 Alloy.Globals.IOS7 					= Util.isIOS7();
+
+// Prototype!
+
+String.prototype.zeroFy = function(n) {
+	if (this.length<=n) {
+		var zeros = ''; for (var i=0; i<n; i++) zeros += '0';
+		return zeros + this.toString();
+	}
+	return this.toString();
+};

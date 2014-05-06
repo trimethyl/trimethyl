@@ -6,12 +6,184 @@ Company: Caffeina SRL
 
 */
 
+/*
+NavigationWindow
+- Basic Implementation in Android based on windows stack
+*/
 
+if (OS_ANDROID) {
+
+	var NavigationWindow = function(args) {
+		this.args = args || {};
+		this.windows = [];
+	};
+
+	NavigationWindow.prototype = {
+		open: function(args) {
+			return this.openWindow(this.args.window, args);
+		},
+		close: function(callback) {
+			if (callback) this.closeCallback = callback;
+
+			if (this.windows.length>0) {
+				var w = this.windows.pop();
+				w.navigationIndex = null;
+				w.popToRoot = true;
+				w.close({ animated: false });
+			} else {
+				if (this.closeCallback) this.closeCallback();
+				this.closeCallback = null;
+			}
+		},
+		openWindow: function(window, args) {
+			var self = this;
+			args = args || {};
+
+			if (OS_ANDROID) {
+
+				if (args.animated!==false) {
+					if (args.modal) {
+						args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
+						args.activityExitAnimation = Ti.Android.R.anim.fade_out;
+					} else {
+						args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
+						args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+					}
+				}
+
+				window.addEventListener('close', function(e){
+					if (e.source.navigationIndex>=0) {
+						self.windows.splice(e.source.navigationWindow, 1);
+					}
+					if (e.source.popToRoot) {
+						self.close();
+					}
+				});
+
+				if (window.rightNavButton && window.rightNavButton.children[0]) {
+					while (window.rightNavButton.children[0]) {
+						window.rightNavButton = window.rightNavButton.children[0];
+					}
+
+					window.activity.onCreateOptionsMenu = function(e){
+						var menuItem = e.menu.add({
+							title: window.rightNavButton.title || '',
+							icon: window.rightNavButton.icon || window.rightNavButton.image || '',
+							showAsAction: Ti.Android.SHOW_AS_ACTION_ALWAYS
+						});
+						menuItem.addEventListener('click', function(){
+							window.rightNavButton.fireEvent('click');
+						});
+					};
+				}
+			}
+
+			window.navigationIndex = this.windows.length;
+			this.windows.push(window);
+
+			return window.open(_.extend(args, { modal: false }));
+		},
+		closeWindow: function(window) {
+			return window.close();
+		},
+		getWindowsStack: function() {
+			return this.windows;
+		}
+	};
+
+}
+
+exports.createNavigationWindow = function(args) {
+	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args || {});
+	return new NavigationWindow(args || {});
+};
+
+/*
+Window
+- Nothing done here
+*/
+
+exports.createWindow = function(args) {
+	return Ti.UI.createWindow(args);
+};
+
+/*
+TextField
+- removed autofocus on Android
+*/
+
+function __enableAutoFocus() {
+	e.source.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
+}
+
+exports.createTextField = function(args) {
+	var $this = Ti.UI.createTextField(args || {});
+
+	if (OS_ANDROID) {
+		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
+		$this.addEventListener('touchstart', __enableAutoFocus);
+	}
+
+	return $this;
+};
+
+/*
+TextArea
+- hintText now work on iOS
+- removed autofocus on Android
+*/
+
+function __onTextAreaFocus(e) {
+	var $this = e.source || e;
+	if ($this.hintText==$this.value) {
+		$this.applyProperties({
+			value: '',
+			color: $this.__color
+		});
+	}
+}
+
+function __onTextAreaBlur(e) {
+	var $this = e.source || e;
+	if (!$this.value) {
+		$this.applyProperties({
+			value: $this.hintText,
+			color: $this.hintTextColor
+		});
+	}
+}
+
+exports.createTextArea = function(args) {
+	var $this = Ti.UI.createTextArea(args || {});
+
+	if (OS_IOS) {
+		$this.__color = $this.color || '#000';
+		if (!$this.hintTextColor) $this.hintTextColor = '#ccc';
+
+		$this.addEventListener('focus', __onTextAreaFocus);
+		$this.addEventListener('blur', __onTextAreaBlur);
+		__onTextAreaBlur($this);
+	}
+
+	if (OS_ANDROID) {
+		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
+		$this.addEventListener('touchstart', __enableAutoFocus);
+	}
+
+	return $this;
+};
+
+/*
+Label
+- iOS support ** VERY BASIC ** HTML now!
+*/
+
+/*
+Thanks to @lastguest
+https://gist.github.com/lastguest/10277461
+*/
 function simpleHTMLParser(text) {
-	/*
-	Thanks to @lastguest
-	https://gist.github.com/lastguest/10277461
-	*/
+
 	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm,
 	partial,
 	tag,
@@ -50,139 +222,9 @@ function simpleHTMLParser(text) {
 	};
 }
 
-if (OS_ANDROID) {
-
-	var NavigationWindow = function(args) {
-		this.args = args;
-		this.windows = [];
-	};
-
-	NavigationWindow.prototype.open = function(args) {
-		return this.openWindow(this.args.window, args);
-	};
-
-	NavigationWindow.prototype.close = function(callback) {
-		if (callback) this.closeCallback = callback;
-
-		if (this.windows.length>0) {
-			var w = this.windows.pop();
-			w.navigationIndex = null;
-			w.popToRoot = true;
-			w.close({ animated: false });
-		} else {
-			if (this.closeCallback) this.closeCallback();
-			this.closeCallback = null;
-		}
-	};
-
-	NavigationWindow.prototype.openWindow = function(window, args) {
-		var self = this;
-		args = args || {};
-
-		if (OS_ANDROID) {
-
-			if (args.animated!==false) {
-				if (args.modal) {
-					args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-					args.activityExitAnimation = Ti.Android.R.anim.fade_out;
-				} else {
-					args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-					args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
-				}
-			}
-
-			window.addEventListener('close', function(e){
-				if (e.source.navigationIndex>=0) {
-					self.windows.splice(e.source.navigationWindow, 1);
-				}
-				if (e.source.popToRoot) {
-					self.close();
-				}
-			});
-
-			if (window.rightNavButton && window.rightNavButton.children[0]) {
-				while (window.rightNavButton.children[0]) {
-					window.rightNavButton = window.rightNavButton.children[0];
-				}
-
-				window.activity.onCreateOptionsMenu = function(e){
-					var menuItem = e.menu.add({
-						title: window.rightNavButton.title || '',
-						icon: window.rightNavButton.icon || window.rightNavButton.image || '',
-						showAsAction: Ti.Android.SHOW_AS_ACTION_ALWAYS
-					});
-					menuItem.addEventListener('click', function(){
-						window.rightNavButton.fireEvent('click');
-					});
-				};
-			}
-		}
-
-		window.navigationIndex = this.windows.length;
-		this.windows.push(window);
-
-		return window.open(_.extend(args, { modal: false }));
-	};
-
-	NavigationWindow.prototype.closeWindow = function(window) {
-		return window.close();
-	};
-
-	NavigationWindow.prototype.getWindowsStack = function() {
-		return this.windows;
-	};
-
-}
-
-exports.createNavigationWindow = function(args) {
-	if (OS_IOS) {
-		return Ti.UI.iOS.createNavigationWindow(args);
-	}
-
-	return new NavigationWindow(args);
-};
-
-exports.createWindow = function(args) {
-	return Ti.UI.createWindow(args);
-};
-
-function __onTextAreaFocus(e) {
-	var $this = e.source || e;
-	if ($this.hintText==$this.value) {
-		$this.applyProperties({
-			value: '',
-			color: $this.__color
-		});
-	}
-}
-
-function __onTextAreaBlur(e) {
-	var $this = e.source || e;
-	if (!$this.value) {
-		$this.applyProperties({
-			value: $this.hintText,
-			color: $this.hintTextColor
-		});
-	}
-}
-
-exports.createTextArea = function(args) {
-	var $this = Ti.UI.createTextArea(args);
-
-	if (OS_IOS) {
-		$this.__color = $this.color || '#000';
-		if (!$this.hintTextColor) $this.hintTextColor = '#ccc';
-
-		$this.addEventListener('focus', __onTextAreaFocus);
-		$this.addEventListener('blur', __onTextAreaBlur);
-		__onTextAreaBlur($this);
-	}
-
-	return $this;
-};
 
 exports.createLabel = function(args) {
-	var $this = Ti.UI.createLabel(args);
+	var $this = Ti.UI.createLabel(args || {});
 
 	if (OS_IOS) {
 
@@ -223,13 +265,16 @@ exports.createLabel = function(args) {
 			$this.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
 		};
 
-		if ($this.html) {
-			$this.setHtml($this.html);
-		}
+		if ($this.html) $this.setHtml($this.html);
 	}
 
 	return $this;
 };
+
+/*
+TableView
+- ** NEW FEATURE **: animateRows
+*/
 
 exports.createTableView = function(args) {
 	if (args.animateRows) {
@@ -237,12 +282,12 @@ exports.createTableView = function(args) {
 		delete args.data;
 	}
 
-	var $ui = Ti.UI.createTableView(args || {});
+	var $this = Ti.UI.createTableView(args || {});
 
 	if (args.animateRows) {
 		_.each(args.__data, function(row, i){
 			setTimeout(function(){
-				$ui.appendRow(row, {
+				$this.appendRow(row, {
 					animated: true,
 					animationStyle: Ti.UI.iPhone.RowAnimationStyle[i%2===0?'LEFT':'RIGHT']
 				});
@@ -250,25 +295,5 @@ exports.createTableView = function(args) {
 		});
 	}
 
-	return $ui;
-};
-
-exports.createTabView = function(args) {
-	var $ui = Ti.UI.createView(args);
-
-	$ui.setActive = function(i) {
-		$ui.activeViewIndex = +i;
-		_.each($ui.children, function($el, k){
-			if (i==+k) {
-				$el.visible = true;
-				if ($el.id) {
-					$ui.activeViewId = $el.id;
-				}
-			} else {
-				$el.visible = false;
-			}
-		});
-	};
-
-	return $ui;
+	return $this;
 };

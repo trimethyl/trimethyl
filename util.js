@@ -12,7 +12,7 @@ function openURL(url, fallback, error) {
 		return;
 	}
 	if (fallback) {
-		if (typeof(fallback)==='function') fallback();
+		if (_.isFunction(fallback)) fallback();
 		else Ti.Platform.openURL(fallback);
 		return;
 	}
@@ -32,23 +32,6 @@ function startActivity(opt, error) {
 	}
 }
 exports.startActivity = startActivity;
-
-exports.fixAutoFocusTextArea = function($textarea) {
-	if (!OS_ANDROID) {
-		return false;
-	}
-
-	$textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
-	$textarea.addEventListener('touchstart', function(e){
-		$textarea.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
-	});
-};
-
-exports.getSpinner = function(){
-	return Ti.UI.createActivityIndicator({
-		style: OS_IOS ? Ti.UI.iPhone.ActivityIndicatorStyle.DARK : Ti.UI.ActivityIndicatorStyle.DARK
-	});
-};
 
 exports.openFacebookProfile = function(fbid) {
 	Ti.Platform.openURL("http://facebook.com/"+fbid);
@@ -72,7 +55,7 @@ exports.reviewInStore = function() {
 
 exports.getDomainFromURL = function(url) {
 	var matches = url.match(/https?\:\/\/([^\/]*)/i);
-	if (!matches) { return ''; }
+	if (!matches) return '';
 	return matches[1].replace('www.', '');
 };
 
@@ -241,28 +224,7 @@ exports.setAppFirstUsage = function(){
 	Ti.App.Properties.setString('app.firstusage', +new Date().toString());
 };
 
-var Modal = function(args) {
-	var self = this;
-
-	self._Window =  Ti.UI.createWindow(args || {});
-
-	var $leftButton = Ti.UI.createButton({ title: L('Cancel') });
-	$leftButton.addEventListener('click', function(){ self.close(); });
-	self._Window.leftNavButton = $leftButton;
-
-	self._Navigator = require('xp.ui').createNavigationWindow({ window: self._Window });
+exports.modal = function(args) {
+	console.warn("Util.modal() is deprecated, use UI.createModalWindow() instead");
+	return require('ui').createModalWindow(args);
 };
-
-Modal.prototype.close = function(){
-	this._Navigator.close();
-};
-
-Modal.prototype.open = function(){
-	this._Navigator.open({ modal: true });
-};
-
-Modal.prototype.add = function($ui){
-	this._Window.add($ui);
-};
-
-exports.modal = function(args) { return new Modal(args); };

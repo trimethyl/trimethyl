@@ -10,19 +10,21 @@ gittio -g install ti.imagefactory
 */
 
 var config = _.extend({}, Alloy.CFG.image);
+var $$ = require('ti.imagefactory');
 
 function fsave(opt) {
 	var file = Ti.Filesystem.getFile(require('util').getAppDataDirectory(), opt.filename);
-	if (!file.write(opt.blob)) {
-		opt.blob = null;
-		return opt.callback(false);
+	var result = file.write(opt.blob);
+
+	if (!result) {
+		console.error("Error writing file in Trimethyl.image.process()");
+		return opt.callback();
 	}
-	opt.blob = null;
-	opt.callback(file);
+
+	return opt.callback(file);
 }
 
 exports.process = function(opt) {
-	var $$ = require('ti.imagefactory');
 	var density = opt.retina ? require('device').getScreenDensity() : 1;
 	var R = null;
 
@@ -45,9 +47,12 @@ exports.process = function(opt) {
 		R = opt.blob;
 	}
 
+	// Error
 	if (!R) {
 		return opt.callback();
 	}
+
+	// Success
 
 	if (opt.quality) {
 		R = $$.compress(R, +opt.quality);

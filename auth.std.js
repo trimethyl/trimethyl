@@ -7,15 +7,20 @@ Company: Caffeina SRL
 */
 
 var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
+var Net = require('net');
+var Auth = require('auth');
+
 
 exports.handleLogin = function(){
-	require('auth').login(Ti.App.Properties.getObject('auth.std.data'), 'std');
+	var data = Ti.App.Properties.getObject('auth.std.data');
+	data.silent = true;
+	require('auth').login(data, 'std');
 };
 
-exports.login = function(data, success){
-	require('auth').login(data, 'std', function(){
+exports.login = function(data, success) {
+	Auth.login(data, 'std', function(){
 		Ti.App.Properties.setObject('auth.std.data', data);
-		if (cb) cb();
+		if (success) success();
 	});
 };
 
@@ -24,7 +29,7 @@ exports.logout = function(){
 };
 
 exports.signup = function(data, cb) {
-	require('net').send({
+	Net.send({
 		url: '/signup',
 		method: 'POST',
 		data: data,
@@ -35,7 +40,7 @@ exports.signup = function(data, cb) {
 };
 
 exports.lost = function(data, cb){
-	require('net').send({
+	Net.send({
 		url: '/lost',
 		method: 'POST',
 		data: data,
