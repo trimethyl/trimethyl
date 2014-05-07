@@ -14,6 +14,10 @@ var config = _.extend({
 	usePingServer: true
 }, Alloy.CFG.net);
 
+exports.config = function(key){
+	return key ? config[key] : config;
+};
+
 
 // the database that store the cache
 var DB = null;
@@ -23,11 +27,7 @@ var queue = {};
 var serverConnected = null;
 
 function calculateHash(request) {
-	return Ti.Utils.md5HexDigest(
-		request.url +
-		JSON.stringify(request.data || {}) +
-		JSON.stringify(request.headers || {})
-		);
+	return Ti.Utils.md5HexDigest(request.url+JSON.stringify(request.data||{})+JSON.stringify(request.headers||{}));
 }
 
 function writeCache(request, response, info) {

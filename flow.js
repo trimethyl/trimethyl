@@ -44,12 +44,14 @@ function closeController(controller) {
 
 exports.openDirect = function(controller, args) {
 	// Open the controller
-	Alloy.createController(controller, args || {});
+	var $c = Alloy.createController(controller, args || {});
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
 		require('ga').trackScreen(controller);
 	}
+
+	return $c;
 };
 
 exports.open = function(controller, args, opt) {

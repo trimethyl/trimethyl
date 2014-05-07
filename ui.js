@@ -31,41 +31,26 @@ exports.createTabView = function(args) {
 	return $this;
 };
 
-
 /*
 ModalWindow
 */
-
-function ModalWindow(args) {
-	var self = this;
-
-	self._Window =  Ti.UI.createWindow(args || {});
-
-	var $leftButton = Ti.UI.createButton({ title: L('Cancel') });
-	$leftButton.addEventListener('click', function(){
-		self.close();
-	});
-	self._Window.leftNavButton = $leftButton;
-
-	self._Navigator = require('xp.ui').createNavigationWindow({
-		window: self._Window
-	});
-}
-
-ModalWindow.prototype = {
-	close: function(){
-		this._Navigator.close();
-	},
-	open: function(){
-		this._Navigator.open({
-			modal: true
-		});
-	},
-	add: function($win){
-		this._Window.add($win);
-	}
+exports.createModalWindow = function(args) {
+	return Alloy.createWidget("com.caffeinalab.titanium.modalwindow", args);
 };
 
-exports.createModalWindow = function(args) {
-	return new ModalWindow(args);
+/*
+ModalWebView
+*/
+exports.createModalWebView = function(args) {
+	args = args || {};
+
+	var url = args.url;
+	delete args.url;
+
+	var $modal = Alloy.createWidget("com.caffeinalab.titanium.modalwindow", args);
+	$modal.add(Ti.UI.createWebView({
+		url: url
+	}));
+
+	return $modal;
 };

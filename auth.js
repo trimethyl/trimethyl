@@ -76,7 +76,7 @@ function login(data, driver, cb) {
 		url: '/auth',
 		method: 'POST',
 		data: data,
-		silent: data.silent,
+		silent: data.silent || false,
 		success: function(response){
 			authInfo = response;
 			if (!authInfo.id) {
