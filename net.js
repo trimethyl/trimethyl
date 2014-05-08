@@ -11,6 +11,7 @@ var config = _.extend({
 	timeout: 10000,
 	useCache: true,
 	headers: {},
+	debug: false,
 	usePingServer: true
 }, Alloy.CFG.net);
 
@@ -19,10 +20,7 @@ exports.config = function(key){
 };
 
 
-// the database that store the cache
 var DB = null;
-
-// An object to hold all requests, and to give the possibility to abort it
 var queue = {};
 var serverConnected = null;
 
@@ -45,18 +43,22 @@ function writeCache(request, response, info) {
 		);
 }
 
-function getCache(request, getIfExpired) {
+function getCache(request, bypassExpiration) {
 	if (!DB) {
 		console.error("NETCache Database not open.");
 		return false;
 	}
 
-	if (!getIfExpired && request.refresh) {
+	if (request.refresh || request.cache===false) {
+		if (ENV_DEVELOPMENT && config.debug) {
+			console.log("NETCache: Request cache forced to refresh");
+		}
 		return false;
 	}
 
 	var cacheRow = DB.execute('SELECT expire, creation FROM net WHERE id = ? LIMIT 1', request.hash);
 	if (!cacheRow || !cacheRow.isValidRow()) {
+		console.warn("NETCache: Cache not found");
 		return false;
 	}
 
@@ -64,15 +66,19 @@ function getCache(request, getIfExpired) {
 	var creation = +cacheRow.fieldByName('creation') || 0;
 	var now = require('util').timestamp();
 
-	if (!getIfExpired) {
-		if (expire<now) { return false; }
-		var appTimestamp = Ti.App.Properties.getString('settings.timestamp');
-		if (appTimestamp && creation<appTimestamp) { return false; }
+	if (!bypassExpiration) {
+		if (ENV_DEVELOPMENT && config.debug) {
+			console.log("NETCache: Cache values = "+expire+" - "+now+" = "+(expire-now)+"s");
+		}
+		if (expire<now) {
+			return false;
+		}
 	}
 
 	var cache = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
 	var content = cache.fieldByName('content');
 	if (!content) {
+		console.warn("NETCache: invalid cache content");
 		return false;
 	}
 
@@ -90,9 +96,19 @@ function setApplicationInfo(appInfo) {
 	});
 }
 
-function autoDispatch(e) {
+function originalErrorHandler(e) {
 	return require('util').alertError(e.message);
 }
+
+var errorHandler = originalErrorHandler;
+
+exports.setErrorHandler = function(fun) {
+	errorHandler = fun;
+};
+
+exports.resetErrorHandler = function(){
+	errorHandler = originalErrorHandler;
+};
 
 function getResponseInfo(response) {
 	var info = {};
@@ -102,9 +118,14 @@ function getResponseInfo(response) {
 		info.mime = 'json';
 	}
 
-	var expireHeader = response.getResponseHeader('Expires');
-	if (expireHeader) {
-		info.expire = (+new Date(expireHeader)/1000).toFixed(0);
+	var expires = response.getResponseHeader('Expires');
+	if (expires) {
+		info.expire = require('util').timestamp(expires);
+	}
+
+	var ttl = response.getResponseHeader('X-Cache-Ttl');
+	if (ttl) {
+		info.expire = require('util').timestamp( 1000*(require('util').timestamp()+parseInt(ttl,10)) );
 	}
 
 	return info;
@@ -127,7 +148,7 @@ function decorateRequest(request) {
 	if (!request.timeout) { request.timeout = config.timeout; }
 
 	if (!request.success) { request.success = function(){}; }
-	if (!request.error) { request.error = autoDispatch; }
+	if (!request.error) { request.error = errorHandler; }
 
 	// Rebuild the URL if is a GET and there's data
 	if (request.method=='GET' && request.data) {
@@ -165,6 +186,10 @@ function onComplete(request, response, e){
 		info.mime = request.mime;
 	}
 
+	if (ENV_DEVELOPMENT && config.debug) {
+		console.warn("------ NETWORK INFORMATIONS ------");
+		console.log(info);
+	}
 
 	var returnValue = null;
 	var returnError = null;
@@ -182,17 +207,13 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
-		if (ENV_DEVELOPMENT) {
-			if (response.responseText.length<1000) {
-				console.log(response);
-			}
+		if (ENV_DEVELOPMENT && config.debug) {
+			console.warn("------ NETWORK SUCCESS ------");
 		}
 
 		// Write cache
-		if (config.useCache && !request.noCache && request.cache!==false) {
-			if (request.method=='GET') {
-				writeCache(request, response, info);
-			}
+		if (config.useCache && request.cache!==false && request.method=='GET') {
+			writeCache(request, response, info);
 		}
 
 		// Success callback
@@ -205,7 +226,8 @@ function onComplete(request, response, e){
 		ERROR
 		*/
 
-		if (ENV_DEVELOPMENT) {
+		if (ENV_DEVELOPMENT && config.debug) {
+			console.error("------ NETWORK ERROR ------");
 			console.error(response);
 		}
 
@@ -312,7 +334,7 @@ exports.resetCache = exports.pruneCache = function() {
 		return false;
 	}
 
-	DB.execute('DROP TABLE IF EXISTS net');
+	DB.execute('DELETE FROM net');
 };
 
 exports.resetCookies = function(host) {
@@ -332,12 +354,14 @@ exports.deleteCache = function(request) {
 function makeRequest(request) {
 	request = decorateRequest(request);
 
-	if (ENV_DEVELOPMENT) {
+	if (ENV_DEVELOPMENT && config.debug) {
+		console.warn("------ NETWORK REQUEST ------");
 		console.log(request);
 	}
 
 	// Try to get the cache, otherwise make the HTTP request
 	if (config.useCache && request.method=='GET') {
+
 		var cache = getCache(request, !Ti.Network.online);
 		if (cache) {
 
@@ -350,6 +374,10 @@ function makeRequest(request) {
 
 			if (request.complete) {
 				request.complete();
+			}
+
+			if (ENV_DEVELOPMENT && config.debug) {
+				console.warn("------ NETWORK CACHE SUCCESS ------");
 			}
 
 			request.success(cache);

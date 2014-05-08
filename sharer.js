@@ -64,6 +64,11 @@ function __parseArgs(args) {
 		}
 	}
 
+	if (args.link) {
+		args.url = args.link;
+		delete args.link;
+	}
+
 	if (args.removeIcons=='ALL') {
 		args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
 	}
@@ -80,38 +85,14 @@ function webviewShare(url) {
 }
 exports.webview = webviewShare;
 
-
-function shareOnTwitter(args) {
-	callback = args.callback || null;
-	__parseArgs(args);
-
-	var intentUrl = 'https://twitter.com/intent/tweet?url='+encodeURIComponent(args.url)+'&text='+encodeURIComponent(args.text);
-
-	if (OS_IOS) {
-
-		if (Social.isTwitterSupported()) {
-			Social.twitter({
-				text: args.text,
-				image: args.image,
-				url: args.url
-			});
-		} else {
-			var shareUrl = 'twitter://post?message='+encodeURIComponent(args.text+' ('+args.url+')');
-			require('util').openURL(shareUrl, function(){
-				webviewShare(intentUrl);
-			});
-		}
-
-	} else {
-		Ti.Platform.openURL(intentUrl);
-	}
-}
-exports.twitter = shareOnTwitter;
-
-
 function shareOnFacebook(args, _callback) {
 	callback = args.callback || null;
 	args = __parseArgs(args);
+
+	// iOS Sharer doesn't share Facebook links
+	if (args.url && args.url.match(/https?\:\/\/(www\.)?facebook\.com/)) {
+		args.useSDK = true;
+	}
 
 	if (OS_IOS && Social.isFacebookSupported() && !args.useSDK) {
 
@@ -124,37 +105,64 @@ function shareOnFacebook(args, _callback) {
 	} else {
 
 		var FB = require('facebook');
-		if (FB && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			if (!FB.appid) FB.appid = Ti.App.Properties.getString('ti.facebook.appid');
-
-			FB.dialog('feed', {
-				name: args.title,
-				description: args.text,
-				link: args.url,
-				picture: args.imageUrl
-			}, function(e) {
-
-				if (e.cancelled) {
-					__onSocialCancelled({
-						success: false,
-						platform: 'facebook'
-					});
-				} else {
-					__onSocialComplete({
-						success: e.success,
-						platform: 'facebook'
-					});
-				}
-
-			});
-
+		if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 		} else {
-
-
+			console.warn("Please specify a Facebook AppID");
 		}
+
+		FB.dialog('feed', {
+			name: args.title,
+			description: args.text,
+			link: args.url,
+			picture: args.imageUrl
+		}, function(e) {
+
+			if (!e.cancelled) {
+				__onSocialComplete({
+					success: e.success,
+					platform: 'facebook'
+				});
+			} else {
+				__onSocialCancelled({
+					success: false,
+					platform: 'facebook'
+				});
+			}
+
+		});
+
 	}
 }
-exports.facebook = shareOnFacebook;
+exports
+.facebook = shareOnFacebook;
+
+function shareOnTwitter(args) {
+	callback = args.callback || null;
+	__parseArgs(args);
+
+	var WEB_URL = 'https://twitter.com/intent';
+
+	if (OS_IOS && Social.isTwitterSupported() && !args.retweet) {
+
+		Social.twitter({
+			text: args.text,
+			image: args.image,
+			url: args.url
+		});
+
+	} else {
+
+		if (args.retweet) {
+			Ti.Platform.openURL(WEB_URL+'/retweet'+require('util').buildQuery({ tweet_id: args.retweet }));
+		} else {
+			var query = require('util').buildQuery({ message: args.text });
+			require('util').openURL('twitter://post'+query, WEB_URL+'/tweet'+query);
+		}
+
+	}
+}
+exports.twitter = shareOnTwitter;
 
 
 function shareViaMail(args, _callback) {

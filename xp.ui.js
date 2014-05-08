@@ -126,7 +126,7 @@ function __onTextAreaBlur(e) {
 	if (!e.source.value.length) {
 		e.source.applyProperties({
 			value: e.source.__hintText,
-			color: e.source.hintTextColor || '#5000'
+			color: e.source.hintTextColor || '#AAA'
 		});
 	} else {
 		e.source.color = e.source.originalColor;
@@ -192,6 +192,7 @@ exports.createTextArea = function(args) {
 	var $this = Ti.UI.createTextArea(args || {});
 
 	if (args.hintTextColor || OS_IOS) {
+		$this.__hintText = $this.hintText;
 		$this.originalColor = $this.color || '#000';
 		$this.addEventListener('focus', __onTextAreaFocus);
 		$this.addEventListener('blur', __onTextAreaBlur);

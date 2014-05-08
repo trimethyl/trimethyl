@@ -22,13 +22,11 @@ function loginToServer(e) {
 
 	if (!e.success) {
 		console.error(e);
-
-		var error = L('auth_facebook_error');
-		if (e.cancelled) error = L('auth_facebook_cancelled_error');
+		if (e.cancelled) return;
 
 		Ti.App.fireEvent('auth.fail', {
 			silent: silent,
-			message: error
+			message: L('auth_facebook_error')
 		});
 
 	} else {

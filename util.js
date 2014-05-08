@@ -9,18 +9,30 @@ Company: Caffeina SRL
 function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
 		Ti.Platform.openURL(url);
-		return;
-	}
-	if (fallback) {
-		if (_.isFunction(fallback)) fallback();
-		else Ti.Platform.openURL(fallback);
-		return;
-	}
-	if (error) {
+	} else if (fallback) {
+		if (_.isFunction(fallback)) {
+			fallback();
+		} else {
+			Ti.Platform.openURL(fallback);
+		}
+	} else if (error) {
 		alertError(error);
 	}
 }
 exports.openURL = openURL;
+
+exports.tryOpenURL = function(array) {
+	if (OS_IOS) {
+		for (var k in array) {
+			if (Ti.Platform.canOpenURL(array[k])) {
+				Ti.Platform.openURL(array[k]);
+				return;
+			}
+		}
+	} else {
+		Ti.Platform.openURL(array.pop());
+	}
+};
 
 function startActivity(opt, error) {
 	try {
@@ -34,11 +46,11 @@ function startActivity(opt, error) {
 exports.startActivity = startActivity;
 
 exports.openFacebookProfile = function(fbid) {
-	Ti.Platform.openURL("http://facebook.com/"+fbid);
+	return openURL("fb://profile/"+fbid, "https://facebook.com/"+fbid);
 };
 
 exports.openTwitterProfile = function(twid) {
-	return Ti.Platform.openURL("twitter://user?screen_name="+twid, "http://twitter.com/"+twid);
+	return openURL("twitter://user?screen_name="+twid, "http://twitter.com/"+twid);
 };
 
 exports.getFacebookAvatar = function(fbid, w, h) {
@@ -104,7 +116,17 @@ function optionDialog(options, cancelIndex, callback, opt) {
 	});
 	dialog.show();
 }
+
+function optionDialogWithDict(dict) {
+	var options = _.pluck(dict, 'title');
+	options.push(L('Cancel'));
+	return optionDialog(options, options.length-1, function(i){
+		if (dict[+i] && dict[+i].callback) dict[+i].callback();
+	});
+}
+
 exports.option = optionDialog;
+exports.optionWithDict = optionDialogWithDict;
 
 function alertError(msg, callback) {
 	return alertDialog(L('Error', 'Error'), msg, callback);
@@ -171,7 +193,7 @@ exports.uniqid = function(prefix, more_entropy) {
 };
 
 exports.timestamp = function(t){
-	if (t) return parseInt(+new Date(t)/1000,10);
+	if (t) return parseInt(+new Date(t)/1000, 10);
 	return parseInt(+new Date()/1000, 10);
 };
 
@@ -209,10 +231,10 @@ exports.dial = function(tel) {
 		startActivity({
 			action: Ti.Android.ACTION_CALL,
 			data: 'tel:'+tel
-		}, String.format(L('cant_call_number'), tel));
+		}, String.format(L('util_dial_failed'), tel));
 
 	} else {
-		openURL('tel:'+tel, null, String.format(L('cant_call_number'), tel));
+		openURL('tel:'+tel, null, String.format(L('util_dial_failed'), tel));
 	}
 };
 
@@ -222,9 +244,4 @@ exports.isAppFirstUsage = function(){
 
 exports.setAppFirstUsage = function(){
 	Ti.App.Properties.setString('app.firstusage', +new Date().toString());
-};
-
-exports.modal = function(args) {
-	console.warn("Util.modal() is deprecated, use UI.createModalWindow() instead");
-	return require('ui').createModalWindow(args);
 };
