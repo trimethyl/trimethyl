@@ -32,7 +32,7 @@ function loadCurrentDriver() {
 
 function handleLogin() {
 	if (!getCurrentDriver()) {
-		console.warn("No driver stored to handle authentication");
+		Ti.API.warn("Auth: no driver stored to handle authentication");
 		return;
 	}
 
@@ -79,7 +79,9 @@ function login(data, driver, cb) {
 		silent: data.silent || false,
 		success: function(response){
 			authInfo = response;
+
 			if (!authInfo.id) {
+				Ti.API.error("Auth: authInfo.id is null");
 				Ti.App.fireEvent('auth.fail', {
 					message: L('auth_error'),
 					silent: data.silent
@@ -94,6 +96,7 @@ function login(data, driver, cb) {
 			Me.fetch({
 				networkArgs: {
 					refresh: true,
+					cache: false,
 					silent: data.silent
 				},
 
@@ -131,7 +134,7 @@ exports.user = exports.me = function(){
 	return Me;
 };
 
-function logout() {
+function logout(cb) {
 	var id = Me ? Me.get('id') : null;
 
 	if (getCurrentDriver()) {
@@ -154,6 +157,8 @@ function logout() {
 			complete: function(){
 				Net.resetCookies();
 				Ti.App.fireEvent('auth.logout', { id: id });
+
+				if (cb) cb();
 			},
 			success: function(){},
 			error: function(){} // suppress all errors

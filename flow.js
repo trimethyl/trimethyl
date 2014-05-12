@@ -43,6 +43,10 @@ function closeController(controller) {
 }
 
 exports.openDirect = function(controller, args) {
+	if (ENV_DEVELOPMENT) {
+		Ti.API.debug("Flow: opening directly '"+controller+"' with args "+JSON.stringify(args));
+	}
+
 	// Open the controller
 	var $c = Alloy.createController(controller, args || {});
 
@@ -58,13 +62,17 @@ exports.open = function(controller, args, opt) {
 	if (!args) args = {};
 	if (!opt) opt = {};
 
+	if (ENV_DEVELOPMENT) {
+		Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
+	}
+
 	var $C = Alloy.createController(controller, args);
 	var $W = $C.getView();
 
 	if (config.useNav) {
 
 		if (!$nav) {
-			console.error("Please define a NavigationController");
+			Ti.API.debug("Flow: please define a NavigationController or set Flow.useNav to false");
 			return;
 		}
 		$nav.openWindow($W, opt.openArgs || {});
@@ -104,6 +112,7 @@ exports.open = function(controller, args, opt) {
 	$_CCS = controller;
 	$_CCA = args;
 	$_CC = $C;
+
 	return $_CC;
 };
 
@@ -121,6 +130,10 @@ exports.current = function(){
 			args: $_CCA
 		}
 	};
+};
+
+exports.controller = function(){
+	return $_CC;
 };
 
 exports.closeCurrent = function() {

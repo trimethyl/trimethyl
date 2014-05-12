@@ -11,7 +11,7 @@ var $ = null;
 
 function get(id) {
 	if (!$) {
-		console.error("Database cache not open.");
+		Ti.API.error("Cache: database not open.");
 		return false;
 	}
 
@@ -50,7 +50,7 @@ exports.get = function(id, value, expire) {
 
 function set(id, value, expire) {
 	if (!$) {
-		console.error("Database cache not open.");
+		Ti.API.error("Cache: database not open.");
 		return false;
 	}
 

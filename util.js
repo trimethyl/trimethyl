@@ -97,6 +97,7 @@ function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 	});
 	dialog.show();
 }
+
 exports.prompt = alertPrompt;
 
 exports.confirm = function(title, msg, cb) {

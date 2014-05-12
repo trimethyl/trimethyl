@@ -14,10 +14,10 @@ function getPhoto(method, opt, cb){
 		saveToPhotoGallery: (method=='showCamera'),
 		success: cb,
 		cancel: function(e) {
-			console.warn(e);
+			Ti.API.warn("Camera: "+e);
 		},
 		error: function(e) {
-			console.error(e);
+			Ti.API.error("Camera: "+e);
 			require('util').alertError(L('camera_error'));
 		},
 	}));

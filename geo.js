@@ -131,7 +131,7 @@ exports.geocode = function(address, cb) {
 				});
 			},
 			error: function(err){
-				console.error(err);
+				Ti.API.error("Geo: "+err);
 				cb({ error: true });
 			}
 		});
@@ -178,7 +178,7 @@ exports.reverseGeocode = function(lat, lng, cb) {
 				});
 			},
 			error: function(err){
-				console.error(err);
+				Ti.API.error("Geo: "+err);
 				cb({ error: true });
 			}
 		});

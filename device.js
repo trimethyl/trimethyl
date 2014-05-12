@@ -12,7 +12,7 @@ var __onTiltCallbacks = [];
 
 exports.onTilt = function(callback) {
 	if (Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1){
-		console.warn("Accelerometer doesn't work on virtual devices.");
+		Ti.API.error("Device: accelerometer doesn't work on virtual devices");
 		return;
 	}
 

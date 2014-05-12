@@ -17,7 +17,7 @@ function fsave(opt) {
 	var result = file.write(opt.blob);
 
 	if (!result) {
-		console.error("Error writing file in Trimethyl.image.process()");
+		Ti.API.error("Image: error writing file");
 		return opt.callback();
 	}
 

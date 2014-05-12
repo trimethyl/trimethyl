@@ -6,9 +6,9 @@ Company: Caffeina SRL
 
 */
 
-var Alloy = require('alloy'),
-_ = require("alloy/underscore")._,
-Backbone = require("alloy/backbone");
+// var Alloy = require('alloy'),
+// _ = require("alloy/underscore")._,
+// Backbone = require("alloy/backbone");
 
 var Util = require('util');
 var launchURL = Util.parseSchema();

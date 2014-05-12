@@ -16,7 +16,7 @@ exports.open = function() {
 		$ = Ti.Database.open('app');
 		return $;
 	} catch (ex) {
-		console.error("DB: "+ex);
+		Ti.API.error("DB: "+ex);
 		return false;
 	}
 };

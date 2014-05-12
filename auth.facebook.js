@@ -19,11 +19,11 @@ var silent = true;
 
 function loginToServer(e) {
 	if (timeout) clearTimeout(timeout);
+	if (e.cancelled) return;
 
 	if (!e.success) {
-		console.error(e);
-		if (e.cancelled) return;
 
+		Ti.API.error("Auth.Facebook: "+e);
 		Ti.App.fireEvent('auth.fail', {
 			silent: silent,
 			message: L('auth_facebook_error')
@@ -31,6 +31,7 @@ function loginToServer(e) {
 
 	} else {
 
+		Ti.API.debug("Auth.Facebook: success");
 		Auth.login({
 			access_token: FB.accessToken,
 			silent: silent
@@ -84,7 +85,7 @@ exports.logout = function(){
 		} else if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
 			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);	// Legacy mode
 		} else {
-			console.warn("Please specify a Facebook AppID");
+			Ti.API.warn("Auth.Facebook: Please specify a Facebook AppID");
 		}
 	}
 

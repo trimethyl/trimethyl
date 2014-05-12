@@ -108,7 +108,7 @@ function shareOnFacebook(args, _callback) {
 		if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
 			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 		} else {
-			console.warn("Please specify a Facebook AppID");
+			Ti.API.error("Sharer: please specify a Facebook AppID");
 		}
 
 		FB.dialog('feed', {

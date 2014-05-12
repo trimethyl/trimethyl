@@ -30,7 +30,7 @@ function calculateHash(request) {
 
 function writeCache(request, response, info) {
 	if (!DB) {
-		console.error("NETCache Database not open.");
+		Ti.API.error("NetworkCache: database not open.");
 		return false;
 	}
 
@@ -41,24 +41,26 @@ function writeCache(request, response, info) {
 		response.responseData,
 		JSON.stringify(info)
 		);
+
+	Ti.API.debug("NetworkCache: Cache written successfully.");
 }
 
 function getCache(request, bypassExpiration) {
 	if (!DB) {
-		console.error("NETCache Database not open.");
+		Ti.API.error("NetworkCache: database not open.");
 		return false;
 	}
 
 	if (request.refresh || request.cache===false) {
 		if (ENV_DEVELOPMENT && config.debug) {
-			console.log("NETCache: Request cache forced to refresh");
+			Ti.API.debug("NetworkCache: request cache forced to refresh");
 		}
 		return false;
 	}
 
 	var cacheRow = DB.execute('SELECT expire, creation FROM net WHERE id = ? LIMIT 1', request.hash);
 	if (!cacheRow || !cacheRow.isValidRow()) {
-		console.warn("NETCache: Cache not found");
+		Ti.API.debug("NetworkCache: cache not found");
 		return false;
 	}
 
@@ -68,7 +70,7 @@ function getCache(request, bypassExpiration) {
 
 	if (!bypassExpiration) {
 		if (ENV_DEVELOPMENT && config.debug) {
-			console.log("NETCache: Cache values = "+expire+" - "+now+" = "+(expire-now)+"s");
+			Ti.API.debug("NetworkCache: cache values are "+expire+" - "+now+" = "+(expire-now)+"s");
 		}
 		if (expire<now) {
 			return false;
@@ -78,7 +80,7 @@ function getCache(request, bypassExpiration) {
 	var cache = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
 	var content = cache.fieldByName('content');
 	if (!content) {
-		console.warn("NETCache: invalid cache content");
+		Ti.API.error("NetworkCache: invalid cache content");
 		return false;
 	}
 
@@ -145,10 +147,10 @@ function decorateRequest(request) {
 
 	request.method = request.method ? request.method.toUpperCase() : 'GET';
 	request.headers = _.extend(config.headers, request.headers || {});
-	if (!request.timeout) { request.timeout = config.timeout; }
+	if (!request.timeout) request.timeout = config.timeout;
 
-	if (!request.success) { request.success = function(){}; }
-	if (!request.error) { request.error = errorHandler; }
+	if (!request.success) request.success = function(){};
+	if (!request.error) request.error = errorHandler;
 
 	// Rebuild the URL if is a GET and there's data
 	if (request.method=='GET' && request.data) {
@@ -187,8 +189,7 @@ function onComplete(request, response, e){
 	}
 
 	if (ENV_DEVELOPMENT && config.debug) {
-		console.warn("------ NETWORK INFORMATIONS ------");
-		console.log(info);
+		Ti.API.debug("Network: response informations are "+JSON.stringify(info));
 	}
 
 	var returnValue = null;
@@ -208,12 +209,14 @@ function onComplete(request, response, e){
 		*/
 
 		if (ENV_DEVELOPMENT && config.debug) {
-			console.warn("------ NETWORK SUCCESS ------");
+			Ti.API.debug("Network: response success");
 		}
 
 		// Write cache
-		if (config.useCache && request.cache!==false && request.method=='GET') {
-			writeCache(request, response, info);
+		if (config.useCache && request.cache!==false) {
+			if (request.method=='GET' && info.expire>0) {
+				writeCache(request, response, info);
+			}
 		}
 
 		// Success callback
@@ -227,19 +230,15 @@ function onComplete(request, response, e){
 		*/
 
 		if (ENV_DEVELOPMENT && config.debug) {
-			console.error("------ NETWORK ERROR ------");
-			console.error(response);
+			Ti.API.error("Network: error -> "+JSON.stringify(response));
 		}
 
 		// Parse the error returned from the server
-		if (returnValue) {
-			if (returnValue.error) {
-				returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
-			} else {
-				// don't do it on API, please.
-				returnError = returnValue.toString();
-			}
-		} else returnError = L('net_error');
+		if (returnValue && returnValue.error) {
+			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
+		} else {
+			returnError = L('net_error');
+		}
 
 		// Build the error
 		var E = {
@@ -322,15 +321,16 @@ function abortRequest(hash) {
 	if (!httpClient) return;
 	try {
 		httpClient.abort();
+		Ti.API.debug("Network: request aborted");
 	} catch (e) {
-		console.error(e);
+		Ti.API.error("Network: aborting request error => "+e);
 	}
 }
 exports.abortRequest = abortRequest;
 
 exports.resetCache = exports.pruneCache = function() {
 	if (!DB) {
-		console.error("NETCache Database not open.");
+		Ti.API.error("NetworkCache: database not open.");
 		return false;
 	}
 
@@ -343,7 +343,7 @@ exports.resetCookies = function(host) {
 
 exports.deleteCache = function(request) {
 	if (!DB) {
-		console.error("NETCache Database not open.");
+		Ti.API.error("NetworkCache: database not open.");
 		return false;
 	}
 
@@ -355,8 +355,7 @@ function makeRequest(request) {
 	request = decorateRequest(request);
 
 	if (ENV_DEVELOPMENT && config.debug) {
-		console.warn("------ NETWORK REQUEST ------");
-		console.log(request);
+		Ti.API.debug("Network: making request -> "+JSON.stringify(request));
 	}
 
 	// Try to get the cache, otherwise make the HTTP request
@@ -377,7 +376,7 @@ function makeRequest(request) {
 			}
 
 			if (ENV_DEVELOPMENT && config.debug) {
-				console.warn("------ NETWORK CACHE SUCCESS ------");
+				Ti.API.debug("Network: success from cache");
 			}
 
 			request.success(cache);
@@ -395,7 +394,7 @@ function makeRequest(request) {
 		Ti.UI.createAlertDialog({
 			title: L('net_offline_title'),
 			message: L('net_offline_message'),
-			ok: 'OK'
+			ok: L('OK')
 		}).show();
 		return false;
 	}
