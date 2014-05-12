@@ -4,14 +4,17 @@ XP.UI module (non-standard require module)
 Author: Flavio De Stefano
 Company: Caffeina SRL
 
+Based on the great work of @FokkeZb
+https://github.com/FokkeZB/UTiL/blob/master/xp.ui/xp.ui.js
+
 */
 
 /*
 NavigationWindow
-- Basic Implementation in Android based on windows stack
+- Implementation in Android based on windows stack
 */
 
-if (OS_ANDROID) {
+if (!OS_IOS) {
 
 	var NavigationWindow = function(args) {
 		this.args = args || {};
@@ -19,9 +22,11 @@ if (OS_ANDROID) {
 	};
 
 	NavigationWindow.prototype = {
+
 		open: function(args) {
 			return this.openWindow(this.args.window, args);
 		},
+
 		close: function(callback) {
 			if (callback) this.closeCallback = callback;
 
@@ -35,12 +40,12 @@ if (OS_ANDROID) {
 				this.closeCallback = null;
 			}
 		},
+
 		openWindow: function(window, args) {
-			var self = this;
 			args = args || {};
+			var self = this;
 
 			if (OS_ANDROID) {
-
 				if (args.animated!==false) {
 					if (args.modal) {
 						args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
@@ -50,45 +55,29 @@ if (OS_ANDROID) {
 						args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 					}
 				}
-
-				window.addEventListener('close', function(e){
-					if (e.source.navigationIndex>=0) {
-						self.windows.splice(e.source.navigationWindow, 1);
-					}
-					if (e.source.popToRoot) {
-						self.close();
-					}
-				});
-
-				if (window.rightNavButton && window.rightNavButton.children[0]) {
-					while (window.rightNavButton.children[0]) {
-						window.rightNavButton = window.rightNavButton.children[0];
-					}
-
-					window.activity.onCreateOptionsMenu = function(e){
-						var menuItem = e.menu.add({
-							title: window.rightNavButton.title || '',
-							icon: window.rightNavButton.icon || window.rightNavButton.image || '',
-							showAsAction: Ti.Android.SHOW_AS_ACTION_ALWAYS
-						});
-						menuItem.addEventListener('click', function(){
-							window.rightNavButton.fireEvent('click');
-						});
-					};
-				}
 			}
+
+			window.addEventListener('close', function(e){
+				if (e.source.navigationIndex>=0) {
+					self.windows.splice(e.source.navigationWindow, 1);
+				}
+				if (e.source.popToRoot) self.close();
+			});
 
 			window.navigationIndex = this.windows.length;
 			this.windows.push(window);
 
 			return window.open(_.extend(args, { modal: false }));
 		},
+
 		closeWindow: function(window) {
 			return window.close();
 		},
+
 		getWindowsStack: function() {
 			return this.windows;
 		}
+
 	};
 
 }
@@ -104,7 +93,58 @@ Window
 */
 
 exports.createWindow = function(args) {
-	return Ti.UI.createWindow(args);
+	var $ui = Ti.UI.createWindow(args || {});
+
+	if (OS_ANDROID) {
+
+		$ui.addEventListener('open', function(e){
+			if (!$ui.activity || !$ui.activity.actionBar) return;
+
+			if ($ui.subtitle) {
+				$ui.activity.actionBar.title = $ui.title;
+				$ui.activity.actionBar.subtitle = $ui.subtitle;
+			} else {
+				if ($ui.subtitle===false) {
+					$ui.activity.actionBar.title = $ui.title;
+				} else {
+					$ui.activity.actionBar.title =  Ti.App.name;
+					$ui.activity.actionBar.subtitle = $ui.title;
+				}
+			}
+		});
+
+		$ui.setRightNavButton = function($btn){
+			if (!$ui.activity) return;
+
+			if ($btn===null) {
+				$ui.activity.onCreateOptionsMenu = function(e){
+					e.menu.items = [];
+				};
+			} else {
+				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
+				$ui.activity.onCreateOptionsMenu = function(e){
+					var menuItem = e.menu.add({
+						title: $btn.title || '',
+						icon: $btn.icon || $btn.image || '',
+						showAsAction: Ti.Android.SHOW_AS_ACTION_ALWAYS
+					});
+					menuItem.addEventListener('click', function(){
+						$btn.fireEvent('click');
+					});
+				};
+			}
+
+			if ($ui.activity.invalidateOptionsMenu) {
+				$ui.activity.invalidateOptionsMenu();
+			}
+		};
+
+		Object.defineProperty($ui, 'rightNavButton', { set: $ui.setRightNavButton });
+		if (args.rightNavButton) $ui.setRightNavButton(args.rightNavButton);
+
+	}
+
+	return $ui;
 };
 
 /*
@@ -184,6 +224,8 @@ TextArea
 */
 
 exports.createTextArea = function(args) {
+	args = args || {};
+
 	if (args.hintTextColor) {
 		args.__hintText = args.hintText;
 		delete args.hintText;
@@ -316,6 +358,8 @@ TableView
 */
 
 exports.createTableView = function(args) {
+	args = args || {};
+
 	if (args.animateRows) {
 		args.__data = args.data;
 		delete args.data;
