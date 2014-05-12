@@ -28,19 +28,22 @@ In your *app/alloy.js* file, do something like:
 var Framework = require('trimethyl');
 ```
 
-Now, just call 
+Now, just call
 
 ```javascript
 var Net = require('net');
 ```
 
 for each module you want to use.
+
 Each module read the `Alloy.CFG.__MODULENAME__` properties in your *config.json* file to configure itself.
 
-## Useful 3-party widgets
+## Essential (3)-party widgets
 
-* https://github.com/FokkeZB/nl.fokkezb.loading
+* https://github.com/CaffeinaLab/com.caffeinalab.titanium.loader
+* https://github.com/CaffeinaLab/com.caffeinalab.titanium.modalwindow
 
+For certain modules, this widgets **are necessary**.
 
 ## License
 
