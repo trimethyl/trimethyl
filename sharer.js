@@ -69,10 +69,15 @@ function __parseArgs(args) {
 		delete args.link;
 	}
 
-	if (args.removeIcons=='ALL') {
+	if (args.removeIcons && args.removeIcons=='ALL') {
 		args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
 	}
 
+	if (args.text && args.url) args.fullText = args.text + ' (' + args.url + ')';
+	else if (args.text) args.fullText = args.text;
+	else if (args.url) args.fullText = args.url;
+
+	delete args.callback;
 	return args;
 }
 
@@ -105,10 +110,13 @@ function shareOnFacebook(args, _callback) {
 	} else {
 
 		var FB = require('facebook');
-		if (!FB.appid && Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-		} else {
-			Ti.API.error("Sharer: please specify a Facebook AppID");
+
+		if (!FB.appid) {
+			if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+				FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+			} else {
+				Ti.API.error("Sharer: please specify a Facebook AppID");
+			}
 		}
 
 		FB.dialog('feed', {
@@ -134,16 +142,31 @@ function shareOnFacebook(args, _callback) {
 
 	}
 }
-exports
-.facebook = shareOnFacebook;
+exports.facebook = shareOnFacebook;
 
 function shareOnTwitter(args) {
 	callback = args.callback || null;
 	__parseArgs(args);
 
-	var WEB_URL = 'https://twitter.com/intent';
+	var WEB_URL = 'http://www.twitter.com/intent';
+	var webIntent;
+	if (args.retweet) {
+		webIntent = WEB_URL+'/retweet?tweet_id='+args.retweet;
+	} else {
+		webIntent = WEB_URL+'/tweet'+require('util').buildQuery({
+			text: args.text,
+			url: args.url
+		});
+	}
 
-	if (OS_IOS && Social.isTwitterSupported() && !args.retweet) {
+
+	if (OS_ANDROID) {
+
+		try {
+			Ti.Platform.openURL(webIntent);
+		} catch (e) {}
+
+	} else if (OS_IOS && Social.isTwitterSupported() && !args.retweet) {
 
 		Social.twitter({
 			text: args.text,
@@ -153,14 +176,10 @@ function shareOnTwitter(args) {
 
 	} else {
 
-		if (args.retweet) {
-			Ti.Platform.openURL(WEB_URL+'/retweet'+require('util').buildQuery({ tweet_id: args.retweet }));
-		} else {
-			var query = require('util').buildQuery({ message: args.text });
-			require('util').openURL('twitter://post'+query, WEB_URL+'/tweet'+query);
-		}
+		require('util').openURL('twitter://post?message='+encodeURIComponent(args.fullText), webIntent);
 
 	}
+
 }
 exports.twitter = shareOnTwitter;
 
@@ -170,9 +189,8 @@ function shareViaMail(args, _callback) {
 	args = __parseArgs(args);
 
 	var $dialog = Ti.UI.createEmailDialog({
-		html: true,
 		subject: args.title,
-		messageBody: args.text + (args.url ? ("<br><br>"+args.url) : ''),
+		messageBody: args.fullText,
 	});
 
 	if (args.imageBlob) {
@@ -200,15 +218,24 @@ exports.mail = shareViaMail;
 
 function shareOnGooglePlus(args, _callback) {
 	args = __parseArgs(args);
-	webviewShare("https://plus.google.com/share?url="+encodeURIComponent(args.url));
+	if (!args.url) {
+		Ti.API.error("Sharer: sharing on G+ require a URL");
+		return;
+	}
+
+	try {
+		Ti.Platform.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
+	} catch (e) {}
 }
 exports.googleplus = exports.googlePlus = shareOnGooglePlus;
 
 
 function shareOnWhatsApp(args, _callback) {
 	args = __parseArgs(args);
-	if (args.url) args.text += ' (' + args.url + ')';
-	Ti.Platform.openURL('whatsapp://send?text='+args.text);
+
+	try {
+		Ti.Platform.openURL('whatsapp://send?text='+args.fullText);
+	} catch (e) {}
 }
 exports.whatsapp = exports.whatsApp = shareOnWhatsApp;
 
@@ -216,8 +243,8 @@ exports.whatsapp = exports.whatsApp = shareOnWhatsApp;
 ActivityView
 */
 
-exports.options = exports.multi = exports.activity = function(args, _callback) {
-	callback = 	callback = args.callback || null;
+exports.activity = exports.multi = function(args, _callback) {
+	callback = args.callback || null;
 	args = __parseArgs(args);
 
 	if (OS_IOS) {
@@ -234,10 +261,18 @@ exports.options = exports.multi = exports.activity = function(args, _callback) {
 
 	} else if (OS_ANDROID) {
 
+		/*
+		Facebook bug with EXTRA_TEXT
+		https://developers.facebook.com/bugs/332619626816423
+		*/
+
 		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
-		if (args.text) intent.putExtra(Ti.Android.EXTRA_TEXT, args.text);
+
+		if (args.fullText) intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
+		if (args.title) intent.putExtra(Ti.Android.EXTRA_TITLE, args.title);
 		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
 
-		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, args.title));
+		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('Share')));
+
 	}
 };

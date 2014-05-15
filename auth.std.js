@@ -17,10 +17,10 @@ exports.handleLogin = function(){
 	require('auth').login(data, 'std');
 };
 
-exports.login = function(data, success) {
+exports.login = function(data, cb) {
 	Auth.login(data, 'std', function(){
 		Ti.App.Properties.setObject('auth.std.data', data);
-		if (success) success();
+		if (cb) cb();
 	});
 };
 

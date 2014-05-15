@@ -48,14 +48,14 @@ exports.openDirect = function(controller, args) {
 	}
 
 	// Open the controller
-	var $c = Alloy.createController(controller, args || {});
+	var $C = Alloy.createController(controller, args || {});
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
 		require('ga').trackScreen(controller);
 	}
 
-	return $c;
+	return $C;
 };
 
 exports.open = function(controller, args, opt) {
@@ -78,21 +78,20 @@ exports.open = function(controller, args, opt) {
 		$nav.openWindow($W, opt.openArgs || {});
 
 	} else {
-
-		if ('open' in $C) {
-			$C.open();
-		} else {
-			$W.open(opt.openArgs || {});
-		}
-
+		$W.open(opt.openArgs || {});
 	}
 
-
 	// Attach events
+
 	$W.addEventListener('close', function(e){
+		if ('__destroy' in $C) C.__destroy();
 		$C.destroy();
 		$C = null;
 		$W = null;
+	});
+
+	$W.addEventListener('open', function(e){
+		if ('init' in $C) $C.init();
 	});
 
 	// Track with Google Analitycs

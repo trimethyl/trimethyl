@@ -65,6 +65,14 @@ exports.createYoutubeVideoWebView = function(args){
 	args = args || {};
 	args.disableBounce = true;
 	args.willHandleTouches = true;
+	args.showScrollbars = false;
+	args.scalesPageToFit = false;
+
+	if (OS_ANDROID) {
+		args.overScrollMode = Ti.UI.Android.OVER_SCROLL_NEVER;
+		args.pluginState = Titanium.UI.Android.WEBVIEW_PLUGINS_ON;
+		args.enableZoomControls = false;
+	}
 
 	if (!args.youtube.width) args.youtube.width = args.width;
 	if (!args.youtube.height) args.youtube.height = args.height;
@@ -72,7 +80,7 @@ exports.createYoutubeVideoWebView = function(args){
 
 	var $ui = Ti.UI.createWebView(args);
 
-	var html = '<!doctype html><html style="margin:0"><body style="margin:0"><div id="player"></div>';
+	var html = '<!doctype html><html style="margin:0"><head><meta name="viewport" content="width=device-width, user-scalable=no"></head><body style="margin:0"><div id="player"></div>';
 	html += '<script src="http://www.youtube.com/player_api"></script>';
 	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",'+JSON.stringify(args.youtube) + '); }</script>';
 	html += '</body></html>';

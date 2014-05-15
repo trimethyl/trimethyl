@@ -32,7 +32,7 @@ exports.sync = function(method, model, opt) {
 		method = 'patch';
 	}
 
-	var data = _.extend(opt.netArgs || {}, {
+	var data = _.extend(opt.netArgs || {}, opt.networkArgs || {}, {
 		url: url,
 		method: CRUD_TO_REST[method],
 		mime: 'json'

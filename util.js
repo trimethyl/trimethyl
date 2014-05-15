@@ -6,14 +6,20 @@ Company: Caffeina SRL
 
 */
 
+function tryOpenURL(url) {
+	try {
+		Ti.Platform.openURL(url);
+	} catch (e) {}
+}
+
 function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
-		Ti.Platform.openURL(url);
+		tryOpenURL(url);
 	} else if (fallback) {
 		if (_.isFunction(fallback)) {
 			fallback();
 		} else {
-			Ti.Platform.openURL(fallback);
+			tryOpenURL(fallback);
 		}
 	} else if (error) {
 		alertError(error);
@@ -211,7 +217,7 @@ exports.buildQuery = function(obj) {
 	var q = [];
 	_.each(obj, function(v, k) {
 		if (v!==null && v!==false && v!==undefined) {
-			q.push( k + '=' + encodeURIComponent(v) );
+			q.push(k+'='+encodeURIComponent(v));
 		}
 	});
 	if (!q.length) return '';

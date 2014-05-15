@@ -117,12 +117,20 @@ exports.createWindow = function(args) {
 			if (!$ui.activity) return;
 
 			if ($btn===null) {
+
 				$ui.activity.onCreateOptionsMenu = function(e){
 					e.menu.items = [];
 				};
+
 			} else {
+
 				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
 				$ui.activity.onCreateOptionsMenu = function(e){
+					if (!$btn.title && !$btn.image) {
+						Ti.API.error("XP.UI: please specify a title OR icon/image for RightNavButton");
+						return;
+					}
+
 					var menuItem = e.menu.add({
 						title: $btn.title || '',
 						icon: $btn.icon || $btn.image || '',
@@ -139,7 +147,7 @@ exports.createWindow = function(args) {
 			}
 		};
 
-		Object.defineProperty($ui, 'rightNavButton', { set: $ui.setRightNavButton });
+		Object.defineProperty($ui, 'rightNavButton', { set: $ui.setNavButton });
 		if (args.rightNavButton) $ui.setRightNavButton(args.rightNavButton);
 
 	}
@@ -208,10 +216,12 @@ exports.createTextField = function(args) {
 		$this.addEventListener('touchstart', __enableAutoFocus);
 	}
 
+	// Define a method to get the value when hintText hack is used
 	$this.getRealValue = function(){
 		if ($this.__hintText==$this.value) return '';
 		return $this.value;
 	};
+	Object.defineProperty($this, 'realValue', { get: $this.getRealValue });
 
 	return $this;
 };
@@ -246,10 +256,12 @@ exports.createTextArea = function(args) {
 		$this.addEventListener('touchstart', __enableAutoFocus);
 	}
 
+	// Define a method to get the value when hintText hack is used
 	$this.getRealValue = function(){
 		if ($this.__hintText==$this.value) return '';
 		return $this.value;
 	};
+	Object.defineProperty($this, 'realValue', { get: $this.getRealValue });
 
 	return $this;
 };
