@@ -115,16 +115,20 @@ exports.resetErrorHandler = function(){
 function getResponseInfo(response) {
 	var info = {};
 
+	// Check first the Content-Type
 	var contentType = response.getResponseHeader('Content-Type');
 	if (contentType=='application/json') {
 		info.mime = 'json';
 	}
 
+	// Check the Expires header
 	var expires = response.getResponseHeader('Expires');
 	if (expires) {
-		info.expire = require('util').timestamp(expires);
+		var t = require('util').timestamp(expires);
+		if (t) info.expire = t;
 	}
 
+	// Check againts X-Cache-Ttl header (in seconds)
 	var ttl = response.getResponseHeader('X-Cache-Ttl');
 	if (ttl) {
 		info.expire = require('util').timestamp( 1000*(require('util').timestamp()+parseInt(ttl,10)) );
@@ -386,16 +390,8 @@ function makeRequest(request) {
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
 	if (!Ti.Network.online) {
-
-		Ti.App.fireEvent('net.offline', {
-			cache: false
-		});
-
-		Ti.UI.createAlertDialog({
-			title: L('net_offline_title'),
-			message: L('net_offline_message'),
-			ok: L('OK')
-		}).show();
+		Ti.App.fireEvent('net.offline', { cache: false });
+		require('util').alert(L('net_offline_title'), L('net_offline_message'));
 		return false;
 	}
 
