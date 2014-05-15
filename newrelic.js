@@ -13,13 +13,12 @@ var config = _.extend({
 var $ = null;
 
 (function init() {
-	if (!OS_IOS) {
-		return;
-	}
+	if (!OS_IOS) return;
 
-	$ = require('ti.newrelic');
-
-	if (config.token) {
-		$.start(config.token);
-	}
+	try {
+		$ = require('ti.newrelic');
+		if (config.token) {
+			$.start(config.token);
+		}
+	} catch (e) {}
 })();

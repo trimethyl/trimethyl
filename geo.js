@@ -16,6 +16,14 @@ function checkForServices() {
 	return Ti.Geolocation.locationServicesEnabled;
 }
 
+exports.enableServicesAlert = function(){
+	if (OS_IOS) {
+		require('util').alert(L('geo_error_title'), L('geo_error_msg'));
+	} else {
+		alert(L('geo_error_title'));
+	}
+};
+
 function getRoute(args, rargs, cb) {
 	require('net').send({
 		url: config.directionUrl,
@@ -46,12 +54,9 @@ exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
 	});
 };
 
-var locaCallbacks = [];
-
-
 function localize(cb) {
 	if (!checkForServices()) {
-		return cb({ error: true });
+		return cb({ error: true, servicesDisabled: true });
 	}
 
 	Ti.App.fireEvent('geo.start');
@@ -60,24 +65,28 @@ function localize(cb) {
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
+		if (!e.success || !e.coords) {
+			return cb({ error: true });
+		}
+
 		cb(e);
 	});
 }
 exports.localize = localize;
 
-var gyroCallbacks = [];
+var __gyroCb = [];
 
 function gyroscope(cb) {
 	if (!checkForServices()) {
 		return cb({ error: true });
 	}
 
-	gyroCallbacks.push(cb);
+	__gyroCb.push(cb);
 
+	Ti.App.fireEvent('gyro.start');
 	Ti.Geolocation.purpose = L('geo_purpose');
-	Ti.Geolocation.addEventListener('heading', function(e){
-		if (cb) cb(e);
-	});
+
+	Ti.Geolocation.addEventListener('heading', cb);
 }
 exports.gyroscope = gyroscope;
 
@@ -85,7 +94,7 @@ exports.gyroscopeOff = function(cb) {
 	if (cb) {
 		Ti.Geolocation.removeEventListener('heading', cb);
 	} else {
-		_.each(gyroCallbacks, function(fun){
+		_.each(__gyroCb, function(fun){
 			Ti.Geolocation.removeEventListener('heading', fun);
 		});
 	}
@@ -93,18 +102,17 @@ exports.gyroscopeOff = function(cb) {
 
 exports.startNavigator = function(lat, lng, mode) {
 	localize(function(e) {
-		if (e.success && e.coords) {
-
-			var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
-			Ti.Platform.openURL(D + require('util').buildQuery({
-				directionsmode: mode || 'walking',
-				saddr: e.coords.latitude + "," + e.coords.longitude,
-				daddr: lat + "," + lng
-			}));
-
-		} else  {
+		if (!e.success) {
 			require('util').alertError(L('geo_unabletonavigate'));
+			return;
 		}
+
+		var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
+		Ti.Platform.openURL(D + require('util').buildQuery({
+			directionsmode: mode || 'walking',
+			saddr: e.coords.latitude + "," + e.coords.longitude,
+			daddr: lat + "," + lng
+		}));
 	});
 };
 

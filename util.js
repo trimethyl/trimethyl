@@ -103,11 +103,14 @@ function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 	});
 	dialog.show();
 }
-
 exports.prompt = alertPrompt;
 
 exports.confirm = function(title, msg, cb) {
 	return alertPrompt(title, msg, [ L('Cancel'), L('Yes') ], 0, cb, { selectedIndex: 1 });
+};
+
+exports.confirmCustom = function(title, btnTitle, cb) {
+	return alertPrompt(title, null, [ L('Cancel'), L('Yes') ], 0, cb, { selectedIndex: 1 });
 };
 
 function optionDialog(options, cancelIndex, callback, opt) {
