@@ -1,1 +1,5 @@
-rm -rf /tmp/docs; jsduck . --out /tmp/docs --title "Trimethyl API Documentation"; git checkout gh-pages && rm -rf * && mv /tmp/docs/* . && git add -A && git commit -m "Updated docs" && git push; git checkout master
+rm -rf /tmp/docs
+jsduck . --output /tmp/docs --title "Trimethyl API Documentation" --footer "Alloy-Titanium framework made in Caffeina"
+jsduck . --output /tmp/docs/JSON --export=full
+git checkout gh-pages && rm -rf * && mv /tmp/docs/* . && git add -A && git commit -m "Updated docs" && git push;
+git checkout master
