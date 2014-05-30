@@ -8,7 +8,8 @@ Most of these modules are proxy object for Titanium API and some of these add fe
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
-# [http://caffeinalab.github.io/Trimethyl/](API Documentation)
+# [API Documentation](http://caffeinalab.github.io/Trimethyl/)
+
 
 ## Installation
 
