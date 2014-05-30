@@ -262,7 +262,7 @@ exports.option = optionDialog;
  *
  * The `dict` argument must be in the form:
  *
- * ```
+ * ```javascript
  * [
  * 	{ title: "Option one", callback: function(){ ... } },
  * 	{ title: "Option two", callback: function(){ ... } },

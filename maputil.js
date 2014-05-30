@@ -50,7 +50,7 @@ exports.distanceInKm = distanceInKm;
  *
  * Each marker must be in this format:
  *
- * ```
+ * ```javascript
  * {
  * 	lat: 	{Number},
  * 	lng: 	{Number},
