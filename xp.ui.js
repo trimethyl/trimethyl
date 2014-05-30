@@ -1,5 +1,5 @@
 /**
- * @class  UI
+ * @class  XP.UI
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
  *
@@ -215,9 +215,11 @@ function __enableAutoFocus(e) {
  * @method  createTextField
  *
  * Added methods:
+ *
  * * **getRealValue()**: get the effective value when using hintText hack
  *
  * Added properties:
+ *
  * * **textType**: Can be *email* or *password*, and adjust the keyboard or the mask automatically.
  * * **hintTextColor**: Color support the the hintText
  * * **realValue**: get the effective value when using hintText hack
@@ -279,9 +281,11 @@ exports.createTextField = function(args) {
  * @method  createTextArea
  *
  * Added methods:
+ *
  * * **getRealValue()**: get the effective value when using hintText hack
  *
  * Added properties:
+ *
  * * **hintTextColor**: Color support the the hintText
  * * **realValue**: get the effective value when using hintText hack
  *
