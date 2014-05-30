@@ -28,7 +28,7 @@ function enableServicesAlert(){
 	if (OS_IOS) {
 		require('util').alert(L('geo_error_title'), L('geo_error_msg'));
 	} else {
-		alert(L('geo_error_title'));
+		require('util').simpleAlert(L('geo_error_title'));
 	}
 }
 exports.enableServicesAlert = enableServicesAlert;

@@ -167,6 +167,20 @@ exports.alert = alertDialog;
 
 
 /**
+ * @method simpleAlert
+ * Create and show an Alert Dialog that show only a message
+ *
+ * @param  {String}   msg The message
+ * @param  {Function} cb  The callback
+ * @return {Ti.UI.AlertDialog}
+ */
+exports.simpleAlert = function(msg, cb) {
+	if (OS_IOS) return alertDialog(null, msg, cb);
+	return alertDialog(Ti.App.name, msg, cb);
+};
+
+
+/**
  * @method prompt
  * Create and show a prompt dialog
  *
