@@ -2,5 +2,5 @@
 rm -rf /tmp/docs
 jsduck . --output /tmp/docs --title "Trimethyl API Documentation" --footer "Alloy-Titanium framework made in Caffeina"
 jsduck . --output /tmp/docs/JSON --export=full
-mv ~/Projects/TrimethylDoc/* ~/.Trash/ && mv /tmp/docs/* ~/Projects/TrimethylDoc/
+rm -rf ~/Projects/TrimethylDoc/* && mv /tmp/docs/* ~/Projects/TrimethylDoc/
 cd ~/Projects/TrimethylDoc && git add -A && git commit -m "Updated docs" && git push
