@@ -1,0 +1,5 @@
+{
+    "--title": "Trimethyl API Documentation",
+    "--warnings": ["-type-name"],
+    "--seo": false,
+}
