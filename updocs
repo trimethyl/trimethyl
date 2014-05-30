@@ -1,3 +1,1 @@
-rm -rf /tmp/docs
-jsduck . --out /tmp/docs
-git checkout gh-pages && rm -rf * && mv /tmp/docs/* . && git add -A && git commit -m "Updated docs" && git push
+rm -rf /tmp/docs; jsduck . --out /tmp/docs; git checkout gh-pages && rm -rf * && mv /tmp/docs/* . && git add -A && git commit -m "Updated docs" && git push && git checkout master
