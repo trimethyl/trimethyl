@@ -1,5 +1,5 @@
 /**
- * @class  XP.UI
+ * @class  XPUI
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
  *
