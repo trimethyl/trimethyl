@@ -1,22 +1,27 @@
-/*
+/**
+ * @class  Device
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Query current device for informations
+ */
 
-Device module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.device);
+exports.config = config;
 
-var __onTiltCallbacks = [];
 
-exports.onTilt = function(callback) {
+/**
+ * Subscribe for accellerometer updates
+ *
+ * @param  {Function} callback The callback
+ */
+function onTilt(callback) {
 	if (Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1){
 		Ti.API.error("Device: accelerometer doesn't work on virtual devices");
 		return;
 	}
 
-	__onTiltCallbacks.push(callback);
 	Ti.Accelerometer.addEventListener('update', callback);
 
 	// remove listener on android to preserve battery life
@@ -24,33 +29,57 @@ exports.onTilt = function(callback) {
 		Ti.Android.currentActivity.addEventListener('pause', function(e) {
 			Ti.Accelerometer.removeEventListener('update', callback);
 		});
+
 		Ti.Android.currentActivity.addEventListener('resume', function(e) {
 			Ti.Accelerometer.addEventListener('update', callback);
 		});
 	}
-};
+}
+exports.onTilt = onTilt;
 
-exports.offTilt = function(callback) {
-	if (callback) {
-		Ti.Accelerometer.removeEventListener('update', callback);
-	} else {
-		_.each(__onTiltCallbacks, function(_callback){
-			Ti.Accelerometer.removeEventListener('update', _callback);
-		});
-	}
-};
 
-exports.getScreenDensity = function() {
+/**
+ * Unsubscribe for accellerometer updates
+ *
+ * @param  {Function} callback The previous callback installed
+ */
+function offTilt(callback) {
+	Ti.Accelerometer.removeEventListener('update', callback);
+}
+exports.offTilt = offTilt;
+
+
+/**
+ * Get the device screen density
+ *
+ * @return {Number} The density
+ */
+function getScreenDensity() {
 	if (OS_ANDROID) return Ti.Platform.displayCaps.logicalDensityFactor;
 	return Titanium.Platform.displayCaps.dpi/160;
-};
+}
+exports.getScreenDensity = getScreenDensity;
 
-exports.getScreenWidth = function(){
+
+/**
+ * Get the device screen width
+ *
+ * @return {Number} The width
+ */
+function getScreenWidth(){
 	if (OS_IOS) return Ti.Platform.displayCaps.platformWidth;
 	return Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
-};
+}
+exports.getScreenWidth = getScreenWidth;
 
-exports.getScreenHeight = function(){
+
+/**
+ * Get the device screen width
+ *
+ * @return {Number} The height
+ */
+function getScreenHeight(){
 	if (OS_IOS) return Ti.Platform.displayCaps.platformHeight;
 	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
-};
+}
+exports.getScreenHeight = getScreenHeight;

@@ -1,18 +1,14 @@
-/*
+/**
+ * @class  Trimethyl
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * The framework initializator
+ */
 
-Trimethyl
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
-// var Alloy = require('alloy'),
-// _ = require("alloy/underscore")._,
-// Backbone = require("alloy/backbone");
 
 var Util = require('util');
 var launchURL = Util.parseSchema();
 var pauseURL = null;
+
 
 if (OS_IOS) {
 

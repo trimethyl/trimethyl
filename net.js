@@ -1,11 +1,18 @@
-/*
+/**
+ * @class  Net
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Network module
+ */
 
-Net module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * * **base**: The base URL of the API
+ * * **timeout**: Global timeout for the requests. After this value (express in seconds) the requests throw an error. Default: `http://localhost`
+ * * **useCache**: Check if the requests are automatically cached. Default: `true`
+ * * **headers**: Global headers for all requests. Default: `{}`
+ * * **debug**: Enable ultra verbose logging. Default: `true`
+ * * **usePingServer**: Enable the PING-Server support. Default: `true`
+ * @type {Object}
+ */
 var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
@@ -14,15 +21,16 @@ var config = _.extend({
 	debug: false,
 	usePingServer: true
 }, Alloy.CFG.net);
-
-exports.config = function(key){
-	return key ? config[key] : config;
-};
+exports.config = config;
 
 
 var DB = null;
 var queue = {};
 var serverConnected = null;
+var errorHandler = null;
+
+function originalErrorHandler(e) { require('util').alertError(e.message); }
+errorHandler = originalErrorHandler;
 
 function calculateHash(request) {
 	return Ti.Utils.md5HexDigest(request.url+JSON.stringify(request.data||{})+JSON.stringify(request.headers||{}));
@@ -42,7 +50,9 @@ function writeCache(request, response, info) {
 		JSON.stringify(info)
 		);
 
-	Ti.API.debug("NetworkCache: Cache written successfully.");
+	if (ENV_DEVELOPMENT && config.debug) {
+		Ti.API.debug("NetworkCache: Cache written successfully.");
+	}
 }
 
 function getCache(request, bypassExpiration) {
@@ -98,19 +108,25 @@ function setApplicationInfo(appInfo) {
 	});
 }
 
-function originalErrorHandler(e) {
-	return require('util').alertError(e.message);
-}
 
-var errorHandler = originalErrorHandler;
-
-exports.setErrorHandler = function(fun) {
+/**
+ * Set a new global handler for the errors
+ * @param {Function} fun The new function
+ */
+function setErrorHandler(fun) {
 	errorHandler = fun;
-};
+}
+exports.setErrorHandler = setErrorHandler;
 
-exports.resetErrorHandler = function(){
+
+/**
+ * Reset the original error handler
+ */
+function resetErrorHandler(){
 	errorHandler = originalErrorHandler;
-};
+}
+exports.resetErrorHandler = resetErrorHandler;
+
 
 function getResponseInfo(response) {
 	var info = {};
@@ -137,8 +153,10 @@ function getResponseInfo(response) {
 	return info;
 }
 
+
 function decorateRequest(request) {
 	if (request.hash) {
+		// yet decorated
 		return request;
 	}
 
@@ -188,9 +206,8 @@ function onComplete(request, response, e){
 	var info = getResponseInfo(response);
 
 	// Override response info
-	if (request.mime) {
-		info.mime = request.mime;
-	}
+	if (request.mime) info.mime = request.mime;
+	if (request.expire) info.expire = request.expire;
 
 	if (ENV_DEVELOPMENT && config.debug) {
 		Ti.API.debug("Network: response informations are "+JSON.stringify(info));
@@ -257,69 +274,141 @@ function onComplete(request, response, e){
 	}
 }
 
-exports.isOnline = function() {
+
+/**
+ * Check the internet connectivity
+ * @return {Boolean} The status
+ */
+function isOnline() {
 	return Ti.Network.online;
-};
+}
+exports.isOnline = isOnline;
 
-exports.addHeader = function(a,b) {
-	config.headers[a] = b;
-};
 
-exports.resetHeaders = function() {
+/**
+ * Add a global header for all requests
+ * @param {String} key 		The header key
+ * @param {String} value 	The header value
+ */
+function addHeader(key, value) {
+	config.headers[key] = value;
+}
+exports.addHeader = addHeader;
+
+
+/**
+ * Remove a global header
+ * @param {String} key 		The header key
+ */
+function removeHeader(key) {
+	delete config.headers[key];
+}
+exports.removeHeader = removeHeader;
+
+
+/**
+ * Reset all globals headers
+ */
+function resetHeaders() {
 	config.headers = {};
-};
+}
+exports.resetHeaders = resetHeaders;
 
-/*
-PING SERVER
-*/
 
-exports.isServerConnected = function(){
-	return !!serverConnected;
-};
+/**
+ * When using a PING-Server, check if the connection has been estabilished
+ * @return {Boolean}
+ */
+function isServerConnected(){
+	return serverConnected;
+}
+exports.isServerConnected = isServerConnected;
 
-exports.usePingServer = function(){
-	return !!config.usePingServer;
-};
 
-exports.connectToServer = function(cb) {
-	return makeRequest({
+/**
+ * Return the value of config.usePingServer
+ * @return {Boolean}
+ */
+function usePingServer(){
+	return config.usePingServer;
+}
+exports.usePingServer = usePingServer;
+
+
+/**
+ * Connect to the PING-Server
+ *
+ * This method also set the properties for **settings.{X}**
+ *
+ * Fire a *net.ping.success* on success
+ *
+ * Fire a *net.ping.error* on error
+ *
+ * @param  {Function} cb The success callback
+ */
+function connectToServer(cb) {
+	return send({
 		url: '/ping',
 		method: 'POST',
 		silent: true,
-		info: { mime: 'json' },
 		success: function(appInfo){
 			serverConnected = true;
 			setApplicationInfo(appInfo);
-
 			Ti.App.fireEvent('net.ping.success');
-
-			return cb(appInfo);
+			if (cb) cb(true);
 		},
 		error: function(message, response){
 			serverConnected = false;
 			Ti.App.fireEvent('net.ping.error');
+			if (cb) cb(false);
 		}
 	});
-};
+}
+exports.connectToServer = connectToServer;
 
-/*
-END PING SERVER
-*/
 
-exports.isQueueEmpty = function(){
+/**
+ * Check if the requests queue is empty
+ * @return {Boolean}
+ */
+function isQueueEmpty(){
 	return !queue.length;
-};
+}
+exports.isQueueEmpty = isQueueEmpty;
 
-exports.getQueue = function(){
+
+/**
+ * Get the current requests queue
+ * @return {Array}
+ */
+function getQueue(){
 	return queue;
-};
+}
+exports.getQueue = getQueue;
 
+
+/**
+ * Get the request identified by the hash in the queued requests
+ *
+ * If a complete request object is passed, the hash is calculated
+ *
+ * @param  {String|Object} hash The hash or the request
+ * @return {Ti.Network.HTTPClient}
+ */
 function getQueuedRequest(hash) {
 	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
 	return queue[hash];
 }
 exports.getQueuedRequest = getQueuedRequest;
 
+
+/**
+ * Abort the request identified by the hash in the queued requests
+ *
+ *  If a complete request object is passed, the hash is calculated
+ *
+ * @param  {String|Object} hash The hash or the request
+ */
 function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
 	if (!httpClient) return;
@@ -327,35 +416,70 @@ function abortRequest(hash) {
 		httpClient.abort();
 		Ti.API.debug("Network: request aborted");
 	} catch (e) {
-		Ti.API.error("Network: aborting request error => "+e);
+		Ti.API.error("Network: aborting request error, "+e);
 	}
 }
 exports.abortRequest = abortRequest;
 
-exports.resetCache = exports.pruneCache = function() {
+/**
+ * Clear **ALL** cache
+ */
+function resetCache() {
 	if (!DB) {
 		Ti.API.error("NetworkCache: database not open.");
 		return false;
 	}
 
 	DB.execute('DELETE FROM net');
-};
+}
+exports.resetCache = resetCache;
 
-exports.resetCookies = function(host) {
+
+/**
+ * Reset the cookies for all requests
+ */
+function resetCookies() {
 	// TODO
-};
+}
+exports.resetCookies = resetCookis;
 
-exports.deleteCache = function(request) {
+
+/**
+ * Delete the cache entry for the passed request
+ *
+ * If a complete request object is passed, the hash is calculated
+ *
+ * @param  {String|Object} request [description]
+ */
+exports.deleteCache = function(hash) {
 	if (!DB) {
 		Ti.API.error("NetworkCache: database not open.");
 		return false;
 	}
 
-	request = decorateRequest(request);
-	DB.execute('DELETE FROM net WHERE id = ?', request.hash);
+	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
+	DB.execute('DELETE FROM net WHERE id = ?', hash);
 };
 
-function makeRequest(request) {
+/**
+ * The main function of the module, create the HTTPClient and make the request
+ *
+ *	There are various options to pass:
+ *
+ * * **url**: The endpoint URL
+ * * **method**: The HTTP method to use (GET|POST|PUT|PATCH|..)
+ * * **headers**: An Object key-value of additional headers
+ * * **timeout**: Timeout after stopping the request and triggering an error
+ * * **cache**: Set to false to disable the cache
+ * * **success**: The success callback
+ * * **error**: The error callback
+ * * **mime**: Override the mime for that request (like `json`)
+ * * **expire**: Override the TTL seconds for the cache
+ *
+ * @param  {Object} request The request dictionary
+ * @return {String}	The hash to identify this request
+ */
+function send(request) {
 	request = decorateRequest(request);
 
 	if (ENV_DEVELOPMENT && config.debug) {
@@ -363,7 +487,7 @@ function makeRequest(request) {
 	}
 
 	// Try to get the cache, otherwise make the HTTP request
-	if (config.useCache && request.method=='GET') {
+	if (config.useCache && request.cache!==false && request.method=='GET') {
 
 		var cache = getCache(request, !Ti.Network.online);
 		if (cache) {
@@ -389,7 +513,7 @@ function makeRequest(request) {
 	}
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
-	if (!Ti.Network.online) {
+	if (!isOnline()) {
 		Ti.App.fireEvent('net.offline', { cache: false });
 		require('util').alert(L('net_offline_title'), L('net_offline_message'));
 		return false;
@@ -428,30 +552,57 @@ function makeRequest(request) {
 	// And return the hash of this request
 	return request.hash;
 }
+exports.send = send;
 
-exports.send = makeRequest;
 
-// Aliases
-
-exports.get = function(url, cb) {
-	return makeRequest({
+/**
+ * @method get
+ * Make a GET request to that URL
+ * @param  {String}   	url The endpoint url
+ * @param  {Function} 	success  Success callback
+ * @param  {Function} 	error Error callback
+ * @return {String}		The hash
+ */
+exports.get = function(url, success, error) {
+	return send({
 		url: url,
 		method: 'GET',
-		success: cb
+		success: success,
+		error: error
 	});
 };
 
-exports.post = function(url, data, cb) {
-	return makeRequest({
+
+/**
+ * @method post
+ * Make a POST request to that URL
+ * @param  {String}   	url The endpoint url
+ * @param  {Object}   	data The data
+ * @param  {Function} 	success  Success callback
+ * @param  {Function} 	error Error callback
+ * @return {String}		The hash
+ */
+exports.post = function(url, data, success, error) {
+	return send({
 		url: url,
 		method: 'POST',
 		data: data,
-		success: cb
+		success: success,
+		error: error
 	});
 };
 
+/**
+ * @method  getJSON
+ * Make a GET request to that url with that data and setting the mime forced to JSON
+ * @param  {String}   	url 	The endpoint url
+ * @param  {Object}   	data 	The data
+ * @param  {Function} 	success  Success callback
+ * @param  {Function} 	error Error callback
+ * @return {String}		The hash
+ */
 exports.getJSON = function(url, data, success, error) {
-	return makeRequest({
+	return send({
 		url: url,
 		data: data,
 		method: 'GET',
@@ -461,8 +612,17 @@ exports.getJSON = function(url, data, success, error) {
 	});
 };
 
+/**
+ * @method  postJSON
+ * Make a POST request to that url with that data and setting the mime forced to JSON
+ * @param  {String}   	url 	The endpoint url
+ * @param  {Object}   	data 	The data
+ * @param  {Function} 	success  Success callback
+ * @param  {Function} 	error Error callback
+ * @return {String}		The hash
+ */
 exports.postJSON = function(url, data, success, error) {
-	return makeRequest({
+	return send({
 		url: url,
 		data: data,
 		method: 'POST',
@@ -471,6 +631,7 @@ exports.postJSON = function(url, data, success, error) {
 		error: error
 	});
 };
+
 
 (function init(){
 	if (config.useCache) {

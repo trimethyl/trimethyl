@@ -1,55 +1,67 @@
-/*
+/**
+ * @class  Cache
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Fast cache module using SQLite
+ */
 
-Cache module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.cache);
-var $ = null;
+exports.config = config;
 
-function get(id) {
-	if (!$) {
+
+var DB = null;
+
+function __get(id) {
+	if (!DB) {
 		Ti.API.error("Cache: database not open.");
 		return false;
 	}
 
-	var row = $.execute('SELECT expire FROM cache WHERE id = ? LIMIT 1', id);
-	if (!row.isValidRow()) {
-		return false;
-	}
+	var row = DB.execute('SELECT expire FROM cache WHERE id = ? LIMIT 1', id);
+	if (!row.isValidRow()) return false;
 
 	var expire = row.field(0) || 0;
 	var now = require('util').timestamp();
+	if (expire!==-1 && now>expire) return false;
 
-	if (expire!==-1 && now>expire) {
-		return false;
-	}
-
-	row = $.execute('SELECT value FROM cache WHERE id = ? LIMIT 1', id);
-	if (!row.isValidRow()) {
-		return false;
-	}
+	row = DB.execute('SELECT value FROM cache WHERE id = ? LIMIT 1', id);
+	if (!row.isValidRow()) return false;
 
 	return require('util').parseJSON(row.field(0));
 }
 
-exports.get = function(id, value, expire) {
-	var $value = get(id);
-	if ($value) {
-		return $value;
-	}
+/**
+ * Get the property or set if not present
+ *
+ * @param  {String} id     The unique key
+ * @param  {Object|Function} value  Value to set if the property is absent/expired
+ * @param  {Number} expire TTL of this property,expressed is seconds from now
+ * @return {Mixed}
+ */
+function get(id, value, expire) {
+	var databaseValue = __get(id);
+	if (databaseValue) return databaseValue;
 
 	if (!value) return false;
-	if (typeof value==='function') value = value();
+	if (_.isFunction(value)) value = value();
 
 	set(id, value, expire);
 	return value;
-};
+}
+exports.get = get;
 
+
+/**
+ * Set the property
+ *
+ * @param {String} id     The unique key
+ * @param {Mixed} value  Value to set
+ * @param {Integer} expire TTL of this property, expressed is seconds from now
+ */
 function set(id, value, expire) {
-	if (!$) {
+	if (!DB) {
 		Ti.API.error("Cache: database not open.");
 		return false;
 	}
@@ -59,13 +71,14 @@ function set(id, value, expire) {
 	} else {
 		expire = -1;
 	}
-	$.execute('INSERT OR REPLACE INTO cache (id, expire, value) VALUES (?,?,?)', id, expire, JSON.stringify(value));
+	DB.execute('INSERT OR REPLACE INTO cache (id, expire, value) VALUES (?,?,?)', id, expire, JSON.stringify(value));
 }
 exports.set = set;
 
+
 (function init(c) {
-	$ = require('$').open();
-	if ($) {
-		$.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
+	DB = require('db').open();
+	if (DB) {
+		DB.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
 	}
 })();

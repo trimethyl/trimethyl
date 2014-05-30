@@ -1,16 +1,23 @@
-/*
+/**
+ * @class  Notifications
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Handle notifications system for both platform using Ti.Cloud
+ */
 
-Notifications module
-Author: Flavio De Stefano
-Company: Caffeina SRL
 
-*/
-
+/**
+ * * **inAppNotification**: Enable the in-app notifications. Default: `true`
+ * * **inAppNotificationMethod**: The method of the in-app notification. Must be of of `alert`, `toast`. Default: `toast`
+ * * **autoReset**: Check if auto-reset the badge when app is open.
+ * @type {Object}
+ */
 var config = _.extend({
 	inAppNotification: true,
 	inAppNotificationMethod: 'toast',
 	autoReset: true
 }, Alloy.CFG.notifications);
+exports.config = config;
+
 
 var Cloud = require("ti.cloud");
 Cloud.debug = !ENV_PRODUCTION;
@@ -44,6 +51,11 @@ function onNotificationReceived(e) {
 	}
 }
 
+
+/**
+ * Set the App badge value
+ * @param {Number} x
+ */
 function setBadge(x) {
 	if (OS_IOS) {
 		Ti.UI.iPhone.setAppBadge(Math.max(x,0));
@@ -53,6 +65,11 @@ function setBadge(x) {
 }
 exports.setBadge = setBadge;
 
+
+/**
+ * Get the App badge value
+ * @return {Number}
+ */
 function getBadge() {
 	if (OS_IOS) {
 		return Ti.UI.iPhone.getAppBadge();
@@ -62,11 +79,17 @@ function getBadge() {
 }
 exports.getBadge = getBadge;
 
-exports.incBadge = function(i) {
+/**
+ * Increment the badge app
+ * @param  {Number} i The value to increment
+ */
+function incBadge(i) {
 	setBadge(getBadge()+i);
-};
+}
+exports.incBadge = incBadge;
 
-function subscribe(channel, deviceToken, callback) {
+
+function cloudSubscribe(channel, deviceToken, callback) {
 	Ti.App.Properties.setString('notifications.token', deviceToken);
 
 	Cloud.PushNotifications.subscribeToken({
@@ -121,10 +144,23 @@ function subscribeAndroid(cb) {
 	});
 }
 
-exports.subscribe = function(channel) {
-	if (OS_IOS) return subscribeIOS(function(token){ subscribe(channel, token); });
-	else if (OS_ANDROID) return subscribeAndroid(function(token){ subscribe(channel, token); });
-};
+/**
+ * Subscribe for that channell
+ * @param  {String} channel Channel name
+ */
+function subscribe(channel) {
+	if (OS_IOS) {
+		subscribeIOS(function(token){
+			cloudSubscribe(channel, token);
+		});
+	} else if (OS_ANDROID) {
+		subscribeAndroid(function(token){
+			cloudSubscribe(channel, token);
+		});
+	}
+}
+exports.subscribe = subscribe;
+
 
 function unsubscribeIOS() {
 	Ti.Network.unregisterForPushNotifications();
@@ -134,7 +170,7 @@ function unsubscribeAndroid() {
 	CloudPush.enabled = false;
 }
 
-function unsubscribe(channel) {
+function cloudUnsubscribe(channel) {
 	var token = Ti.App.Properties.getString('notifications.token');
 	if (!token) {
 		return;
@@ -148,8 +184,16 @@ function unsubscribe(channel) {
 	});
 }
 
-exports.unsubscribe = function(channel) {
-	if (OS_IOS) unsubscribeIOS();
-	else if (OS_ANDROID) unsubscribeAndroid();
-	unsubscribe(channel);
-};
+/**
+ * Unsubscribe for that channell
+ * @param  {String} channel Channel name
+ */
+function unsubscribe(channel) {
+	if (OS_IOS) {
+		unsubscribeIOS();
+	} else if (OS_ANDROID) {
+		unsubscribeAndroid();
+	}
+	cloudUnsubscribe(channel);
+}
+exports.unsubscribe = unsubscribe;

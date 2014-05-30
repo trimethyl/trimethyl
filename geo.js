@@ -1,59 +1,51 @@
-/*
+/**
+ * @class  	Geo
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Provide useful method for geolocation events
+ *
+ */
 
-Geo module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * * **accuracy**: Accuracy of Geo. Must be one of `"ACCURACY_HIGH"`, `"ACCURACY_LOW"`
+ * * **useGoogleForGeocode**: Tell to use Google Services instead of Titanium geocoding services.
+ * @type {Object}
+ */
 var config = _.extend({
 	accuracy: "ACCURACY_HIGH",
-	directionUrl: "http://appcaffeina.com/static/maps/directions",
 	useGoogleForGeocode: true
 }, Alloy.CFG.geo);
+exports.config = config;
+
 
 function checkForServices() {
 	return Ti.Geolocation.locationServicesEnabled;
 }
 
-exports.enableServicesAlert = function(){
+/**
+ * Alert the user that Location is off
+ */
+function enableServicesAlert(){
 	if (OS_IOS) {
 		require('util').alert(L('geo_error_title'), L('geo_error_msg'));
 	} else {
 		alert(L('geo_error_title'));
 	}
-};
-
-function getRoute(args, rargs, cb) {
-	require('net').send({
-		url: config.directionUrl,
-		data: args,
-		success: function(resp){
-			var points = [];
-			for (var k in resp) {
-				points.push({ latitude: resp[k][0], longitude: resp[k][1] });
-			}
-			return cb(require('ti.map').createRoute(_.extend({
-				name: 'Route',
-				color: '#000',
-				points: points,
-				width: 6
-			}, rargs)));
-		}
-	});
 }
-exports.getRoute = getRoute;
+exports.enableServicesAlert = enableServicesAlert;
 
-exports.getRouteFromUserLocation = function(destination, args, rargs, cb) {
-	localize(function(e){
-		var userLocation = { latitude: e.coords.latitude, longitude: e.coords.longitude };
-		getRoute(_.extend({
-			origin: userLocation.latitude+','+userLocation.longitude,
-			destination: destination
-		}, args||{}), rargs||{}, cb);
-	});
-};
 
+/**
+ * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
+ *
+ * If there's an error, the callback is invoked with `{ error: true, success: false }`,
+ * so pay attention to the returned value
+ *
+ * A `geo.start` event is fired at start
+ *
+ * A `geo.end` event is fired on end
+ *
+ * @param  {Function} cb Callback (success or error)
+ */
 function localize(cb) {
 	if (!checkForServices()) {
 		return cb({ error: true, servicesDisabled: true });
@@ -74,33 +66,15 @@ function localize(cb) {
 }
 exports.localize = localize;
 
-var __gyroCb = [];
 
-function gyroscope(cb) {
-	if (!checkForServices()) {
-		return cb({ error: true });
-	}
-
-	__gyroCb.push(cb);
-
-	Ti.App.fireEvent('gyro.start');
-	Ti.Geolocation.purpose = L('geo_purpose');
-
-	Ti.Geolocation.addEventListener('heading', cb);
-}
-exports.gyroscope = gyroscope;
-
-exports.gyroscopeOff = function(cb) {
-	if (cb) {
-		Ti.Geolocation.removeEventListener('heading', cb);
-	} else {
-		_.each(__gyroCb, function(fun){
-			Ti.Geolocation.removeEventListener('heading', fun);
-		});
-	}
-};
-
-exports.startNavigator = function(lat, lng, mode) {
+/**
+ * Open Apple Maps on iOS, Google Maps on Android and route from user location to defined location
+ *
+ * @param  {Number} lat  	Desination latitude
+ * @param  {Number} lng  	Destination longitude
+ * @param  {String} [mode] GPS mode used (walking,driving)
+ */
+function startNavigator(lat, lng, mode) {
 	localize(function(e) {
 		if (!e.success) {
 			require('util').alertError(L('geo_unabletonavigate'));
@@ -114,14 +88,25 @@ exports.startNavigator = function(lat, lng, mode) {
 			daddr: lat + "," + lng
 		}));
 	});
-};
+}
+exports.startNavigator = startNavigator;
 
-exports.geocode = function(address, cb) {
+
+/**
+ * Return the coordinates of an address
+ *
+ * If some errors occurs, the callback in invoked
+ * anyway with `{ error: true, success: false }`
+ *
+ * @param  {String}   address 	The address to geocode
+ * @param  {Function} cb      	The callback
+ */
+function geocode(address, cb) {
 	if (config.useGoogleForGeocode) {
 
 		require('net').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
-			noCache: true,
+			cache: false,
 			data: {
 				address: address,
 				sensor: 'false'
@@ -157,9 +142,21 @@ exports.geocode = function(address, cb) {
 			});
 		});
 	}
-};
+}
+exports.geocode = geocode;
 
-exports.reverseGeocode = function(lat, lng, cb) {
+
+/**
+ * Return the address with the specified coordinates
+ *
+ * If some errors occurs, the callback in invoked
+ * anyway with `{ error: true, success: false }`
+ *
+ * @param  {Number}   lat 	The latitude of the address
+ * @param  {Number}   lng 	The longitude of the address
+ * @param  {Function} cb  The callback
+ */
+function reverseGeocode(lat, lng, cb) {
 	if (!lat || !lng) {
 		return cb({ error: true });
 	}
@@ -205,4 +202,5 @@ exports.reverseGeocode = function(lat, lng, cb) {
 			});
 		});
 	}
-};
+}
+exports.reverseGeocode = reverseGeocode;

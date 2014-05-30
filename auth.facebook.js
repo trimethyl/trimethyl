@@ -1,12 +1,20 @@
-/*
+/**
+ * @class  Auth.Facebook
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Auth driver to handle Facebook authentication
+ */
 
-Auth Facebook module
-Author: Flavio De Stefano
-Company: Caffeina SRL
+/**
+ * * **appid**: Application ID. Default: `null`
+ * * **permissions**: Array of permissions. Default: `[]`
+ * @type {Object}
+ */
+var config = _.extend({
+	appid: null,
+	permissions: []
+}, Alloy.CFG.auth ? Alloy.CFG.auth.facebook : {});
+exports.config = config;
 
-*/
-
-var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.facebook : {});
 
 var FB = require('facebook');
 var Auth = require('auth');
@@ -48,7 +56,10 @@ function authorize() {
 	}
 }
 
-exports.handleLogin = function(){
+/**
+ * Login using Facebook SDK and make the request to the API server, silently
+ */
+function handleLogin() {
 	silent = true;
 	authorized = false;
 
@@ -58,9 +69,16 @@ exports.handleLogin = function(){
 	}, 10000);
 
 	authorize();
-};
+}
+exports.handleLogin = handleLogin;
 
-exports.login = function(success){
+
+/**
+ * Login using Facebook SDK and make the request to the API server
+ *
+ * @param  {Function} success Callback when login success
+ */
+function login(success){
 	silent = false;
 	successLogin = success;
 
@@ -70,11 +88,18 @@ exports.login = function(success){
 	}
 
 	authorize();
-};
+}
+exports.login = login;
 
-exports.logout = function(){
+
+/**
+ * Remove any stored user data
+ */
+function logout() {
 	FB.logout();
-};
+}
+exports.logout = logout;
+
 
 (function init(){
 	FB.forceDialogAuth = false;

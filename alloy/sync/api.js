@@ -1,10 +1,7 @@
 /*
-
-API REST sync for Alloy
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * API-Rest Alloy Adapter
+ */
 
 var CRUD_TO_REST = {
 	'create' : 'POST',

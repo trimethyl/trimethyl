@@ -1,36 +1,62 @@
-/*
+/**
+ * @class  	Image
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Image manipulation module
+ *
+ * Require `ti.imagefactory`
+ *
+ */
 
-Image manipulation module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-Requirements:
-gittio -g install ti.imagefactory
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.image);
-var $$ = require('ti.imagefactory');
+exports.config = config;
 
-function fsave(opt) {
-	var file = Ti.Filesystem.getFile(require('util').getAppDataDirectory(), opt.filename);
-	var result = file.write(opt.blob);
 
-	if (!result) {
-		Ti.API.error("Image: error writing file");
-		return opt.callback();
+/**
+ * Process the image and output in memory or filesystem
+ *
+ * `blob` is required to process the image, or an error is thrown
+ *
+ * ## Resizing options
+ *
+ * If `size` is passed, the image will be thumbnailized in a square.
+ *
+ * If `width` is passed the image will be resized with the specified width maintaining the ratio.
+ *
+ * If `height` is passed the image will be resized with the specified height maintaining the ratio.
+ *
+ * If `width` and `height` are both passed, the image will be resized
+ * stretching the image with the specified width and height.
+ *
+ * ## Optional parameters
+ *
+ * `quality`: to degrade the image
+ *
+ * ## Output options
+ *
+ * `filename`: output the blob in the filesystem and release memory blob
+ *
+ * `callback`: call the function passing the output blob or output file if the keyword `filename` is specified
+ * A null object is passed in case of errors
+ *
+ * @param  {Object} opt The options, see the description above.
+ */
+function process(opt) {
+	if (!opt.blob) {
+		Ti.API.error("Image: Set a blob please");
+		opt.callback();
+		return;
 	}
 
-	return opt.callback(file);
-}
-
-exports.process = function(opt) {
+	var TiImageFactory = require('ti.imagefactory');
 	var density = opt.retina ? require('device').getScreenDensity() : 1;
 	var R = null;
 
 	if (opt.size) {
 
-		R = $$.imageAsThumbnail(opt.blob, {
+		R = TiImageFactory.imageAsThumbnail(opt.blob, {
 			size: opt.size*density,
 		});
 
@@ -38,7 +64,7 @@ exports.process = function(opt) {
 
 		opt.width = opt.width || opt.height*(opt.blob.width/opt.blob.height);
 		opt.height = opt.height ||  opt.width*(opt.blob.height/opt.blob.width);
-		R = $$.imageAsResized(opt.blob, {
+		R = TiImageFactory.imageAsResized(opt.blob, {
 			width: opt.width*density,
 			height: opt.height*density
 		});
@@ -47,24 +73,31 @@ exports.process = function(opt) {
 		R = opt.blob;
 	}
 
-	// Error
-	if (!R) {
-		return opt.callback();
-	}
+	if (R) {
 
-	// Success
+		if (opt.quality) {
+			R = TiImageFactory.compress(R, +opt.quality);
+		}
 
-	if (opt.quality) {
-		R = $$.compress(R, +opt.quality);
-	}
+		if (opt.filename) {
 
-	if (opt.filename) {
-		return fsave({
-			filename: opt.filename,
-			blob: R,
-			callback: opt.callback
-		});
+			var file = Ti.Filesystem.getFile(require('util').getAppDataDirectory(), opt.filename);
+			var result = file.write(R);
+			R = null; // nullable ALL!
+
+			if (result) {
+				opt.callback(file);
+			} else {
+				Ti.API.error("Image: error writing file");
+			 	opt.callback();
+			}
+
+		} else {
+			opt.callback(R);
+		}
+
 	} else {
-		return opt.callback(R);
+		opt.callback();
 	}
-};
+}
+exports.process = process;

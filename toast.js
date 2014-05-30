@@ -1,12 +1,12 @@
 /*
 
-Toast module
-Author: Flavio De Stefano
-Company: Caffeina SRL
+NOT DOCUMENTED BECAUSE I HAVE TO MOVE TO A NEW WIDGET
+com.caffeinalab.titanium.toast
 
-Provide a toast notification
+Stay tuned!
 
 */
+
 
 var config = _.extend({
 	timeout: 2000,
@@ -15,6 +15,8 @@ var config = _.extend({
 	elasticity: 0.5,
 	pushForce: 30
 }, Alloy.CFG.toast);
+exports.config = config;
+
 
 function showIOS7(msg, args) {
 	var HEIGHT = 64;

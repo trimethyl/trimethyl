@@ -1,51 +1,48 @@
-/*
+/**
+ * @class  Sharer
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Provide functions to simplify sharing across platforms and social networks
+ *
+ * Require `dn.napp.social`
+ *
+ * Documentation:
+ * https://github.com/viezel/TiSocial.Framework
+ *
+ * Be more Social on your app! ;)
+ *
+ */
 
-Share module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-Requirements:
-gittio install -g dk.napp.social
-
-Documentation:
-https://github.com/viezel/TiSocial.Framework
-
-Be more social!
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.sharer);
+exports.config = config;
+
 
 var callback = null;
-var Social = null;
+var dkNappSocial = null;
 
 if (OS_IOS) {
-	Social = require('dk.napp.social');
-	Social.addEventListener('complete', __onSocialComplete);
-	Social.addEventListener('cancelled', __onSocialCancelled);
+	dkNappSocial = require('dk.napp.social');
+	dkNappSocial.addEventListener('complete', onSocialComplete);
+	dkNappSocial.addEventListener('cancelled', onSocialCancel);
 }
 
-function __onSocialComplete(e) {
-	if (!callback) {
-		return;
-	}
-
+function onSocialComplete(e) {
+	if (!callback) return;
 	e.type = 'complete';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
 }
 
-function __onSocialCancelled(e) {
-	if (!callback) {
-		return;
-	}
-
+function onSocialCancel(e) {
+	if (!callback) return;
 	e.type = 'cancelled';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
 }
 
-function __parseArgs(args) {
+function parseArgs(args) {
 	if (!args) return {};
 
 	if (args.image) {
@@ -81,27 +78,42 @@ function __parseArgs(args) {
 	return args;
 }
 
-
+/**
+ * Open the following url inside the app, in a webview
+ * @param  {String} url The URL to open
+ */
 function webviewShare(url) {
 	require('ui').createModalWebView({
 		title: L('Share'),
 		url: url
 	}).open();
 }
+exports.webviewShare = webviewShare;
+
+/**
+ * @method  webview
+ * @inheritDoc #webviewShare
+ * Alias for {@link #webviewShare}
+ */
 exports.webview = webviewShare;
 
-function shareOnFacebook(args, _callback) {
+
+/**
+ * Share on Facebook
+ * @param {Object} args
+ */
+function shareOnFacebook(args) {
 	callback = args.callback || null;
-	args = __parseArgs(args);
+	args = parseArgs(args);
 
 	// iOS Sharer doesn't share Facebook links
 	if (args.url && args.url.match(/https?\:\/\/(www\.)?facebook\.com/)) {
 		args.useSDK = true;
 	}
 
-	if (OS_IOS && Social.isFacebookSupported() && !args.useSDK) {
+	if (OS_IOS && dkNappSocial.isFacebookSupported() && !args.useSDK) {
 
-		Social.facebook({
+		dkNappSocial.facebook({
 			text: args.text,
 			image: args.image,
 			url: args.url
@@ -127,12 +139,12 @@ function shareOnFacebook(args, _callback) {
 		}, function(e) {
 
 			if (!e.cancelled) {
-				__onSocialComplete({
+				onSocialComplete({
 					success: e.success,
 					platform: 'facebook'
 				});
 			} else {
-				__onSocialCancelled({
+				onSocialCancel({
 					success: false,
 					platform: 'facebook'
 				});
@@ -142,11 +154,22 @@ function shareOnFacebook(args, _callback) {
 
 	}
 }
+exports.shareOnFacebook = shareOnFacebook;
+
+/**
+ * @method facebook
+ * @inheritDoc #shareOnFacebook
+ * Alias for {@link #shareOnFacebook}
+ */
 exports.facebook = shareOnFacebook;
 
+/**
+ * Share on Twitter
+ * @param {Object} args
+ */
 function shareOnTwitter(args) {
 	callback = args.callback || null;
-	__parseArgs(args);
+	parseArgs(args);
 
 	var WEB_URL = 'http://www.twitter.com/intent';
 	var webIntent;
@@ -166,9 +189,9 @@ function shareOnTwitter(args) {
 			Ti.Platform.openURL(webIntent);
 		} catch (e) {}
 
-	} else if (OS_IOS && Social.isTwitterSupported() && !args.retweet) {
+	} else if (OS_IOS && dkNappSocial.isTwitterSupported() && !args.retweet) {
 
-		Social.twitter({
+		dkNappSocial.twitter({
 			text: args.text,
 			image: args.image,
 			url: args.url
@@ -183,10 +206,20 @@ function shareOnTwitter(args) {
 }
 exports.twitter = shareOnTwitter;
 
+/**
+ * @method twitter
+ * @inheritDoc #shareOnTwitter
+ * Alias for {@link #shareOnTwitter}
+ */
+exports.twitter = shareOnTwitter;
 
-function shareViaMail(args, _callback) {
+/**
+ * Share via Mail
+ * @param {Object} args
+ */
+function shareViaMail(args) {
 	callback = args.callback || null;
-	args = __parseArgs(args);
+	args = parseArgs(args);
 
 	var $dialog = Ti.UI.createEmailDialog({
 		subject: args.title,
@@ -199,12 +232,12 @@ function shareViaMail(args, _callback) {
 
 	$dialog.addEventListener('complete', function(e) {
 		if (e.result===this.CANCELLED) {
-			__onSocialCancelled({
+			onSocialCancel({
 				success: false,
 				platform: 'mail'
 			});
 		} else {
-			__onSocialComplete({
+			onSocialComplete({
 				success: (e.result===this.SENT),
 				platform: 'mail'
 			});
@@ -213,11 +246,22 @@ function shareViaMail(args, _callback) {
 
 	$dialog.open();
 }
+exports.shareViaMail = shareViaMail;
+
+/**
+ * @method  mail
+ * @inheritDoc #shareViaMail
+ * Alias for {@link #shareViaMail}
+ */
 exports.mail = shareViaMail;
 
 
-function shareOnGooglePlus(args, _callback) {
-	args = __parseArgs(args);
+/**
+ * Share on Google Plus
+ * @param {Object} args
+ */
+function shareOnGooglePlus(args) {
+	args = parseArgs(args);
 	if (!args.url) {
 		Ti.API.error("Sharer: sharing on G+ require a URL");
 		return;
@@ -227,25 +271,29 @@ function shareOnGooglePlus(args, _callback) {
 		Ti.Platform.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
 	} catch (e) {}
 }
-exports.googleplus = exports.googlePlus = shareOnGooglePlus;
+exports.shareOnGooglePlus = shareOnGooglePlus;
 
-
-function shareOnWhatsApp(args, _callback) {
-	args = __parseArgs(args);
+/**
+ * Share via Whatsapp
+ * @param {Object} args
+ */
+function shareOnWhatsApp(args) {
+	args = parseArgs(args);
 
 	try {
 		Ti.Platform.openURL('whatsapp://send?text='+args.fullText);
 	} catch (e) {}
 }
-exports.whatsapp = exports.whatsApp = shareOnWhatsApp;
+exports.shareOnWhatsApp = shareOnWhatsApp;
 
-/*
-ActivityView
-*/
 
-exports.activity = exports.multi = function(args, _callback) {
+/**
+ * Share using iOS ActivityPopover or Android Intents
+ * @param {Object} args
+ */
+function activity(args) {
 	callback = args.callback || null;
-	args = __parseArgs(args);
+	args = parseArgs(args);
 
 	if (OS_IOS) {
 
@@ -275,4 +323,7 @@ exports.activity = exports.multi = function(args, _callback) {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('Share')));
 
 	}
-};
+}
+
+exports.activity = activity;
+exports.multi = activity;

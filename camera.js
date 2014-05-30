@@ -1,13 +1,24 @@
-/*
+/**
+ * @class  Camera
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Manage Camera access
+ */
 
-Camera module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.camera);
+exports.config = config;
 
+
+
+/**
+ * Call showCamera or openPhotoGallery using same options
+ * @private
+ * @param  {String}   method Must be one of showCamera or openPhotoGallery
+ * @param  {Object}   opt Options passed to **Ti.Media.function**
+ * @param  {Function} cb  Success callback
+ */
 function getPhoto(method, opt, cb){
 	Ti.Media[method](_.extend(opt || {}, {
 		mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
@@ -23,21 +34,50 @@ function getPhoto(method, opt, cb){
 	}));
 }
 
+/**
+ * Open the Camera to take a photo
+ *
+ * @param  {Object}   opt Options passed to **Ti.Media.showCamera**
+ * @param  {Function} cb  Success callback
+ */
 function takePhoto(opt, cb) {
 	getPhoto('showCamera', opt, cb);
 }
 exports.takePhoto = takePhoto;
 
+
+/**
+ * Open the Gallery to chooose a photo
+ *
+ * @param  {Object}   opt Options passed to **Ti.Media.showCamera**
+ * @param  {Function} cb  Success callback
+ */
 function choosePhoto(opt, cb) {
 	getPhoto('openPhotoGallery', opt, cb);
 }
 exports.choosePhoto = choosePhoto;
 
-exports.selectPhoto = function(opt, cb){
-	require('util').option([ L('camera_takephoto'), L('camera_choosephoto'), L('Cancel') ], 2, function(i){
-		switch (i) {
-			case 0: takePhoto(opt, cb); break;
-			case 1: choosePhoto(opt, cb); break;
+
+/**
+ * Display an option dialog to prompt the user to take a photo with the camera or select a photo from the gallery
+ *
+ * @param  {Object}   opt Options passed to **Ti.Media.showCamera**
+ * @param  {Function} cb  Success callback
+ */
+function selectPhoto(opt, cb){
+	require('util').optionWithDict([
+		{
+			title: L('camera_takephoto'),
+			callback: function(){
+				takePhoto(opt, cb);
+			}
+		},
+		{
+			title: L('camera_choosephoto'),
+			callback: function(){
+				choosePhoto(opt, cb);
+			}
 		}
-	});
-};
+	]);
+}
+exports.selectPhoto = selectPhoto;

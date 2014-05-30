@@ -1,22 +1,32 @@
-/*
+/**
+ * @class  DB
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Proxy for a single SQLite database access
+ */
 
-DB module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.db);
-var $ = null;
+exports.config = config;
 
-exports.open = function() {
-	if ($) return $;
+var DB = null;
+
+/**
+ * Open the `app` database, or return current database instance
+ *
+ * @singleton
+ * @return {Titanium.Database.DB}
+ */
+function open() {
+	if (DB) return DB;
 
 	try {
-		$ = Ti.Database.open('app');
+		DB = Ti.Database.open('app');
 		return $;
 	} catch (ex) {
 		Ti.API.error("DB: "+ex);
 		return false;
 	}
-};
+}
+exports.open = open;

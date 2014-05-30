@@ -1,39 +1,63 @@
-/*
+/**
+ * @class  Flow
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Manage the app windows flow, tracking optionally with Google Analitycs
+ */
 
-Flow module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * * **useNav**: Use a Navigation Controller instead opening windows directly. Default: `true`
+ * * **trackWithGA**: Send the trackScreen directly to GA module. Default: `true`
+ * @type {Object}
+ */
 var config = _.extend({
 	useNav: true,
 	trackWithGA: true
 }, Alloy.CFG.flow);
+exports.config = config;
+
 
 var $_CC = null;
 var $_CCS = null;
 var $_CCA = null;
+
 var hist = [];
+var $navigationController = null;
 
-var $nav = null;
+/**
+ * Set the navigation controller used to open windows
+ *
+ * @param {XP.UI.NavigationWindow} navigationController The instance of the navigation controller
+ * @param {Boolean} [openNow] Specify if call instantly the open on the navigation controller
+ */
+function setNavigationController(navigationController, openNow) {
+	$navigationController = navigationController;
+	if (openNow) $navigationController.open();
+}
+exports.setNavigationController = setNavigationController;
 
 
-exports.setNavigationController = function(e, open) {
-	$nav = e;
-	if (open) {
-		$nav.open();
-	}
-};
+/**
+ * Return the instance set of navigation controller
+ *
+ * @return {XP.UI.NavigationWindow} The navigation controller
+ */
+function getNavigationController() {
+	return $navigationController;
+}
+exports.getNavigationController = getNavigationController;
 
-exports.getNavigationController = function() {
-	return $nav;
-};
 
+/**
+ * Close an Alloy.Controller
+ *
+ * If a `close` function is attached to controller exports, call that
+ *
+ * Otherwise simply close the main window
+ *
+ * @param  {Alloy.Controller} controller The controller to close
+ */
 function closeController(controller) {
-	if (!controller) {
-		return;
-	}
+	if (!controller) return;
 
 	if ('close' in controller) {
 		controller.close();
@@ -41,8 +65,18 @@ function closeController(controller) {
 		controller.getView().close();
 	}
 }
+exports.closeController = closeController;
 
-exports.openDirect = function(controller, args) {
+
+/**
+ * Require an Alloy.Controller without passing it to the navigation window
+ *
+ * This is tracked with Google Analitycs
+ *
+ * @param  {String} controller The name of the controller
+ * @param  {Object} [args]     The args passed to the controller
+ */
+function openDirect(controller, args) {
 	if (ENV_DEVELOPMENT) {
 		Ti.API.debug("Flow: opening directly '"+controller+"' with args "+JSON.stringify(args));
 	}
@@ -56,11 +90,31 @@ exports.openDirect = function(controller, args) {
 	}
 
 	return $C;
-};
+}
+exports.openDirect = openDirect;
 
-exports.open = function(controller, args, opt) {
-	if (!args) args = {};
-	if (!opt) opt = {};
+
+/**
+ * Require an Alloy.Controller and open the main window associated with it
+ *
+ * If a navigation controller is set, open with it
+ *
+ * A `close` event is automatically attached to the main window to call sequentially
+ * `Controller.beforeDestroy` (if defined) and `Controller.destroy`
+ *
+ * If an `init` function is attached to the controller, is automatically
+ * called on window open
+ *
+ * This is tracked with Google Analitycs
+ *
+ * @param  {String} controller The name of the controller
+ * @param  {Object} [args]       The arguments passed to the controller
+ * @param  {Object} [opt]        The arguments passed to the NavigationWindow.openWindow or the Controller.Window.open
+ * @return {Alloy.Controller}    The controller instance
+ */
+function open(controller, args, opt) {
+	args = args || {};
+	opt = opt || {};
 
 	if (ENV_DEVELOPMENT) {
 		Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
@@ -71,11 +125,11 @@ exports.open = function(controller, args, opt) {
 
 	if (config.useNav) {
 
-		if (!$nav) {
+		if (!$navigationController) {
 			Ti.API.debug("Flow: please define a NavigationController or set Flow.useNav to false");
 			return;
 		}
-		$nav.openWindow($W, opt.openArgs || {});
+		$navigationController.openWindow($W, opt.openArgs || {});
 
 	} else {
 		$W.open(opt.openArgs || {});
@@ -84,7 +138,7 @@ exports.open = function(controller, args, opt) {
 	// Attach events
 
 	$W.addEventListener('close', function(e){
-		if ('__destroy' in $C) C.__destroy();
+		if ('beforeDestroy' in $C) C.beforeDestroy();
 		$C.destroy();
 		$C = null;
 		$W = null;
@@ -113,36 +167,87 @@ exports.open = function(controller, args, opt) {
 	$_CC = $C;
 
 	return $_CC;
-};
+}
+exports.open = open;
 
-exports.back = function() {
+
+/**
+ * Close current controller and go back the the previous controller
+ */
+function back() {
 	if (hist.length<2) return;
-	var last = hist.pop().pop();
+	closeCurrent();
+	var last = hist.pop();
 	open(last.controller, last.args);
-};
+}
+exports.back = back;
 
-exports.current = function(){
+
+/**
+ * Get an object with current controller and args
+ *
+ * @return {Object} [description]
+ */
+function getCurrent() {
 	return {
-		controller: $_CC,
-		info : {
-			name: $_CCS,
-			args: $_CCA
-		}
+		controller: $_CCS,
+		args: $_CCA
 	};
-};
+}
+exports.getCurrent = getCurrent;
 
-exports.controller = function(){
+/**
+ * @method current
+ * @inheritDoc #getCurrent
+ * Alias for {@link #getCurrent}
+ */
+exports.current = getCurrent;
+
+
+/**
+ * Return current controller
+ *
+ * @return {Alloy.Controller}
+ */
+function getCurrentController() {
 	return $_CC;
-};
+}
+exports.getCurrentController = getCurrentController;
 
-exports.closeCurrent = function() {
+
+/**
+ * @method controller
+ * @inheritDoc #getCurrentController
+ * Alias for {@link #getCurrentController}
+ */
+exports.controller = getCurrentController;
+
+
+/**
+ * Close current controller
+ */
+function closeCurrent() {
+	hist.pop();
 	closeController($_CC);
-};
+}
+exports.closeCurrent = closeCurrent;
 
-exports.getHistory = function() {
+
+/**
+ * Get the history of controllers used
+ *
+ * @return {Array}
+ */
+function getHistory() {
 	return hist;
-};
+}
+exports.getHistory = getHistory;
 
-exports.clearHistory = function(){
+
+/**
+ * Clear the history of controllers used
+ */
+function clearHistory(){
 	hist = [];
-};
+}
+exports.clearHistory = clearHistory;

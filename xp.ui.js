@@ -1,18 +1,16 @@
-/*
+/**
+ * @class  UI
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
+ *
+ * ** non-CommonJS module**
+ *
+ * You have to use in Alloy with `module="xp.ui"`
+ *
+ */
 
-XP.UI module (non-standard require module)
-Author: Flavio De Stefano
-Company: Caffeina SRL
 
-Based on the great work of @FokkeZb
-https://github.com/FokkeZB/UTiL/blob/master/xp.ui/xp.ui.js
-
-*/
-
-/*
-NavigationWindow
-- Implementation in Android based on windows stack
-*/
+/* ============ NAVIGATIONWINDOW =============== */
 
 if (!OS_IOS) {
 
@@ -82,16 +80,45 @@ if (!OS_IOS) {
 
 }
 
+/**
+ * @method  createNavigationWindow
+ *
+ * ## iOS
+ *
+ * Nothing done.
+ *
+ * ## Android
+ *
+ * Create a **NavigationWindow-compatible** container that handle all windows in a stack.
+ *
+ * @param  {Object} args [description]
+ */
 exports.createNavigationWindow = function(args) {
 	if (!OS_IOS) return new NavigationWindow(args || {});
 	return Ti.UI.iOS.createNavigationWindow(args || {});
 };
 
-/*
-Window
-- Nothing done here
-*/
 
+
+
+/* ============ WINDOW ============= */
+
+/**
+ * @method createWindow
+ *
+ * ## iOS
+ *
+ * Nothing done.
+ *
+ * ## Android
+ *
+ * Adds the support for:
+ *
+ * * **rightNavButton**
+ * * **title and subtitle**: automatically set the title and subtitle in the ActionBar
+ *
+ * @param  {Object} args
+ */
 exports.createWindow = function(args) {
 	var $ui = Ti.UI.createWindow(args || {});
 
@@ -155,11 +182,10 @@ exports.createWindow = function(args) {
 	return $ui;
 };
 
-/*
-TextField
-- removed autofocus on Android
-- hintTextColor workaround
-*/
+
+
+
+/* ========== TEXTAREA =========== */
 
 function __onTextAreaFocus(e) {
 	if (!e.source.getRealValue().length) {
@@ -185,6 +211,28 @@ function __enableAutoFocus(e) {
 	e.source.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
 }
 
+/**
+ * @method  createTextField
+ *
+ * Added methods:
+ * * **getRealValue()**: get the effective value when using hintText hack
+ *
+ * Added properties:
+ * * **textType**: Can be *email* or *password*, and adjust the keyboard or the mask automatically.
+ * * **hintTextColor**: Color support the the hintText
+ * * **realValue**: get the effective value when using hintText hack
+ *
+ * ## iOS
+ *
+ * Nothing done
+ *
+ * ## Android
+ *
+ * Removed the annoying autofocus.
+ *
+ * @param  {Object} args
+ * @return {Ti.UI.TextField}
+ */
 exports.createTextField = function(args) {
 	args = args || {};
 
@@ -226,13 +274,28 @@ exports.createTextField = function(args) {
 	return $this;
 };
 
-/*
-TextArea
-- hintText now work on iOS
-- hintTextColor workaround
-- removed autofocus on Android
-*/
 
+/**
+ * @method  createTextArea
+ *
+ * Added methods:
+ * * **getRealValue()**: get the effective value when using hintText hack
+ *
+ * Added properties:
+ * * **hintTextColor**: Color support the the hintText
+ * * **realValue**: get the effective value when using hintText hack
+ *
+ * ## iOS
+ *
+ * Adds xp-support for hintText, that is missing on iOS.
+ *
+ * ## Android
+ *
+ * Removed the annoying autofocus.
+ *
+ * @param  {Object} args
+ * @return {Ti.UI.TextArea}
+ */
 exports.createTextArea = function(args) {
 	args = args || {};
 
@@ -266,15 +329,13 @@ exports.createTextArea = function(args) {
 	return $this;
 };
 
-/*
-Label
-- iOS support ** VERY BASIC ** HTML now!
-*/
 
-/*
-Thanks to @lastguest
-https://gist.github.com/lastguest/10277461
-*/
+
+
+/* ============= LABEL ============= */
+
+
+/* Thanks to @lastguest: https://gist.github.com/lastguest/10277461 */
 function simpleHTMLParser(text) {
 
 	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm,
@@ -316,6 +377,17 @@ function simpleHTMLParser(text) {
 }
 
 
+/**
+ * @method createLabel
+ *
+ * ## iOS
+ *
+ * Add xp-support for **VERY BASIC** HTML.
+ *
+ * For now, supports `<b><i><u><br><p>` tags.
+ *
+ * @param  {Object} args
+ */
 exports.createLabel = function(args) {
 	var $this = Ti.UI.createLabel(args || {});
 
@@ -359,35 +431,6 @@ exports.createLabel = function(args) {
 		};
 
 		if ($this.html) $this.setHtml($this.html);
-	}
-
-	return $this;
-};
-
-/*
-TableView
-- ** NEW FEATURE **: animateRows
-*/
-
-exports.createTableView = function(args) {
-	args = args || {};
-
-	if (args.animateRows) {
-		args.__data = args.data;
-		delete args.data;
-	}
-
-	var $this = Ti.UI.createTableView(args || {});
-
-	if (args.animateRows) {
-		_.each(args.__data, function(row, i){
-			setTimeout(function(){
-				$this.appendRow(row, {
-					animated: true,
-					animationStyle: Ti.UI.iPhone.RowAnimationStyle[i%2===0?'LEFT':'RIGHT']
-				});
-			}, i*100);
-		});
 	}
 
 	return $this;

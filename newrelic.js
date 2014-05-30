@@ -1,14 +1,17 @@
-/*
+/**
+ * @class  NewRelic
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Simply start NewRelic daemon
+ */
 
-Newrelic module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * * **token**: The token of this NewRelic app. Default: `null`
+ * @type {Object}
+ */
 var config = _.extend({
 	token: null
 }, Alloy.CFG.newrelic);
+exports.config = config;
 
 var $ = null;
 

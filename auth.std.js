@@ -1,34 +1,62 @@
-/*
+/**
+ * @class  Auth.Std
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Auth driver to handle Standard authentication
+ */
 
-Auth Standard module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-*/
-
+/**
+ * @type {Object}
+ */
 var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
+exports.config = config;
+
+
 var Net = require('net');
 var Auth = require('auth');
 
-
-exports.handleLogin = function(){
+/**
+ * Login to the API server using stored data
+ */
+function handleLogin(){
 	var data = Ti.App.Properties.getObject('auth.std.data');
 	data.silent = true;
-	require('auth').login(data, 'std');
-};
+	Auth.login(data, 'std');
+}
+exports.handleLogin = handleLogin;
 
-exports.login = function(data, cb) {
+
+/**
+ * Login to the API server
+ *
+ * @param {Object} data Data passed to API
+ * @param  {Function} success Callback when login success
+ */
+function login(data, cb) {
 	Auth.login(data, 'std', function(){
 		Ti.App.Properties.setObject('auth.std.data', data);
 		if (cb) cb();
 	});
-};
+}
+exports.login = login;
 
-exports.logout = function(){
+
+/**
+ * Remove any user data
+ *
+ */
+function logout(){
 	Ti.App.Properties.removeProperty('auth.std.data');
-};
+}
+exports.logout = logout;
 
-exports.signup = function(data, cb) {
+
+/**
+ * Signup to the API server
+ *
+ * @param  {Object}   data Data passed to API
+ * @param  {Function} cb   Success callback
+ */
+function signup(data, cb) {
 	Net.send({
 		url: '/signup',
 		method: 'POST',
@@ -37,9 +65,17 @@ exports.signup = function(data, cb) {
 			if (cb) cb();
 		}
 	});
-};
+}
+exports.signup = signup;
 
-exports.lost = function(data, cb){
+
+/**
+ * Send the *password lost* request to the API server
+ *
+ * @param  {Object}   data Data passed to API
+ * @param  {Function} cb   Success callback
+ */
+function lost(data, cb){
 	Net.send({
 		url: '/lost',
 		method: 'POST',
@@ -48,4 +84,5 @@ exports.lost = function(data, cb){
 			if (cb) cb();
 		}
 	});
-};
+}
+exports.lost = lost;

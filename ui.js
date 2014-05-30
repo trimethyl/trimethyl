@@ -1,46 +1,32 @@
-/*
+/**
+ * @class  UI
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Provide new UI elements for Titanium
+ *
+ * ** non-CommonJS module**
+ *
+ * You have to use in Alloy with `module="ui"`
+ *
+ */
 
-UI module (non-standard require module)
-Author: Flavio De Stefano
-Company: Caffeina SRL
 
-*/
-
-/*
-TabView
-- A TabView withouts tabs
-*/
-
-exports.createTabView = function(args) {
-	var $this = Ti.UI.createView(args);
-
-	$this.setActive = function(i) {
-		$this.activeViewIndex = +i;
-		_.each($this.children, function($el, k){
-			if (i==+k) {
-				$el.visible = true;
-				if ($el.id) {
-					$this.activeViewId = $el.id;
-				}
-			} else {
-				$el.visible = false;
-			}
-		});
-	};
-
-	return $this;
-};
-
-/*
-ModalWindow
-*/
+/**
+ * @method createModalWindow
+ * Proxy for https://github.com/CaffeinaLab/com.caffeinalab.titanium.modalwindow
+ * @param  {Object} args
+ */
 exports.createModalWindow = function(args) {
 	return Alloy.createWidget("com.caffeinalab.titanium.modalwindow", args);
 };
 
-/*
-ModalWebView
-*/
+/**
+ * @method createModalWebView
+ * Provide a simple method to open a *WebView* in a modal window
+ *
+ * Require https://github.com/CaffeinaLab/com.caffeinalab.titanium.modalwindow
+ *
+ * @param  {Object} args
+ */
 exports.createModalWebView = function(args) {
 	args = args || {};
 
@@ -58,9 +44,17 @@ exports.createModalWebView = function(args) {
 	return $modal;
 };
 
-/*
-YoutubeVideoWebView
-*/
+/**
+ * @method createYoutubeVideoWebView
+ * View that contain a Youtube video.
+ *
+ * Internally use a WebView to provide the content.
+ *
+ * On iOS, clicking on the video cause the video to play in native iOS player in fullscreen.
+ *
+ * @param  {Object} args [description]
+ * @return {Ti.UI.WebView}      [description]
+ */
 exports.createYoutubeVideoWebView = function(args){
 	args = args || {};
 	args.disableBounce = true;

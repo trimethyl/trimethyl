@@ -1,26 +1,39 @@
-/*
+/**
+ * @class  GA
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * Proxy module for Google Analitycs
+ *
+ * Require 'analitycs.google'
+ *
+ */
 
-Google Analitycs module
-Author: Flavio De Stefano
-Company: Caffeina SRL
-
-Requirements:
-gittio install -g analytics.google
-
-*/
-
+/**
+ * * **ua**: UA of Google Analitycs. Default: `null`
+ * @type {Object}
+ */
 var config = _.extend({
 	ua: null
 }, Alloy.CFG.ga);
+exports.config = config;
+
 
 var $ = require('analytics.google');
-var $T = null;
+var $TRACKER = null;
 
-exports.trackEvent = exports.event = function(cat, act, lbl, val){
-	if (!$T) return;
+
+/**
+ * Track an event
+ *
+ * @param  {String} cat The category **or the object passed to the module**
+ * @param  {String} act The action associated
+ * @param  {String} lbl The label associated
+ * @param  {String} val The value associated
+ */
+function trackEvent(cat, act, lbl, val){
+	if (!$TRACKER) return;
 
 	if (_.isObject(cat)) {
-		$T.trackEvent(cat);
+		$TRACKER.trackEvent(cat);
 	} else {
 
 		var obj = {};
@@ -29,21 +42,51 @@ exports.trackEvent = exports.event = function(cat, act, lbl, val){
 		obj.label = lbl ? lbl : '';
 		obj.value = val ? +val : 0;
 
-		$T.trackEvent(obj);
+		$TRACKER.trackEvent(obj);
 	}
-};
+}
+exports.trackEvent = trackEvent;
 
-exports.trackScreen = exports.screen = function(name){
-	if (!$T) return;
+/**
+ * @method event
+ * @inheritDoc #trackEvent
+ * Alias for {@link #trackEvent}
+ */
+exports.event = trackEvent;
 
-	$T.trackScreen(name);
-};
 
-exports.trackSocial = exports.social = function(net, act, tar){
-	if (!$T) return;
+/**
+ * Track a screen
+ *
+ * @param  {String} name The screen name
+ */
+function trackScreen(name){
+	if (!$TRACKER) return;
+
+	$TRACKER.trackScreen(name);
+}
+exports.trackScreen = trackScreen;
+
+/**
+ * @method screen
+ * @inheritDoc #trackScreen
+ * Alias for {@link #trackScreen}
+ */
+exports.screen = trackScreen;
+
+
+/**
+ * Track a social action
+ *
+ * @param  {String} net The social network: facebook, twitter, googleplus...
+ * @param  {String} act The action associated
+ * @param  {String} tar The target associated
+ */
+function trackSocial(net, act, tar){
+	if (!$TRACKER) return;
 
 	if (_.isObject(net)) {
-		$T.trackSocial(net);
+		$TRACKER.trackSocial(net);
 	} else {
 
 		var obj = {};
@@ -51,15 +94,33 @@ exports.trackSocial = exports.social = function(net, act, tar){
 		obj.action = act || 'share';
 		obj.target = tar || '';
 
-		$T.trackSocial(obj);
+		$TRACKER.trackSocial(obj);
 	}
-};
+}
+exports.trackSocial = trackSocial;
+
+/**
+ * @method social
+ * @inheritDoc #trackSocial
+ * Alias for {@link #trackSocial}
+ */
+exports.social = trackSocial;
+
+/**
+ * Set the tracker UA.
+ * @param {String} ua
+ */
+function setTrackerUA(ua) {
+	$TRACKER = $.getTracker(ua);
+}
+exports.setTrackerUA = setTrackerUA;
+
 
 (function init(){
 	$.trackUncaughtExceptions = true;
 	$.debug = false;
 
 	if (config.ua) {
-		$T = $.getTracker(config.ua);
+		setTrackerUA(config.ua);
 	}
 })();
