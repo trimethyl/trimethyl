@@ -297,7 +297,7 @@ function activity(args) {
 
 	if (OS_IOS) {
 
-		Social[Ti.Platform.osname=='ipad'?'activityPopover':'activityView']
+		dkNappSocial[Ti.Platform.osname=='ipad'?'activityPopover':'activityView']
 		({
 			text: args.text,
 			title: args.title,
