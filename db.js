@@ -23,7 +23,7 @@ function open() {
 
 	try {
 		DB = Ti.Database.open('app');
-		return $;
+		return DB;
 	} catch (ex) {
 		Ti.API.error("DB: "+ex);
 		return false;
