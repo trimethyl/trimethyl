@@ -4,11 +4,11 @@
  * The framework initializator
  */
 
-
 var Util = require('util');
+var Device 	= require('device');
+
 var launchURL = Util.parseSchema();
 var pauseURL = null;
-
 
 if (OS_IOS) {
 
@@ -26,10 +26,8 @@ if (OS_IOS) {
 
 }
 
-var Device 	= require('device');
-
 // Set some TSS vars
-
+//
 Alloy.Globals.SCREEN_WIDTH 		= Device.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT 		= Device.getScreenHeight();
 Alloy.Globals.SCREEN_DENSITY 		= Device.getScreenDensity();

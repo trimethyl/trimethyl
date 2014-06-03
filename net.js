@@ -441,7 +441,7 @@ exports.resetCache = resetCache;
 function resetCookies() {
 	// TODO
 }
-exports.resetCookies = resetCookis;
+exports.resetCookies = resetCookies;
 
 
 /**
