@@ -61,24 +61,27 @@ exports.createYoutubeVideoWebView = function(args){
 	args.willHandleTouches = true;
 	args.showScrollbars = false;
 	args.scalesPageToFit = false;
+	args.hideLoadIndicator = true;
+	args.enableZoomControls = false;
 
 	if (OS_ANDROID) {
 		args.overScrollMode = Ti.UI.Android.OVER_SCROLL_NEVER;
-		args.pluginState = Titanium.UI.Android.WEBVIEW_PLUGINS_ON;
-		args.enableZoomControls = false;
+		args.pluginState = Ti.UI.Android.WEBVIEW_PLUGINS_ON;
 	}
 
+	args.youtube = args.youtube || {};
 	if (!args.youtube.width) args.youtube.width = args.width;
 	if (!args.youtube.height) args.youtube.height = args.height;
-	args.height += 5;
 
 	var $ui = Ti.UI.createWebView(args);
 
-	var html = '<!doctype html><html style="margin:0"><head><meta name="viewport" content="width=device-width, user-scalable=no"></head><body style="margin:0"><div id="player"></div>';
+	var html = '<!doctype html><html><head>';
+	html += '<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />';
+	html += '<style>html,body{padding:0;background:black;margin:0;overflow:hidden;}</style>';
+	html += '</head><body><div id="player"></div>';
 	html += '<script src="http://www.youtube.com/player_api"></script>';
-	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",'+JSON.stringify(args.youtube) + '); }</script>';
+	html += '<script>function onYouTubePlayerAPIReady(){window.player=new YT.Player("player",'+JSON.stringify(args.youtube)+');}</script>';
 	html += '</body></html>';
-
 	$ui.html = html;
 
 	return $ui;
