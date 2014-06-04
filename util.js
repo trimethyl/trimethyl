@@ -102,6 +102,17 @@ exports.openTwitterProfile = function(twid) {
 
 
 /**
+ * @method  openTwitterStatus
+ * Open a Twitter status in the Twitter application
+ * @param  {String} userid   The user id
+ * @param  {String} statusid The status id
+ */
+exports.openTwitterStatus = function(userid, statusid) {
+	return openURL("twitter://status?id="+statusid, "http://twitter.com/"+userid+"/statuses/"+statusid);
+};
+
+
+/**
  * Get the Facebook avatar from the graph
  *
  * @param  {String} fbid Facebook ID

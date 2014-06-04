@@ -94,7 +94,10 @@ if (!OS_IOS) {
  * @param  {Object} args [description]
  */
 exports.createNavigationWindow = function(args) {
-	if (!OS_IOS) return new NavigationWindow(args || {});
+	if (!OS_IOS) {
+		return new NavigationWindow(args || {});
+	}
+
 	return Ti.UI.iOS.createNavigationWindow(args || {});
 };
 
@@ -405,15 +408,19 @@ exports.createLabel = function(args) {
 				},
 				'i': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: /-Regular/.test(args.font.fontFamily) ?
+					value: args.font ? (
+					/-Regular/.test(args.font.fontFamily) ?
 					{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
 					{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
+					) : { fontStyle: 'Italic' }
 				},
 				'b': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: /-Regular/.test(args.font.fontFamily) ?
+					value: args.font ? (
+					/-Regular/.test(args.font.fontFamily) ?
 					{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
 					{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
+					) : { fontWeight: 'Bold' }
 				}
 			};
 
