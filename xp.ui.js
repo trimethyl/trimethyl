@@ -1,6 +1,6 @@
 /**
  * @class  XPUI
- * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @author  Fokke Zandbergen <mail@fokkezb.nl>
  * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
  *
  * ** non-CommonJS module**
