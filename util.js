@@ -325,13 +325,42 @@ exports.alertError = exports.error = alertError;
 
 
 /**
+ * Return the iOS major version
+ * @return {Number}
+ */
+function getIOSVersion() {
+	if (!OS_IOS) return false;
+	return parseInt(Ti.Platform.version.split(".")[0]);
+}
+exports.getIOSVersion = getIOSVersion;
+
+/**
+ * Check if is iOS 6
+ * @return {Boolean}
+ */
+function isIOS7() {
+	return getIOSVersion()==6;
+}
+exports.isIOS7 = isIOS7;
+
+
+/**
  * Check if is iOS 7
  * @return {Boolean}
  */
 function isIOS7() {
-	return OS_IOS && +(Ti.Platform.version.split(".")[0])>=7;
+	return getIOSVersion()==7;
 }
 exports.isIOS7 = isIOS7;
+
+/**
+ * Check if is iOS 8
+ * @return {Boolean}
+ */
+function isIOS8() {
+	return getIOSVersion()==8;
+}
+exports.isIOS8 = isIOS8;
 
 
 /**

@@ -32,6 +32,7 @@ Alloy.Globals.SCREEN_WIDTH 		= Device.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT 		= Device.getScreenHeight();
 Alloy.Globals.SCREEN_DENSITY 		= Device.getScreenDensity();
 Alloy.Globals.IOS7 					= Util.isIOS7();
+Alloy.Globals.IOS8					= Util.isIOS8();
 
 // Prototype!
 

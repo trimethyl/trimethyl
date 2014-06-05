@@ -6,15 +6,13 @@
 
 
 /**
- * * **inAppNotification**: Enable the in-app notifications. Default: `true`
- * * **inAppNotificationMethod**: The method of the in-app notification. Must be of of `alert`, `toast`. Default: `toast`
  * * **autoReset**: Check if auto-reset the badge when app is open.
  * * **driver**: The driver to use. Possible value are `cloud`.
  * @type {Object}
  */
 var config = _.extend({
 	inAppNotification: true,
-	inAppNotificationMethod: 'toast',
+	inAppNotificationMethod: null,
 	autoReset: true,
 	driver: 'cloud',
 }, Alloy.CFG.notifications);
@@ -28,19 +26,7 @@ function getDriver(driver) {
 
 function onNotificationReceived(e) {
 	Ti.App.fireEvent('notifications.received', e);
-
-	if (config.autoReset) {
-		setBadge(0);
-	}
-
-	// Handle foreground notifications
-	if (!e.inBackground && config.inAppNotification && e.data.alert) {
-		if (config.inAppNotificationMethod=='toast') {
-			require('toast').show(e.data.alert);
-		} else if (config.inAppNotificationMethod=='alert') {
-			require('util').simpleAlert(e.data.alert);
-		}
-	}
+	if (config.autoReset) resetBadge();
 }
 
 
@@ -185,6 +171,9 @@ function getBadge() {
 exports.getBadge = getBadge;
 
 
+function resetBadge() {
+	setBadge(0);
+}
 
 
 /**
@@ -200,10 +189,8 @@ exports.incBadge = incBadge;
 (function init(){
 
 	if (config.autoReset) {
-		setBadge(0);
-		Ti.App.addEventListener('app.resumed', function(){
-			setBadge(0);
-		});
+		resetBadge();
+		Ti.App.addEventListener('app.resumed', resetBadge);
 	}
 
 })();
