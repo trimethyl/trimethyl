@@ -236,14 +236,14 @@ function logout(cb) {
 			url: '/logout',
 			method: 'POST',
 			silent: true,
+			success: function(){},
+			error: function(){},
 			complete: function(){
 				Net.resetCookies();
 				Ti.App.fireEvent('auth.logout', { id: id });
 
 				if (cb) cb();
 			},
-			success: function(){},
-			error: function(){} // suppress all errors
 		});
 
 	} else {
