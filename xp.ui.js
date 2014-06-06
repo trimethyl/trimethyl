@@ -1,11 +1,14 @@
 /**
  * @class  XPUI
- * @author  Fokke Zandbergen <mail@fokkezb.nl>
+ * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
  *
  * ** non-CommonJS module**
  *
  * You have to use in Alloy with `module="xp.ui"`
+ * 
+ * Inspired to @FokkeZB UTIL. Thanks! :)
+ * https://github.com/CaffeinaLab/Trimethyl/edit/master/xp.ui.js
  *
  */
 
@@ -13,7 +16,10 @@
 /* ============ NAVIGATIONWINDOW =============== */
 
 if (!OS_IOS) {
-
+	
+	/*
+	NavigationWindow Android fallback provided by @FokkeZB
+	*/
 	var NavigationWindow = function(args) {
 		this.args = args || {};
 		this.windows = [];
