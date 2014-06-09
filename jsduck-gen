@@ -1,4 +1,5 @@
 #!/bin/zsh
+git pull
 rm -rf /tmp/docs
 jsduck . --output /tmp/docs --title "Trimethyl API Documentation" --footer "Alloy-Titanium framework made in Caffeina"
 jsduck . --output /tmp/docs/JSON --export=full
