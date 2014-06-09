@@ -7,6 +7,9 @@
  *
  * You have to use in Alloy with `module="xp.ui"`
  *
+ * Inspired to @FokkeZB UTIL. Thanks! :)
+ * https://github.com/CaffeinaLab/Trimethyl/edit/master/xp.ui.js
+ *
  */
 
 
@@ -14,6 +17,9 @@
 
 if (!OS_IOS) {
 
+	/*
+	NavigationWindow Android fallback provided by @FokkeZB
+	*/
 	var NavigationWindow = function(args) {
 		this.args = args || {};
 		this.windows = [];
@@ -224,7 +230,6 @@ function __enableAutoFocus(e) {
  * Added properties:
  *
  * * **textType**: Can be *email* or *password*, and adjust the keyboard or the mask automatically.
- * * **hintTextColor**: Color support the the hintText
  * * **realValue**: get the effective value when using hintText hack
  *
  * ## iOS
@@ -270,7 +275,6 @@ exports.createTextField = function(args) {
  *
  * Added properties:
  *
- * * **hintTextColor**: Color support the the hintText
  * * **realValue**: get the effective value when using hintText hack
  *
  * ## iOS
@@ -428,8 +432,11 @@ exports.createLabel = function(args) {
 /**
  * @method createListView
  *
- * @param  {[type]} args [description]
- * @return {[type]}      [description]
+ * Added listeners:
+ *
+ * * **itemdblclick**: Similar to itemclick, but for double **item** click
+ *
+ * @param  {Object} args
  */
 exports.createListView = function(args) {
 	var $this = Ti.UI.createListView(args || {});
