@@ -241,11 +241,6 @@ function __enableAutoFocus(e) {
 exports.createTextField = function(args) {
 	args = args || {};
 
-	if (args.hintTextColor) {
-		args.__hintText = args.hintText;
-		delete args.hintText;
-	}
-
 	switch (args.textType) {
 		case 'email':
 		args.keyboardType = Ti.UI.KEYBOARD_EMAIL;
@@ -257,24 +252,10 @@ exports.createTextField = function(args) {
 
 	var $this = Ti.UI.createTextField(args);
 
-	if (args.hintTextColor) {
-		$this.originalColor = $this.color || '#000';
-		$this.addEventListener('focus', __onTextAreaFocus);
-		$this.addEventListener('blur', __onTextAreaBlur);
-		__onTextAreaBlur({ source: $this });
-	}
-
 	if (OS_ANDROID) {
 		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
 		$this.addEventListener('touchstart', __enableAutoFocus);
 	}
-
-	// Define a method to get the value when hintText hack is used
-	$this.getRealValue = function(){
-		if ($this.__hintText==$this.value) return '';
-		return $this.value;
-	};
-	Object.defineProperty($this, 'realValue', { get: $this.getRealValue });
 
 	return $this;
 };
@@ -306,14 +287,9 @@ exports.createTextField = function(args) {
 exports.createTextArea = function(args) {
 	args = args || {};
 
-	if (args.hintTextColor) {
-		args.__hintText = args.hintText;
-		delete args.hintText;
-	}
-
 	var $this = Ti.UI.createTextArea(args || {});
 
-	if (args.hintTextColor || OS_IOS) {
+	if (OS_IOS) {
 		$this.__hintText = $this.hintText;
 		$this.originalColor = $this.color || '#000';
 		$this.addEventListener('focus', __onTextAreaFocus);
@@ -443,6 +419,40 @@ exports.createLabel = function(args) {
 
 		if ($this.html) $this.setHtml($this.html);
 	}
+
+	return $this;
+};
+
+
+
+/**
+ * @method createListView
+ *
+ * @param  {[type]} args [description]
+ * @return {[type]}      [description]
+ */
+exports.createListView = function(args) {
+	var $this = Ti.UI.createListView(args || {});
+
+	var DBL_CLICK_TIMEOUT = 500;
+	var devtClick = {};
+	var devtTime = 0;
+
+	$this.addEventListener('itemclick', function(e){
+		var evtTime = +(new Date());
+		var evtClick = {
+			itemId: e.itemId,
+			bindId: e.bindId,
+			sectionIndex: e.sectionIndex,
+			itemIndex: e.itemIndex
+		};
+		if (evtTime-devtTime<DBL_CLICK_TIMEOUT && _.isEqual(devtClick, evtClick)) {
+			$this.fireEvent('itemdblclick', evtClick);
+			eventClick = {};
+		}
+		devtTime = evtTime;
+		devtClick = evtClick;
+	});
 
 	return $this;
 };

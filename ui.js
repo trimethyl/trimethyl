@@ -86,3 +86,23 @@ exports.createYoutubeVideoWebView = function(args){
 
 	return $ui;
 };
+
+
+
+exports.createTransformableImageView = function(args) {
+	var image = args.image;
+	delete args.image;
+
+	var $ui = Ti.UI.createScrollView(_.extend({
+		minZoomScale: 0,
+		maxZoomScale: 3,
+		zoomScale: 1,
+		disableBounce: true
+	}, args));
+	var $img = Ti.UI.createImageView({
+		image: image
+	});
+	$ui.add($img);
+
+	return $ui;
+};

@@ -13,15 +13,15 @@ var config = _.extend({
 }, Alloy.CFG.newrelic);
 exports.config = config;
 
-var $ = null;
+var TiNewRelic = null;
 
 (function init() {
 	if (!OS_IOS) return;
 
 	try {
-		$ = require('ti.newrelic');
+		TiNewRelic = require('ti.newrelic');
 		if (config.token) {
-			$.start(config.token);
+			TiNewRelic.start(config.token);
 		}
 	} catch (e) {}
 })();
