@@ -1,6 +1,6 @@
 # Trimethyl
 
-## [API Documentation](http://caffeinalab.github.io/Trimethyl/)
+### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
 
 ### Alloy-Titanium framework made in [Caffeina](http://caffeinalab.com)
