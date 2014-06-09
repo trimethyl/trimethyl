@@ -8,7 +8,7 @@
  * You have to use in Alloy with `module="xp.ui"`
  *
  * Inspired to @FokkeZB UTIL. Thanks! :)
- * https://github.com/CaffeinaLab/Trimethyl/edit/master/xp.ui.js
+ * https://github.com/FokkeZB/UTiL/tree/master/xp.ui
  *
  */
 
