@@ -102,10 +102,8 @@ function decorateRequest(request) {
 
 	request.method = request.method ? request.method.toUpperCase() : 'GET';
 	request.headers = _.extend(config.headers, request.headers || {});
-	if (!request.timeout) request.timeout = config.timeout;
-
-	if (!request.success) request.success = function(){};
-	if (!request.error) request.error = errorHandler;
+	request.timeout = request.timeout || config.timeout;
+	if (request.error===undefined) request.error = errorHandler;
 
 	// Rebuild the URL if is a GET and there's data
 	if (request.method=='GET' && request.data) {
@@ -172,7 +170,9 @@ function onComplete(request, response, e){
 		}
 
 		// Success callback
-		request.success(returnValue);
+		if (_.isFunction(request.success)) {
+			request.success(returnValue);
+		}
 		return true;
 
 	} else {
@@ -199,7 +199,9 @@ function onComplete(request, response, e){
 		};
 
 		// Error callback
-		request.error(E);
+		if (_.isFunction(request.error)) {
+			request.error(E);
+		}
 		return false;
 
 	}
@@ -432,7 +434,9 @@ function send(request) {
 				Ti.API.debug("Net: success from cache");
 			}
 
-			request.success(cache);
+			if (_.isFunction(request.success)) {
+				request.success(cache);
+			}
 			return request.hash;
 		}
 	}

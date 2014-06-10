@@ -451,10 +451,10 @@ exports.createListView = function(args) {
 			itemId: e.itemId,
 			bindId: e.bindId,
 			sectionIndex: e.sectionIndex,
-			itemIndex: e.itemIndex,
-			section: e.section
+			itemIndex: e.itemIndex
 		};
 		if (evtTime-devtTime<DBL_CLICK_TIMEOUT && _.isEqual(devtClick, evtClick)) {
+			evtClick.section = e.section;
 			$this.fireEvent('itemdblclick', evtClick);
 			evtClick = {}; // prevent non 2n-clicks
 		}
