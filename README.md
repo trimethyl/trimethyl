@@ -1,4 +1,10 @@
-# Trimethyl
+# Trimethyl 
+
+[![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
+
+
+### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
+
 
 ### Alloy-Titanium framework made in [Caffeina](http://caffeinalab.com)
 
@@ -7,8 +13,6 @@ A collection of very useful modules to work with Appcelerator Titanium and Alloy
 Most of these modules are proxy object for Titanium API and some of these add features missing or expose functions usefuls for UI normalization.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
-
-# [API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
 
 ## Installation
@@ -25,28 +29,50 @@ All your custom code out of the framework can be placed in `app/lib/app/*`, that
 
 ## Initialization
 
-In your *app/alloy.js* file, do something like:
+In your *app/alloy.js* file, on the first line:
 
 ```javascript
-var Framework = require('trimethyl');
+require('trimethyl');
 ```
 
-Now, just call
+This will bootstrap some important framework files, set prototypes, TSS and Alloy.Globals vars.
+
+## CommonJS Modules
+
+To require a module, just call
 
 ```javascript
-var Net = require('net');
+var X = require('X');
 ```
 
-for each module you want to use.
+where `X` is the module that you want to use.
+
+**Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage**.
 
 Each module read the `Alloy.CFG.__MODULENAME__` properties in your *config.json* file to configure itself.
 
+## NON-CommonJS modules
+
+There are some modules that's cannot be included via *require*, and you have to use in your XML Alloy files, like:
+
+* **xp.ui**: Provide cross-platforms UI elements to handle differences between platforms
+* **ui**: Provide new UI elements that missing from some platforms
+
+**Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage**.
+
 ## Essential (3)-party widgets
+
+Some modules needs this modules, so you have to install if you get some errors:
 
 * https://github.com/CaffeinaLab/com.caffeinalab.titanium.loader
 * https://github.com/CaffeinaLab/com.caffeinalab.titanium.modalwindow
 
-For certain modules, this widgets **are necessary**.
+You can install via **gittio**:
+
+```
+gittio install com.caffeinalab.titanium.loader;
+gittio install com.caffeinalab.titanium.modalwindow;
+```
 
 ## License
 
