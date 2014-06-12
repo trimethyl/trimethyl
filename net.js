@@ -161,7 +161,7 @@ function onComplete(request, response, e){
 		*/
 
 		if (ENV_DEVELOPMENT && config.debug) {
-			Ti.API.debug("Net: response success");
+			Ti.API.debug("Net: response success  ---> "+response.responseText);
 		}
 
 		// Write cache
@@ -369,7 +369,7 @@ exports.resetCache = function(){
  * Reset the cookies for all requests
  */
 function resetCookies() {
-	// TODO
+	Ti.Network.createHTTPClient().clearCookies(config.base);
 }
 exports.resetCookies = resetCookies;
 
