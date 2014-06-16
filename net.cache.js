@@ -22,7 +22,7 @@ var DB = null;
  */
 function set(request, response, info) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open.");
+		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
 		return false;
 	}
 
@@ -35,7 +35,7 @@ function set(request, response, info) {
 		);
 
 	if (ENV_DEVELOPMENT) {
-		Ti.API.debug("Net.Cache: Cache written successfully.");
+		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache written successfully.");
 	}
 }
 exports.set = set;
@@ -49,20 +49,20 @@ exports.set = set;
  */
 function get(request, bypassExpiration) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open.");
+		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
 		return false;
 	}
 
 	if (request.refresh || request.cache===false) {
 		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Net.Cache: request cache forced to refresh");
+			Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache forced to refresh");
 		}
 		return false;
 	}
 
 	var cacheRow = DB.execute('SELECT expire, creation FROM net WHERE id = ? LIMIT 1', request.hash);
 	if (!cacheRow || !cacheRow.isValidRow()) {
-		Ti.API.debug("Net.Cache: cache not found");
+		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache not found");
 		return false;
 	}
 
@@ -72,7 +72,7 @@ function get(request, bypassExpiration) {
 
 	if (!bypassExpiration) {
 		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Net.Cache: cache values are "+expire+" - "+now+" = "+(expire-now)+"s");
+			Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+" - "+now+" = "+(expire-now)+"s");
 		}
 		if (expire<now) {
 			return false;
@@ -82,7 +82,7 @@ function get(request, bypassExpiration) {
 	var cache = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
 	var content = cache.fieldByName('content');
 	if (!content) {
-		Ti.API.error("Net.Cache: invalid cache content");
+		Ti.API.error("Net.Cache: REQ-["+request.hash+"] has invalid cache content");
 		return false;
 	}
 
@@ -101,7 +101,7 @@ exports.get = get;
  */
 function reset() {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open.");
+		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
 		return false;
 	}
 
@@ -116,7 +116,7 @@ exports.reset = reset;
  */
 function del(hash) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open.");
+		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
 		return false;
 	}
 

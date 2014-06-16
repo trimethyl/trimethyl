@@ -481,7 +481,6 @@ exports.createTabbedBar = function(args) {
 
 	var $this = Ti.UI.createView(args);
 
-
 	$this._labels = [];
 	$this.getLabels = function() { return $this._labels; };
 	$this.setLabels = function(lbls) {
@@ -490,7 +489,7 @@ exports.createTabbedBar = function(args) {
 			$this._labels.push(_.isObject(l) ? l.title : l);
 		});
 
-		var width = (100/$this._labels.length)+'%';
+		var width = Math.floor(100/$this._labels.length)+'%';
 		var $wrap = Ti.UI.createView({
 			layout: 'horizontal',
 		});
