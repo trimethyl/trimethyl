@@ -464,3 +464,97 @@ exports.createListView = function(args) {
 
 	return $this;
 };
+
+
+/**
+ * @method createTabbedBar
+ *
+ * Create a TabbedBar fully compatible with Android
+ *
+ * @param  {Object} args
+ */
+exports.createTabbedBar = function(args) {
+	args = args || {};
+	if (OS_IOS) {
+		return Ti.UI.iOS.createTabbedBar(args);
+	}
+
+	var $this = Ti.UI.createView(args);
+
+
+	$this._labels = [];
+	$this.getLabels = function() { return $this._labels; };
+	$this.setLabels = function(lbls) {
+		$this._labels = [];
+		_.each(lbls, function(l,i){
+			$this._labels.push(_.isObject(l) ? l.title : l);
+		});
+
+		var width = (100/$this._labels.length)+'%';
+		var $wrap = Ti.UI.createView({
+			layout: 'horizontal',
+		});
+
+		_.each($this._labels, function(l, index){
+			$wrap.add(Ti.UI.createButton({
+				title: l,
+				index: index,
+				width: width,
+				left: 0,
+				right: 0,
+				height: 32,
+				borderColor: args.tintColor || '#000',
+				borderWidth: 1,
+				font: args.font || {},
+				backgroundColor: 'transparent',
+				color: args.tintColor || '#000'
+			}));
+		});
+
+		if ($this.wrap) $this.remove($this.wrap);
+		$this.wrap = $wrap; $this.add($this.wrap);
+	};
+
+	Object.defineProperty($this, 'labels', {
+		set: $this.setLabels, get: $this.getLabels
+	});
+
+
+	$this._index = 0;
+	$this.getIndex = function() { return $this._index; };
+	$this.setIndex = function(i) {
+		$this._index = +i;
+
+		if (!$this.wrap.children || !$this.wrap.children.length) return;
+		_.each($this.wrap.children, function($c, _i) {
+			if (_i==$this._index) {
+				$c.applyProperties({
+					backgroundColor: args.tintColor || '#000',
+					color: args.backgroundColor || '#fff',
+					active: false
+				});
+			} else {
+				$c.applyProperties({
+					backgroundColor: 'transparent',
+					color: args.tintColor || '#000',
+					active: true
+				});
+			}
+		});
+	};
+
+	Object.defineProperty($this, 'index', {
+		set: $this.setIndex, get: $this.getIndex
+	});
+
+	$this.addEventListener('click', function(e){
+		if ('index' in e.source) {
+			$this.setIndex(+e.source.index);
+		}
+	});
+
+	if (args.labels) $this.setLabels(args.labels);
+	$this.setIndex(args.index!==undefined ? args.index : 0);
+
+	return $this;
+};

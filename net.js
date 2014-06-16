@@ -6,10 +6,9 @@
 
 /**
  * * **base**: The base URL of the API
- * * **timeout**: Global timeout for the requests. After this value (express in seconds) the requests throw an error. Default: `http://localhost`
+ * * **timeout**: Global timeout for the requests. After this value (express in milliseconds) the requests throw an error. Default: `http://localhost`
  * * **useCache**: Check if the requests are automatically cached. Default: `true`
  * * **headers**: Global headers for all requests. Default: `{}`
- * * **debug**: Enable ultra verbose logging. Default: `true`
  * * **usePingServer**: Enable the PING-Server support. Default: `true`
  * @type {Object}
  */
@@ -18,7 +17,6 @@ var config = _.extend({
 	timeout: 10000,
 	useCache: true,
 	headers: {},
-	debug: false,
 	usePingServer: true
 }, Alloy.CFG.net);
 exports.config = config;
@@ -62,12 +60,16 @@ exports.resetErrorHandler = resetErrorHandler;
 
 
 function getResponseInfo(response) {
-	var info = {};
+	var info = {
+		mime: 'blob',
+		expire: -1,
+	};
 
 	// Check first the Content-Type
 	var contentType = response.getResponseHeader('Content-Type');
-	if (contentType=='application/json') {
-		info.mime = 'json';
+	switch (contentType) {
+		case 'application/json': info.mime = 'json'; break;
+		case 'text/html': info.mime = 'text'; break;
 	}
 
 	// Check the Expires header
@@ -118,8 +120,12 @@ function decorateRequest(request) {
 
 
 function onComplete(request, response, e){
+	request.endTime = +new Date();
+
 	// Delete request from queue
-	delete queue[request.hash];
+	try {
+		delete queue[request.hash];
+	} catch (ex) {}
 
 	// Fire the global event
 	if (!request.silent) {
@@ -129,19 +135,40 @@ function onComplete(request, response, e){
 		});
 	}
 
-	if (request.complete) {
+	if (_.isFunction(request.complete)) {
 		request.complete();
 	}
+
+	// If the readyState is not DONE, trigger error, because
+	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
+	if (response.readyState<=1) {
+		Ti.API.error("Net: REQ-["+request.hash+"] is broken (readyState<=1)");
+
+		if (_.isFunction(request.error)) {
+			request.error();
+		}
+
+		return false;
+	}
+
+	if (ENV_DEVELOPMENT) {
+		Ti.API.debug("Net: REQ-["+request.hash+"] completed in "+(request.endTime-request.startTime)+'ms');
+		Ti.API.debug('<pre>'+response.responseText+'</pre>');
+	}
+
 
 	// Get the response information
 	var info = getResponseInfo(response);
 
 	// Override response info
-	if (request.mime) info.mime = request.mime;
-	if (request.expire) info.expire = request.expire;
+	_.each(['mime','expire'], function(k){
+		if (request[k]!==undefined) {
+			info[k] = request[k];
+		}
+	});
 
-	if (ENV_DEVELOPMENT && config.debug) {
-		Ti.API.debug("Net: response informations are "+JSON.stringify(info));
+	if (ENV_DEVELOPMENT) {
+		Ti.API.debug("Net: REQ-["+request.hash+"] informations are "+JSON.stringify(info)+'');
 	}
 
 	var returnValue = null;
@@ -160,8 +187,8 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
-		if (ENV_DEVELOPMENT && config.debug) {
-			Ti.API.debug("Net: response success  ---> "+response.responseText);
+		if (ENV_DEVELOPMENT) {
+			Ti.API.debug("Net: REQ-["+request.hash+"] success");
 		}
 
 		// Write cache
@@ -181,8 +208,8 @@ function onComplete(request, response, e){
 		ERROR
 		*/
 
-		if (ENV_DEVELOPMENT && config.debug) {
-			Ti.API.error("Net: error -> "+JSON.stringify(response));
+		if (ENV_DEVELOPMENT) {
+			Ti.API.error("Net: REQ-["+request.hash+"] error");
 		}
 
 		// Parse the error returned from the server
@@ -198,12 +225,11 @@ function onComplete(request, response, e){
 			code: response.status
 		};
 
-		// Error callback
 		if (_.isFunction(request.error)) {
 			request.error(E);
 		}
-		return false;
 
+		return false;
 	}
 }
 
@@ -347,9 +373,9 @@ function abortRequest(hash) {
 	if (!httpClient) return;
 	try {
 		httpClient.abort();
-		Ti.API.debug("Net: request aborted");
+		Ti.API.debug("Net: REQ-["+request.hash+"]request aborted");
 	} catch (e) {
-		Ti.API.error("Net: aborting request error, "+e);
+		Ti.API.error("Net: REQ-["+request.hash+"] aborting error --> "+e);
 	}
 }
 exports.abortRequest = abortRequest;
@@ -409,42 +435,46 @@ exports.deleteCache = function(hash) {
 function send(request) {
 	request = decorateRequest(request);
 
-	if (ENV_DEVELOPMENT && config.debug) {
-		Ti.API.debug("Net: making request -> "+JSON.stringify(request));
+	if (ENV_DEVELOPMENT) {
+		Ti.API.debug("Net: REQ-["+request.hash+"] is received --> <pre>"+JSON.stringify(request,null,2)+"</pre>");
 	}
 
 	// Try to get the cache, otherwise make the HTTP request
 	if (NetCache && request.cache!==false && request.method=='GET') {
 
-		var cache = NetCache.get(request, !Ti.Network.online);
+		var cache = NetCache.get(request, !isOnline());
 		if (cache) {
 
-			// if we are offline, but we got cache, fire event to handle
-			if (!Ti.Network.online) {
-				Ti.App.fireEvent('net.offline', {
-					cache: true
-				});
+			if (ENV_DEVELOPMENT) {
+				Ti.API.debug("Net: REQ-["+request.hash+"] success from cache");
 			}
 
-			if (request.complete) {
+			if (!isOnline()) {
+				Ti.App.fireEvent('net.offline', { cache: true });
+			}
+
+			if (_.isFunction(request.complete)) {
 				request.complete();
-			}
-
-			if (ENV_DEVELOPMENT && config.debug) {
-				Ti.API.debug("Net: success from cache");
 			}
 
 			if (_.isFunction(request.success)) {
 				request.success(cache);
 			}
+
 			return request.hash;
 		}
 	}
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
 	if (!isOnline()) {
+
+		if (ENV_DEVELOPMENT) {
+			Ti.API.error("Net: connection is offline");
+		}
+
 		Ti.App.fireEvent('net.offline', { cache: false });
 		require('util').alert(L('net_offline_title'), L('net_offline_message'));
+
 		return false;
 	}
 
@@ -460,7 +490,7 @@ function send(request) {
 	// Add this request to the queue
 	queue[request.hash] = H;
 	H.timeout = request.timeout;
-	H.cache = false;
+	H.cache = false; // disable integrated iOS cache
 
 	// onLoad && onError are the same because we have an internal parser that discern the event.success property; WOW!
 	H.onload = H.onerror = function(e){ onComplete(request, this, e); };
@@ -471,11 +501,27 @@ function send(request) {
 		H.setRequestHeader(k, h);
 	});
 
-	// Finally, send the request
-	if (request.data) {
-		H.send(request.data);
-	} else {
-		H.send();
+	request.startTime = +new Date();
+
+	// Finally, send the request, try-catching all
+	try {
+
+		if (request.data) {
+			H.send(request.data);
+		} else {
+			H.send();
+		}
+
+	} catch (intEx) {
+
+		if (_.isFunction(requets.error)) {
+			request.error();
+		}
+
+	}
+
+	if (ENV_DEVELOPMENT) {
+		Ti.API.debug("Net: REQ-["+request.hash+"] sent");
 	}
 
 	// And return the hash of this request

@@ -8,7 +8,6 @@
  * @type {Object}
  */
 var config = _.extend({
-	debug: true
 }, Alloy.CFG.net ? Alloy.CFG.net.cache : {});
 exports.config = config;
 
@@ -35,7 +34,7 @@ function set(request, response, info) {
 		JSON.stringify(info)
 		);
 
-	if (ENV_DEVELOPMENT && config.debug) {
+	if (ENV_DEVELOPMENT) {
 		Ti.API.debug("Net.Cache: Cache written successfully.");
 	}
 }
@@ -55,7 +54,7 @@ function get(request, bypassExpiration) {
 	}
 
 	if (request.refresh || request.cache===false) {
-		if (ENV_DEVELOPMENT && config.debug) {
+		if (ENV_DEVELOPMENT) {
 			Ti.API.debug("Net.Cache: request cache forced to refresh");
 		}
 		return false;
@@ -72,7 +71,7 @@ function get(request, bypassExpiration) {
 	var now = require('util').timestamp();
 
 	if (!bypassExpiration) {
-		if (ENV_DEVELOPMENT && config.debug) {
+		if (ENV_DEVELOPMENT) {
 			Ti.API.debug("Net.Cache: cache values are "+expire+" - "+now+" = "+(expire-now)+"s");
 		}
 		if (expire<now) {

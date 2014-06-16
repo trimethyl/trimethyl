@@ -39,7 +39,7 @@ if (OS_IOS) {
 			types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
 			success: function(e){
 				if (!e.deviceToken) {
-					Ti.API.error("Notifications: Unable to get device token; "+e.error);
+					Ti.API.error("Notifications: Subscribing - Unable to get device token; "+e.error);
 					Ti.App.fireEvent('notifications.subscription.error', e);
 					return;
 				}
@@ -48,7 +48,7 @@ if (OS_IOS) {
 
 			},
 			error: function(e){
-				Ti.API.error("Notifications: "+e.error);
+				Ti.API.error("Notifications: Subscribing - "+e.error);
 				Ti.App.fireEvent('notifications.subscription.error', e);
 			},
 		});
@@ -69,7 +69,7 @@ if (OS_IOS) {
 		CloudPush.retrieveDeviceToken({
 			success: function(e) {
 				if (!e.deviceToken) {
-					Ti.API.error("Notifications: Unable to get device token; "+e.error);
+					Ti.API.error("Notifications: Retrieve device token success but invalid - "+e.error);
 					Ti.App.fireEvent('notifications.subscription.error', e);
 					return;
 				}
@@ -79,7 +79,7 @@ if (OS_IOS) {
 
 			},
 			error: function(e) {
-				Ti.API.error("Notifications: "+e.error);
+				Ti.API.error("Notifications: Retrieve device token failed - "+e.error);
 				Ti.App.fireEvent('notifications.subscription.error', e);
 			}
 		});
@@ -109,15 +109,17 @@ function subscribe(channel) {
 
 	subscribeFunction(function(token){
 		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Notifications: Subscribing success; device token is "+token);
+			Ti.API.debug("Notifications: Subscribed, device token is "+token);
 		}
 
 		var driver = getDriver();
-		if (driver) driver.subscribe(token, channel, function(){
-			if (ENV_DEVELOPMENT) {
-				Ti.API.debug("Notifications: Subscribing success to driver");
-			}
-		});
+		if (driver) {
+			driver.subscribe(token, channel, function(){
+				if (ENV_DEVELOPMENT) {
+					Ti.API.debug("Notifications: Subscribed to selected driver ("+config.driver+')');
+				}
+			});
+		}
 
 	});
 
