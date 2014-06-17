@@ -36,15 +36,16 @@ exports.config = config;
  *
  * `filename`: output the blob in the filesystem and release memory blob
  *
- * `callback`: call the function passing the output blob or output file if the keyword `filename` is specified
- * A null object is passed in case of errors
+ * `success`: call the function passing the output blob or output file if the keyword `filename` is specified
+ *
+ * `error`: call the function in case of errors
  *
  * @param  {Object} opt The options, see the description above.
  */
 function process(opt) {
 	if (!opt.blob) {
 		Ti.API.error("Image: Set a blob please");
-		opt.callback();
+		if (opt.error) opt.error();
 		return;
 	}
 
@@ -67,21 +68,21 @@ function process(opt) {
 
 			var file = Ti.Filesystem.getFile(require('util').getAppDataDirectory(), opt.filename);
 			var result = file.write(R);
-			R = null; // nullable ALL!
+			R = null;
 
 			if (result) {
-				opt.callback(file);
+				if (opt.success) opt.success(file);
 			} else {
 				Ti.API.error("Image: error writing file");
-			 	opt.callback();
+			 	if (opt.error) opt.error();
 			}
 
 		} else {
-			opt.callback(R);
+			if (opt.success) opt.success(R);
 		}
 
 	} else {
-		opt.callback();
+		if (opt.error) opt.error();
 	}
 }
 exports.process = process;
