@@ -3,8 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Image manipulation module
  *
- * Require `ti.imagefactory`
- *
  */
 
 /**
@@ -50,34 +48,20 @@ function process(opt) {
 		return;
 	}
 
-	var TiImageFactory = require('ti.imagefactory');
-	var density = opt.retina ? require('device').getScreenDensity() : 1;
+	var density = opt.retina ? Alloy.Globals.SCREEN_DENSITY : 1;
 	var R = null;
 
 	if (opt.size) {
-
-		R = TiImageFactory.imageAsThumbnail(opt.blob, {
-			size: opt.size*density,
-		});
-
+		R = opt.blob.imageAsThumbnail(opt.size*density);
 	} else if (opt.width || opt.height) {
-
 		opt.width = opt.width || opt.height*(opt.blob.width/opt.blob.height);
-		opt.height = opt.height ||  opt.width*(opt.blob.height/opt.blob.width);
-		R = TiImageFactory.imageAsResized(opt.blob, {
-			width: opt.width*density,
-			height: opt.height*density
-		});
-
+		opt.height = opt.height || opt.width*(opt.blob.height/opt.blob.width);
+		R = opt.blob.imageAsResized(opt.width*density, opt.height*density);
 	} else {
 		R = opt.blob;
 	}
 
 	if (R) {
-
-		if (opt.quality) {
-			R = TiImageFactory.compress(R, +opt.quality);
-		}
 
 		if (opt.filename) {
 

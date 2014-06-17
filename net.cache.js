@@ -72,7 +72,7 @@ function get(request, bypassExpiration) {
 
 	if (!bypassExpiration) {
 		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+" - "+now+" = "+(expire-now)+"s");
+			Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+((expire-now)/60)+"min");
 		}
 		if (expire<now) {
 			return false;

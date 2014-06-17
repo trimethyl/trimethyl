@@ -373,9 +373,9 @@ function abortRequest(hash) {
 	if (!httpClient) return;
 	try {
 		httpClient.abort();
-		Ti.API.debug("Net: REQ-["+request.hash+"]request aborted");
+		Ti.API.debug("Net: REQ-["+hash+"] request aborted");
 	} catch (e) {
-		Ti.API.error("Net: REQ-["+request.hash+"] aborting error --> "+e);
+		Ti.API.error("Net: REQ-["+hash+"] aborting error --> "+e);
 	}
 }
 exports.abortRequest = abortRequest;
@@ -514,7 +514,7 @@ function send(request) {
 
 	} catch (intEx) {
 
-		if (_.isFunction(requets.error)) {
+		if (_.isFunction(request.error)) {
 			request.error();
 		}
 

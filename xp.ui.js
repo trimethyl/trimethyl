@@ -512,6 +512,10 @@ exports.createTabbedBar = function(args) {
 
 		if ($this.wrap) $this.remove($this.wrap);
 		$this.wrap = $wrap; $this.add($this.wrap);
+
+		if ($this._index) {
+			$this.setIndex($this._index);
+		}
 	};
 
 	Object.defineProperty($this, 'labels', {
