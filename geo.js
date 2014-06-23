@@ -57,11 +57,13 @@ function localize(cb) {
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		Ti.App.fireEvent('geo.end');
+
 		if (!e.success || !e.coords) {
-			return cb({ error: true });
+			cb({ error: true });
+		} else {
+			cb(e);
 		}
 
-		cb(e);
 	});
 }
 exports.localize = localize;
@@ -113,33 +115,38 @@ function geocode(address, cb) {
 			},
 			mime: 'json',
 			success: function(res){
+
 				if (res.status!='OK' || !res.results.length) {
-					return cb({ error: true });
+					cb({ error: true });
+				} else {
+					cb({
+						success: true,
+						latitude: res.results[0].geometry.location.lat,
+						longitude: res.results[0].geometry.location.lng
+					});
 				}
 
-				cb({
-					success: true,
-					latitude: res.results[0].geometry.location.lat,
-					longitude: res.results[0].geometry.location.lng
-				});
 			},
 			error: function(err){
 				Ti.API.error("Geo: "+err);
 				cb({ error: true });
 			}
 		});
+
 	} else {
 
 		Ti.Geolocation.forwardGeocoder(address, function(res){
+
 			if (!res.success) {
-				return cb({ error: true });
+				cb({ error: true });
+			} else {
+				cb({
+					success: true,
+					latitude: res.latitude,
+					longitude: res.longitude
+				});
 			}
 
-			cb({
-				success: true,
-				latitude: res.latitude,
-				longitude: res.longitude
-			});
 		});
 	}
 }
@@ -172,15 +179,17 @@ function reverseGeocode(lat, lng, cb) {
 			},
 			mime: 'json',
 			success: function(res){
+
 				if (res.status!='OK' || !res.results.length) {
-					return cb({ error: true });
+					cb({ error: true });
+				} else {
+					cb({
+						success: true,
+						address: res.results[0].formatted_address,
+						results: res.results
+					});
 				}
 
-				cb({
-					success: true,
-					address: res.results[0].formatted_address,
-					results: res.results
-				});
 			},
 			error: function(err){
 				Ti.API.error("Geo: "+err);
@@ -191,15 +200,17 @@ function reverseGeocode(lat, lng, cb) {
 	} else {
 
 		Ti.Geolocation.reverseGeocoder(lat, lng, function(res){
+
 			if (!res.success || !res.places || !res.places.length) {
-				return cb({ error: true });
+				cb({ error: true });
+			} else {
+				cb({
+					success: true,
+					address: res.places[0].address,
+					results: res.places
+				});
 			}
 
-			cb({
-				success: true,
-				address: res.places[0].address,
-				results: res.places
-			});
 		});
 	}
 }
