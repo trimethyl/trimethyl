@@ -64,7 +64,7 @@ exports.resetErrorHandler = resetErrorHandler;
 function getResponseInfo(response) {
 	var info = {
 		mime: 'blob',
-		expire: -1,
+		expire: 0,
 	};
 
 	// Check first the Content-Type
