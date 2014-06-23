@@ -114,9 +114,7 @@ function open(controller, args, opt) {
 	args = args || {};
 	opt = opt || {};
 
-	if (ENV_DEVELOPMENT) {
-		Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
-	}
+	Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
 
 	var $C = Alloy.createController(controller, args);
 	var $W = $C.getView();
@@ -142,9 +140,9 @@ function open(controller, args, opt) {
 		$W = null;
 	});
 
-	$W.addEventListener('open', function(e){
-		if ('init' in $C) $C.init();
-	});
+	if ('init' in $C) {
+		$W.addEventListener('open', $C.init);
+	}
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
