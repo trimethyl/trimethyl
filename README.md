@@ -22,7 +22,7 @@ To install this framework, you have to copy to your lib directory.
 So, open terminal, move to your Titanium project, and type
 
 ```
-git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/trimethyl
+git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
 ```
 
 ## Initialization
@@ -30,7 +30,7 @@ git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/trimethyl
 In your *app/alloy.js* file, on the first line:
 
 ```javascript
-require('trimethyl/trimethyl');
+require('T/trimethyl');
 ```
 
 This will bootstrap some important framework files, set prototypes, TSS and Alloy.Globals vars.
@@ -40,14 +40,14 @@ This will bootstrap some important framework files, set prototypes, TSS and Allo
 To require a module, just call
 
 ```javascript
-var X = require('trimethyl/X');
+var X = require('T/X');
 ```
 
 where `X` is the module that you want to use.
 
 **Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage**.
 
-Each module read the `Alloy.CFG.__MODULENAME__` properties in your *config.json* file to configure itself.
+Each module read the `Alloy.CFG.T.__MODULENAME__` properties in your *config.json* file to configure itself.
 
 ## NON-CommonJS modules
 
