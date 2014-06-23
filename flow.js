@@ -133,8 +133,8 @@ function open(controller, args, opt) {
 
 	// Attach events
 
-	$W.addEventListener('close', function(e){
-		if ('beforeDestroy' in $C) C.beforeDestroy();
+	$W.addEventListener('close', function(){
+		if ('beforeDestroy' in $C) $C.beforeDestroy();
 		$C.destroy();
 		$C = null;
 		$W = null;
