@@ -28,7 +28,7 @@ function set(request, response, info) {
 	DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
 		request.hash,
 		info.expire,
-		require('util').timestamp(),
+		require('T/util').timestamp(),
 		response.responseData,
 		JSON.stringify(info)
 		);
@@ -55,7 +55,7 @@ function get(request, bypassExpiration) {
 	}
 
 	var expire = +cacheRow.fieldByName('expire') || 0;
-	var now = require('util').timestamp();
+	var now = require('T/util').timestamp();
 
 	if (!bypassExpiration) {
 		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+Math.floor((expire-now)/60)+"min");
@@ -69,9 +69,9 @@ function get(request, bypassExpiration) {
 		return false;
 	}
 
-	var info = require('util').parseJSON(cacheRow.fieldByName('info')) || {};
+	var info = require('T/util').parseJSON(cacheRow.fieldByName('info')) || {};
 	if (info.mime=='json') {
-		return require('util').parseJSON(content);
+		return require('T/util').parseJSON(content);
 	} else {
 		return content;
 	}
@@ -110,7 +110,7 @@ exports.del = del;
 
 (function init(){
 
-	DB = require('db').open();
+	DB = require('T/db').open();
 	if (DB) {
 		DB.execute('CREATE TABLE IF NOT EXISTS net (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
 	}

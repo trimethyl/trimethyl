@@ -11,7 +11,7 @@ var drivers = {};
 
 var Me = null;
 var authInfo = null;
-var Net = require('net');
+var Net = require('T/net');
 
 
 function getCurrentDriver(){
@@ -27,7 +27,7 @@ function getCurrentDriver(){
  */
 function loadDriver(driver) {
 	if (!driver) return false;
-	return require('auth.'+driver);
+	return require('T/auth.'+driver);
 }
 exports.loadDriver = loadDriver;
 

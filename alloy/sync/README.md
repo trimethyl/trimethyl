@@ -1,0 +1,1 @@
+Copy or link this *.js to /app/lib/alloy/sync to make works with models

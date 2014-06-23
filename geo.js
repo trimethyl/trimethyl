@@ -26,9 +26,9 @@ function checkForServices() {
  */
 function enableServicesAlert(){
 	if (OS_IOS) {
-		require('util').alert(L('geo_error_title'), L('geo_error_msg'));
+		require('T/util').alert(L('geo_error_title'), L('geo_error_msg'));
 	} else {
-		require('util').simpleAlert(L('geo_error_title'));
+		require('T/util').simpleAlert(L('geo_error_title'));
 	}
 }
 exports.enableServicesAlert = enableServicesAlert;
@@ -79,12 +79,12 @@ exports.localize = localize;
 function startNavigator(lat, lng, mode) {
 	localize(function(e) {
 		if (!e.success) {
-			require('util').alertError(L('geo_unabletonavigate'));
+			require('T/util').alertError(L('geo_unabletonavigate'));
 			return;
 		}
 
 		var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
-		Ti.Platform.openURL(D + require('util').buildQuery({
+		Ti.Platform.openURL(D + require('T/util').buildQuery({
 			directionsmode: mode || 'walking',
 			saddr: e.coords.latitude + "," + e.coords.longitude,
 			daddr: lat + "," + lng
@@ -106,7 +106,7 @@ exports.startNavigator = startNavigator;
 function geocode(address, cb) {
 	if (config.useGoogleForGeocode) {
 
-		require('net').send({
+		require('T/net').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			cache: false,
 			data: {
@@ -170,7 +170,7 @@ function reverseGeocode(lat, lng, cb) {
 
 	if (config.useGoogleForGeocode) {
 
-		require('net').send({
+		require('T/net').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			noCache: true,
 			data: {

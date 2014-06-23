@@ -17,7 +17,7 @@ exports.config = config;
 
 
 var FB = require('facebook');
-var Auth = require('auth');
+var Auth = require('T/auth');
 
 var authorized = false;
 var lastEvent = null;

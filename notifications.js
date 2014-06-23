@@ -18,7 +18,7 @@ exports.config = config;
 
 
 function getDriver(driver) {
-	return require('notifications.' + (driver||config.driver) );
+	return require('T/notifications.' + (driver||config.driver) );
 }
 
 

@@ -29,7 +29,7 @@ var queue = {};
 var serverConnected = null;
 var errorHandler = null;
 
-function originalErrorHandler(e) { require('util').alertError(e.message); }
+function originalErrorHandler(e) { require('T/util').alertError(e.message); }
 errorHandler = originalErrorHandler;
 
 function calculateHash(request) {
@@ -76,14 +76,14 @@ function getResponseInfo(response) {
 	// Check the Expires header
 	var expires = response.getResponseHeader('Expires');
 	if (expires) {
-		var t = require('util').timestamp(expires);
+		var t = require('T/util').timestamp(expires);
 		if (t) info.expire = t;
 	}
 
 	// Check againts X-Cache-Ttl header (in seconds)
 	var ttl = response.getResponseHeader('X-Cache-Ttl');
 	if (ttl) {
-		info.expire = require('util').timestamp( 1000*(require('util').timestamp()+parseInt(ttl,10)) );
+		info.expire = require('T/util').timestamp( 1000*(require('T/util').timestamp()+parseInt(ttl,10)) );
 	}
 
 	return info;
@@ -110,7 +110,7 @@ function decorateRequest(request) {
 
 	// Rebuild the URL if is a GET and there's data
 	if (request.method=='GET' && request.data) {
-		var buildedQuery = require('util').buildQuery(request.data);
+		var buildedQuery = require('T/util').buildQuery(request.data);
 		delete request.data;
 		request.url = request.url + buildedQuery.toString();
 	}
@@ -157,7 +157,7 @@ function onComplete(request, response, e){
 
 	// Parse based on response info
 	if (info.mime=='json') {
-		returnValue = require('util').parseJSON(response.responseText);
+		returnValue = require('T/util').parseJSON(response.responseText);
 	} else {
 		returnValue = response.responseData;
 	}
@@ -172,7 +172,7 @@ function onComplete(request, response, e){
 
 		// Write cache
 		if (NetCache) {
-			if (request.cache!==false && request.method==='GET' && info.expire>require('util').timestamp()) {
+			if (request.cache!==false && request.method==='GET' && info.expire>require('T/util').timestamp()) {
 				NetCache.set(request, response, info);
 			}
 		}
@@ -430,7 +430,7 @@ function send(request) {
 		Ti.App.fireEvent('net.offline', { cache: false });
 
 		if (config.autoOfflineMessage) {
-			require('util').alert(L('net_offline_title'), L('net_offline_message'));
+			require('T/util').alert(L('net_offline_title'), L('net_offline_message'));
 		}
 
 		if (typeof request.complete==='function') request.complete();
@@ -562,7 +562,7 @@ exports.postJSON = function(url, data, success, error) {
 (function init(){
 
 	if (config.useCache) {
-		NetCache = require('net.cache');
+		NetCache = require('T/net.cache');
 	}
 
 })();

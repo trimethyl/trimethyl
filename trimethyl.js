@@ -4,8 +4,8 @@
  * The framework initializator
  */
 
-var Util = require('util');
-var Device 	= require('device');
+var Util = require('T/util');
+var Device 	= require('T/device');
 
 var launchURL = Util.parseSchema();
 var pauseURL = null;

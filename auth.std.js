@@ -11,8 +11,8 @@ var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
 exports.config = config;
 
 
-var Net = require('net');
-var Auth = require('auth');
+var Net = require('T/net');
+var Auth = require('T/auth');
 
 /**
  * Login to the API server using stored data

@@ -84,7 +84,7 @@ function openDirect(controller, args) {
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
-		require('ga').trackScreen(controller);
+		require('T/ga').trackScreen(controller);
 	}
 
 	return $C;
@@ -146,7 +146,7 @@ function open(controller, args, opt) {
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
-		require('ga').trackScreen(controller);
+		require('T/ga').trackScreen(controller);
 	}
 
 	hist.push({

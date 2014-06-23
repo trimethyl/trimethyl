@@ -23,13 +23,13 @@ function __get(id) {
 	if (!row.isValidRow()) return false;
 
 	var expire = row.field(0) || 0;
-	var now = require('util').timestamp();
+	var now = require('T/util').timestamp();
 	if (expire!==-1 && now>expire) return false;
 
 	row = DB.execute('SELECT value FROM cache WHERE id = ? LIMIT 1', id);
 	if (!row.isValidRow()) return false;
 
-	return require('util').parseJSON(row.field(0));
+	return require('T/util').parseJSON(row.field(0));
 }
 
 /**
@@ -67,7 +67,7 @@ function set(id, value, expire) {
 	}
 
 	if (expire) {
-		expire = require('util').timestamp() + parseInt(expire, 10);
+		expire = require('T/util').timestamp() + parseInt(expire, 10);
 	} else {
 		expire = -1;
 	}
@@ -77,7 +77,7 @@ exports.set = set;
 
 
 (function init(c) {
-	DB = require('db').open();
+	DB = require('T/db').open();
 	if (DB) {
 		DB.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
 	}

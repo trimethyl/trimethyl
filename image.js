@@ -66,7 +66,7 @@ function process(opt) {
 
 		if (opt.filename) {
 
-			var file = Ti.Filesystem.getFile(require('util').getAppDataDirectory(), opt.filename);
+			var file = Ti.Filesystem.getFile(require('T/util').getAppDataDirectory(), opt.filename);
 			var result = file.write(R);
 			R = null;
 

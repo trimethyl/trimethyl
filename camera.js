@@ -29,7 +29,7 @@ function getPhoto(method, opt, cb){
 		},
 		error: function(e) {
 			Ti.API.error("Camera: "+e);
-			require('util').alertError(L('camera_error'));
+			require('T/util').alertError(L('camera_error'));
 		},
 	}));
 }
@@ -65,7 +65,7 @@ exports.choosePhoto = choosePhoto;
  * @param  {Function} cb  Success callback
  */
 function selectPhoto(opt, cb){
-	require('util').optionWithDict([
+	require('T/util').optionWithDict([
 		{
 			title: L('camera_takephoto'),
 			callback: function(){
