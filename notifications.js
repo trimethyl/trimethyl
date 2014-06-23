@@ -103,21 +103,15 @@ function subscribe(channel) {
 		return;
 	}
 
-	if (ENV_DEVELOPMENT) {
-		Ti.API.debug("Notifications: Subscribing to push notifications...");
-	}
+	Ti.API.debug("Notifications: Subscribing to push notifications...");
 
 	subscribeFunction(function(token){
-		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Notifications: Subscribed, device token is "+token);
-		}
+		Ti.API.debug("Notifications: Subscribed, device token is "+token);
 
 		var driver = getDriver();
 		if (driver) {
 			driver.subscribe(token, channel, function(){
-				if (ENV_DEVELOPMENT) {
-					Ti.API.debug("Notifications: Subscribed to selected driver ("+config.driver+')');
-				}
+				Ti.API.debug("Notifications: Subscribed to selected driver ("+config.driver+')');
 			});
 		}
 

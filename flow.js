@@ -77,9 +77,7 @@ exports.closeController = closeController;
  * @param  {Object} [args]     The args passed to the controller
  */
 function openDirect(controller, args) {
-	if (ENV_DEVELOPMENT) {
-		Ti.API.debug("Flow: opening directly '"+controller+"' with args "+JSON.stringify(args));
-	}
+	Ti.API.debug("Flow: opening directly '"+controller+"' with args "+JSON.stringify(args));
 
 	// Open the controller
 	var $C = Alloy.createController(controller, args || {});
