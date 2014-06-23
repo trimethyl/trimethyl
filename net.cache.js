@@ -13,7 +13,6 @@ exports.config = config;
 
 var DB = null;
 
-
 /**
  * Write the cache
  * @param  {Object} request  The network request
@@ -22,7 +21,7 @@ var DB = null;
  */
 function set(request, response, info) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
+		Ti.API.error("Net.Cache: database not open");
 		return false;
 	}
 
@@ -33,10 +32,6 @@ function set(request, response, info) {
 		response.responseData,
 		JSON.stringify(info)
 		);
-
-	if (ENV_DEVELOPMENT) {
-		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache written successfully.");
-	}
 }
 exports.set = set;
 
@@ -49,14 +44,7 @@ exports.set = set;
  */
 function get(request, bypassExpiration) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
-		return false;
-	}
-
-	if (request.refresh || request.cache===false) {
-		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache forced to refresh");
-		}
+		Ti.API.error("Net.Cache: database not open");
 		return false;
 	}
 
@@ -67,27 +55,22 @@ function get(request, bypassExpiration) {
 	}
 
 	var expire = +cacheRow.fieldByName('expire') || 0;
-	var creation = +cacheRow.fieldByName('creation') || 0;
 	var now = require('util').timestamp();
 
 	if (!bypassExpiration) {
-		if (ENV_DEVELOPMENT) {
-			Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+((expire-now)/60)+"min");
-		}
-		if (expire<now) {
-			return false;
-		}
+		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+Math.floor((expire-now)/60)+"min");
+		if (expire<now) return false;
 	}
 
-	var cache = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
-	var content = cache.fieldByName('content');
+	cacheRow = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
+	var content = cacheRow.fieldByName('content');
 	if (!content) {
 		Ti.API.error("Net.Cache: REQ-["+request.hash+"] has invalid cache content");
 		return false;
 	}
 
-	var info = require('util').parseJSON(cache.fieldByName('info')) || {};
-	if (info && info.mime=='json') {
+	var info = require('util').parseJSON(cacheRow.fieldByName('info')) || {};
+	if (info.mime=='json') {
 		return require('util').parseJSON(content);
 	} else {
 		return content;
@@ -101,7 +84,7 @@ exports.get = get;
  */
 function reset() {
 	if (!DB) {
-		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
+		Ti.API.error("Net.Cache: database not open");
 		return false;
 	}
 
@@ -116,7 +99,7 @@ exports.reset = reset;
  */
 function del(hash) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: REQ-["+request.hash+"] database not open.");
+		Ti.API.error("Net.Cache: database not open");
 		return false;
 	}
 
