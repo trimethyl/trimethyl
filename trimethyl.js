@@ -27,7 +27,7 @@ if (OS_IOS) {
 }
 
 // Set some TSS vars
-//
+
 Alloy.Globals.SCREEN_WIDTH 		= Device.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT 		= Device.getScreenHeight();
 Alloy.Globals.SCREEN_DENSITY 		= Device.getScreenDensity();

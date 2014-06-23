@@ -33,6 +33,13 @@ In your *app/alloy.js* file, on the first line:
 require('T/trimethyl');
 ```
 
+Or, if you want to provide an helper to load the Trimethyl modules, write:
+
+```javascript
+function T(name) { return require('T/'+name); }
+T('trimethyl');
+```
+
 This will bootstrap some important framework files, set prototypes, TSS and Alloy.Globals vars.
 
 ## CommonJS Modules
