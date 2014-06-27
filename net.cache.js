@@ -8,7 +8,7 @@
  * @type {Object}
  */
 var config = _.extend({
-}, Alloy.CFG.net ? Alloy.CFG.net.cache : {});
+}, Alloy.CFG.T.net ? Alloy.CFG.T.net.cache : {});
 exports.config = config;
 
 var DB = null;
@@ -25,13 +25,17 @@ function set(request, response, info) {
 		return false;
 	}
 
-	DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
+	if (DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
 		request.hash,
 		info.expire,
 		require('T/util').timestamp(),
 		response.responseData,
 		JSON.stringify(info)
-		);
+		)) {
+		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] writing cache success");
+	} else {
+		Ti.API.error("Net.Cache: REQ-["+request.hash+"] writing cache failed ");
+	}
 }
 exports.set = set;
 

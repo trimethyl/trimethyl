@@ -13,7 +13,7 @@
  */
 var config = _.extend({
 	ua: null
-}, Alloy.CFG.ga);
+}, Alloy.CFG.T.ga);
 exports.config = config;
 
 
@@ -117,10 +117,12 @@ exports.setTrackerUA = setTrackerUA;
 
 
 (function init(){
+
 	$.trackUncaughtExceptions = true;
 	$.debug = false;
 
 	if (config.ua) {
 		setTrackerUA(config.ua);
 	}
+
 })();

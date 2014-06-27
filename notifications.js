@@ -13,7 +13,7 @@
 var config = _.extend({
 	autoReset: true,
 	driver: 'cloud',
-}, Alloy.CFG.notifications);
+}, Alloy.CFG.T.notifications);
 exports.config = config;
 
 

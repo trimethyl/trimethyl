@@ -12,7 +12,7 @@
 var config = _.extend({
 	useNav: true,
 	trackWithGA: true
-}, Alloy.CFG.flow);
+}, Alloy.CFG.T.flow);
 exports.config = config;
 
 

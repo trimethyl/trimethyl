@@ -14,7 +14,7 @@ var config = _.extend({
 	pixelRadius: 15,
 	removeOutOfBB: true,
 	maxDeltaToCluster: 0.3
-}, Alloy.CFG.maputil);
+}, Alloy.CFG.T.maputil);
 exports.config = config;
 
 

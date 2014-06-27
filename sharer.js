@@ -15,7 +15,7 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.sharer);
+var config = _.extend({}, Alloy.CFG.T.sharer);
 exports.config = config;
 
 

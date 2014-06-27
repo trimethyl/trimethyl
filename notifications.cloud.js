@@ -21,7 +21,7 @@
  * @type {Object}
  */
 var config = _.extend({
-}, Alloy.CFG.notifications ? Alloy.CFG.notifications.cloud : {});
+}, Alloy.CFG.T.notifications ? Alloy.CFG.T.notifications.cloud : {});
 exports.config = config;
 
 

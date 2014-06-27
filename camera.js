@@ -7,7 +7,7 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.camera);
+var config = _.extend({}, Alloy.CFG.T.camera);
 exports.config = config;
 
 

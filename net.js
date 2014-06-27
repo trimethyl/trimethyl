@@ -20,7 +20,7 @@ var config = _.extend({
 	headers: {},
 	usePingServer: true,
 	autoOfflineMessage: true
-}, Alloy.CFG.net);
+}, Alloy.CFG.T.net);
 exports.config = config;
 
 

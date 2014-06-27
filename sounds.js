@@ -7,7 +7,7 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.sounds);
+var config = _.extend({}, Alloy.CFG.T.sounds);
 exports.config = config;
 
 

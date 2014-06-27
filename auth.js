@@ -4,7 +4,7 @@
  * Authentication module interfaced with an API server
  */
 
-var config = _.extend({}, Alloy.CFG.auth);
+var config = _.extend({}, Alloy.CFG.T.auth);
 exports.config = config;
 
 var drivers = {};

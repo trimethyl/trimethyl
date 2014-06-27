@@ -435,7 +435,7 @@ exports.uniqid = function(prefix, more_entropy) {
  * @param  {String} [t]  The date to parse. If is not provided, get current timestamp.
  * @return {Number}
  */
-exports.timestamp = function(t){
+exports.timestamp = function(t) {
 	if (t) return parseInt(+new Date(t)/1000, 10);
 	return parseInt(+new Date()/1000, 10);
 };

@@ -12,7 +12,7 @@
 var config = _.extend({
 	appid: null,
 	permissions: []
-}, Alloy.CFG.auth ? Alloy.CFG.auth.facebook : {});
+}, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
 

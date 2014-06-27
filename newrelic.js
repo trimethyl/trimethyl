@@ -10,7 +10,7 @@
  */
 var config = _.extend({
 	token: null
-}, Alloy.CFG.newrelic);
+}, Alloy.CFG.T.newrelic);
 exports.config = config;
 
 var TiNewRelic = null;
