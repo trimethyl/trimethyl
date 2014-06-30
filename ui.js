@@ -5,7 +5,7 @@
  *
  * ** non-CommonJS module**
  *
- * You have to use in Alloy with `module="ui"`
+ * You have to use in Alloy with `module="T/ui"`
  *
  */
 

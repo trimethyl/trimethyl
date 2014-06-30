@@ -224,6 +224,7 @@ function checkForDependencies() {
 		break;
 	}
 
+	// Open Play Store to download
 	require('T/util').alertError(errorMessage, function(){
 		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
 		Ti.Android.currentActivity.finish();

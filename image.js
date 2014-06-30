@@ -45,7 +45,6 @@ exports.config = config;
 function process(opt) {
 	if (!opt.blob) {
 		Ti.API.error("Image: Set a blob please");
-		if (opt.error) opt.error();
 		return;
 	}
 
@@ -62,27 +61,18 @@ function process(opt) {
 		R = opt.blob;
 	}
 
-	if (R) {
+	if (!R) return;
+	if (!opt.filename) return R;
 
-		if (opt.filename) {
+	var file = Ti.Filesystem.getFile(require('T/util').getAppDataDirectory(), opt.filename);
+	var result = file.write(R);
+	R = null;
 
-			var file = Ti.Filesystem.getFile(require('T/util').getAppDataDirectory(), opt.filename);
-			var result = file.write(R);
-			R = null;
-
-			if (result) {
-				if (opt.success) opt.success(file);
-			} else {
-				Ti.API.error("Image: error writing file");
-			 	if (opt.error) opt.error();
-			}
-
-		} else {
-			if (opt.success) opt.success(R);
-		}
-
-	} else {
-		if (opt.error) opt.error();
+	if (!result) {
+		Ti.API.error("Image: error writing file");
+		return;
 	}
+
+	return file;
 }
 exports.process = process;

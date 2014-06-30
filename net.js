@@ -454,7 +454,7 @@ function send(request) {
 	// Add this request to the queue
 	queue[request.hash] = H;
 
-	if (request.silent!==false) {
+	if (!request.silent) {
 		Ti.App.fireEvent('net.start', {
 			id: request.hash,
 			eventName: request.eventName || null

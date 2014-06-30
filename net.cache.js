@@ -25,17 +25,13 @@ function set(request, response, info) {
 		return false;
 	}
 
-	if (DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
+	DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
 		request.hash,
 		info.expire,
 		require('T/util').timestamp(),
 		response.responseData,
 		JSON.stringify(info)
-		)) {
-		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] writing cache success");
-	} else {
-		Ti.API.error("Net.Cache: REQ-["+request.hash+"] writing cache failed ");
-	}
+		);
 }
 exports.set = set;
 
