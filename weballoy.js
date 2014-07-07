@@ -2,11 +2,13 @@
  * @class  	WebAlloy
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * This is an entire web µframework to write Titanium-Alloy apps in HTML/CSS/JS, without native.
+ * This is an entire µ-web-framework to write Titanium-Alloy apps in HTML/CSS/JS, without native objects.
  *
  * The unique method `WebAlloy.createView` create a WebView with static html inside.
  *
- * In this **special** webview, you have the **underscore** template system, **jQuery** as a DOM lib.
+ * In this **special** webview, you have some *helpers* that helps you to achieve the final results:
+ * * **underscore** template system
+ * * **jQuery** as a DOM lib.
  *
  * To work with WebAlloy, you have to replicate the exact structure in the app directory (Alloy).
  *
