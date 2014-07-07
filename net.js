@@ -355,8 +355,7 @@ exports.abortRequest = abortRequest;
 
 
 /**
- * @method resetCache
- * Alias for @{@link #net.cache.reset}
+ * Reset all cache
  */
 exports.resetCache = function(){
 	if (!NetCache) return;

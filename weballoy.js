@@ -10,23 +10,23 @@
  *
  * To work with WebAlloy, you have to replicate the exact structure in the app directory (Alloy).
  *
- * # Globals
+ * ### Globals
  *
- * ## app.css
+ * #### app.css
  * Global CSS included in each view.
  *
- * ## app.jslocal
+ * #### app.jslocal
  * Global JS included in each view.
  *
- * # MVC specific
+ * ### MVC specific
  *
- *	## controllers/foo.jslocal
+ *	#### controllers/foo.jslocal
  *	Javascript file included in the specific controller, after app.jslocal and jquery.jslocal
  *
- * ## views/foo.tpl
+ * #### views/foo.tpl
  * HTML/TPL (underscore templating system) file that is parsed and written in the static HTML.
  *
- * ## styles/foo.css
+ * #### styles/foo.css
  * CSS file included in the specific controller.
  *
  * When you have replicated this structure, you can just call:
@@ -37,6 +37,7 @@
  * 	webdata: { ... },
  * 	...
  * });
+ * ```
  *
  * The **name** arg is to specific the files to load.
  *
