@@ -7,6 +7,7 @@
  * The unique method `WebAlloy.createView` create a WebView with static html inside.
  *
  * In this **special** webview, you have some *helpers* that helps you to achieve the final results:
+ *
  * * **underscore** template system
  * * **jQuery** as a DOM lib.
  *
