@@ -71,6 +71,34 @@
  * </html>
  * ```
  *
+ * ### WebView additional method
+ *
+ * Basically, you can interact with DOM elements with `evalJS`.
+ *
+ * There are some proxy methods designed to interact directly:
+ *
+ * #### render({ data })
+ *
+ * Re-render the template with new data passed.
+ *
+ * #### call(...)
+ *
+ * Call a function in the WebView.
+ *
+ * For example, `$.wv.call('foo', 1, 2, {x:1})` will be converted to js in `foo(1, 2, {x:1})`.
+ *
+ * #### $(selector).call(...)
+ *
+ * Call a function in a DOM-RAW object.
+ *
+ * #### $(selector).get(...)
+ *
+ * Get a property of a DOM-RAW object.
+ *
+ * #### $(selector).set(...)
+ *
+ * Set a property of a DOM-RAW object.
+ *
  */
 
 
