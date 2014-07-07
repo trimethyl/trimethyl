@@ -427,7 +427,6 @@ exports.uniqid = function(prefix, more_entropy) {
 	return retId;
 };
 
-
 /**
  * @method timestamp
  * Get the UNIX timestamp.
@@ -436,8 +435,8 @@ exports.uniqid = function(prefix, more_entropy) {
  * @return {Number}
  */
 exports.timestamp = function(t) {
-	if (t) return parseInt(+new Date(t)/1000, 10);
-	return parseInt(+new Date()/1000, 10);
+	if (t) return parseInt(new Date(t).getTime()/1000, 10);
+	return parseInt(new Date().getTime()/1000, 10);
 };
 
 
@@ -449,7 +448,7 @@ exports.timestamp = function(t) {
  * @return {Number}
  */
 exports.fromnow = function(t) {
-	return parseInt(+new Date(new Date()+t)/1000, 10);
+	return parseInt(new Date(new Date().getTime()+t*1000).getTime()/1000, 10);
 };
 
 
@@ -617,21 +616,31 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 };
 
 /**
- * @method getFacebookPageStream
- * Return a json object that represents the page stream.
+ * @method facebookGraphWithAppToken
+ * Call the graph using app token.
  *
- * @param  {Object} opt The options (Require **appid**, **appsecret** and **pageid**).
- * @return {Object}  	The stream
+ * @param  {String}   path     The path for the open graph request.
+ * @param  {Object}   object   The data for the open graph request.
+ * @param  {Object}   opt      The options.
+ * Required options are:
+ * * **appid**: Application ID
+ * * **appsecret**: Application secret
+ * * **[expire]**: Cache the request for specified seconds.
+ * * **[error]**: Error callback
+ * @param  {Function} callback Success callback
  */
-exports.getFacebookPageStream = function(opt) {
+exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
+	obj = obj || {};
+	obj.access_token = opt.appid+'|'+opt.appsecret;
 	T('net').send({
-		url: 'https://graph.facebook.com/'+opt.pageid+'/feed',
-		data: { access_token: opt.appid+'|'+opt.appsecret },
+		url: 'https://graph.facebook.com/'+path.replace(/^\//, ''),
+		data: obj,
 		mime: 'json',
-		expire: opt.expire,
+		refresh: opt.refresh,
+		expire: opt.expire || 0,
 		error: opt.error,
 		success: function(stream) {
-			opt.callback(stream);
+			callback(stream);
 		}
 	});
 };
