@@ -28,8 +28,10 @@ Ti.App.addEventListener('resumed', function() {
 Alloy.Globals.SCREEN_WIDTH 		= Device.getScreenWidth();
 Alloy.Globals.SCREEN_HEIGHT 		= Device.getScreenHeight();
 Alloy.Globals.SCREEN_DENSITY 		= Device.getScreenDensity();
+Alloy.Globals.SCREEN_RETINA 		= Alloy.Globals.SCREEN_DENSITY==2;
 Alloy.Globals.IOS7 					= Util.isIOS7();
 Alloy.Globals.IOS8					= Util.isIOS8();
+Alloy.Globals.SIMULATOR          = Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1;
 
 // Prototype!
 

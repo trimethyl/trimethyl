@@ -17,7 +17,7 @@ exports.config = config;
  * @param  {Function} callback The callback
  */
 function onTilt(callback) {
-	if (Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1){
+	if (Alloy.Globals.SIMULATOR){
 		Ti.API.error("Device: accelerometer doesn't work on virtual devices");
 		return;
 	}

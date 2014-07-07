@@ -158,6 +158,8 @@ function onComplete(request, response, e){
 	// Parse based on response info
 	if (info.mime=='json') {
 		returnValue = require('T/util').parseJSON(response.responseText);
+	} else if (info.mime=='text') {
+		returnValue = response.responseText;
 	} else {
 		returnValue = response.responseData;
 	}

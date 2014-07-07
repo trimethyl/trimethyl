@@ -247,7 +247,7 @@ exports.confirm = function(title, msg, cb) {
  * @return {Ti.UI.AlertDialog}
  */
 exports.confirmCustom = function(title, msg, btnTitle, cb) {
-	return alertPrompt(title, null, [ L('Cancel'), btnTitle ], 0, cb, { selectedIndex: 1 });
+	return alertPrompt(title, msg, [ L('Cancel'), btnTitle ], 0, cb, { selectedIndex: 1 });
 };
 
 
@@ -442,6 +442,18 @@ exports.timestamp = function(t) {
 
 
 /**
+ * @method fromnow
+ * Get the UNIX timestamp from now with delay expressed in seconds.
+ *
+ * @param  {Number} [t]  Seconds from now.
+ * @return {Number}
+ */
+exports.fromnow = function(t) {
+	return parseInt(+new Date(new Date()+t)/1000, 10);
+};
+
+
+/**
  * @method parseJSON
  * Try to parse a JSON, and silently fail on error, returning a `null` in this case.
  *
@@ -602,4 +614,24 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 
 	if ($ui) $ui.sections = sec;
 	else return sec;
+};
+
+/**
+ * @method getFacebookPageStream
+ * Return a json object that represents the page stream.
+ *
+ * @param  {Object} opt The options (Require **appid**, **appsecret** and **pageid**).
+ * @return {Object}  	The stream
+ */
+exports.getFacebookPageStream = function(opt) {
+	T('net').send({
+		url: 'https://graph.facebook.com/'+opt.pageid+'/feed',
+		data: { access_token: opt.appid+'|'+opt.appsecret },
+		mime: 'json',
+		expire: opt.expire,
+		error: opt.error,
+		success: function(stream) {
+			opt.callback(stream);
+		}
+	});
 };
