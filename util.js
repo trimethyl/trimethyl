@@ -638,6 +638,7 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 		mime: 'json',
 		refresh: opt.refresh,
 		expire: opt.expire || 0,
+		silent: opt.silent || false,
 		error: opt.error,
 		success: function(stream) {
 			callback(stream);

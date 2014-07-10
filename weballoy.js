@@ -98,33 +98,18 @@
  */
 
 /**
- * * **minify**: Minify all CSS/JS. Default: ENV_PRODUCTION
  * @type {Object}
  */
 var config = _.extend({
-	minify: ENV_PRODUCTION
 }, Alloy.CFG.T.weballoy);
 exports.config = config;
 
 var libDir = [];
 
-function minify(content) {
-	if (!config.minify) {
-		return content;
-	}
-
-	content = content.replace( /\/\*(?:(?!\*\/)[\s\S])*\*\/|[\r\n\t]+/g, '' );
-	content = content.replace( / {2,}/g, ' ' );
-	content = content.replace( / ([{:}]) /g, '$1' );
-	content = content.replace( /([;,]) /g, '$1' );
-	content = content.replace( / !/g, '!' );
-	return content;
-}
-
 function embedCSS(f) {
 	var file = Ti.Filesystem.getFile(f);
 	if (!file.exists()) return '';
-	var read = minify(file.read().text);
+	var read = file.read().text;
 	file = null;
 	return '<style id="__weballoy_'+f+'" type="text/css">'+read+'</style>';
 }
@@ -132,7 +117,7 @@ function embedCSS(f) {
 function embedJS(f) {
 	var file = Ti.Filesystem.getFile(f);
 	if (!file.exists()) return '';
-	var read = minify(file.read().text);
+	var read = file.read().text;
 	file = null;
 	return '<script id="__weballoy_'+f+'" type="text/javascript">'+read+'</script>';
 }
@@ -181,8 +166,7 @@ exports.createView = function(args) {
 	html += embedJS('web/controllers/'+args.name+'.jslocal');
 	html += '</body></html>';
 
-	$ui.setHtml(html);
-	html = null;
+	$ui.html = html;
 
 	$ui._ = function(js) {
 		return $ui.evalJS(js);

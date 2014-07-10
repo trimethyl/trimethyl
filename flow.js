@@ -91,6 +91,31 @@ function openDirect(controller, args) {
 }
 exports.openDirect = openDirect;
 
+/**
+ * Open a Window in current flow.
+ *
+ * If a navigation controller is set, open with it.
+ *
+ * @param  {Ti.UI.Window} $win 	The window object
+ * @param  {Object} [opt]        The arguments passed to the NavigationWindow.openWindow or the Controller.Window.open
+ */
+function openWindow($win, opt) {
+	opt = opt || {};
+
+	if (config.useNav) {
+
+		if (!$navigationController) {
+			Ti.API.debug("Flow: please define a NavigationController or set Flow.useNav to false");
+			return;
+		}
+		$navigationController.openWindow($win, opt);
+
+	} else {
+		$win.open(opt || {});
+	}
+}
+exports.openWindow = openWindow;
+
 
 /**
  * Require an Alloy.Controller and open the main window associated with it
