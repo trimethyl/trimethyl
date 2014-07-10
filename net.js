@@ -11,6 +11,7 @@
  * * **headers**: Global headers for all requests. Default: `{}`
  * * **usePingServer**: Enable the PING-Server support. Default: `true`
  * * **autoOfflineMessage**: Enable the automatic alert if the connection is offline
+ * * **httpieDebug**: Enable the httpie debug. Default: `true`
  * @type {Object}
  */
 var config = _.extend({
@@ -19,7 +20,8 @@ var config = _.extend({
 	useCache: true,
 	headers: {},
 	usePingServer: true,
-	autoOfflineMessage: true
+	autoOfflineMessage: true,
+	httpieDebug: true
 }, Alloy.CFG.T.net);
 exports.config = config;
 
@@ -108,8 +110,21 @@ function decorateRequest(request) {
 	request.timeout = request.timeout || config.timeout;
 	if (request.error===undefined) request.error = errorHandler;
 
+	// httpie debug
+	if (config.httpieDebug) {
+		Ti.API.debug(
+		(Ti.Shadow?"<textarea onclick='this.select()' style='width:100%'>":'')+
+		"http "+
+		request.method+" "+
+		request.url+" "+
+		jsonToWWW(request.headers,' ','=')+" "+
+		jsonToWWW(request.data, ' ', request.method==='GET'?'==':'=')+
+		(Ti.Shadow?"</textarea>":'')
+		);
+	}
+
 	// Rebuild the URL if is a GET and there's data
-	if (request.method=='GET' && request.data) {
+	if (request.method==='GET' && request.data) {
 		var buildedQuery = require('T/util').buildQuery(request.data);
 		delete request.data;
 		request.url = request.url + buildedQuery.toString();
@@ -385,6 +400,18 @@ exports.deleteCache = function(hash) {
 	NetCache.del(hash);
 };
 
+function jsonToWWW(obj, sep, eq, k, R) {
+	var R = R || [];
+	for (var i in obj) {
+		var _k = k!==undefined;
+		if (typeof obj[i]==='object') {
+			jsonToWWW(obj[i], null, eq, (_k?k+'[':'')+i+(_k?']':''), R);
+		} else {
+			R.push((_k?k+'['+i+']':i)+(eq||'=')+obj[i]);
+		}
+	}
+	return R.join(sep||'&');
+}
 
 /**
  * The main function of the module, create the HTTPClient and make the request
@@ -474,7 +501,6 @@ function send(request) {
 	else H.send();
 
 	Ti.API.debug("Net: REQ-["+request.hash+"] sent");
-	Ti.API.debug("HTTP "+[request.method,request.url,JSON.stringify(request.data)||'{}'].join(' '));
 
 	// And return the hash of this request
 	return request.hash;
