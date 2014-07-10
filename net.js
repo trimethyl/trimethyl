@@ -170,7 +170,7 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
-		Ti.API.debug("Net: REQ-["+request.hash+"] success - "+response.responseText);
+		Ti.API.debug("Net: REQ-["+request.hash+"] success");
 
 		// Write cache
 		if (NetCache) {
