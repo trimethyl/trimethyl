@@ -15,12 +15,13 @@ var config = _.extend({
 }, Alloy.CFG.T.flow);
 exports.config = config;
 
-
 var $_CC = null;
 var $_CCS = null;
 var $_CCA = null;
 
 var hist = [];
+
+var navNextRoute = null;
 var $navigationController = null;
 
 /**
@@ -31,7 +32,13 @@ var $navigationController = null;
  */
 function setNavigationController(navigationController, openNow) {
 	$navigationController = navigationController;
-	if (openNow) $navigationController.open();
+	if (openNow) {
+		$navigationController.open();
+		if (navNextRoute) {
+			[open,openWindow][navNextRoute[0]](navNextRoute[1],navNextRoute[2],navNextRoute[3]);
+			navNextRoute = null;
+		}
+	}
 }
 exports.setNavigationController = setNavigationController;
 
@@ -105,7 +112,8 @@ function openWindow($win, opt) {
 	if (config.useNav) {
 
 		if (!$navigationController) {
-			Ti.API.debug("Flow: please define a NavigationController or set Flow.useNav to false");
+			navNextRoute = [1,controller,args,opt];
+			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 			return;
 		}
 		$navigationController.openWindow($win, opt);
@@ -147,7 +155,8 @@ function open(controller, args, opt) {
 	if (config.useNav) {
 
 		if (!$navigationController) {
-			Ti.API.debug("Flow: please define a NavigationController or set Flow.useNav to false");
+			navNextRoute = [0,controller,args,opt];
+			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 			return;
 		}
 		$navigationController.openWindow($W, opt.openArgs || {});

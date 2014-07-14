@@ -50,7 +50,6 @@ function get(request, bypassExpiration) {
 
 	var cacheRow = DB.execute('SELECT expire, creation FROM net WHERE id = ? LIMIT 1', request.hash);
 	if (!cacheRow || !cacheRow.isValidRow()) {
-		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache not found");
 		return false;
 	}
 

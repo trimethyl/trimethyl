@@ -113,13 +113,11 @@ function decorateRequest(request) {
 	// httpie debug
 	if (config.httpieDebug) {
 		Ti.API.debug(
-		(Ti.Shadow?"<textarea onclick='this.select()' style='width:100%'>":'')+
-		"http "+
-		request.method+" "+
-		request.url+" "+
+		//(Ti.Shadow?"<textarea onclick='this.select()' style='width:100%'>":'')+
+		"http "+request.method+" "+request.url+" "+
 		jsonToWWW(request.headers,' ','=')+" "+
-		jsonToWWW(request.data, ' ', request.method==='GET'?'==':'=')+
-		(Ti.Shadow?"</textarea>":'')
+		jsonToWWW(request.data, ' ', request.method==='GET'?'==':'=')
+		//+(Ti.Shadow?"</textarea>":'')
 		);
 	}
 
@@ -185,8 +183,6 @@ function onComplete(request, response, e){
 		SUCCESS
 		*/
 
-		Ti.API.debug("Net: REQ-["+request.hash+"] success");
-
 		// Write cache
 		if (NetCache) {
 			if (request.cache!==false && request.method==='GET' && info.expire>require('T/util').timestamp()) {
@@ -202,8 +198,6 @@ function onComplete(request, response, e){
 		ERROR
 		*/
 
-		Ti.API.error("Net: REQ-["+request.hash+"] error - "+returnError+" - "+e.error);
-
 		// Parse the error returned from the server
 		if (returnValue && returnValue.error) {
 			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
@@ -213,6 +207,8 @@ function onComplete(request, response, e){
 
 		// Build the error
 		var E = { message: returnError, code: response.status };
+		Ti.API.error("Net: REQ-["+request.hash+"] error - "+JSON.stringify(E));
+
 		if (typeof request.error==='function') request.error(E);
 
 	}
@@ -441,11 +437,8 @@ function send(request) {
 
 			var cache = NetCache.get(request, !onlineStatus);
 			if (cache) {
-				Ti.API.debug("Net: REQ-["+request.hash+"] success (cache)");
-
 				if (typeof request.complete==='function') request.complete();
 				if (typeof request.success==='function') request.success(cache);
-
 				return request.hash;
 			}
 		}
@@ -499,8 +492,6 @@ function send(request) {
 	// Finally, send the request
 	if (request.data) H.send(request.data);
 	else H.send();
-
-	Ti.API.debug("Net: REQ-["+request.hash+"] sent");
 
 	// And return the hash of this request
 	return request.hash;
