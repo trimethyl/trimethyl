@@ -21,9 +21,38 @@ function getDriver(driver) {
 	return require('T/notifications.' + (driver||config.driver) );
 }
 
-
+var inBackground = false;
 function onNotificationReceived(e) {
+	if (OS_ANDROID) {
+
+		// Android trigger two types of callback
+		// When the app is in background, the type is !== 'callback'
+		// So, we simply save the state inBackground and return because the notification.received
+		// event must NOT be triggered
+		if (e.type!=='callback') {
+			inBackground = true;
+			return;
+		}
+
+		if (e.payload) {
+
+			// Do this to balance the difference in APIs (convert Android to IOS, in substance)
+			e.data = T('util').parseJSON(e.payload) || {};
+			if (e.data.android) {
+				e.data = _.extend(e.data, e.data.android);
+				delete e.data.android;
+			}
+
+			// Set the property inBackground from the last state
+			// and reset to false to prevent double events (simple semaphore)
+			e.inBackground = inBackground;
+			inBackground = false;
+		}
+	}
+
+	// Trigger the glob event
 	Ti.App.fireEvent('notifications.received', e);
+
 	if (config.autoReset) resetBadge();
 }
 
@@ -62,10 +91,20 @@ if (OS_IOS) {
 
 	var CloudPush = require('ti.cloudpush');
 	CloudPush.debug = !ENV_PRODUCTION;
-	CloudPush.enabled = true;
+	CloudPush.singleCallback = true;
+	CloudPush.showAppOnTrayClick = true;
+
+	// iOS Style, allow only background system-wide notifications
+	CloudPush.showTrayNotification = true;
+	CloudPush.showTrayNotificationsWhenFocused = false;
 
 	subscribeFunction = function(cb) {
+
+		// add a series of callback on the same functions, and set values inset
 		CloudPush.addEventListener('callback', onNotificationReceived);
+		CloudPush.addEventListener('trayClickLaunchedApp', onNotificationReceived);
+		CloudPush.addEventListener('trayClickFocusedApp', onNotificationReceived);
+
 		CloudPush.retrieveDeviceToken({
 			success: function(e) {
 				if (!e.deviceToken) {
@@ -74,9 +113,7 @@ if (OS_IOS) {
 					return;
 				}
 
-				CloudPush.enabled = true;
 				cb(e.deviceToken);
-
 			},
 			error: function(e) {
 				Ti.API.error("Notifications: Retrieve device token failed - "+e.error);
@@ -87,7 +124,8 @@ if (OS_IOS) {
 
 	unsubscribeFunction = function(){
 		CloudPush.removeEventListener('callback', onNotificationReceived);
-		CloudPush.enabled = false;
+		CloudPush.removeEventListener('trayClickLaunchedApp', onNotificationReceived);
+		CloudPush.removeEventListener('trayClickFocusedApp', onNotificationReceived);
 	};
 
 }

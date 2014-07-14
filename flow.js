@@ -15,41 +15,68 @@ var config = _.extend({
 }, Alloy.CFG.T.flow);
 exports.config = config;
 
-var $_CC = null;
-var $_CCS = null;
-var $_CCA = null;
+var $_cur_CTRL_AS_STR = null;
+var $_cur_CTRL = null;
+var $_cur_CTRL_ARGS = null;
+var $_cur_WIN = null;
 
 var hist = [];
 
-var navNextRoute = null;
-var $navigationController = null;
+var navNR = null;
+var $nav = null;
 
 /**
  * Set the navigation controller used to open windows
  *
- * @param {XP.UI.NavigationWindow} navigationController The instance of the navigation controller
+ * @param {Ti.UI.iOS.NavigationWindow} nav The instance of the navigation controller
  * @param {Boolean} [openNow] Specify if call instantly the open on the navigation controller
  */
-function setNavigationController(navigationController, openNow) {
-	$navigationController = navigationController;
+function setNavigationController(nav, openNow) {
+	$nav = nav;
+
 	if (openNow) {
-		$navigationController.open();
-		if (navNextRoute) {
-			[open,openWindow][navNextRoute[0]](navNextRoute[1],navNextRoute[2],navNextRoute[3]);
-			navNextRoute = null;
+		$nav.open();
+
+		// If is stored navNextRoute object, forward the request to current navigator
+		if (navNR) {
+			var tmp = { "open": open, "openWindow": openWindow };
+			tmp[navNR.method](navNR.controller, navNR.args, navNR.opt);
+			navNR = null;
 		}
+
 	}
 }
 exports.setNavigationController = setNavigationController;
 
 
 /**
+ * Set, in a single way, the global NavigationWindow (and open it), the Index Controller and the Index Window
+ *
+ * This method, is typically called on startup, on the index.js, like this:
+ *
+ * ```
+ * T('flow').startup($, $.nav, $.win);
+ * ```
+ *
+ * @param  {Alloy.Controller} 		controller
+ * @param  {Ti.UI.NavigationWindow} nav
+ * @param  {Ti.UI.Window} 				win
+ */
+function startup(controller, nav, win) {
+	setNavigationController(nav, true);
+	setCurrentController(controller);
+	setCurrentWindow(win);
+}
+exports.startup = startup;
+
+
+/**
  * Return the instance set of navigation controller
  *
- * @return {XP.UI.NavigationWindow} The navigation controller
+ * @return {Ti.UI.NavigationWindow} The navigation controller
  */
 function getNavigationController() {
-	return $navigationController;
+	return $nav;
 }
 exports.getNavigationController = getNavigationController;
 
@@ -87,39 +114,40 @@ function openDirect(controller, args) {
 	Ti.API.debug("Flow: opening directly '"+controller+"' with args "+JSON.stringify(args));
 
 	// Open the controller
-	var $C = Alloy.createController(controller, args || {});
+	var $ctrl = Alloy.createController(controller, args || {});
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
 		require('T/ga').trackScreen(controller);
 	}
 
-	return $C;
+	return $ctrl;
 }
 exports.openDirect = openDirect;
+
 
 /**
  * Open a Window in current flow.
  *
  * If a navigation controller is set, open with it.
  *
- * @param  {Ti.UI.Window} $win 	The window object
- * @param  {Object} [opt]        The arguments passed to the NavigationWindow.openWindow or the Controller.Window.open
+ * @param  {Ti.UI.Window} $window 	The window object
+ * @param  {Object} [opt]        	The arguments passed to the NavigationWindow.openWindow or the Controller.Window.open
  */
-function openWindow($win, opt) {
+function openWindow($window, opt) {
 	opt = opt || {};
 
 	if (config.useNav) {
 
-		if (!$navigationController) {
-			navNextRoute = [1,controller,args,opt];
+		if (!$nav) {
+			navNR = { method: 'openWindow', controller: controller, args: opt };
 			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 			return;
 		}
-		$navigationController.openWindow($win, opt);
+		$nav.openWindow($window, opt);
 
 	} else {
-		$win.open(opt || {});
+		$window.open(opt || {});
 	}
 }
 exports.openWindow = openWindow;
@@ -133,14 +161,12 @@ exports.openWindow = openWindow;
  * A `close` event is automatically attached to the main window to call sequentially
  * `Controller.beforeDestroy` (if defined) and `Controller.destroy`
  *
- * If an `init` function is attached to the controller, is automatically
- * called on window open
- *
  * This is tracked with Google Analitycs
  *
  * @param  {String} controller The name of the controller
  * @param  {Object} [args]       The arguments passed to the controller
- * @param  {Object} [opt]        The arguments passed to the NavigationWindow.openWindow or the Controller.Window.open
+ * @param  {Object} [opt]        Additional arguments:
+ * * **openArgs**: The arguments passed to the Window.open
  * @return {Alloy.Controller}    The controller instance
  */
 function open(controller, args, opt) {
@@ -149,54 +175,50 @@ function open(controller, args, opt) {
 
 	Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
 
-	var $C = Alloy.createController(controller, args);
-	var $W = $C.getView();
+	var $ctrl = Alloy.createController(controller, args);
+	var $win = $ctrl.getView();
 
 	if (config.useNav) {
 
-		if (!$navigationController) {
-			navNextRoute = [0,controller,args,opt];
+		if (!$nav) {
+			navNR = { method: 'open', controller: controller, args: args, opt: opt };
 			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 			return;
 		}
-		$navigationController.openWindow($W, opt.openArgs || {});
+		$nav.openWindow($win, opt.openArgs || {});
 
 	} else {
-		$W.open(opt.openArgs || {});
+		$win.open(opt.openArgs || {});
 	}
 
 	// Attach events
-
-	$W.addEventListener('close', function(){
-		if ('beforeDestroy' in $C) $C.beforeDestroy();
-		$C.destroy();
-		$C = null;
-		$W = null;
+	$win.addEventListener('close', function(){
+		if ('beforeDestroy' in $ctrl) $ctrl.beforeDestroy();
+		$ctrl.destroy();
+		$ctrl = null;
+		$win = null;
 	});
-
-	if ('init' in $C) {
-		$W.addEventListener('open', $C.init);
-	}
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
 		require('T/ga').trackScreen(controller);
 	}
 
-	hist.push({
-		controller: controller,
-		args: args
-	});
+	// Put in the history current controller an its args
+	hist.push({ controller: controller, args: args });
 
-	if (!config.useNav && !opt.singleTask) {
-		if ($_CC) closeController($_CC);
+	// Close current controller if not using NavigationWindow based stack
+	if (!config.useNav && !opt.singleTask && $_cur_CTRL) {
+		closeController($_cur_CTRL);
 	}
 
-	$_CCS = controller;
-	$_CCA = args;
-	$_CC = $C;
+	$_cur_CTRL_AS_STR = controller;
 
-	return $_CC;
+	$_cur_CTRL_ARGS = args;
+	$_cur_CTRL = $ctrl;
+	$_cur_WIN = $win;
+
+	return $ctrl;
 }
 exports.open = open;
 
@@ -214,14 +236,15 @@ exports.back = back;
 
 
 /**
- * Get an object with current controller and args
+ * Get an object with currents controller, args and window
  *
  * @return {Object} [description]
  */
 function getCurrent() {
 	return {
-		controller: $_CCS,
-		args: $_CCA
+		controller: $_cur_CTRL,
+		window: $_cur_WIN,
+		args: $_cur_CTRL_ARGS,
 	};
 }
 exports.getCurrent = getCurrent;
@@ -233,17 +256,26 @@ exports.getCurrent = getCurrent;
  */
 exports.current = getCurrent;
 
-
 /**
  * Return current controller
  *
  * @return {Alloy.Controller}
  */
 function getCurrentController() {
-	return $_CC;
+	return $_cur_CTRL;
 }
 exports.getCurrentController = getCurrentController;
 
+/**
+ * Set current controller
+ *
+ * @param {Alloy.Controller} controller
+ */
+function setCurrentController(controller) {
+	$_cur_CTRL = controller;
+	$_cur_WIN = controller.getView();
+}
+exports.setCurrentController = setCurrentController;
 
 /**
  * @method controller
@@ -252,16 +284,14 @@ exports.getCurrentController = getCurrentController;
  */
 exports.controller = getCurrentController;
 
-
 /**
  * Close current controller
  */
 function closeCurrent() {
 	hist.pop();
-	closeController($_CC);
+	closeController($_cur_CTRL);
 }
 exports.closeCurrent = closeCurrent;
-
 
 /**
  * Get the history of controllers used
@@ -273,7 +303,6 @@ function getHistory() {
 }
 exports.getHistory = getHistory;
 
-
 /**
  * Clear the history of controllers used
  */
@@ -281,3 +310,28 @@ function clearHistory(){
 	hist = [];
 }
 exports.clearHistory = clearHistory;
+
+/**
+ * Get current Window
+ * @return {Ti.UI.Window}
+ */
+function getCurrentWindow() {
+	return $_cur_WIN;
+}
+exports.getCurrentWindow = getCurrentWindow;
+
+/**
+ * Set current Window
+ * @param {Ti.UI.Window} $window
+ */
+function setCurrentWindow($window) {
+	$_cur_WIN = $window;
+}
+exports.setCurrentWindow = setCurrentWindow;
+
+/**
+ * @method window
+ * @inheritDoc #getCurrentWindow
+ * Alias for {@link #getCurrentController}
+ */
+exports.window = getCurrentWindow;

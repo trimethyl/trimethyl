@@ -25,10 +25,10 @@ function getPhoto(method, opt, cb){
 		saveToPhotoGallery: (method=='showCamera'),
 		success: cb,
 		cancel: function(e) {
-			Ti.API.warn("Camera: "+e);
+			Ti.API.warn("Camera: Cancelled ("+JSON.stringify(e)+")");
 		},
 		error: function(e) {
-			Ti.API.error("Camera: "+e);
+			Ti.API.error("Camera: Error ("+JSON.stringify(e)+")");
 			require('T/util').alertError(L('camera_error'));
 		},
 	}));
