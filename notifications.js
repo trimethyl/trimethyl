@@ -51,7 +51,7 @@ function onNotificationReceived(e) {
 	}
 
 	// Trigger the glob event
-	Ti.App.fireEvent('notifications.received', e);
+	Ti.App.fireEvent('notifications.received', e || {});
 
 	if (config.autoReset) resetBadge();
 }
