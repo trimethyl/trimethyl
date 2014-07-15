@@ -17,12 +17,48 @@ Most of these modules are proxy object for Titanium API and some of these add fe
 
 ## Installation
 
-To install this framework, you have to copy to your lib directory.
+To install this framework, you have to copy it to your **app/lib** directory.
 
-So, open terminal, move to your Titanium project, and type
+### Stable installation
+
+Download the latest release and unzip in **app/lib/T**
+
+Or, open your Terminal app, move to your Titanium project, and simply type:
+
+```
+wget https://github.com/CaffeinaLab/Trimethyl/archive/1.2.tar.gz -O T.tar.gz;
+mkdir -p app/lib/T;
+tar -xvf T.tar.gz -C app/lib/T --strip-components=1
+```
+
+### Master installation
+
+If you want to install the master version directly from GitHub, just clone this repository:
 
 ```
 git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
+```
+
+The master version *coulb be* unstable, so use at your risk.
+
+## Configuration
+
+Each module reads from the **config.json** its configuration.
+
+For example, the module named **X**, will read the `Alloy.CFG.T.X` object.
+
+You can customize the options passed for each modules, editing your **config.json** file:
+
+```javascript
+{
+	...
+	"T":{
+		"X": {
+			...
+		},
+		...
+	}
+	...
 ```
 
 ## Initialization
@@ -40,14 +76,14 @@ function T(name) { return require('T/'+name); }
 T('trimethyl');
 ```
 
-This will bootstrap some important framework files, set prototypes, TSS and Alloy.Globals vars.
+Requiring **T** will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` vars.
 
 ## CommonJS Modules
 
 To require a module, just call
 
 ```javascript
-var X = require('T/X');
+var X = require('T/X'); /* or T('X') */
 ```
 
 where `X` is the module that you want to use.
@@ -58,26 +94,12 @@ Each module read the `Alloy.CFG.T.__MODULENAME__` properties in your *config.jso
 
 ## NON-CommonJS modules
 
-There are some modules that's cannot be included via *require*, and you have to use in your XML Alloy files, like:
+There are some modules that can be used too in your XML Alloy files, like:
 
-* **xp.ui**: Provide cross-platforms UI elements to handle differences between platforms
-* **ui**: Provide new UI elements that missing from some platforms
+* **XP.UI**: Provide cross-platforms UI elements to handle differences between platforms
+* **UI**: Provide new UI elements that missing from some platforms
 
 **Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage**.
-
-## Essential (3)-party widgets
-
-Some modules needs this modules, so you have to install if you get some errors:
-
-* https://github.com/CaffeinaLab/com.caffeinalab.titanium.loader
-* https://github.com/CaffeinaLab/com.caffeinalab.titanium.modalwindow
-
-You can install via **gittio**:
-
-```
-gittio install com.caffeinalab.titanium.loader;
-gittio install com.caffeinalab.titanium.modalwindow;
-```
 
 ## License
 
