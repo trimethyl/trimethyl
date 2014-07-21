@@ -3,11 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide functions to simplify sharing across platforms and social networks
  *
- * Require `dn.napp.social`
- *
- * Documentation:
- * https://github.com/viezel/TiSocial.Framework
- *
  * Be more Social on your app! ;)
  *
  */
