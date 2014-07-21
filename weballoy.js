@@ -106,7 +106,9 @@ exports.config = config;
 
 var libDir = [];
 
-function embedCSS(f) {
+function embedCSS(f, html) {
+	if (html) return '<link rel="stylesheet" href="'+f+'" />';
+
 	var file = Ti.Filesystem.getFile(f);
 	if (!file.exists()) return '';
 	var read = file.read().text;
@@ -114,13 +116,16 @@ function embedCSS(f) {
 	return '<style id="__weballoy_'+f+'" type="text/css">'+read+'</style>';
 }
 
-function embedJS(f) {
+function embedJS(f, html) {
+	if (html) return '<script id="__weballoy_'+f+'" type="text/javascript" src="'+f+'"></script>';
+
 	var file = Ti.Filesystem.getFile(f);
 	if (!file.exists()) return '';
 	var read = file.read().text;
 	file = null;
 	return '<script id="__weballoy_'+f+'" type="text/javascript">'+read+'</script>';
 }
+
 
 /**
  * @method createView
