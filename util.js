@@ -124,6 +124,20 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 	return 'http://graph.facebook.com/'+fbid+'/picture/?width='+(w||150)+'&height='+(h||150);
 };
 
+/**
+ * @method openInStore
+ * Open the iTunes Store or Google Play Store of specified appid
+ * @param {String} appid Application ID
+ */
+exports.openInStore = function(appid) {
+	if (OS_IOS) {
+		Ti.Platform.openURL('https://itunes.apple.com/app/id'+appid);
+	} else if (OS_ANDROID) {
+		Ti.Platform.openURL('https://play.google.com/store/apps/details?id='+appid);
+	}
+};
+
+
 
 /**
  * @method reviewInStore
@@ -231,9 +245,10 @@ exports.prompt = alertPrompt;
  * @param  {Function} [cb]    	The callback to invoke when clicking *Yes*.
  * @return {Ti.UI.AlertDialog}
  */
-exports.confirm = function(title, msg, cb) {
+function confirm(title, msg, cb) {
 	return alertPrompt(title, msg, [ L('Cancel'), L('Yes') ], 0, cb, { selectedIndex: 1 });
-};
+}
+exports.confirm = confirm;
 
 
 /**
@@ -428,16 +443,28 @@ exports.uniqid = function(prefix, more_entropy) {
 };
 
 /**
+ * @method now
+ * Get the current UNIX timestamp.
+ * @return {Number}
+ */
+function now(t) {
+	return parseInt((+new Date())/1000,10);
+}
+exports.now = now;
+
+
+/**
  * @method timestamp
  * Get the UNIX timestamp.
  *
  * @param  {String} [t]  The date to parse. If is not provided, get current timestamp.
  * @return {Number}
  */
-exports.timestamp = function(t) {
-	if (t) return parseInt(new Date(t).getTime()/1000, 10);
-	return parseInt(new Date().getTime()/1000, 10);
-};
+function timestamp(t) {
+	if (!t) return now();
+	return parseInt((+new Date(t))/1000,10);
+}
+exports.timestamp = timestamp;
 
 
 /**
@@ -448,7 +475,7 @@ exports.timestamp = function(t) {
  * @return {Number}
  */
 exports.fromnow = function(t) {
-	return parseInt(new Date(new Date().getTime()+t*1000).getTime()/1000, 10);
+	return timestamp( (now()+t)*1000 );
 };
 
 

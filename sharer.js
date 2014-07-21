@@ -18,15 +18,15 @@
 var config = _.extend({}, Alloy.CFG.T.sharer);
 exports.config = config;
 
+var Util = require('T/util');
 
+// Handle all callbacks by this-
 var callback = null;
-var dkNappSocial = null;
 
-if (OS_IOS) {
-	dkNappSocial = require('dk.napp.social');
-	dkNappSocial.addEventListener('complete', onSocialComplete);
-	dkNappSocial.addEventListener('cancelled', onSocialCancel);
-}
+// Native modules
+var dkNappSocial = null;
+var Facebook = null;
+var benCodingSMS = null;
 
 function onSocialComplete(e) {
 	if (!callback) return;
@@ -46,7 +46,7 @@ function parseArgs(args) {
 	if (!args) return {};
 
 	if (args.image) {
-		if (typeof args.image === 'object') {
+		if (_.isObject(args.image)) {
 			if (args.image.resolve) {
 				args.imageBlob = args.image;
 				args.image = args.imageBlob.resolve();
@@ -56,7 +56,7 @@ function parseArgs(args) {
 			} else {
 				delete args.image;
 			}
-		} else if (args.image.indexOf('://')) {
+		} else if (_.isString(args.image) && args.image.indexOf('://')) {
 			args.imageUrl = args.image;
 		}
 	}
@@ -78,40 +78,44 @@ function parseArgs(args) {
 	return args;
 }
 
+
+
 /**
+ * @method internal
  * Open the following url inside the app, in a webview
+ *
+ * Require the widget **com.caffeinalab.titanium.modalwindow**
+ *
  * @param  {String} url The URL to open
  */
-function webviewShare(url) {
-	require('ui').createModalWebView({
+function internal(url) {
+	require('T/ui').createModalWebView({
 		title: L('Share'),
 		url: url
 	}).open();
 }
-exports.webviewShare = webviewShare;
-
-/**
- * @method  webview
- * @inheritDoc #webviewShare
- * Alias for {@link #webviewShare}
- */
-exports.webview = webviewShare;
+exports.internal = internal;
 
 
 /**
+ * @method facebook
  * Share on Facebook
  * @param {Object} args
  */
-function shareOnFacebook(args) {
+function facebook(args) {
 	callback = args.callback || null;
 	args = parseArgs(args);
 
-	// iOS Sharer doesn't share Facebook links
+	// IOS-BUG: iOS Sharer doesn't share Facebook links
 	if (args.url && args.url.match(/https?\:\/\/(www\.)?facebook\.com/)) {
 		args.useSDK = true;
 	}
 
-	if (OS_IOS && dkNappSocial.isFacebookSupported() && !args.useSDK) {
+	if (!args.useSDK && args.native!==false && dkNappSocial && dkNappSocial.isFacebookSupported()) {
+
+		/*
+		Native iOS dialog
+		*/
 
 		dkNappSocial.facebook({
 			text: args.text,
@@ -119,19 +123,13 @@ function shareOnFacebook(args) {
 			url: args.url
 		});
 
-	} else {
+	} else if (Facebook) {
 
-		var FB = require('facebook');
+		/*
+		Facebook SDK feed dialog
+		*/
 
-		if (!FB.appid) {
-			if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-				FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-			} else {
-				Ti.API.error("Sharer: please specify a Facebook AppID");
-			}
-		}
-
-		FB.dialog('feed', {
+		Facebook.dialog('feed', {
 			name: args.title,
 			description: args.text,
 			link: args.url,
@@ -152,22 +150,26 @@ function shareOnFacebook(args) {
 
 		});
 
+	} else {
+
+		/*
+		Browser sharing
+		*/
+
+		if (args.url) {
+			Util.openURL('https://www.facebook.com/sharer.php?u='+args.url);
+		}
+
 	}
 }
-exports.shareOnFacebook = shareOnFacebook;
+exports.facebook = facebook;
 
 /**
- * @method facebook
- * @inheritDoc #shareOnFacebook
- * Alias for {@link #shareOnFacebook}
- */
-exports.facebook = shareOnFacebook;
-
-/**
+ * @method twitter
  * Share on Twitter
  * @param {Object} args
  */
-function shareOnTwitter(args) {
+function twitter(args) {
 	callback = args.callback || null;
 	parseArgs(args);
 
@@ -176,49 +178,58 @@ function shareOnTwitter(args) {
 	if (args.retweet) {
 		webIntent = WEB_URL+'/retweet?tweet_id='+args.retweet;
 	} else {
-		webIntent = WEB_URL+'/tweet'+require('util').buildQuery({
+		webIntent = WEB_URL+'/tweet'+require('T/util').buildQuery({
 			text: args.text,
 			url: args.url
 		});
 	}
 
-
 	if (OS_ANDROID) {
 
-		try {
-			Ti.Platform.openURL(webIntent);
-		} catch (e) {}
+		/*
+		Android Intent automatic handle
+		*/
 
-	} else if (OS_IOS && dkNappSocial.isTwitterSupported()) {
-
-		var text = args.text;
-		if (args.retweetUser) text = 'RT @'+args.retweetUser+': '+text;
-
-		dkNappSocial.twitter({
-			text: text,
-			image: args.image,
-			url: args.url
-		});
+		Util.openURL(webIntent);
 
 	} else {
-		require('util').openURL('twitter://post?message='+encodeURIComponent(args.fullText), webIntent);
+
+		if (args.native!==false && dkNappSocial && dkNappSocial.isTwitterSupported()) {
+
+			/*
+			Native iOS Dialog
+			*/
+
+			var text = args.text;
+			if (args.retweetUser) text = 'RT @'+args.retweetUser+': '+text;
+
+			dkNappSocial.twitter({
+				text: text,
+				image: args.image,
+				url: args.url
+			});
+
+		} else  {
+
+			/*
+			Twitter app native sharing
+			Browser fallback
+			*/
+
+			Util.openURL('twitter://post?message='+encodeURIComponent(args.fullText), webIntent);
+
+		}
 	}
 
 }
-exports.twitter = shareOnTwitter;
+exports.twitter = twitter;
 
 /**
- * @method twitter
- * @inheritDoc #shareOnTwitter
- * Alias for {@link #shareOnTwitter}
- */
-exports.twitter = shareOnTwitter;
-
-/**
+ * @method mail
  * Share via Mail
  * @param {Object} args
  */
-function shareViaMail(args) {
+function mail(args) {
 	callback = args.callback || null;
 	args = parseArgs(args);
 
@@ -247,45 +258,88 @@ function shareViaMail(args) {
 
 	$dialog.open();
 }
-exports.shareViaMail = shareViaMail;
-
-/**
- * @method  mail
- * @inheritDoc #shareViaMail
- * Alias for {@link #shareViaMail}
- */
-exports.mail = shareViaMail;
+exports.mail = mail;
 
 
 /**
+ * @method googleplus
  * Share on Google Plus
  * @param {Object} args
  */
-function shareOnGooglePlus(args) {
+function googleplus(args) {
 	args = parseArgs(args);
 	if (!args.url) {
 		Ti.API.error("Sharer: sharing on G+ require a URL");
 		return;
 	}
 
-	try {
-		Ti.Platform.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
-	} catch (e) {}
+	/*
+	Browser unique implementation
+	*/
+	Util.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
 }
-exports.shareOnGooglePlus = shareOnGooglePlus;
+exports.googleplus = googleplus;
+
 
 /**
+ * @method whatsapp
  * Share via Whatsapp
  * @param {Object} args
  */
-function shareOnWhatsApp(args) {
+function whatsapp(args) {
 	args = parseArgs(args);
 
-	try {
-		Ti.Platform.openURL('whatsapp://send?text='+args.fullText);
-	} catch (e) {}
+	/*
+	Whatsapp native app unique implementation
+	*/
+	Util.openURL('whatsapp://send?text='+args.fullText, function() {
+		Util.confirm(OS_IOS ? null: Ti.App.name, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+			Util.openInStore('310633997');
+		});
+	});
 }
-exports.shareOnWhatsApp = shareOnWhatsApp;
+exports.whatsapp = whatsapp;
+
+
+/**
+ * @method sms
+ * Share via Messages
+ * @param {Object} args
+ */
+function sms(args) {
+	callback = args.callback || null;
+	args = parseArgs(args);
+
+	if (OS_IOS && !benCodingSMS) {
+		throw new Error("Sharer: 'bencoding.sms' module is required to send SMS");
+	}
+
+	if (benCodingSMS) {
+
+		/*
+		iOS Native modal
+		*/
+
+		var $dialog = benCodingSMS.createSMSDialog({ messageBody: args.fullText });
+
+		$dialog.addEventListener('completed', function(e){
+			onSocialComplete({ success: true, platform: 'messages' });
+		});
+
+		$dialog.addEventListener('cancelled', function(e){
+			onSocialCancel({ success: false, platform: 'messages' });
+		});
+
+		$dialog.addEventListener('errored', function(e){
+			onSocialComplete({ success: false, platform: 'messages' });
+		});
+
+		$dialog.open({ animated: true });
+
+	}
+
+}
+exports.sms = sms;
 
 
 /**
@@ -298,7 +352,15 @@ function activity(args) {
 
 	if (OS_IOS) {
 
-		dkNappSocial[Ti.Platform.osname=='ipad'?'activityPopover':'activityView']
+		/*
+		iOS Activity native
+		*/
+
+		if (!dkNappSocial) {
+			throw new Error("Sharer: module 'dk.napp.social' is required for 'activity' method");
+		}
+
+		dkNappSocial[ Ti.Platform.osname==='ipad' ? 'activityPopover' : 'activityView' ]
 		({
 			text: args.text,
 			title: args.title,
@@ -311,7 +373,12 @@ function activity(args) {
 	} else if (OS_ANDROID) {
 
 		/*
-		Facebook bug with EXTRA_TEXT
+		Android intents
+		*/
+
+		/*
+		FACEBOOK-BUG
+		EXTRA_TEXT
 		https://developers.facebook.com/bugs/332619626816423
 		*/
 
@@ -328,3 +395,50 @@ function activity(args) {
 
 exports.activity = activity;
 exports.multi = activity;
+
+
+(function init() {
+
+	// Load modules
+
+	try {
+		Facebook = require('facebook');
+		if (!Facebook) throw new Error();
+	} catch (ex) {
+		Ti.API.warn("Sharer: 'facebook' can't be loaded");
+	}
+
+	if (OS_IOS) {
+
+		try {
+			dkNappSocial = require('dk.napp.social');
+			if (!dkNappSocial) throw new Error();
+		} catch (ex) {
+			Ti.API.warn("Sharer: 'dk.napp.social' can't be loaded");
+		}
+
+		try {
+			benCodingSMS = require('bencoding.sms');
+			if (!benCodingSMS) throw new Error();
+		} catch (ex) {
+			Ti.API.warn("Sharer: 'bencoding.sms' can't be loaded");
+		}
+
+	}
+
+	// Configure modules
+
+	if (!Facebook.appid) {
+		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+			Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+		} else {
+			Ti.API.error("Sharer: Please specify a Facebook AppID");
+		}
+	}
+
+	if (dkNappSocial) {
+		dkNappSocial.addEventListener('complete', onSocialComplete);
+		dkNappSocial.addEventListener('cancelled', onSocialCancel);
+	}
+
+})();

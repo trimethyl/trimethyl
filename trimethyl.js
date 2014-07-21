@@ -4,6 +4,8 @@
  * The framework initializator
  */
 
+Ti.Trimethyl = true;
+
 var Util = require('T/util');
 var Device 	= require('T/device');
 
