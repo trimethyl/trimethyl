@@ -31,19 +31,19 @@ var $TRACKER = null;
  */
 function trackEvent(cat, act, lbl, val){
 	if (!$TRACKER) return;
+	var obj = {};
 
 	if (_.isObject(cat)) {
-		$TRACKER.trackEvent(cat);
+		obj = cat;
 	} else {
-
-		var obj = {};
 		obj.category = cat;
 		obj.action = act;
 		obj.label = lbl ? lbl : '';
 		obj.value = val ? +val : 0;
-
-		$TRACKER.trackEvent(obj);
 	}
+
+	$TRACKER.trackEvent(obj);
+	console.log("GA: EVENT - "+JSON.stringify(obj));
 }
 exports.trackEvent = trackEvent;
 
@@ -64,6 +64,7 @@ function trackScreen(name){
 	if (!$TRACKER) return;
 
 	$TRACKER.trackScreen(name);
+	console.log("GA: SCREEN - "+name);
 }
 exports.trackScreen = trackScreen;
 
@@ -84,18 +85,18 @@ exports.screen = trackScreen;
  */
 function trackSocial(net, act, tar){
 	if (!$TRACKER) return;
+	var obj = {};
 
 	if (_.isObject(net)) {
-		$TRACKER.trackSocial(net);
+		obj = net;
 	} else {
-
-		var obj = {};
 		obj.network = net;
 		obj.action = act || 'share';
 		obj.target = tar || '';
-
-		$TRACKER.trackSocial(obj);
 	}
+
+	$TRACKER.trackSocial(net);
+	console.log("GA: SOCIAL - "+JSON.stringify(obj));
 }
 exports.trackSocial = trackSocial;
 
@@ -105,6 +106,42 @@ exports.trackSocial = trackSocial;
  * Alias for {@link #trackSocial}
  */
 exports.social = trackSocial;
+
+
+
+/**
+ * Track timing
+ *
+ * @param  {String} net The social network: facebook, twitter, googleplus...
+ * @param  {String} act The action associated
+ * @param  {String} tar The target associated
+ */
+function trackTiming(cat, time, name, lbl){
+	if (!$TRACKER) return;
+	var obj = {};
+
+	if (_.isObject(cat)) {
+		obj = cat;
+	} else {
+		obj.category = cat;
+		obj.time = time;
+		obj.name = name || '';
+		obj.label = lbl || '';
+	}
+
+	$TRACKER.trackTiming(obj);
+	console.log("GA: TIME - "+JSON.stringify(obj));
+}
+exports.trackTiming = trackTiming;
+
+/**
+ * @method time
+ * @inheritDoc #trackTiming
+ * Alias for {@link #trackTiming}
+ */
+exports.time = trackTiming;
+
+
 
 /**
  * Set the tracker UA.
