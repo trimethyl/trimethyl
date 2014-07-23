@@ -3,6 +3,7 @@
  * API-Rest Alloy Adapter
  */
 
+var Net = require('T/net');
 var CRUD_TO_REST = {
 	'create' : 'POST',
 	'read' : 'GET',
@@ -11,24 +12,15 @@ var CRUD_TO_REST = {
 };
 
 exports.sync = function(method, model, opt) {
-
-	var url = '';
-	if (model.config.adapter.baseUrl && model.config.adapter.baseUrl.length>0) {
-		url = model.config.adapter.baseUrl;
-	} else {
-		url = '/';
-	}
-
-	url += model.config.adapter.name;
+	var collection = true;
+	var url = (model.config.adapter.baseUrl || '/') + model.config.adapter.name;
 
 	if (model.id) {
+		collection = false;
 		url += '/' + model.id;
 	}
 
-	if (opt.patch) {
-		method = 'patch';
-	}
-
+	if (opt.patch) method = 'patch';
 	var data = _.extend(opt.netArgs || {}, opt.networkArgs || {}, {
 		url: url,
 		method: CRUD_TO_REST[method],
@@ -36,7 +28,7 @@ exports.sync = function(method, model, opt) {
 	});
 
 	if (Alloy.Backbone.emulateHTTP) {
-		if (['DELETE','PUT','PATCH'].indexOf(data.method)!==false) {
+		if (['DELETE','PUT','PATCH'].indexOf(data.method)!==-1) {
 			data.headers = _.extend(data.headers || {}, { 'X-HTTP-Method-Override': data.method });
 			data.method = 'POST';
 		}
@@ -45,13 +37,14 @@ exports.sync = function(method, model, opt) {
 	switch (method) {
 
 		case 'create':
-		require('T/net').send(_.extend(data, {
+		Net.send(_.extend(data, {
 			data: model.toJSON(),
 			success: function(resp) {
-				if (resp.id) {
+
+				if (resp && resp.id) {
 					opt.success(resp);
 				} else {
-					opt.success();
+					opt.error();
 				}
 
 				if (opt.ready) opt.ready();
@@ -62,10 +55,21 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'read':
-		require('T/net').send(_.extend(data, {
+		Net.send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
-				opt.success(resp);
+
+				if (resp) {
+					if (collection) {
+						if (_.isObject(resp) && resp.data) opt.success(resp.data);
+						else if (_.isArray(resp)) opt.success(resp);
+						else opt.error();
+					} else {
+						opt.success(resp);
+					}
+				} else {
+					opt.error();
+				}
 
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
@@ -75,13 +79,14 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'update':
-		require('T/net').send(_.extend(data, {
+		Net.send(_.extend(data, {
 			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
-				if (resp.id) {
-					opt.success(resp);
-				} else {
+
+				if (resp) {
 					opt.success();
+				} else {
+					opt.error();
 				}
 
 				if (opt.ready) opt.ready();
@@ -92,10 +97,15 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'delete':
-		require('T/net').send(_.extend(data, {
+		Net.send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
-				opt.success();
+
+				if (resp) {
+					opt.success();
+				} else {
+					opt.error();
+				}
 
 				if (opt.ready) opt.ready();
 				model.trigger("fetch");
