@@ -412,7 +412,7 @@ exports.createLabel = function(args) {
 				},
 				'i': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: args.fontTransformation_.extend(args.font, fontTransform.italic)
+					value: _.extend(args.font, fontTransform.italic)
 				},
 				'b': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
