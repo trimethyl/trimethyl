@@ -373,12 +373,36 @@ function simpleHTMLParser(text) {
  *
  * For now, supports `<b><i><u><br><p>` tags.
  *
+ * If you specify `fontTransform` property in the arguments,
+ * the specified transformation is applied to current font.
+ * For example:
+ *
+ * ```
+ * italic: {
+ *		fontStyle: 'Italic'
+ *	},
+ *	bold: {
+ *		fontFamily: 'Arial-Bold'
+ *	}
+ *	```
+ *
+ * It's useful if you don't have a regular font syntax.
+ *
  * @param  {Object} args
  */
 exports.createLabel = function(args) {
 	var $this = Ti.UI.createLabel(args || {});
 
 	if (OS_IOS) {
+
+		var fontTransform = _.extend({
+			italic: {
+				fontStyle: 'Italic'
+			},
+			bold: {
+				fontWeight: 'Bold'
+			}
+		}, args.fontTransform || {});
 
 		$this.setHtml = function(value) {
 			var htmlToAttrMap = {
@@ -388,19 +412,11 @@ exports.createLabel = function(args) {
 				},
 				'i': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: args.font ? (
-					/-Regular/.test(args.font.fontFamily) ?
-					{ fontFamily: args.font.fontFamily.replace('-Regular', '-Italic'), fontSize: args.font.fontSize } :
-					{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontStyle: 'Italic' }
-					) : { fontStyle: 'Italic' }
+					value: args.fontTransformation_.extend(args.font, fontTransform.italic)
 				},
 				'b': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: args.font ? (
-					/-Regular/.test(args.font.fontFamily) ?
-					{ fontFamily: args.font.fontFamily.replace('-Regular', '-Bold'), fontSize: args.font.fontSize } :
-					{ fontFamily: args.font.fontFamily, fontSize: args.font.fontSize, fontWeight: 'Bold' }
-					) : { fontWeight: 'Bold' }
+					value: _.extend(args.font, fontTransform.bold)
 				}
 			};
 
@@ -485,7 +501,7 @@ exports.createTabbedBar = function(args) {
 	$this.getLabels = function() { return $this._labels; };
 	$this.setLabels = function(lbls) {
 		$this._labels = [];
-		_.each(lbls, function(l,i){
+		_.each(lbls, function(l, i){
 			$this._labels.push(_.isObject(l) ? l.title : l);
 		});
 
