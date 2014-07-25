@@ -229,7 +229,7 @@ function mail(args) {
 	args = parseArgs(args);
 
 	var $dialog = Ti.UI.createEmailDialog({
-		subject: args.title,
+		subject: args.subject || args.title,
 		messageBody: args.fullText,
 	});
 
