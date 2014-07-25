@@ -134,18 +134,20 @@ exports.openWindow = openWindow;
  *
  * This is tracked with Google Analitycs
  *
- * @param  {String} controller The name of the controller
- * @param  {Object} [args]     The args passed to the controller
+ * @param  {String} controller 	The name of the controller
+ * @param  {Object} [args]     	The args passed to the controller
  * @param  {Object} [opt]        Additional arguments
  * @param  {String} [key]			Optional key that identify this controller
  */
 function openDirect(controller, args, opt, key) {
-	key = key || controller;
+	args = args || {};
+	opt = opt || {};
 
 	Ti.API.debug("Flow: opening directly '"+controller+"' with args "+JSON.stringify(args));
 
 	// Open the controller
 	var $ctrl = Alloy.createController(controller, args || {});
+	key = key || $ctrl.analyticsKey || controller;
 
 	// Track with Google Analitycs
 	if (config.trackWithGA) {
@@ -177,11 +179,12 @@ exports.openDirect = openDirect;
 function open(controller, args, opt, key) {
 	args = args || {};
 	opt = opt || {};
-	key = key || controller;
 
 	Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
 
 	var $ctrl = Alloy.createController(controller, args);
+	key = key || $ctrl.analyticsKey || controller;
+
 	var $win = $ctrl.getView();
 
 	if (config.useNav) {

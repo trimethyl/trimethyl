@@ -404,6 +404,7 @@ exports.createLabel = function(args) {
 			}
 		}, args.fontTransform || {});
 
+
 		$this.setHtml = function(value) {
 			var htmlToAttrMap = {
 				'u': {

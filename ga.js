@@ -24,10 +24,10 @@ var $TRACKER = null;
 /**
  * Track an event
  *
- * @param  {String} cat The category **or the object passed to the module**
- * @param  {String} act The action associated
- * @param  {String} lbl The label associated
- * @param  {String} val The value associated
+ * @param  {String} cat 	Category **or object passed to native proxy**
+ * @param  {String} act 	The action
+ * @param  {String} [lbl] 	Label
+ * @param  {String} [val]	Value
  */
 function trackEvent(cat, act, lbl, val){
 	if (!$TRACKER) return;
@@ -43,7 +43,7 @@ function trackEvent(cat, act, lbl, val){
 	}
 
 	$TRACKER.trackEvent(obj);
-	console.log("GA: EVENT - "+JSON.stringify(obj));
+	Ti.API.debug("GA: EVENT - "+JSON.stringify(obj));
 }
 exports.trackEvent = trackEvent;
 
@@ -64,7 +64,7 @@ function trackScreen(name){
 	if (!$TRACKER) return;
 
 	$TRACKER.trackScreen(name);
-	console.log("GA: SCREEN - "+name);
+	Ti.API.debug("GA: SCREEN - "+name);
 }
 exports.trackScreen = trackScreen;
 
@@ -79,9 +79,9 @@ exports.screen = trackScreen;
 /**
  * Track a social action
  *
- * @param  {String} net The social network: facebook, twitter, googleplus...
- * @param  {String} act The action associated
- * @param  {String} tar The target associated
+ * @param  {String} net 		The social network name **or object passed to native proxy**
+ * @param  {String} [act] 		The action (Default `share`)
+ * @param  {String} [tar] 		Target
  */
 function trackSocial(net, act, tar){
 	if (!$TRACKER) return;
@@ -96,7 +96,7 @@ function trackSocial(net, act, tar){
 	}
 
 	$TRACKER.trackSocial(net);
-	console.log("GA: SOCIAL - "+JSON.stringify(obj));
+	Ti.API.debug("GA: SOCIAL - "+JSON.stringify(obj));
 }
 exports.trackSocial = trackSocial;
 
@@ -112,9 +112,10 @@ exports.social = trackSocial;
 /**
  * Track timing
  *
- * @param  {String} net The social network: facebook, twitter, googleplus...
- * @param  {String} act The action associated
- * @param  {String} tar The target associated
+ * @param  {String} cat 		Category **or object passed to native proxy**
+ * @param  {String} time 		Time expressed in ms
+ * @param  {String} [name] 	Name
+ * @param  {String} [lbl]		Label
  */
 function trackTiming(cat, time, name, lbl){
 	if (!$TRACKER) return;
@@ -130,7 +131,7 @@ function trackTiming(cat, time, name, lbl){
 	}
 
 	$TRACKER.trackTiming(obj);
-	console.log("GA: TIME - "+JSON.stringify(obj));
+	Ti.API.debug("GA: TIME - "+JSON.stringify(obj));
 }
 exports.trackTiming = trackTiming;
 
