@@ -123,7 +123,7 @@ exports.createNavigationWindow = function(args) {
  *
  * Adds the support for:
  *
- * * **rightNavButton**
+ * * **rightNavButton** (partial)
  * * **title and subtitle**: automatically set the title and subtitle in the ActionBar
  *
  * @param  {Object} args
@@ -154,6 +154,7 @@ exports.createWindow = function(args) {
 
 			if ($btn===null) {
 
+				// Clean
 				$ui.activity.onCreateOptionsMenu = function(e){
 					e.menu.items = [];
 				};
@@ -161,9 +162,10 @@ exports.createWindow = function(args) {
 			} else {
 
 				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
+
 				$ui.activity.onCreateOptionsMenu = function(e){
 					if (!$btn.title && !$btn.image) {
-						Ti.API.error("XP.UI: please specify a title OR icon/image for RightNavButton");
+						Ti.API.error("XP.UI: please specify a title OR icon/image for RightNavButton on Android");
 						return;
 					}
 
@@ -183,8 +185,12 @@ exports.createWindow = function(args) {
 			}
 		};
 
-		Object.defineProperty($ui, 'rightNavButton', { set: $ui.setNavButton });
-		if (args.rightNavButton) $ui.setRightNavButton(args.rightNavButton);
+
+		if (args.rightNavButton) {
+			$ui.setRightNavButton(args.rightNavButton);
+		} else {
+			Ti.API.warn("XP.UI: Starting with Ti-SDK 3.3.0 GA you have to call Window.setRightNavButton(Button) manually on your controller");
+		}
 
 	}
 
@@ -403,6 +409,7 @@ exports.createLabel = function(args) {
 				fontWeight: 'Bold'
 			}
 		}, args.fontTransform || {});
+
 
 		$this.setHtml = function(value) {
 			var htmlToAttrMap = {

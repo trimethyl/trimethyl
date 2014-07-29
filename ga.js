@@ -24,10 +24,10 @@ var __tracker = null;
 /**
  * Track an event
  *
- * @param  {String} cat The category **or the object passed to the module**
- * @param  {String} act The action associated
- * @param  {String} lbl The label associated
- * @param  {String} val The value associated
+ * @param  {String} cat 	Category **or object passed to native proxy**
+ * @param  {String} act 	The action
+ * @param  {String} [lbl] 	Label
+ * @param  {String} [val]	Value
  */
 function trackEvent(cat, act, lbl, val){
 	if (!__tracker) return;
@@ -42,7 +42,7 @@ function trackEvent(cat, act, lbl, val){
 		obj.value = val ? +val : 0;
 	}
 
-	__tracker.trackEvent(obj);
+	try {  __tracker.trackEvent(obj); } catch (err) {}
 	console.log("GA: EVENT - "+JSON.stringify(obj));
 }
 exports.trackEvent = trackEvent;
@@ -63,7 +63,7 @@ exports.event = trackEvent;
 function trackScreen(name){
 	if (!__tracker) return;
 
-	__tracker.trackScreen(name);
+	try { __tracker.trackScreen(name); } catch (err) {}
 	console.log("GA: SCREEN - "+name);
 }
 exports.trackScreen = trackScreen;
@@ -79,9 +79,9 @@ exports.screen = trackScreen;
 /**
  * Track a social action
  *
- * @param  {String} net The social network: facebook, twitter, googleplus...
- * @param  {String} act The action associated
- * @param  {String} tar The target associated
+ * @param  {String} net 		The social network name **or object passed to native proxy**
+ * @param  {String} [act] 		The action (Default `share`)
+ * @param  {String} [tar] 		Target
  */
 function trackSocial(net, act, tar){
 	if (!__tracker) return;
@@ -95,7 +95,7 @@ function trackSocial(net, act, tar){
 		obj.target = tar || '';
 	}
 
-	__tracker.trackSocial(net);
+	try {  __tracker.trackSocial(net); } catch (err) {}
 	console.log("GA: SOCIAL - "+JSON.stringify(obj));
 }
 exports.trackSocial = trackSocial;
@@ -112,9 +112,10 @@ exports.social = trackSocial;
 /**
  * Track timing
  *
- * @param  {String} net The social network: facebook, twitter, googleplus...
- * @param  {String} act The action associated
- * @param  {String} tar The target associated
+ * @param  {String} cat 		Category **or object passed to native proxy**
+ * @param  {String} time 		Time expressed in ms
+ * @param  {String} [name] 	Name
+ * @param  {String} [lbl]		Label
  */
 function trackTiming(cat, time, name, lbl){
 	if (!__tracker) return;
@@ -129,7 +130,7 @@ function trackTiming(cat, time, name, lbl){
 		obj.label = lbl || '';
 	}
 
-	__tracker.trackTiming(obj);
+	try { __tracker.trackTiming(obj); } catch (err) {}
 	console.log("GA: TIME - "+JSON.stringify(obj));
 }
 exports.trackTiming = trackTiming;
