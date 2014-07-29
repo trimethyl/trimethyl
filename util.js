@@ -386,12 +386,12 @@ exports.parseSchema = function() {
 	if (OS_IOS) {
 		var cmd = Ti.App.getArguments();
 		if (cmd && 'url' in cmd) {
-			return cmd.url.replace(/[^:]*\:\/\//, '');
+			return cmd.url.replace(/^.*?\:\/\//, '');
 		}
 	} else if (OS_ANDROID) {
 		var url = Ti.Android.currentActivity.intent.data;
 		if (url) {
-			return url.replace(/[^:]*\:\/\//, '');
+			return url.replace(/^.*?\:\/\//, '');
 		}
 	}
 

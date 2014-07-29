@@ -17,8 +17,8 @@ var config = _.extend({
 exports.config = config;
 
 
-var $ = require('analytics.google');
-var $TRACKER = null;
+var AnalyticsGoogle = require('analytics.google');
+var __tracker = null;
 
 
 /**
@@ -30,7 +30,7 @@ var $TRACKER = null;
  * @param  {String} val The value associated
  */
 function trackEvent(cat, act, lbl, val){
-	if (!$TRACKER) return;
+	if (!__tracker) return;
 	var obj = {};
 
 	if (_.isObject(cat)) {
@@ -42,7 +42,7 @@ function trackEvent(cat, act, lbl, val){
 		obj.value = val ? +val : 0;
 	}
 
-	$TRACKER.trackEvent(obj);
+	__tracker.trackEvent(obj);
 	console.log("GA: EVENT - "+JSON.stringify(obj));
 }
 exports.trackEvent = trackEvent;
@@ -61,9 +61,9 @@ exports.event = trackEvent;
  * @param  {String} name The screen name
  */
 function trackScreen(name){
-	if (!$TRACKER) return;
+	if (!__tracker) return;
 
-	$TRACKER.trackScreen(name);
+	__tracker.trackScreen(name);
 	console.log("GA: SCREEN - "+name);
 }
 exports.trackScreen = trackScreen;
@@ -84,7 +84,7 @@ exports.screen = trackScreen;
  * @param  {String} tar The target associated
  */
 function trackSocial(net, act, tar){
-	if (!$TRACKER) return;
+	if (!__tracker) return;
 	var obj = {};
 
 	if (_.isObject(net)) {
@@ -95,7 +95,7 @@ function trackSocial(net, act, tar){
 		obj.target = tar || '';
 	}
 
-	$TRACKER.trackSocial(net);
+	__tracker.trackSocial(net);
 	console.log("GA: SOCIAL - "+JSON.stringify(obj));
 }
 exports.trackSocial = trackSocial;
@@ -117,7 +117,7 @@ exports.social = trackSocial;
  * @param  {String} tar The target associated
  */
 function trackTiming(cat, time, name, lbl){
-	if (!$TRACKER) return;
+	if (!__tracker) return;
 	var obj = {};
 
 	if (_.isObject(cat)) {
@@ -129,7 +129,7 @@ function trackTiming(cat, time, name, lbl){
 		obj.label = lbl || '';
 	}
 
-	$TRACKER.trackTiming(obj);
+	__tracker.trackTiming(obj);
 	console.log("GA: TIME - "+JSON.stringify(obj));
 }
 exports.trackTiming = trackTiming;
@@ -148,15 +148,15 @@ exports.time = trackTiming;
  * @param {String} ua
  */
 function setTrackerUA(ua) {
-	$TRACKER = $.getTracker(ua);
+	__tracker = AnalyticsGoogle.getTracker(ua);
 }
 exports.setTrackerUA = setTrackerUA;
 
 
 (function init(){
 
-	$.trackUncaughtExceptions = true;
-	$.debug = false;
+	AnalyticsGoogle.trackUncaughtExceptions = true;
+	AnalyticsGoogle.debug = false;
 
 	if (config.ua) {
 		setTrackerUA(config.ua);
