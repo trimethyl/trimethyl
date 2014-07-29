@@ -95,7 +95,7 @@ function trackSocial(net, act, tar){
 		obj.target = tar || '';
 	}
 
-	$TRACKER.trackSocial(net);
+	$TRACKER.trackSocial(obj);
 	Ti.API.debug("GA: SOCIAL - "+JSON.stringify(obj));
 }
 exports.trackSocial = trackSocial;
