@@ -42,7 +42,7 @@ function trackEvent(cat, act, lbl, val){
 		obj.value = val ? +val : 0;
 	}
 
-	$TRACKER.trackEvent(obj);
+	try { $TRACKER.trackEvent(obj); } catch (err) {}
 	Ti.API.debug("GA: EVENT - "+JSON.stringify(obj));
 }
 exports.trackEvent = trackEvent;
@@ -63,7 +63,7 @@ exports.event = trackEvent;
 function trackScreen(name){
 	if (!$TRACKER) return;
 
-	$TRACKER.trackScreen(name);
+	try { $TRACKER.trackScreen(name); } catch (err) {}
 	Ti.API.debug("GA: SCREEN - "+name);
 }
 exports.trackScreen = trackScreen;
@@ -95,7 +95,7 @@ function trackSocial(net, act, tar){
 		obj.target = tar || '';
 	}
 
-	$TRACKER.trackSocial(obj);
+	try { $TRACKER.trackSocial(obj); } catch (err) {}
 	Ti.API.debug("GA: SOCIAL - "+JSON.stringify(obj));
 }
 exports.trackSocial = trackSocial;
@@ -130,7 +130,7 @@ function trackTiming(cat, time, name, lbl){
 		obj.label = lbl || '';
 	}
 
-	$TRACKER.trackTiming(obj);
+	try { $TRACKER.trackTiming(obj); } catch (err) {}
 	Ti.API.debug("GA: TIME - "+JSON.stringify(obj));
 }
 exports.trackTiming = trackTiming;
