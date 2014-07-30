@@ -47,7 +47,7 @@ function dispatch(routeArg) {
 		} else if (_.isRegExp(routeDefinition.key)) {
 			matches = routeArg.match(routeDefinition.key);
 			run = !!(matches);
-			matches.shift();
+			if (matches) matches.shift();
 		} else if (_.isFunction(routeDefinition.key)) {
 			matches = routeDefinition.key(routeArg);
 			run = (matches!==undefined);

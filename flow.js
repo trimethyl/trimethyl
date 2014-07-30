@@ -40,7 +40,7 @@ function setNavigationController(nav, openNow) {
 		// If is stored navNextRoute object, forward the request to current navigator
 		if (navNR) {
 			var tmp = { "open": open, "openWindow": openWindow };
-			tmp[navNR.method](navNR.controller, navNR.args, navNR.opt);
+			tmp[navNR.method](navNR.arg1, navNR.arg2, navNR.arg3);
 			navNR = null;
 		}
 
@@ -69,16 +69,6 @@ function startup(controller, nav, win) {
 }
 exports.startup = startup;
 
-
-/**
- * Return the instance set of navigation controller
- *
- * @return {Ti.UI.NavigationWindow} The navigation controller
- */
-function getNavigationController() {
-	return $nav;
-}
-exports.getNavigationController = getNavigationController;
 
 
 /**
@@ -116,10 +106,12 @@ function openWindow($window, opt) {
 	if (config.useNav) {
 
 		if (!$nav) {
-			navNR = { method: 'openWindow', controller: controller, args: opt };
+			navNR = { method: 'openWindow', arg1: $window, arg2: opt, arg3: null };
 			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 			return;
 		}
+
+		// Open the window
 		$nav.openWindow($window, opt);
 
 	} else {
@@ -172,7 +164,7 @@ exports.openDirect = openDirect;
  * @param  {String} controller The name of the controller
  * @param  {Object} [args]       The arguments passed to the controller
  * @param  {Object} [opt]        Additional arguments:
- * * **openArgs**: The arguments passed to the Window.open
+ * * `openArgs` The arguments passed to the Window.open
  * @param  {String} [key]			Optional key that identify this controller
  * @return {Alloy.Controller}    The controller instance
  */
@@ -190,10 +182,12 @@ function open(controller, args, opt, key) {
 	if (config.useNav) {
 
 		if (!$nav) {
-			navNR = { method: 'open', controller: controller, args: args, opt: opt };
+			navNR = { method: 'open', arg1: controller, arg2: args, arg3: opt };
 			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 			return;
 		}
+
+		// Open the window
 		$nav.openWindow($win, opt.openArgs || {});
 
 	} else {
@@ -212,22 +206,20 @@ function open(controller, args, opt, key) {
 	if (config.trackWithGA) {
 		require('T/ga').trackScreen(key);
 
-		try {
 
-			// Track time with GA
+		// Track time with GA
 
-			var startFocusTime = null;
-			$win.addEventListener('focus', function(){
-				startFocusTime = +(new Date());
-			});
+		var startFocusTime = null;
+		$win.addEventListener('focus', function(){
+			startFocusTime = +(new Date());
+		});
 
-			$win.addEventListener('blur', function(){
-				if (startFocusTime) {
-					require('T/ga').time(key, +(new Date())-startFocusTime);
-				}
-			});
+		$win.addEventListener('blur', function(){
+			if (startFocusTime) {
+				require('T/ga').time(key, +(new Date())-startFocusTime);
+			}
+		});
 
-		} catch (ex) {}
 	}
 
 	// Put in the history current controller an its args
@@ -364,3 +356,22 @@ exports.setCurrentWindow = setCurrentWindow;
  * Alias for {@link #getCurrentController}
  */
 exports.window = getCurrentWindow;
+
+
+/**
+ * Return the instance set of navigation controller
+ *
+ * @return {Ti.UI.NavigationWindow} The navigation controller
+ */
+function getNavigationController() {
+	return $nav;
+}
+exports.getNavigationController = getNavigationController;
+
+
+/**
+ * @method nav
+ * @inheritDoc #getNavigationController
+ * Alias for {@link #getNavigationController}
+ */
+exports.nav = getNavigationController();
