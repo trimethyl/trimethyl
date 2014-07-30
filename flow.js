@@ -7,11 +7,13 @@
 /**
  * * **useNav**: Use a Navigation Controller instead opening windows directly. Default: `true`
  * * **trackWithGA**: Send the trackScreen directly to GA module. Default: `true`
+ * * **trackTimingWithGA**: Track the timing of focus/blur of the window. Default: `true`
  * @type {Object}
  */
 var config = _.extend({
 	useNav: true,
-	trackWithGA: true
+	trackWithGA: true,
+	trackTimingWithGA: true
 }, Alloy.CFG.T.flow);
 exports.config = config;
 
@@ -208,17 +210,18 @@ function open(controller, args, opt, key) {
 
 
 		// Track time with GA
+		if (config.trackTimingWithGA) {
 
-		var startFocusTime = null;
-		$win.addEventListener('focus', function(){
-			startFocusTime = +(new Date());
-		});
+			var startFocusTime = null;
+			$win.addEventListener('focus', function(){
+				startFocusTime = +(new Date());
+			});
 
-		$win.addEventListener('blur', function(){
-			if (startFocusTime) {
-				require('T/ga').time(key, +(new Date())-startFocusTime);
-			}
-		});
+			$win.addEventListener('blur', function(){
+				if (startFocusTime) require('T/ga').time(key, +(new Date())-startFocusTime);
+			});
+
+		}
 
 	}
 

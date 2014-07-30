@@ -21,6 +21,16 @@ var AnalyticsGoogle = require('analytics.google');
 var __tracker = null;
 
 
+
+function track(method, what) {
+	Ti.API.debug("GA: "+method+" - "+JSON.stringify(what));
+
+	try {
+		__tracker[method](what);
+	} catch (err) {}
+}
+
+
 /**
  * Track an event
  *
@@ -42,8 +52,7 @@ function trackEvent(cat, act, lbl, val){
 		obj.value = val ? +val : 0;
 	}
 
-	try {  __tracker.trackEvent(obj); } catch (err) {}
-	console.log("GA: EVENT - "+JSON.stringify(obj));
+	track('Event', obj);
 }
 exports.trackEvent = trackEvent;
 
@@ -60,11 +69,10 @@ exports.event = trackEvent;
  *
  * @param  {String} name The screen name
  */
-function trackScreen(name){
+function trackScreen(obj){
 	if (!__tracker) return;
 
-	try { __tracker.trackScreen(name); } catch (err) {}
-	console.log("GA: SCREEN - "+name);
+	track('Screen', obj);
 }
 exports.trackScreen = trackScreen;
 
@@ -95,8 +103,7 @@ function trackSocial(net, act, tar){
 		obj.target = tar || '';
 	}
 
-	try {  __tracker.trackSocial(net); } catch (err) {}
-	console.log("GA: SOCIAL - "+JSON.stringify(obj));
+	track('Social', obj);
 }
 exports.trackSocial = trackSocial;
 
@@ -130,8 +137,7 @@ function trackTiming(cat, time, name, lbl){
 		obj.label = lbl || '';
 	}
 
-	try { __tracker.trackTiming(obj); } catch (err) {}
-	console.log("GA: TIME - "+JSON.stringify(obj));
+	track('Timing', obj);
 }
 exports.trackTiming = trackTiming;
 

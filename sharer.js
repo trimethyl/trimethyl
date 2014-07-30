@@ -152,7 +152,7 @@ function facebook(args) {
 		*/
 
 		if (args.url) {
-			Util.openURL('https://www.facebook.com/sharer.php?u='+args.url);
+			Ti.Platform.openURL('https://www.facebook.com/sharer.php?u='+args.url);
 		}
 
 	}
@@ -185,7 +185,7 @@ function twitter(args) {
 		Android Intent automatic handle
 		*/
 
-		Util.openURL(webIntent);
+		Ti.Platform.openURL(webIntent);
 
 	} else {
 
@@ -271,7 +271,7 @@ function googleplus(args) {
 	/*
 	Browser unique implementation
 	*/
-	Util.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
+	Ti.Platform.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
 }
 exports.googleplus = googleplus;
 
@@ -284,14 +284,38 @@ exports.googleplus = googleplus;
 function whatsapp(args) {
 	args = parseArgs(args);
 
-	/*
-	Whatsapp native app unique implementation
-	*/
-	Util.openURL('whatsapp://send?text='+args.fullText, function() {
-		Util.confirm(OS_IOS ? null: Ti.App.name, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
-			Util.openInStore('310633997');
+	if (OS_IOS) {
+
+		/*
+		Native protocol binding
+		 */
+		Util.openURL('whatsapp://send?text='+args.fullText, function() {
+			Util.confirm(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+				Util.openInStore('310633997');
+			});
 		});
-	});
+
+	} else if (OS_ANDROID) {
+
+		/*
+		Android Intent using package
+		*/
+		try {
+			var intent = Ti.Android.createIntent({
+				action: Ti.Android.ACTION_SEND,
+				type: 'text/plain',
+				packageName: 'com.whatsapp'
+			});
+			if (!intent) throw new Error();
+			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
+			Ti.Android.currentActivity.startActivity(intent, L('Share'));
+		} catch (err) {
+			Util.confirm(Ti.App.name, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+				Util.openInStore('com.whatsapp');
+			});
+		}
+
+	}
 }
 exports.whatsapp = whatsapp;
 
@@ -330,6 +354,19 @@ function sms(args) {
 		});
 
 		$dialog.open({ animated: true });
+
+	} else if (OS_ANDROID) {
+
+		/*
+		Android Native
+		*/
+
+		var intent = Ti.Android.createIntent({
+			action: Ti.Android.ACTION_VIEW,
+			type: 'vnd.android-dir/mms-sms',
+		});
+		intent.putExtra('sms_body', args.fullText);
+		Ti.Android.currentActivity.startActivity(intent, L('Share'));
 
 	}
 

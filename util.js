@@ -23,14 +23,18 @@ function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
 		try {
 			Ti.Platform.openURL(url);
-		} catch (e) {}
+		} catch (err) {
+			Ti.API.error("Util: openURL failed but catched ("+err+")");
+		}
 	} else if (fallback) {
 		if (_.isFunction(fallback)) {
 			fallback();
 		} else {
 			try {
 				Ti.Platform.openURL(fallback);
-			} catch (e) {}
+			} catch (err) {
+				Ti.API.error("Util: openURL failed but catched ("+err+")");
+			}
 		}
 	} else if (error) {
 		alertError(error);
