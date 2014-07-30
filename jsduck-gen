@@ -1,7 +1,0 @@
-#!/bin/zsh
-git pull
-rm -rf /tmp/docs
-jsduck . --output /tmp/docs --title "Trimethyl API Documentation" --footer "Alloy-Titanium framework made in Caffeina" --exclude ext
-jsduck . --output /tmp/docs/JSON --export=full --exclude ext
-rm -rf ~/Projects/TrimethylDoc/* && mv /tmp/docs/* ~/Projects/TrimethylDoc/
-cd ~/Projects/TrimethylDoc && git add -A && git commit -m "Updated documentation" && git push
