@@ -1,0 +1,12 @@
+#!/bin/zsh
+rm -rf /tmp/docs
+rm -rf /tmp/docsr
+
+git fetch --all && git reset --hard origin/master
+
+jsduck . --output /tmp/docs --title "Trimethyl API Documentation" --footer "Alloy-Titanium framework made in Caffeina" --exclude ext
+jsduck . --output /tmp/docs/JSON --export=full --exclude ext
+
+git clone -b gh-pages git@github.com:CaffeinaLab/Trimethyl.git /tmp/docsr
+rm -rf /tmp/docsr/* && mv /tmp/docs/* /tmp/docsr
+cd /tmp/docsr && git add -A && git commit -m "Updated documentation" && git push
