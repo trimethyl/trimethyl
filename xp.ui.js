@@ -50,6 +50,7 @@ if (!OS_IOS) {
 			var self = this;
 
 			if (OS_ANDROID) {
+
 				if (args.animated!==false) {
 					if (args.modal) {
 						args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
@@ -58,6 +59,21 @@ if (!OS_IOS) {
 						args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
 						args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 					}
+				}
+
+				if (args.displayHomeAsUp===false) {
+					window.addEventListener('open', function() {
+						var activity = window.getActivity();
+						try {
+							if (!activity) return;
+							if (!activity.actionBar) return;
+
+							activity.actionBar.displayHomeAsUp = true;
+							activity.actionBar.onHomeIconItemSelected = function() {
+								self.closeWindow(window);
+							};
+						} catch (err) {}
+					});
 				}
 			}
 

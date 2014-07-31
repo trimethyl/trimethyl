@@ -109,21 +109,21 @@ var libDir = [];
 function embedCSS(f, html) {
 	if (html) return '<link rel="stylesheet" href="'+f+'" />';
 
-	var file = Ti.Filesystem.getFile(f);
+	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if (!file.exists()) return '';
 	var read = file.read().text;
-	file = null;
-	return '<style id="__weballoy_'+f+'" type="text/css">'+read+'</style>';
+	file = null; // we don't need you anymore
+	return '<style type="text/css">'+read+'</style>';
 }
 
 function embedJS(f, html) {
-	if (html) return '<script id="__weballoy_'+f+'" type="text/javascript" src="'+f+'"></script>';
+	if (html) return '<script type="text/javascript" src="'+f+'"></script>';
 
-	var file = Ti.Filesystem.getFile(f);
+	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if (!file.exists()) return '';
 	var read = file.read().text;
-	file = null;
-	return '<script id="__weballoy_'+f+'" type="text/javascript">'+read+'</script>';
+	file = null; // we don't need you anymore
+	return '<script type="text/javascript">'+read+'</script>';
 }
 
 
@@ -151,7 +151,7 @@ exports.createView = function(args) {
 
 	// Include template
 	html += '<div id="main">';
-	var tplf = Ti.Filesystem.getFile('web/views/'+args.name+'.tpl');
+	var tplf = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/views/'+args.name+'.tpl');
 	if (tplf.exists()) {
 		$ui.tpl = _.template(tplf.read().text);
 		html += $ui.tpl(args.webdata);
@@ -207,7 +207,7 @@ exports.createView = function(args) {
 
 (function init() {
 
-	_.each(Ti.Filesystem.getFile('web/lib').getDirectoryListing(), function(js) {
+	_.each(Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing(), function(js) {
 		libDir.push('web/lib/'+js);
 	});
 
