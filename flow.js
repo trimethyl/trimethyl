@@ -377,4 +377,4 @@ exports.getNavigationController = getNavigationController;
  * @inheritDoc #getNavigationController
  * Alias for {@link #getNavigationController}
  */
-exports.nav = getNavigationController();
+exports.nav = getNavigationController;
