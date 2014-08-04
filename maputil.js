@@ -65,6 +65,47 @@ exports.distanceInKm = distanceInKm;
  * If the marker is a cluster, an object like
  * `{ latitude: {Number}, longitude: {Number}, count: {Number} }` is passed,
  * otherwise, the ID of the marker in your marker collections.
+ *
+ * This is a sample code:
+ *
+ * ```
+ * var MapUtil = T('maputil');
+ * var TiMap = require('ti.map');
+ *
+ * var Me = Alloy.createCollection('whatever');
+ * Me.fetch({
+ * 	success: function() {
+ *			updateMap(_.extend($.mapView.region, { source: $.mapView }));
+ *		 	$.mapView.addEventListener('regionchanged', updateMap);
+ *	   }
+ * });
+ *
+ * function updateMap(e) {
+ * 	var data = MapUtil.cluster(e, Me);
+ * 	var annotations = [];
+ *
+ * 	_.each(data, function(c){
+ * 		if (_.isNumber(c)) {
+ * 			var marker = Me.get(c);
+ * 			annotations.push(TiMap.createAnnotation({
+ * 				id: c,
+ * 				latitude: marker.get('lat'),
+ * 				longitude: marker.get('lng'),
+ * 				title: marker.get('title'),
+ * 			}));
+ * 		} else {
+ * 			annotations.push(TiMap.createAnnotation({
+ * 				latitude: c.latitude,
+ * 				longitude: c.longitude
+ * 			}));
+ * 		}
+ * 	});
+ *
+ * 	$.mapView.annotations = annotations;
+ * }
+ *
+ * ```
+ *
  */
 function cluster(e, markers){
 	var c={}, g={};
