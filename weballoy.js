@@ -135,33 +135,38 @@ var config = _.extend({
 exports.config = config;
 
 var libDir = [];
+var __helpers = {};
 
-function embedCSS(f, html) {
-	if (html) return '<link rel="stylesheet" href="'+f+'" />';
 
+/**
+ * Add an helper for the WebView
+ * @param {String} 		name   The name of the helper
+ * @param {Function} 	method The callback
+ */
+function addHelper(name, method) {
+	__helpers[name] = method;
+}
+exports.addHelper = addHelper;
+
+
+function embedText(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if (!file.exists()) {
-		Ti.API.warn("Weballoy: CSS not found ("+f+")");
+		Ti.API.warn("Weballoy: File not found ("+f+")");
 		return '';
 	}
 
 	var read = file.read().text;
-	file = null; // we don't need you anymore
-	return '<style type="text/css">'+read+'</style>';
+	file = null;
+	return read;
 }
 
-function embedJS(f, html) {
-	if (html) return '<script type="text/javascript" src="'+f+'"></script>';
+function embedCSS(f) {
+	return '<style type="text/css">'+embedText(f)+'</style>';
+}
 
-	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
-	if (!file.exists()) {
-		Ti.API.warn("Weballoy: JS not found ("+f+")");
-		return '';
-	}
-
-	var read = file.read().text;
-	file = null; // we don't need you anymore
-	return '<script type="text/javascript">'+read+'</script>';
+function embedJS(f) {
+	return '<script type="text/javascript">'+embedText(f)+'</script>';
 }
 
 
@@ -192,17 +197,7 @@ exports.createView = function(args) {
 
 	// Include template
 	html += '<div id="main">';
-	var tplf = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/views/'+args.name+'.tpl');
-	if (tplf.exists()) {
-
-		$ui.tpl = _.template(tplf.read().text);
-		html += $ui.tpl(args.webdata);
-
-	} else {
-		Ti.API.warn("WebAlloy: no view found ("+args.name+")");
-	}
-
-	tplf = null;
+	html += _.template(embedText('web/views/'+args.name+'.tpl'), _.extend(__helpers, $ui.webdata || {}));
 	html += '</div>';
 
 	// Include libs
@@ -212,7 +207,7 @@ exports.createView = function(args) {
 
 	// Include footer
 	html += embedJS('web/app'+config.jsExt);
-	html += embedJS('web/controllers/'+args.name+''+config.jsExt);
+	html += embedJS('web/controllers/'+args.name+config.jsExt);
 	html += '</body></html>';
 
 	$ui.html = html;

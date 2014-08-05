@@ -5,45 +5,45 @@
  */
 
 /**
- * * **useNav**: Use a Navigation Controller instead opening windows directly. Default: `true`
  * * **trackWithGA**: Send the trackScreen directly to GA module. Default: `true`
  * * **trackTimingWithGA**: Track the timing of focus/blur of the window. Default: `true`
  * @type {Object}
  */
 var config = _.extend({
-	useNav: true,
 	trackWithGA: true,
 	trackTimingWithGA: true
 }, Alloy.CFG.T.flow);
 exports.config = config;
+
+
+var Navigator = null;
+var navPreviousRoute = null;
 
 var $_cur_CTRL_AS_STR = null;
 var $_cur_CTRL = null;
 var $_cur_CTRL_ARGS = null;
 var $_cur_WIN = null;
 
-var hist = [];
-
-var navNR = null;
-var $nav = null;
 
 /**
- * Set the navigation controller used to open windows
+ * Set the Navigator used to open the windows
  *
- * @param {Ti.UI.iOS.NavigationWindow} nav The instance of the navigation controller
- * @param {Boolean} [openNow] Specify if call instantly the open on the navigation controller
+ * ** This is required to do before opening windows **
+ *
+ * @param {Object} 	nav 			The instance of Ti.UI.iOS.NavigationWindow or compatible
+ * @param {Boolean} 	[openNow] 	Specify if call instantly the open on the navigation controller
  */
 function setNavigationController(nav, openNow) {
-	$nav = nav;
+	Navigator = nav;
 
 	if (openNow) {
-		$nav.open();
+		Navigator.open();
 
 		// If is stored navNextRoute object, forward the request to current navigator
-		if (navNR) {
+		if (null!==navPreviousRoute) {
 			var tmp = { "open": open, "openWindow": openWindow };
-			tmp[navNR.method](navNR.arg1, navNR.arg2, navNR.arg3);
-			navNR = null;
+			tmp[navPreviousRoute.method](navPreviousRoute.arg1, navPreviousRoute.arg2, navPreviousRoute.arg3);
+			navPreviousRoute = null;
 		}
 
 	}
@@ -52,7 +52,7 @@ exports.setNavigationController = setNavigationController;
 
 
 /**
- * Set, in a single way, the global NavigationWindow (and open it), the Index Controller and the Index Window
+ * Set, in a single way, the global Navigator (and open it), the Index-Controller and the Index-Window
  *
  * This method, is typically called on startup, on the index.js, like this:
  *
@@ -61,7 +61,7 @@ exports.setNavigationController = setNavigationController;
  * ```
  *
  * @param  {Alloy.Controller} 		controller
- * @param  {Ti.UI.NavigationWindow} nav
+ * @param  {Object} 						nav
  * @param  {Ti.UI.Window} 				win
  */
 function startup(controller, nav, win) {
@@ -72,32 +72,8 @@ function startup(controller, nav, win) {
 exports.startup = startup;
 
 
-
 /**
- * Close an Alloy.Controller
- *
- * If a `close` function is attached to controller exports, call that
- *
- * Otherwise simply close the main window
- *
- * @param  {Alloy.Controller} controller The controller to close
- */
-function closeController(controller) {
-	if (!controller) return;
-
-	if ('close' in controller) {
-		controller.close();
-	} else {
-		controller.getView().close();
-	}
-}
-exports.closeController = closeController;
-
-
-/**
- * Open a Window in current flow.
- *
- * If a navigation controller is set, open with it.
+ * Open a Window in the current navigation controller.
  *
  * @param  {Ti.UI.Window} $window 	The window object
  * @param  {Object} [opt]        	The arguments passed to the NavigationWindow.openWindow or the Controller.Window.open
@@ -105,28 +81,22 @@ exports.closeController = closeController;
 function openWindow($window, opt) {
 	opt = opt || {};
 
-	if (config.useNav) {
-
-		if (!$nav) {
-			navNR = { method: 'openWindow', arg1: $window, arg2: opt, arg3: null };
-			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
-			return;
-		}
-
-		// Open the window
-		$nav.openWindow($window, opt);
-
-	} else {
-		$window.open(opt || {});
+	if (!Navigator) {
+		navPreviousRoute = { method: 'openWindow', arg1: $window, arg2: opt, arg3: null };
+		Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
+		return;
 	}
+
+	// Open the window
+	Navigator.openWindow($window, opt);
 }
 exports.openWindow = openWindow;
 
 
 /**
- * Require an Alloy.Controller without passing it to the navigation window
+ * Require an Alloy.Controller without passing it to the Navigator
  *
- * This is tracked with Google Analitycs
+ * This is anyway tracked with Google Analitycs
  *
  * @param  {String} controller 	The name of the controller
  * @param  {Object} [args]     	The args passed to the controller
@@ -143,10 +113,10 @@ function openDirect(controller, args, opt, key) {
 	var $ctrl = Alloy.createController(controller, args || {});
 	key = key || $ctrl.analyticsKey || controller;
 
+	var $win = $ctrl.getView();
+
 	// Track with Google Analitycs
-	if (config.trackWithGA) {
-		require('T/ga').trackScreen(key);
-	}
+	if ($win) autoTrackWindow($win, key);
 
 	return $ctrl;
 }
@@ -154,9 +124,7 @@ exports.openDirect = openDirect;
 
 
 /**
- * Require an Alloy.Controller and open the main window associated with it
- *
- * If a navigation controller is set, open with it
+ * Require an Alloy.Controller and open its main `Window` in the Navigator.
  *
  * A `close` event is automatically attached to the main window to call sequentially
  * `Controller.beforeDestroy` (if defined) and `Controller.destroy`
@@ -181,63 +149,25 @@ function open(controller, args, opt, key) {
 
 	var $win = $ctrl.getView();
 
-	if (config.useNav) {
-
-		if (!$nav) {
-			navNR = { method: 'open', arg1: controller, arg2: args, arg3: opt };
-			Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
-			return;
-		}
-
-		// Open the window
-		$nav.openWindow($win, opt.openArgs || {});
-
-	} else {
-		$win.open(opt.openArgs || {});
+	if (!Navigator) {
+		navPreviousRoute = { method: 'open', arg1: controller, arg2: args, arg3: opt };
+		Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
+		return;
 	}
+
+	// Open the window
+	Navigator.openWindow($win, opt.openArgs || {});
 
 	// Attach events
 	$win.addEventListener('close', function(){
 		if ('beforeDestroy' in $ctrl) $ctrl.beforeDestroy();
 		$ctrl.destroy();
-		$ctrl = null;
-		$win = null;
 	});
 
 	// Track with Google Analitycs
-	if (config.trackWithGA) {
-		require('T/ga').trackScreen(key);
-
-
-		// Track time with GA
-		if (config.trackTimingWithGA) {
-
-			var startFocusTime = null;
-			$win.addEventListener('focus', function(){
-				startFocusTime = +(new Date());
-			});
-
-			$win.addEventListener('blur', function(){
-				if (startFocusTime) require('T/ga').time(key, +(new Date())-startFocusTime);
-			});
-
-		}
-
-	}
-
-	// Put in the history current controller an its args
-	hist.push({
-		controller: controller,
-		args: args
-	});
-
-	// Close current controller if not using NavigationWindow based stack
-	if (!config.useNav && !opt.singleTask && $_cur_CTRL) {
-		closeController($_cur_CTRL);
-	}
+	autoTrackWindow($win, key);
 
 	$_cur_CTRL_AS_STR = controller;
-
 	$_cur_CTRL_ARGS = args;
 	$_cur_CTRL = $ctrl;
 	$_cur_WIN = $win;
@@ -248,24 +178,23 @@ exports.open = open;
 
 
 /**
- * Close current controller and go back the the previous controller
+ * Close current Navigatgor and all windows associated with it
  */
-function back() {
-	if (hist.length<2) return;
-	closeCurrent();
-	var last = hist.pop();
-	open(last.controller, last.args);
+function close() {
+	if (!Navigator) return;
+	Navigator.close();
 }
-exports.back = back;
+exports.close = close;
 
 
 /**
- * Get an object with currents controller, args and window
+ * Get an object with currents UI.
  *
  * @return {Object} [description]
  */
 function getCurrent() {
 	return {
+		navigator: Navigator,
 		controller: $_cur_CTRL,
 		window: $_cur_WIN,
 		args: $_cur_CTRL_ARGS,
@@ -281,16 +210,6 @@ exports.getCurrent = getCurrent;
 exports.current = getCurrent;
 
 /**
- * Return current controller
- *
- * @return {Alloy.Controller}
- */
-function getCurrentController() {
-	return $_cur_CTRL;
-}
-exports.getCurrentController = getCurrentController;
-
-/**
  * Set current controller
  *
  * @param {Alloy.Controller} controller
@@ -302,6 +221,16 @@ function setCurrentController(controller) {
 exports.setCurrentController = setCurrentController;
 
 /**
+ * Return current controller
+ *
+ * @return {Alloy.Controller}
+ */
+function getCurrentController() {
+	return $_cur_CTRL;
+}
+exports.getCurrentController = getCurrentController;
+
+/**
  * @method controller
  * @inheritDoc #getCurrentController
  * Alias for {@link #getCurrentController}
@@ -309,31 +238,14 @@ exports.setCurrentController = setCurrentController;
 exports.controller = getCurrentController;
 
 /**
- * Close current controller
+ * Set current Window
+ * @param {Ti.UI.Window} $window
  */
-function closeCurrent() {
-	hist.pop();
-	closeController($_cur_CTRL);
+function setCurrentWindow($window) {
+	$_cur_WIN = $window;
 }
-exports.closeCurrent = closeCurrent;
+exports.setCurrentWindow = setCurrentWindow;
 
-/**
- * Get the history of controllers used
- *
- * @return {Array}
- */
-function getHistory() {
-	return hist;
-}
-exports.getHistory = getHistory;
-
-/**
- * Clear the history of controllers used
- */
-function clearHistory(){
-	hist = [];
-}
-exports.clearHistory = clearHistory;
 
 /**
  * Get current Window
@@ -345,36 +257,56 @@ function getCurrentWindow() {
 exports.getCurrentWindow = getCurrentWindow;
 
 /**
- * Set current Window
- * @param {Ti.UI.Window} $window
- */
-function setCurrentWindow($window) {
-	$_cur_WIN = $window;
-}
-exports.setCurrentWindow = setCurrentWindow;
-
-/**
  * @method window
  * @inheritDoc #getCurrentWindow
- * Alias for {@link #getCurrentController}
+ * Alias for {@link #getCurrentWindow}
  */
 exports.window = getCurrentWindow;
+/**
+ * @method win
+ * @inheritDoc #getCurrentWindow
+ * Alias for {@link #getCurrentWindow}
+ */
+exports.win = getCurrentWindow;
 
 
 /**
  * Return the instance set of navigation controller
  *
- * @return {Ti.UI.NavigationWindow} The navigation controller
+ * @return {Object} The navigation controller
  */
 function getNavigationController() {
-	return $nav;
+	return Navigator;
 }
 exports.getNavigationController = getNavigationController;
 
-
+/**
+ * @method navigator
+ * @inheritDoc #getNavigationController
+ * Alias for {@link #getNavigationController}
+ */
+exports.navigator = getNavigationController;
 /**
  * @method nav
  * @inheritDoc #getNavigationController
  * Alias for {@link #getNavigationController}
  */
 exports.nav = getNavigationController;
+
+
+function autoTrackWindow(window, key) {
+	if (config.trackWithGA) {
+		require('T/ga').trackScreen(key);
+	}
+
+	if (config.trackTimingWithGA) {
+		var startFocusTime = null;
+		window.addEventListener('focus', function(){
+			startFocusTime = +(new Date());
+		});
+		window.addEventListener('blur', function(){
+			if (startFocusTime) require('T/ga').time(key, +(new Date())-startFocusTime);
+		});
+	}
+}
+exports.autoTrackWindow = autoTrackWindow;

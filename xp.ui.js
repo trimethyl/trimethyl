@@ -20,84 +20,79 @@ if (!OS_IOS) {
 	/*
 	NavigationWindow Android fallback provided by @FokkeZB
 	*/
-	var NavigationWindow = function(args) {
+	var NavigationWindow = function NavigationWindow(args) {
 		this.args = args || {};
 		this.windows = [];
 	};
 
-	NavigationWindow.prototype = {
+	NavigationWindow.prototype.open = function(args) {
+		return this.openWindow(this.args.window, args);
+	};
 
-		open: function(args) {
-			return this.openWindow(this.args.window, args);
-		},
+	NavigationWindow.prototype.close = function(callback) {
+		if (callback) this.closeCallback = callback;
 
-		close: function(callback) {
-			if (callback) this.closeCallback = callback;
+		if (this.windows.length>0) {
+			var w = this.windows.pop();
+			w.navigationIndex = null;
+			w.popToRoot = true;
+			w.close({ animated: false });
+		} else {
+			if (this.closeCallback) this.closeCallback();
+			this.closeCallback = null;
+		}
+	};
+	NavigationWindow.prototype.closeAllWindows = NavigationWindow.prototype.close;
 
-			if (this.windows.length>0) {
-				var w = this.windows.pop();
-				w.navigationIndex = null;
-				w.popToRoot = true;
-				w.close({ animated: false });
-			} else {
-				if (this.closeCallback) this.closeCallback();
-				this.closeCallback = null;
-			}
-		},
+	NavigationWindow.prototype.openWindow = function(window, args) {
+		args = args || {};
+		var self = this;
 
-		openWindow: function(window, args) {
-			args = args || {};
-			var self = this;
+		if (OS_ANDROID) {
 
-			if (OS_ANDROID) {
-
-				if (args.animated!==false) {
-					if (args.modal) {
-						args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-						args.activityExitAnimation = Ti.Android.R.anim.fade_out;
-					} else {
-						args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-						args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
-					}
-				}
-
-				if (args.displayHomeAsUp===false) {
-					window.addEventListener('open', function() {
-						var activity = window.getActivity();
-						try {
-							if (!activity) return;
-							if (!activity.actionBar) return;
-
-							activity.actionBar.displayHomeAsUp = true;
-							activity.actionBar.onHomeIconItemSelected = function() {
-								self.closeWindow(window);
-							};
-						} catch (err) {}
-					});
+			if (args.animated!==false) {
+				if (args.modal) {
+					args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
+					args.activityExitAnimation = Ti.Android.R.anim.fade_out;
+				} else {
+					args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
+					args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 				}
 			}
 
-			window.addEventListener('close', function(e){
-				if (e.source.navigationIndex>=0) {
-					self.windows.splice(e.source.navigationWindow, 1);
-				}
-				if (e.source.popToRoot) self.close();
-			});
+			if (args.displayHomeAsUp===false) {
+				window.addEventListener('open', function() {
+					var activity = window.getActivity();
+					try {
+						if (!activity) return;
+						if (!activity.actionBar) return;
 
-			window.navigationIndex = this.windows.length;
-			this.windows.push(window);
-
-			return window.open(_.extend(args, { modal: false }));
-		},
-
-		closeWindow: function(window) {
-			return window.close();
-		},
-
-		getWindowsStack: function() {
-			return this.windows;
+						activity.actionBar.displayHomeAsUp = true;
+						activity.actionBar.onHomeIconItemSelected = function() {
+							self.closeWindow(window);
+						};
+					} catch (err) {}
+				});
+			}
 		}
 
+		window.addEventListener('close', function(e){
+			if (e.source.navigationIndex>=0) self.windows.splice(e.source.navigationWindow, 1);
+			if (e.source.popToRoot) self.close();
+		});
+
+		window.navigationIndex = this.windows.length;
+		this.windows.push(window);
+
+		return window.open(_.extend(args, { modal: false }));
+	};
+
+	NavigationWindow.prototype.closeWindow = function(window) {
+		return window.close();
+	};
+
+	NavigationWindow.prototype.getWindowsStack = function() {
+		return this.windows;
 	};
 
 }
@@ -116,11 +111,8 @@ if (!OS_IOS) {
  * @param  {Object} args [description]
  */
 exports.createNavigationWindow = function(args) {
-	if (!OS_IOS) {
-		return new NavigationWindow(args || {});
-	}
-
-	return Ti.UI.iOS.createNavigationWindow(args || {});
+	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args);
+	return new NavigationWindow(args || {});
 };
 
 

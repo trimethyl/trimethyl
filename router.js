@@ -54,7 +54,7 @@ function dispatch(routeArg) {
 		}
 
 		if (run) {
-			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+"+)");
+			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+")");
 			return routeDefinition.callback.apply(null, matches);
 		}
 	}
