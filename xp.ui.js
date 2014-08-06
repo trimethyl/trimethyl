@@ -46,7 +46,7 @@ if (!OS_IOS) {
 
 	NavigationWindow.prototype.openWindow = function(window, args) {
 		args = args || {};
-		var self = this;
+		var that = this;
 
 		if (OS_ANDROID) {
 
@@ -69,7 +69,7 @@ if (!OS_IOS) {
 
 						activity.actionBar.displayHomeAsUp = true;
 						activity.actionBar.onHomeIconItemSelected = function() {
-							self.closeWindow(window);
+							that.closeWindow(window);
 						};
 					} catch (err) {}
 				});
@@ -77,8 +77,8 @@ if (!OS_IOS) {
 		}
 
 		window.addEventListener('close', function(e){
-			if (e.source.navigationIndex>=0) self.windows.splice(e.source.navigationWindow, 1);
-			if (e.source.popToRoot) self.close();
+			if (e.source.navigationIndex>=0) that.windows.splice(e.source.navigationWindow, 1);
+			if (e.source.popToRoot) that.close();
 		});
 
 		window.navigationIndex = this.windows.length;
@@ -111,10 +111,9 @@ if (!OS_IOS) {
  * @param  {Object} args [description]
  */
 exports.createNavigationWindow = function(args) {
-	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args);
+	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args || {});
 	return new NavigationWindow(args || {});
 };
-
 
 
 
@@ -122,6 +121,10 @@ exports.createNavigationWindow = function(args) {
 
 /**
  * @method createWindow
+ *
+ * Added properties:
+ *
+ * * **deferredBackgroundImage**: When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
  *
  * ## iOS
  *
@@ -131,47 +134,44 @@ exports.createNavigationWindow = function(args) {
  *
  * Adds the support for:
  *
- * * **rightNavButton** (partial)
+ * * **rightNavButton**: You must call manually in the controller with `setRightNavButton(Button)`
  * * **title and subtitle**: automatically set the title and subtitle in the ActionBar
  *
  * @param  {Object} args
  */
 exports.createWindow = function(args) {
-	var $ui = Ti.UI.createWindow(args || {});
+	var $this = Ti.UI.createWindow(args || {});
 
 	if (OS_ANDROID) {
 
-		$ui.addEventListener('open', function(e){
-			if (!$ui.activity || !$ui.activity.actionBar) return;
+		$this.addEventListener('open', function(e){
+			if (!$this.activity || !$this.activity.actionBar) return;
 
-			if ($ui.subtitle) {
-				$ui.activity.actionBar.title = $ui.title;
-				$ui.activity.actionBar.subtitle = $ui.subtitle;
+			if ($this.subtitle) {
+				$this.activity.actionBar.title = $this.title;
+				$this.activity.actionBar.subtitle = $this.subtitle;
 			} else {
-				if ($ui.subtitle===false) {
-					$ui.activity.actionBar.title = $ui.title;
+				if ($this.subtitle===false) {
+					$this.activity.actionBar.title = $this.title;
 				} else {
-					$ui.activity.actionBar.title =  Ti.App.name;
-					$ui.activity.actionBar.subtitle = $ui.title;
+					$this.activity.actionBar.title =  Ti.App.name;
+					$this.activity.actionBar.subtitle = $this.title;
 				}
 			}
 		});
 
-		$ui.setRightNavButton = function($btn){
-			if (!$ui.activity) return;
+		$this.setRightNavButton = function($btn){
+			if (!$this.activity) return;
 
 			if ($btn===null) {
-
-				// Clean
-				$ui.activity.onCreateOptionsMenu = function(e){
+				$this.activity.onCreateOptionsMenu = function(e){
 					e.menu.items = [];
 				};
-
 			} else {
 
 				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
 
-				$ui.activity.onCreateOptionsMenu = function(e){
+				$this.activity.onCreateOptionsMenu = function(e){
 					if (!$btn.title && !$btn.image) {
 						Ti.API.error("XP.UI: please specify a title OR icon/image for RightNavButton on Android");
 						return;
@@ -188,21 +188,23 @@ exports.createWindow = function(args) {
 				};
 			}
 
-			if ($ui.activity.invalidateOptionsMenu) {
-				$ui.activity.invalidateOptionsMenu();
-			}
+			if ($this.activity.invalidateOptionsMenu) $this.activity.invalidateOptionsMenu();
 		};
 
-
 		if (args.rightNavButton) {
-			$ui.setRightNavButton(args.rightNavButton);
+			$this.setRightNavButton(args.rightNavButton);
 		} else {
 			Ti.API.warn("XP.UI: Starting with Ti-SDK 3.3.0 GA you have to call Window.setRightNavButton(Button) manually on your controller");
 		}
-
 	}
 
-	return $ui;
+	if ($this.deferredBackgroundImage) {
+		$this.addEventListener('open', function(){
+			$this.backgroundImage = $this.deferredBackgroundImage;
+		});
+	}
+
+	return $this;
 };
 
 
@@ -261,12 +263,8 @@ exports.createTextField = function(args) {
 	args = args || {};
 
 	switch (args.textType) {
-		case 'email':
-		args.keyboardType = Ti.UI.KEYBOARD_EMAIL;
-		break;
-		case 'password':
-		args.passwordMask = true;
-		break;
+		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
+		case 'password': args.passwordMask = true; break;
 	}
 
 	var $this = Ti.UI.createTextField(args);
@@ -338,18 +336,9 @@ exports.createTextArea = function(args) {
 
 /* Thanks to @lastguest: https://gist.github.com/lastguest/10277461 */
 function simpleHTMLParser(text) {
-
-	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm,
-	partial,
-	tag,
-	temp_style;
-
-	var last_idx = 0,
-	last_text_idx = 0;
-
-	var style = [],
-	style_stack = [],
-	clean_text = [];
+	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm, partial, tag, temp_style;
+	var last_idx = 0, last_text_idx = 0;
+	var style = [], style_stack = [], clean_text = [];
 
 	while ((tag=tags_rx.exec(text))!==null) {
 		partial = text.substr(last_idx, tag.index - last_idx);
@@ -552,7 +541,6 @@ exports.createTabbedBar = function(args) {
 	Object.defineProperty($this, 'labels', {
 		set: $this.setLabels, get: $this.getLabels
 	});
-
 
 	$this._index = 0;
 	$this.getIndex = function() { return $this._index; };

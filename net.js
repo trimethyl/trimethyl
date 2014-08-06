@@ -31,6 +31,19 @@ var queue = {};
 var serverConnected = null;
 var errorHandler = null;
 
+function jsonToWWW(obj, sep, eq, k, ret) {
+	ret = ret || [];
+	for (var i in obj) {
+		var _k = k!==undefined;
+		if (_.isObject(obj[i])) {
+			jsonToWWW(obj[i], null, eq, (_k?k+'[':'')+i+(_k?']':''), ret);
+		} else {
+			ret.push((_k?k+'['+i+']':i)+(eq||'=')+obj[i]);
+		}
+	}
+	return ret.join(sep||'&');
+}
+
 function originalErrorHandler(e) {
 	require('T/util').alertError( e && e.message ? e.message : 'Error' );
 }
@@ -115,11 +128,9 @@ function decorateRequest(request) {
 	// httpie debug
 	if (config.httpieDebug) {
 		Ti.API.debug(
-		//(Ti.Shadow?"<textarea onclick='this.select()' style='width:100%'>":'')+
 		"http "+request.method+" "+request.url+" "+
 		jsonToWWW(request.headers,' ','=')+" "+
 		jsonToWWW(request.data, ' ', request.method==='GET'?'==':'=')
-		//+(Ti.Shadow?"</textarea>":'')
 		);
 	}
 
@@ -398,18 +409,6 @@ exports.deleteCache = function(hash) {
 	NetCache.del(hash);
 };
 
-function jsonToWWW(obj, sep, eq, k, R) {
-	var R = R || [];
-	for (var i in obj) {
-		var _k = k!==undefined;
-		if (typeof obj[i]==='object') {
-			jsonToWWW(obj[i], null, eq, (_k?k+'[':'')+i+(_k?']':''), R);
-		} else {
-			R.push((_k?k+'['+i+']':i)+(eq||'=')+obj[i]);
-		}
-	}
-	return R.join(sep||'&');
-}
 
 /**
  * The main function of the module, create the HTTPClient and make the request
