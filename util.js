@@ -357,14 +357,14 @@ exports.getIOSVersion = getIOSVersion;
  * Check if is iOS 6
  * @return {Boolean}
  */
-function isIOS7() {
+function isIOS6() {
 	return getIOSVersion()==6;
 }
 exports.isIOS7 = isIOS7;
 
 
 /**
- * Check if is iOS 7
+ * Check if is iOS
  * @return {Boolean}
  */
 function isIOS7() {

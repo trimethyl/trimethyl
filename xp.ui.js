@@ -7,7 +7,7 @@
  *
  * You have to use in Alloy with `module="xp.ui"`
  *
- * Inspired to @FokkeZB UTIL. Thanks! :)
+ * Inspired to FokkeZB UTIL. Thanks! :)
  * https://github.com/FokkeZB/UTiL/tree/master/xp.ui
  *
  */
@@ -17,9 +17,6 @@
 
 if (!OS_IOS) {
 
-	/*
-	NavigationWindow Android fallback provided by @FokkeZB
-	*/
 	var NavigationWindow = function NavigationWindow(args) {
 		this.args = args || {};
 		this.windows = [];
