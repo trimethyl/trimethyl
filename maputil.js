@@ -272,3 +272,24 @@ function checkForDependencies() {
 	});
 }
 exports.checkForDependencies = checkForDependencies;
+
+
+/**
+ * Get the minimum MapRegion to include all annotations in array
+ * @param  {Object} 	array 	An array of annotations
+ * @param  {Number}	mulGap	Gap multiplier
+ * @return {Object}
+ */
+function getRegionBounds(array, mulGap) {
+	mulGap = mulGap || 1.4;
+	var lats = _.pluck(array, 'latitude');
+	var lngs = _.pluck(array, 'longitude');
+	var bb = [ _.min(lats), _.min(lngs), _.max(lats), _.max(lngs) ];
+	return {
+		latitude: (bb[0]+bb[2])/2,
+		longitude: (bb[1]+bb[3])/2,
+		latitudeDelta: mulGap*(bb[2]-bb[0]),
+		longitudeDelta: mulGap*(bb[3]-bb[1])
+	};
+}
+exports.getRegionBounds = getRegionBounds;

@@ -492,9 +492,11 @@ exports.createListView = function(args) {
  */
 exports.createTabbedBar = function(args) {
 	args = args || {};
-	if (OS_IOS) {
-		return Ti.UI.iOS.createTabbedBar(args);
-	}
+
+	/*
+	iOS is better
+	*/
+	if (OS_IOS) return Ti.UI.iOS.createTabbedBar(args);
 
 	var $this = Ti.UI.createView(args);
 
@@ -516,8 +518,7 @@ exports.createTabbedBar = function(args) {
 				title: l,
 				index: index,
 				width: width,
-				left: 0,
-				right: 0,
+				left: 0, right: 0,
 				height: 32,
 				borderColor: args.tintColor || '#000',
 				borderWidth: 1,
@@ -535,9 +536,7 @@ exports.createTabbedBar = function(args) {
 		}
 	};
 
-	Object.defineProperty($this, 'labels', {
-		set: $this.setLabels, get: $this.getLabels
-	});
+	Object.defineProperty($this, 'labels', { set: $this.setLabels, get: $this.getLabels });
 
 	$this._index = 0;
 	$this.getIndex = function() { return $this._index; };
@@ -562,9 +561,7 @@ exports.createTabbedBar = function(args) {
 		});
 	};
 
-	Object.defineProperty($this, 'index', {
-		set: $this.setIndex, get: $this.getIndex
-	});
+	Object.defineProperty($this, 'index', { set: $this.setIndex, get: $this.getIndex });
 
 	$this.addEventListener('click', function(e){
 		if ('index' in e.source) {
@@ -572,8 +569,22 @@ exports.createTabbedBar = function(args) {
 		}
 	});
 
-	if (args.labels) $this.setLabels(args.labels);
-	$this.setIndex(args.index!==undefined ? args.index : 0);
+	if (args.labels) {
+		$this.setLabels(args.labels);
+	}
+	$this.setIndex( _.isNumber(args.index) ? args.index : 0 );
+
+	return $this;
+};
+
+/**
+ * @method createButton
+ * @return {Ti.UI.Button}
+ */
+exports.createButton = function(args) {
+	var $this = Ti.UI.createButton(args || {});
+
+
 
 	return $this;
 };
