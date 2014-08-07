@@ -383,22 +383,18 @@ exports.isIOS8 = isIOS8;
 
 
 /**
- * Parse the URL schema on app startup/resume.
+ * Parse the URL schema according to X-Callback-URL standard
+ *
  * @return {String}
  */
 exports.parseSchema = function() {
 	if (OS_IOS) {
 		var cmd = Ti.App.getArguments();
-		if (cmd && 'url' in cmd) {
-			return cmd.url.replace(/^.*?\:\/\//, '');
-		}
+		if (cmd && 'url' in cmd) return cmd.url;
 	} else if (OS_ANDROID) {
 		var url = Ti.Android.currentActivity.intent.data;
-		if (url) {
-			return url.replace(/^.*?\:\/\//, '');
-		}
+		if (url) return url;
 	}
-
 	return '';
 };
 
@@ -583,12 +579,14 @@ exports.setAppFirstUsage = function(){
  * @method populateListViewFromCollection
  * Parse an array or a Backbone.Collection and populate a ListView with this values.
  *
- * @param  {Array} C   	Array or Backbone.Collection to parse
- * @param  {Object} opt
+ * @param  {Array} 	C   	Array or Backbone.Collection to parse
+ * @param  {Object} 	opt
  *
  * If `groupBy` is specified, and is a function, you must provide a valid callback to group elements.
  *
- * If `groupBy` is a string, try to group with `_.groupBy`.
+ * If `groupBy` is a string, the function tries to group with `_.groupBy`.
+ *
+ * You must pass the callback that return the single item in the parameter `datasetCb`.
  *
  * @param  {Ti.UI.ListView} [$ui]
  * The ListView to populate. If is not specified, return the elements instead populating directly.

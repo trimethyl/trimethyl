@@ -5,13 +5,16 @@
  */
 
 /**
+ * * **trackWithGA**: Auto track the dispatched and resolved routes with GA
  * @type {Object}
  */
 var config = _.extend({
+	trackWithGA: false
 }, Alloy.CFG.T.router);
 exports.config = config;
 
 var __Routes = [];
+var XCallbackURL = require('T/ext/xcallbackurl');
 
 
 /**
@@ -33,32 +36,48 @@ exports.on = on;
 
 /**
  * Dispatch the router
- * @param  {String} 	routeArg 		The route
+ * @param  {String} 	link 		The route
  */
-function dispatch(routeArg) {
+function dispatch(link) {
 	var run = false;
 	var matches = null;
+
+	var X = XCallbackURL.parse(link);
+	var path = X.path();
 
 	for (var i in __Routes) {
 		var routeDefinition = __Routes[i];
 
 		if (_.isString(routeDefinition.key)) {
-			run = (routeDefinition.key===routeArg);
+
+			// Regular string equals
+			run = (routeDefinition.key===path);
+
 		} else if (_.isRegExp(routeDefinition.key)) {
-			matches = routeArg.match(routeDefinition.key);
+
+			// Regular expression complex match
+			matches = path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
+
 		} else if (_.isFunction(routeDefinition.key)) {
-			matches = routeDefinition.key(routeArg);
+
+			// Function match
+			matches = routeDefinition.key(path);
 			run = (matches!==undefined);
+
 		}
 
 		if (run) {
 			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+")");
-			return routeDefinition.callback.apply(null, matches);
+			if (config.trackWithGA) require('T/ga').trackScreen(link);
+
+			var result = routeDefinition.callback.apply(X, matches);
+
+			// Implement x-success, x-error, x-cancel
 		}
 	}
 
-	Ti.API.warn("Router: no matches for the selected route ("+routeArg+")");
+	Ti.API.warn("Router: no matches for the selected route ("+link+")");
 }
 exports.dispatch = dispatch;

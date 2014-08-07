@@ -135,7 +135,7 @@ var config = _.extend({
 exports.config = config;
 
 var libDir = [];
-var __helpers = {};
+var _helpers = {};
 
 
 /**
@@ -144,7 +144,7 @@ var __helpers = {};
  * @param {Function} 	method The callback
  */
 function addHelper(name, method) {
-	__helpers[name] = method;
+	_helpers[name] = method;
 }
 exports.addHelper = addHelper;
 
@@ -176,18 +176,26 @@ function embedJS(f) {
  * @return {Ti.UI.WebView}
  */
 exports.createView = function(args) {
+	if (!args.name) throw new Error('WebAlloy: you must pass a name');
+	var uniqid = T('util').uniqid();
+
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
-		uniqid: T('util').uniqid(),
+		uniqid: uniqid,
 		backgroundColor: "transparent"
 	}, args));
+
+	$ui.addEventListener('load', function(e){
+		if (args.autoHeight) $ui.height = $ui.evalJS("document.body.clientHeight");
+		if (_.isFunction(args.loaded)) args.loaded();
+	});
 
 	// Include head (styles)
 	var html = '<!DOCTYPE html><html><head><meta charset="utf-8" />';
 	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
 
 	// Install the global event handler for this specific WebView
-	html += '<script>WebAlloy={ run: function(e,d){ Ti.App.fireEvent("__weballoy'+$ui.uniqid+'",{name:e,data:d}); } };</script>';
+	html += '<script>WebAlloy={ run: function(e,d){ Ti.App.fireEvent("__weballoy'+uniqid+'",{name:e,data:d}); } };</script>';
 
 	// Include global css
 	html += embedCSS('web/app.css');
@@ -195,9 +203,13 @@ exports.createView = function(args) {
 
 	html += '</head><body>';
 
+
 	// Include template
+	$ui.tpl = _.template(embedText('web/views/'+args.name+'.tpl'));
+
 	html += '<div id="main">';
-	html += _.template(embedText('web/views/'+args.name+'.tpl'), _.extend(__helpers, $ui.webdata || {}));
+	var data = _.extend(_helpers || {}, args.webdata || {});
+	html += $ui.tpl(data);
 	html += '</div>';
 
 	// Include libs
@@ -237,24 +249,25 @@ exports.createView = function(args) {
 	};
 
 	$ui.render = function(data) {
+		data = _.extend(_helpers, data);
 		$ui.$('#main').set('innerHTML', $ui.tpl(data));
 	};
 
 
 	// Install the API listener
-	if ($ui.webapi) {
+	if (args.webapi) {
 
 		$ui.__webapiListener = function(event) {
-			if (!(event.name in $ui.webapi)) return;
-			if (!_.isFunction($ui.webapi[event.name])) return;
-			$ui.webapi[event.name].call($ui, event.data);
+			if (!(event.name in args.webapi)) return;
+			if (!_.isFunction(args.webapi[event.name])) return;
+			args.webapi[event.name].call($ui, event.data);
 		};
 
 		$ui.webapiUnbind = function() {
-			Ti.App.removeEventListener('weballoy_'+$ui.uniqid, $ui.__webapiListener);
+			Ti.App.removeEventListener('weballoy_'+uniqid, $ui.__webapiListener);
 		};
 
-		Ti.App.addEventListener('__weballoy'+$ui.uniqid, $ui.__webapiListener);
+		Ti.App.addEventListener('__weballoy'+uniqid, $ui.__webapiListener);
 	}
 
 	return $ui;
