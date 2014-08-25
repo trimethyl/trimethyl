@@ -31,7 +31,22 @@ var queue = {};
 var serverConnected = null;
 var errorHandler = null;
 
-function originalErrorHandler(e) { require('T/util').alertError(e.message); }
+function jsonToWWW(obj, sep, eq, k, ret) {
+	ret = ret || [];
+	for (var i in obj) {
+		var _k = k!==undefined;
+		if (_.isObject(obj[i])) {
+			jsonToWWW(obj[i], null, eq, (_k?k+'[':'')+i+(_k?']':''), ret);
+		} else {
+			ret.push((_k?k+'['+i+']':i)+(eq||'=')+obj[i]);
+		}
+	}
+	return ret.join(sep||'&');
+}
+
+function originalErrorHandler(e) {
+	require('T/util').alertError( e && e.message ? e.message : 'Error' );
+}
 errorHandler = originalErrorHandler;
 
 function calculateHash(request) {
@@ -113,11 +128,9 @@ function decorateRequest(request) {
 	// httpie debug
 	if (config.httpieDebug) {
 		Ti.API.debug(
-		//(Ti.Shadow?"<textarea onclick='this.select()' style='width:100%'>":'')+
 		"http "+request.method+" "+request.url+" "+
 		jsonToWWW(request.headers,' ','=')+" "+
 		jsonToWWW(request.data, ' ', request.method==='GET'?'==':'=')
-		//+(Ti.Shadow?"</textarea>":'')
 		);
 	}
 
@@ -140,7 +153,7 @@ function onComplete(request, response, e){
 	// Delete request from queue
 	delete queue[request.hash];
 
-	if (typeof request.complete==='function') request.complete();
+	if (_.isFunction(request.complete)) request.complete();
 
 	// Fire the global event
 	if (!request.silent) {
@@ -154,7 +167,7 @@ function onComplete(request, response, e){
 	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
 	if (response.readyState<=1) {
 		Ti.API.error("Net: REQ-["+request.hash+"] is broken (readyState<=1)");
-		if (typeof request.error==='function') request.error();
+		if (_.isFunction(request.error)) request.error();
 		return false;
 	}
 
@@ -190,7 +203,7 @@ function onComplete(request, response, e){
 			}
 		}
 
-		if (typeof request.success==='function') request.success(returnValue);
+		if (_.isFunction(request.success)) request.success(returnValue);
 
 	} else {
 
@@ -209,7 +222,7 @@ function onComplete(request, response, e){
 		var E = { message: returnError, code: response.status };
 		Ti.API.error("Net: REQ-["+request.hash+"] error - "+JSON.stringify(E));
 
-		if (typeof request.error==='function') request.error(E);
+		if (_.isFunction(request.error)) request.error(E);
 
 	}
 }
@@ -396,18 +409,6 @@ exports.deleteCache = function(hash) {
 	NetCache.del(hash);
 };
 
-function jsonToWWW(obj, sep, eq, k, R) {
-	var R = R || [];
-	for (var i in obj) {
-		var _k = k!==undefined;
-		if (typeof obj[i]==='object') {
-			jsonToWWW(obj[i], null, eq, (_k?k+'[':'')+i+(_k?']':''), R);
-		} else {
-			R.push((_k?k+'['+i+']':i)+(eq||'=')+obj[i]);
-		}
-	}
-	return R.join(sep||'&');
-}
 
 /**
  * The main function of the module, create the HTTPClient and make the request
@@ -437,8 +438,8 @@ function send(request) {
 
 			var cache = NetCache.get(request, !onlineStatus);
 			if (cache) {
-				if (typeof request.complete==='function') request.complete();
-				if (typeof request.success==='function') request.success(cache);
+				if (_.isFunction(request.complete)) request.complete();
+				if (_.isFunction(request.success)) request.success(cache);
 				return request.hash;
 			}
 		}
@@ -454,8 +455,12 @@ function send(request) {
 			require('T/util').alert(L('net_offline_title'), L('net_offline_message'));
 		}
 
-		if (typeof request.complete==='function') request.complete();
-		if (typeof request.error==='function') request.error();
+		if (_.isFunction(request.complete)) request.complete();
+		if (_.isFunction(request.error)) {
+			request.error({
+				message: "Connection is offline"
+			});
+		}
 
 		return request.hash;
 	}

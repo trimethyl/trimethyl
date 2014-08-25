@@ -58,7 +58,7 @@ exports.get = get;
  *
  * @param {String} id     The unique key
  * @param {Mixed} value  Value to set
- * @param {Integer} expire TTL of this property, expressed is seconds from now
+ * @param {Number} expire TTL of this property, expressed is seconds from now
  */
 function set(id, value, expire) {
 	if (!DB) {

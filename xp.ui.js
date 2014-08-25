@@ -7,7 +7,7 @@
  *
  * You have to use in Alloy with `module="xp.ui"`
  *
- * Inspired to @FokkeZB UTIL. Thanks! :)
+ * Inspired to FokkeZB UTIL. Thanks! :)
  * https://github.com/FokkeZB/UTiL/tree/master/xp.ui
  *
  */
@@ -17,87 +17,79 @@
 
 if (!OS_IOS) {
 
-	/*
-	NavigationWindow Android fallback provided by @FokkeZB
-	*/
-	var NavigationWindow = function(args) {
+	var NavigationWindow = function NavigationWindow(args) {
 		this.args = args || {};
 		this.windows = [];
 	};
 
-	NavigationWindow.prototype = {
+	NavigationWindow.prototype.open = function(args) {
+		return this.openWindow(this.args.window, args);
+	};
 
-		open: function(args) {
-			return this.openWindow(this.args.window, args);
-		},
+	NavigationWindow.prototype.close = function(callback) {
+		if (callback) this.closeCallback = callback;
 
-		close: function(callback) {
-			if (callback) this.closeCallback = callback;
+		if (this.windows.length>0) {
+			var w = this.windows.pop();
+			w.navigationIndex = null;
+			w.popToRoot = true;
+			w.close({ animated: false });
+		} else {
+			if (this.closeCallback) this.closeCallback();
+			this.closeCallback = null;
+		}
+	};
+	NavigationWindow.prototype.closeAllWindows = NavigationWindow.prototype.close;
 
-			if (this.windows.length>0) {
-				var w = this.windows.pop();
-				w.navigationIndex = null;
-				w.popToRoot = true;
-				w.close({ animated: false });
-			} else {
-				if (this.closeCallback) this.closeCallback();
-				this.closeCallback = null;
-			}
-		},
+	NavigationWindow.prototype.openWindow = function(window, args) {
+		args = args || {};
+		var that = this;
 
-		openWindow: function(window, args) {
-			args = args || {};
-			var self = this;
+		if (OS_ANDROID) {
 
-			if (OS_ANDROID) {
-
-				if (args.animated!==false) {
-					if (args.modal) {
-						args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-						args.activityExitAnimation = Ti.Android.R.anim.fade_out;
-					} else {
-						args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-						args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
-					}
-				}
-
-				if (args.displayHomeAsUp===false) {
-					window.addEventListener('open', function() {
-						var activity = window.getActivity();
-						try {
-							if (!activity) return;
-							if (!activity.actionBar) return;
-
-							activity.actionBar.displayHomeAsUp = true;
-							activity.actionBar.onHomeIconItemSelected = function() {
-								self.closeWindow(window);
-							};
-						} catch (err) {}
-					});
+			if (args.animated!==false) {
+				if (args.modal) {
+					args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
+					args.activityExitAnimation = Ti.Android.R.anim.fade_out;
+				} else {
+					args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
+					args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 				}
 			}
 
-			window.addEventListener('close', function(e){
-				if (e.source.navigationIndex>=0) {
-					self.windows.splice(e.source.navigationWindow, 1);
-				}
-				if (e.source.popToRoot) self.close();
-			});
+			if (args.displayHomeAsUp===false) {
+				window.addEventListener('open', function() {
+					var activity = window.getActivity();
+					try {
+						if (!activity) return;
+						if (!activity.actionBar) return;
 
-			window.navigationIndex = this.windows.length;
-			this.windows.push(window);
-
-			return window.open(_.extend(args, { modal: false }));
-		},
-
-		closeWindow: function(window) {
-			return window.close();
-		},
-
-		getWindowsStack: function() {
-			return this.windows;
+						activity.actionBar.displayHomeAsUp = true;
+						activity.actionBar.onHomeIconItemSelected = function() {
+							that.closeWindow(window);
+						};
+					} catch (err) {}
+				});
+			}
 		}
 
+		window.addEventListener('close', function(e){
+			if (e.source.navigationIndex>=0) that.windows.splice(e.source.navigationWindow, 1);
+			if (e.source.popToRoot) that.close();
+		});
+
+		window.navigationIndex = this.windows.length;
+		this.windows.push(window);
+
+		return window.open(_.extend(args, { modal: false }));
+	};
+
+	NavigationWindow.prototype.closeWindow = function(window) {
+		return window.close();
+	};
+
+	NavigationWindow.prototype.getWindowsStack = function() {
+		return this.windows;
 	};
 
 }
@@ -116,13 +108,9 @@ if (!OS_IOS) {
  * @param  {Object} args [description]
  */
 exports.createNavigationWindow = function(args) {
-	if (!OS_IOS) {
-		return new NavigationWindow(args || {});
-	}
-
-	return Ti.UI.iOS.createNavigationWindow(args || {});
+	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args || {});
+	return new NavigationWindow(args || {});
 };
-
 
 
 
@@ -130,6 +118,10 @@ exports.createNavigationWindow = function(args) {
 
 /**
  * @method createWindow
+ *
+ * Added properties:
+ *
+ * * **deferredBackgroundImage**: When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
  *
  * ## iOS
  *
@@ -139,47 +131,44 @@ exports.createNavigationWindow = function(args) {
  *
  * Adds the support for:
  *
- * * **rightNavButton** (partial)
+ * * **rightNavButton**: You must call manually in the controller with `setRightNavButton(Button)`
  * * **title and subtitle**: automatically set the title and subtitle in the ActionBar
  *
  * @param  {Object} args
  */
 exports.createWindow = function(args) {
-	var $ui = Ti.UI.createWindow(args || {});
+	var $this = Ti.UI.createWindow(args || {});
 
 	if (OS_ANDROID) {
 
-		$ui.addEventListener('open', function(e){
-			if (!$ui.activity || !$ui.activity.actionBar) return;
+		$this.addEventListener('open', function(e){
+			if (!$this.activity || !$this.activity.actionBar) return;
 
-			if ($ui.subtitle) {
-				$ui.activity.actionBar.title = $ui.title;
-				$ui.activity.actionBar.subtitle = $ui.subtitle;
+			if ($this.subtitle) {
+				$this.activity.actionBar.title = $this.title;
+				$this.activity.actionBar.subtitle = $this.subtitle;
 			} else {
-				if ($ui.subtitle===false) {
-					$ui.activity.actionBar.title = $ui.title;
+				if ($this.subtitle===false) {
+					$this.activity.actionBar.title = $this.title;
 				} else {
-					$ui.activity.actionBar.title =  Ti.App.name;
-					$ui.activity.actionBar.subtitle = $ui.title;
+					$this.activity.actionBar.title =  Ti.App.name;
+					$this.activity.actionBar.subtitle = $this.title;
 				}
 			}
 		});
 
-		$ui.setRightNavButton = function($btn){
-			if (!$ui.activity) return;
+		$this.setRightNavButton = function($btn){
+			if (!$this.activity) return;
 
 			if ($btn===null) {
-
-				// Clean
-				$ui.activity.onCreateOptionsMenu = function(e){
+				$this.activity.onCreateOptionsMenu = function(e){
 					e.menu.items = [];
 				};
-
 			} else {
 
 				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
 
-				$ui.activity.onCreateOptionsMenu = function(e){
+				$this.activity.onCreateOptionsMenu = function(e){
 					if (!$btn.title && !$btn.image) {
 						Ti.API.error("XP.UI: please specify a title OR icon/image for RightNavButton on Android");
 						return;
@@ -196,21 +185,23 @@ exports.createWindow = function(args) {
 				};
 			}
 
-			if ($ui.activity.invalidateOptionsMenu) {
-				$ui.activity.invalidateOptionsMenu();
-			}
+			if ($this.activity.invalidateOptionsMenu) $this.activity.invalidateOptionsMenu();
 		};
 
-
 		if (args.rightNavButton) {
-			$ui.setRightNavButton(args.rightNavButton);
+			$this.setRightNavButton(args.rightNavButton);
 		} else {
 			Ti.API.warn("XP.UI: Starting with Ti-SDK 3.3.0 GA you have to call Window.setRightNavButton(Button) manually on your controller");
 		}
-
 	}
 
-	return $ui;
+	if ($this.deferredBackgroundImage) {
+		$this.addEventListener('open', function(){
+			$this.backgroundImage = $this.deferredBackgroundImage;
+		});
+	}
+
+	return $this;
 };
 
 
@@ -269,12 +260,8 @@ exports.createTextField = function(args) {
 	args = args || {};
 
 	switch (args.textType) {
-		case 'email':
-		args.keyboardType = Ti.UI.KEYBOARD_EMAIL;
-		break;
-		case 'password':
-		args.passwordMask = true;
-		break;
+		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
+		case 'password': args.passwordMask = true; break;
 	}
 
 	var $this = Ti.UI.createTextField(args);
@@ -346,18 +333,9 @@ exports.createTextArea = function(args) {
 
 /* Thanks to @lastguest: https://gist.github.com/lastguest/10277461 */
 function simpleHTMLParser(text) {
-
-	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm,
-	partial,
-	tag,
-	temp_style;
-
-	var last_idx = 0,
-	last_text_idx = 0;
-
-	var style = [],
-	style_stack = [],
-	clean_text = [];
+	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm, partial, tag, temp_style;
+	var last_idx = 0, last_text_idx = 0;
+	var style = [], style_stack = [], clean_text = [];
 
 	while ((tag=tags_rx.exec(text))!==null) {
 		partial = text.substr(last_idx, tag.index - last_idx);
@@ -514,9 +492,11 @@ exports.createListView = function(args) {
  */
 exports.createTabbedBar = function(args) {
 	args = args || {};
-	if (OS_IOS) {
-		return Ti.UI.iOS.createTabbedBar(args);
-	}
+
+	/*
+	iOS is better
+	*/
+	if (OS_IOS) return Ti.UI.iOS.createTabbedBar(args);
 
 	var $this = Ti.UI.createView(args);
 
@@ -538,8 +518,7 @@ exports.createTabbedBar = function(args) {
 				title: l,
 				index: index,
 				width: width,
-				left: 0,
-				right: 0,
+				left: 0, right: 0,
 				height: 32,
 				borderColor: args.tintColor || '#000',
 				borderWidth: 1,
@@ -557,10 +536,7 @@ exports.createTabbedBar = function(args) {
 		}
 	};
 
-	Object.defineProperty($this, 'labels', {
-		set: $this.setLabels, get: $this.getLabels
-	});
-
+	Object.defineProperty($this, 'labels', { set: $this.setLabels, get: $this.getLabels });
 
 	$this._index = 0;
 	$this.getIndex = function() { return $this._index; };
@@ -585,9 +561,7 @@ exports.createTabbedBar = function(args) {
 		});
 	};
 
-	Object.defineProperty($this, 'index', {
-		set: $this.setIndex, get: $this.getIndex
-	});
+	Object.defineProperty($this, 'index', { set: $this.setIndex, get: $this.getIndex });
 
 	$this.addEventListener('click', function(e){
 		if ('index' in e.source) {
@@ -595,8 +569,22 @@ exports.createTabbedBar = function(args) {
 		}
 	});
 
-	if (args.labels) $this.setLabels(args.labels);
-	$this.setIndex(args.index!==undefined ? args.index : 0);
+	if (args.labels) {
+		$this.setLabels(args.labels);
+	}
+	$this.setIndex( _.isNumber(args.index) ? args.index : 0 );
+
+	return $this;
+};
+
+/**
+ * @method createButton
+ * @return {Ti.UI.Button}
+ */
+exports.createButton = function(args) {
+	var $this = Ti.UI.createButton(args || {});
+
+
 
 	return $this;
 };
