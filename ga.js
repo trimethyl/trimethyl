@@ -24,10 +24,7 @@ var __tracker = null;
 
 function track(method, what) {
 	Ti.API.debug("GA: "+method+" - "+JSON.stringify(what));
-
-	try {
-		__tracker[method](what);
-	} catch (err) {}
+	__tracker["track"+method](what);
 }
 
 
