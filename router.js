@@ -82,7 +82,6 @@ function dispatch(link) {
 }
 exports.dispatch = dispatch;
 
-
 /**
  * @method go
  * @inheritDoc #dispatch

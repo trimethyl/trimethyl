@@ -24,7 +24,7 @@ Download the latest release and unzip in **app/lib/T**
 Or, open your Terminal app, move to your Titanium project, and simply type:
 
 ```
-wget https://github.com/CaffeinaLab/Trimethyl/archive/1.2.2.tar.gz -O T.tar.gz;
+wget https://github.com/CaffeinaLab/Trimethyl/archive/1.2.3.tar.gz -O T.tar.gz;
 mkdir -p app/lib/T;
 tar -xvf T.tar.gz -C app/lib/T --strip-components=1
 ```
