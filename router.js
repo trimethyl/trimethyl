@@ -81,3 +81,11 @@ function dispatch(link) {
 	Ti.API.warn("Router: no matches for the selected route ("+link+")");
 }
 exports.dispatch = dispatch;
+
+
+/**
+ * @method go
+ * @inheritDoc #dispatch
+ * Alias for {@link #dispatch}
+ */
+exports.go = dispatch;
