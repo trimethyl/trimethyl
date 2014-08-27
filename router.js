@@ -72,9 +72,9 @@ function dispatch(link) {
 			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+")");
 			if (config.trackWithGA) require('T/ga').trackScreen(link);
 
-			var result = routeDefinition.callback.apply(X, matches);
+			routeDefinition.callback.apply(X, matches);
 
-			// Implement x-success, x-error, x-cancel
+			return; // IS VERY IMPORTANT TO EXIT
 		}
 	}
 

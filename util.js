@@ -581,13 +581,36 @@ exports.setAppFirstUsage = function(){
  *
  * @param  {Array} 	C   	Array or Backbone.Collection to parse
  * @param  {Object} 	opt
- *
- * If `groupBy` is specified, and is a function, you must provide a valid callback to group elements.
- *
- * If `groupBy` is a string, the function tries to group with `_.groupBy`.
- *
- * You must pass the callback that return the single item in the parameter `datasetCb`.
- *
+ *  
+ * ### datasetCb
+ * 
+ * You must provide a callback to fill the ListItem, like this:
+ * 
+ * ```
+ * return {
+ *	   properties: {
+ *	      height: 52,
+ *			itemId: el.get('id'),
+ *			searchableText: el.get('city')
+ *		},
+ *		title: { text: el.get('title') },
+ *		address: { text: el.get('address')+', '+el.get('city') }
+ *	}
+ * ```
+ * 
+ * ### [groupBy]
+ * 
+ * See `_.groupBy`
+ * 
+ * ### [headerViewCb]
+ * 
+ * A callback to generate the headerView for the ListView.
+ * 
+ * ### [sectionIndex]
+ * 
+ * If `true`, provide the **alphabet on the right** functionality.
+ * 
+ * 
  * @param  {Ti.UI.ListView} [$ui]
  * The ListView to populate. If is not specified, return the elements instead populating directly.
  *
@@ -669,8 +692,6 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 		expire: opt.expire || 0,
 		silent: opt.silent || false,
 		error: opt.error,
-		success: function(stream) {
-			callback(stream);
-		}
+		success: callback
 	});
 };
