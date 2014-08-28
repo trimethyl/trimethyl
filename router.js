@@ -36,6 +36,15 @@ exports.on = on;
 
 /**
  * Dispatch the router
+ *
+ * This function call the defined function with `Router.on`
+ *
+ * The param `this` represents an XCallback-URL Object for selected route.
+ *
+ * See {@link https://github.com/FokkeZB/UTiL/blob/master/XCallbackURL/XCallbackURL.js} for more details.
+ *
+ * The arguments passed are the matches for your regex definition (if present)
+ *
  * @param  {String} 	link 		The route
  */
 function dispatch(link) {
