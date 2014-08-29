@@ -215,7 +215,7 @@ exports.user = getCurrentUser;
  * @param  {Function} cb Success callback
  */
 function logout(cb) {
-	var id = Me ? Me.get('id') : null;
+	var id = Me ? Me.id: null;
 
 	if (getCurrentDriver()) {
 		try {
