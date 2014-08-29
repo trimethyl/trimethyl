@@ -59,6 +59,7 @@ exports.distanceInKm = distanceInKm;
  * ```
  * @param  {Object} e       	The arguments retrived from TiMap.addEventListener('regionchanged', **event**)
  * @param  {Object} markers 	The markers **must be** an instance of `Backbone.Collection` or an Object id-indexed
+ * @param  {Object} [keys] 		The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
  * @return {Array}
  * An array of markers in this format:
  *
@@ -107,10 +108,15 @@ exports.distanceInKm = distanceInKm;
  * ```
  *
  */
-function cluster(e, markers){
-	var c={}, g={};
-	var id, jd, len, dst;
-	var tmpLat, tmpLng;
+function cluster(e, markers, keys){
+	keys = _.extend({
+		latitude: 'lat',
+		longitude: 'lng',
+		id: 'id'
+	}, keys);
+
+	var c={};
+	var g={};
 
 	/* latR, lngR represents the current degrees visible */
 	var latR = (e.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / e.latitudeDelta;
@@ -126,101 +132,71 @@ function cluster(e, markers){
 	e.longitude - e.longitudeDelta/2 - degreeLng
 	];
 
-	// Compile only marker in my bounding box
-	if (config.removeOutOfBB) {
+	var isBackbone = !!(markers instanceof Backbone.Collection);
 
-		if (markers instanceof Backbone.Collection) {
-			markers.map(function(m){
-				tmpLat = parseFloat(m.get('lat'));
-				tmpLng = parseFloat(m.get('lng'));
-				if (tmpLat<boundingBox[2] && tmpLat>boundingBox[0] && tmpLng>boundingBox[3] && tmpLng<boundingBox[1]) {
-					c[m.get('id')] = { lat: tmpLat, lng: tmpLng };
-				}
-			});
-		} else {
-			_.each(markers, function(m){
-				tmpLat = parseFloat(m.lat);
-				tmpLng = parseFloat(m.lng);
-				if (tmpLat<boundingBox[2] && tmpLat>boundingBox[0] && tmpLng>boundingBox[3] && tmpLng<boundingBox[1]) {
-					c[m.id] = { lat: tmpLat, lng: tmpLng };
-				}
-			});
+	function removeOutOfBBFunction(m){
+		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
+		if (tmpLat<boundingBox[2] && tmpLat>boundingBox[0] && tmpLng>boundingBox[3] && tmpLng<boundingBox[1]) {
+			c[m[keys.id]] = { latitude: tmpLat, longitude: tmpLng };
 		}
+	}
 
+	function createCObjFunction(m) {
+		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
+		c[m.id] = { latitude: tmpLat, longitude: tmpLng };
+	}
+
+
+	// Start clustering
+
+	if (isBackbone) {
+		markers.map( config.removeOutOfBB ? removeOutOfBBFunction : createCObjFunction );
 	} else {
-
-		if (markers instanceof Backbone.Collection) {
-			markers.map(function(m){
-				tmpLat = parseFloat(m.get('lat'));
-				tmpLng = parseFloat(m.get('lng'));
-				c[m.get('id')] = { lat: tmpLat, lng: tmpLng };
-			});
-		} else {
-			_.each(markers, function(m){
-				tmpLat = parseFloat(m.lat);
-				tmpLng = parseFloat(m.lng);
-				c[m.id] = { lat: tmpLat, lng: tmpLng };
-			});
-		}
-
+		_.each(markers, config.removeOutOfBB ? removeOutOfBBFunction : createCObjFunction );
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
 	var zoomToCluster = e.longitudeDelta>config.maxDeltaToCluster;
-	for (id in c) {
-		for (jd in c) {
-			if (id==jd) continue;
-			if (zoomToCluster) {
-				dst = dist( lngR*Math.abs(c[id].lat-c[jd].lat), lngR*Math.abs(c[id].lng-c[jd].lng) );
-				if (dst<config.pixelRadius) {
-					if (!(id in g)) g[id] = [id];
-					g[id].push(jd);
-					delete c[jd];
-				}
+	_.each(c, function(a, id){
+		_.each(c, function(b, jd){
+			if (id==jd || !zoomToCluster) return;
+			var dst = dist(lngR*Math.abs(a.latitude-b.latitude), lngR*Math.abs(a.longitude-b.longitude));
+			if (dst<config.pixelRadius) {
+				if (!(id in g)) g[id] = [id];
+				g[id].push(jd);
+				delete c[jd];
 			}
-		}
+		});
 		if (!(id in g)) g[id] = [id];
 		delete c[id];
-	}
+	});
 
 	// cycle all over pin and calculate the average of group pin
 
-	if (markers instanceof Backbone.Collection) {
-		for (id in g) {
-			c[id] = { lat: 0.0, lng: 0.0, count: Object.keys(g[id]).length };
-			for (jd in g[id]) {
-				c[id].lat += parseFloat(markers.get(g[id][jd]).get('lat'));
-				c[id].lng += parseFloat(markers.get(g[id][jd]).get('lng'));
-			}
-			c[id].lat = c[id].lat/c[id].count;
-			c[id].lng = c[id].lng/c[id].count;
-		}
-	} else {
-		for (id in g) {
-			c[id] = { lat: 0.0, lng: 0.0, count: Object.keys(g[id]).length };
-			for (jd in g[id]) {
-				c[id].lat += parseFloat(markers[g[id][jd]].lat);
-				c[id].lng += parseFloat(markers[g[id][jd]].lng);
-			}
-			c[id].lat = c[id].lat/c[id].count;
-			c[id].lng = c[id].lng/c[id].count;
-		}
-	}
+	_.each(g, function(a, id){
+		c[id] = { latitude: 0.0,  longitude: 0.0,  count: Object.keys(g[id]).length };
+		_.each(g[id], function(b, jd){
+			c[id].latitude += parseFloat( isBackbone ? markers.get(b).get(keys.latitude) : markers[b][keys.latitude] );
+			c[id].longitude += parseFloat( isBackbone ? markers.get(b).get(keys.longitude) : markers[b][keys.longitude] );
+		});
+		c[id].latitude = c[id].latitude/c[id].count;
+		c[id].longitude = c[id].longitude/c[id].count;
+	});
+
 
 	// Set all annotations
 	var data = [];
-	for (id in c) {
-		if (c[id].count>1) {
+	_.each(c, function(a, id){
+		if (a.count>1) {
 			data.push({
-				latitude: c[id].lat.toFixed(2),
-				longitude: c[id].lng.toFixed(2),
+				latitude: +(c[id].latitude.toFixed(2)),
+				longitude: +(c[id].longitude.toFixed(2)),
 				count: c[id].count
 			});
-		} else {
-			data.push(+id);
-		}
-	}
-
+		} else data.push(+id);
+	});
 	return data;
 }
 exports.cluster = cluster;

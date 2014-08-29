@@ -31,7 +31,7 @@ function loginToServer(e) {
 
 	if (!e.success) {
 
-		Ti.API.error("Auth.Facebook: "+e);
+		Ti.API.error("Auth.Facebook: ", e);
 		Ti.App.fireEvent('auth.fail', {
 			silent: silent,
 			message: L('auth_facebook_error')

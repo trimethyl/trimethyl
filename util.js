@@ -41,6 +41,7 @@ function openURL(url, fallback, error) {
 	}
 }
 exports.openURL = openURL;
+exports.openUrl = openURL;
 
 
 /**
@@ -581,11 +582,11 @@ exports.setAppFirstUsage = function(){
  *
  * @param  {Array} 	C   	Array or Backbone.Collection to parse
  * @param  {Object} 	opt
- *  
+ *
  * ### datasetCb
- * 
+ *
  * You must provide a callback to fill the ListItem, like this:
- * 
+ *
  * ```
  * return {
  *	   properties: {
@@ -597,20 +598,20 @@ exports.setAppFirstUsage = function(){
  *		address: { text: el.get('address')+', '+el.get('city') }
  *	}
  * ```
- * 
+ *
  * ### [groupBy]
- * 
+ *
  * See `_.groupBy`
- * 
+ *
  * ### [headerViewCb]
- * 
+ *
  * A callback to generate the headerView for the ListView.
- * 
+ *
  * ### [sectionIndex]
- * 
+ *
  * If `true`, provide the **alphabet on the right** functionality.
- * 
- * 
+ *
+ *
  * @param  {Ti.UI.ListView} [$ui]
  * The ListView to populate. If is not specified, return the elements instead populating directly.
  *

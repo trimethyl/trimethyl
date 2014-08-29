@@ -22,6 +22,7 @@ var XCallbackURL = require('T/ext/xcallbackurl');
  *
  * @param  {String|RegExp|Function}   	key 			The route name.
  * It can be:
+ *
  * * `String`: (exact route match)
  * * `RegExp`: is evaluated with the argument and the matches are passed to the callback
  * * `Function`: must return a `non-undefined` value to be executed. That value is passed to the callback
