@@ -3,9 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
  *
- * ** non-CommonJS module**
- *
- * You have to use in Alloy with `module="xp.ui"`
+ * You can use in Alloy XML Views with `module="xp.ui"`
  *
  * Inspired to FokkeZB UTIL. Thanks! :)
  * https://github.com/FokkeZB/UTiL/tree/master/xp.ui
@@ -18,78 +16,78 @@
 if (!OS_IOS) {
 
 	var NavigationWindow = function NavigationWindow(args) {
-		this.args = args || {};
-		this.windows = [];
-	};
+		var self = this;
 
-	NavigationWindow.prototype.open = function(args) {
-		return this.openWindow(this.args.window, args);
-	};
+		self.windows = [];
+		self.window = args.window || null;
 
-	NavigationWindow.prototype.close = function(callback) {
-		if (callback) this.closeCallback = callback;
-
-		if (this.windows.length>0) {
-			var w = this.windows.pop();
-			w.navigationIndex = null;
-			w.popToRoot = true;
-			w.close({ animated: false });
-		} else {
-			if (this.closeCallback) this.closeCallback();
-			this.closeCallback = null;
+		function onWindowClose(e) {
+			var window = e.source;
+			if (_.isNumber(window.navigationIndex)) {
+				self.windows.splice(window.navigationWindow, 1);
+				self.window = _.last(self.windows);
+			}
 		}
-	};
-	NavigationWindow.prototype.closeAllWindows = NavigationWindow.prototype.close;
 
-	NavigationWindow.prototype.openWindow = function(window, args) {
-		args = args || {};
-		var that = this;
+		self.open = function open(opt) {
+			if (!args.window) {
+				Ti.API.error("XP.UI: no window defined in NavigationWindow");
+				return false;
+			}
 
-		if (OS_ANDROID) {
+			self.openWindow(args.window, opt);
+		};
 
-			if (args.animated!==false) {
-				if (args.modal) {
-					args.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-					args.activityExitAnimation = Ti.Android.R.anim.fade_out;
-				} else {
-					args.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-					args.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+		self.close = function close(callback) {
+			function _close(cb) {
+				if (self.windows.length===0) {
+					if (_.isFunction(callback)) callback();
+					return;
+				}
+
+				var w = self.windows.pop();
+				w.removeEventListener('close', onWindowClose);
+				w.addEventListener('close', _close);
+				w.close({ animated: false });
+			}
+
+			_close();
+		};
+
+		self.openWindow = function openWindow(window, opt) {
+			opt = opt || {};
+
+			if (OS_ANDROID) {
+				if (opt.animated!==false) {
+					if (opt.modal) {
+						opt.activityEnterAnimation = Ti.Android.R.anim.fade_in;
+						opt.activityExitAnimation = Ti.Android.R.anim.fade_out;
+					} else {
+						opt.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
+						opt.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+					}
+					opt.modal = false; // set anyway to false to prevent heavyweight windows
 				}
 			}
 
-			if (args.displayHomeAsUp===false) {
-				window.addEventListener('open', function() {
-					var activity = window.getActivity();
-					try {
-						if (!activity) return;
-						if (!activity.actionBar) return;
+			window.navigationIndex = +self.windows.length;
+			window.addEventListener('close', onWindowClose);
 
-						activity.actionBar.displayHomeAsUp = true;
-						activity.actionBar.onHomeIconItemSelected = function() {
-							that.closeWindow(window);
-						};
-					} catch (err) {}
-				});
-			}
-		}
+			self.windows.push(window);
+			self.window = window; // expose property
 
-		window.addEventListener('close', function(e){
-			if (e.source.navigationIndex>=0) that.windows.splice(e.source.navigationWindow, 1);
-			if (e.source.popToRoot) that.close();
-		});
+			window.open(opt);
+		};
 
-		window.navigationIndex = this.windows.length;
-		this.windows.push(window);
+		self.closeWindow = function closeWindow(window) {
+			window.close();
+		};
 
-		return window.open(_.extend(args, { modal: false }));
-	};
+		self.getWindowsStack = function getWindowsStack() {
+			return self.windows;
+		};
 
-	NavigationWindow.prototype.closeWindow = function(window) {
-		return window.close();
-	};
-
-	NavigationWindow.prototype.getWindowsStack = function() {
-		return this.windows;
+		return self;
 	};
 
 }
@@ -108,7 +106,10 @@ if (!OS_IOS) {
  * @param  {Object} args [description]
  */
 exports.createNavigationWindow = function(args) {
-	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args || {});
+	if (OS_IOS) {
+		return Ti.UI.iOS.createNavigationWindow(args || {});
+	}
+
 	return new NavigationWindow(args || {});
 };
 
@@ -122,6 +123,7 @@ exports.createNavigationWindow = function(args) {
  * Added properties:
  *
  * * **deferredBackgroundImage**: When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
+ * * **backgroundCoverImage**: Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
  *
  * ## iOS
  *
@@ -131,18 +133,59 @@ exports.createNavigationWindow = function(args) {
  *
  * Adds the support for:
  *
- * * **rightNavButton**: You must call manually in the controller with `setRightNavButton(Button)`
+ * * **activityButton(s?)**: You can pass as object or call `setActivityButton({})`, or `addActivityButton({})`
  * * **title and subtitle**: automatically set the title and subtitle in the ActionBar
+ *
+ * #### ActivityButton
+ *
+ * Use like this example:
+ *
+ * ```
+ * $this.window.addActivityButton({
+ *		icon: '/images/hamb.png',
+ *		title: "MENU",
+ *		click: function() {
+ *			UI.Menu.show();
+ *		}
+ *	});
+ *	```
  *
  * @param  {Object} args
  */
 exports.createWindow = function(args) {
 	var $this = Ti.UI.createWindow(args || {});
 
+
+	if ($this.deferredBackgroundImage) {
+		$this.addEventListener('open', function(){
+			$this.backgroundImage = $this.deferredBackgroundImage;
+		});
+	}
+
+
+	if ($this.backgroundCoverImage) {
+		var $__scrollView = Ti.UI.createScrollView({
+			touchEnabled: false,
+			width: Alloy.Globals.SCREEN_WIDTH,
+			height: Alloy.Globals.SCREEN_HEIGHT,
+			zIndex: -1
+		});
+		$__scrollView.add(Ti.UI.createImageView({
+			image: $this.backgroundCoverImage
+		}));
+		$this.add($__scrollView);
+	}
+
+
 	if (OS_ANDROID) {
 
 		$this.addEventListener('open', function(e){
 			if (!$this.activity || !$this.activity.actionBar) return;
+
+			if ($this.noActionBar) {
+				$.this.activity.actionBar.hide();
+				return;
+			}
 
 			if ($this.subtitle) {
 				$this.activity.actionBar.title = $this.title;
@@ -157,48 +200,72 @@ exports.createWindow = function(args) {
 			}
 		});
 
-		$this.setRightNavButton = function($btn){
-			if (!$this.activity) return;
+		$this.addActivityButton = function($btn, opt){
+			opt = opt || {};
 
-			if ($btn===null) {
-				$this.activity.onCreateOptionsMenu = function(e){
-					e.menu.items = [];
-				};
-			} else {
+			if (!$this.activity) {
+				// I have promised you that I set the fucking button, so I'll do my best!
+				var _f = arguments.callee,
+				_a = Array.prototype.slice.call(arguments),
+				_func = function(){ return _f.apply(null, _a); };
+				return $this.addEventListener('open', _func);
+			}
 
+			if ($btn) {
+				// hack for Alloy, just ignore it
 				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
 
+				if (!$btn.title && !$btn.image) {
+					Ti.API.error("XP.UI: please specify a title OR icon/image for ActivityButton");
+					$btn = null;
+				}
+
 				$this.activity.onCreateOptionsMenu = function(e){
-					if (!$btn.title && !$btn.image) {
-						Ti.API.error("XP.UI: please specify a title OR icon/image for RightNavButton on Android");
-						return;
+					if (opt.reset) {
+						e.menu.items = [];
 					}
 
-					var menuItem = e.menu.add({
-						title: $btn.title || '',
-						icon: $btn.icon || $btn.image || '',
-						showAsAction: Ti.Android.SHOW_AS_ACTION_ALWAYS
-					});
-					menuItem.addEventListener('click', function(){
-						$btn.fireEvent('click');
-					});
+					if ($btn) {
+						var menuItem = e.menu.add({
+							title: $btn.title || '',
+							icon: $btn.icon || $btn.image || '',
+							showAsAction: $btn.showAsAction || Ti.Android.SHOW_AS_ACTION_ALWAYS
+						});
+						menuItem.addEventListener('click', function(){
+							if (_.isFunction($btn.click)) $btn.click();
+							if (_.isFunction($btn.fireEvent)) $btn.fireEvent('click');
+						});
+					}
 				};
 			}
 
-			if ($this.activity.invalidateOptionsMenu) $this.activity.invalidateOptionsMenu();
+			if ($this.activity.invalidateOptionsMenu) {
+				$this.activity.invalidateOptionsMenu();
+			} else {
+				Ti.API.warn("XP.UI invalidateOptionsMenu is not a function!");
+			}
 		};
+
+		$this.setActivityButton = function(v) { $this.addActivityButton(v, { reset: true }); };
+		$this.setRightNavButton = $this.setActivityButton;
+
+		// UI-init
+
+		if (args.activityButton) {
+			$this.setActivityButton(args.activityButton);
+		}
+
+		if (args.activityButtons) {
+			_.each(args.activityButtons, function(val) {
+				$this.addActivityButton(val);
+			});
+		}
 
 		if (args.rightNavButton) {
 			$this.setRightNavButton(args.rightNavButton);
 		} else {
-			Ti.API.warn("XP.UI: Starting with Ti-SDK 3.3.0 GA you have to call Window.setRightNavButton(Button) manually on your controller");
+			Ti.API.warn("XP.UI: Starting with Ti-SDK 3.3.0 GA you have to call setRightNavButton/setActivityButton({}) manually on your controller");
 		}
-	}
-
-	if ($this.deferredBackgroundImage) {
-		$this.addEventListener('open', function(){
-			$this.backgroundImage = $this.deferredBackgroundImage;
-		});
 	}
 
 	return $this;
@@ -496,7 +563,9 @@ exports.createTabbedBar = function(args) {
 	/*
 	iOS is better
 	*/
-	if (OS_IOS) return Ti.UI.iOS.createTabbedBar(args);
+	if (OS_IOS) {
+		return Ti.UI.iOS.createTabbedBar(args);
+	}
 
 	var $this = Ti.UI.createView(args);
 
