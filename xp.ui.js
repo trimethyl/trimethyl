@@ -1,21 +1,32 @@
 /**
  * @class  XPUI
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Provide **CROSS-PLATFORM** UI elements to handle differences between platforms
+ * Provide XP UI elements to handle differences between platforms
+ *
+ * Inspired to FokkeZB UTIL, thanks!
  *
  * You can use in Alloy XML Views with `module="xp.ui"`
  *
- * Inspired to FokkeZB UTIL. Thanks! :)
- * https://github.com/FokkeZB/UTiL/tree/master/xp.ui
+ * All new methods can be called automatically on UI-creation with its relative property.
+ *
+ * For example, if a module expose the method `setFooProperty`, you can assign
+ * on creation using:
+ *
+ * ```
+ * var me = T('xp.ui').createBar({ fooProperty: 'a' })
+ * ```
+ *
+ * **DON'T** use the `me.fooProperty = [NEW VALUE]` syntax to assign the property, use `setFooProperty` instead.
+ *
+ * **DON'T** use the `me.fooProperty` syntax to get the value, use `getFooProperty` instead.
  *
  */
 
 
-/* ============ NAVIGATIONWINDOW =============== */
-
 if (!OS_IOS) {
 
 	var NavigationWindow = function NavigationWindow(args) {
+		args = args || {};
 		var self = this;
 
 		self.windows = [];
@@ -94,178 +105,232 @@ if (!OS_IOS) {
 
 /**
  * @method  createNavigationWindow
- *
- * ## iOS
- *
- * Nothing done.
- *
- * ## Android
- *
- * Create a **NavigationWindow-compatible** container that handle all windows in a stack.
- *
  * @param  {Object} args [description]
  */
 exports.createNavigationWindow = function(args) {
+	args = args || {};
+
 	if (OS_IOS) {
-		return Ti.UI.iOS.createNavigationWindow(args || {});
+		return Ti.UI.iOS.createNavigationWindow(args);
 	}
 
-	return new NavigationWindow(args || {});
+	return new NavigationWindow(args);
 };
 
 
 
-/* ============ WINDOW ============= */
-
 /**
  * @method createWindow
  *
- * Added properties:
+ * ## New methods
  *
- * * **deferredBackgroundImage**: When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
- * * **backgroundCoverImage**: Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
+ * `setDeferredBackgroundImage(String)`
  *
- * ## iOS
+ * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
  *
- * Nothing done.
+ * `setBackgroundCoverImage(String)`
  *
- * ## Android
+ * Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
  *
- * Adds the support for:
+ * `addActivityButton(Dict)` (OS_ANDROID)
  *
- * * **activityButton(s?)**: You can pass as object or call `setActivityButton({})`, or `addActivityButton({})`
- * * **title and subtitle**: automatically set the title and subtitle in the ActionBar
+ * Add an activity right button
  *
- * #### ActivityButton
+ * `setActivityButton(Dict)` (OS_ANDROID)
  *
- * Use like this example:
+ * Set an activity right button and remove all others
  *
- * ```
- * $this.window.addActivityButton({
- *		icon: '/images/hamb.png',
- *		title: "MENU",
- *		click: function() {
- *			UI.Menu.show();
- *		}
- *	});
- *	```
+ * `setRightNavButton(Dict)` (OS_ANDROID)
+ *
+ * Alias for `setActivityButton`
+ *
+ * `setActionBarProperties(Dict)` (OS_ANDROID)
+ *
+ * Set the properties for the actionBar
+ *
+ * `setActivityProperties(Dict)`
+ *
+ * Set the properties for the activity
+ *
+ * `setDisplayHomeAsUp(Boolean)`
+ *
+ * Set the property displayHomeAsUp and the relative close listener
+ *
+ * ## Android improvements
+ *
+ * On Android, the properties `title` and `subtitle` automatically set the title and subtitle in the ActionBar.
+ *
+ * If you pass `displayHomeAsUp: true`, a back button is automatically generated on the left.
  *
  * @param  {Object} args
  */
 exports.createWindow = function(args) {
-	var $this = Ti.UI.createWindow(args || {});
+	args = args || {};
+	var $this = Ti.UI.createWindow(args);
+
+	var opened = false;
+
+	var onOpenFuncs = [], onOpen = function(fun) {
+		if (opened) { fun(); return; }
+		onOpenFuncs.push(fun);
+	};
+
+	$this.addEventListener('open', function() {
+		opened = true;
+		_.each(onOpenFuncs, function(f){ f(); });
+	});
 
 
-	if ($this.deferredBackgroundImage) {
-		$this.addEventListener('open', function(){
-			$this.backgroundImage = $this.deferredBackgroundImage;
+	// DeferredBackgroundImage
+	// ===================================
+
+	$this.setDeferredBackgroundImage = function(val) {
+		onOpen(function() {
+			$this.backgroundImage = val;
 		});
-	}
+	};
 
 
-	if ($this.backgroundCoverImage) {
-		var $__scrollView = Ti.UI.createScrollView({
-			touchEnabled: false,
-			width: Alloy.Globals.SCREEN_WIDTH,
-			height: Alloy.Globals.SCREEN_HEIGHT,
-			zIndex: -1
-		});
-		$__scrollView.add(Ti.UI.createImageView({
-			image: $this.backgroundCoverImage
-		}));
-		$this.add($__scrollView);
-	}
+	// BackgroundCoverImage
+	// ===================================
 
+	var bgCoverUI = null, bgCoverUISview = null;
+	$this.setBackgroundCoverImage = function(val){
+		if (null===bgCoverUI) {
+			bgCoverUISview = Ti.UI.createScrollView({
+				touchEnabled: false,
+				width: Alloy.Globals.SCREEN_WIDTH,
+				height: Alloy.Globals.SCREEN_HEIGHT,
+				zIndex: -1
+			});
+			bgCoverUI = Ti.UI.createImageView({ height: Alloy.Globals.SCREEN_HEIGHT });
+			bgCoverUISview.add(bgCoverUI);
+			$this.add(bgCoverUISview);
+		}
+
+ 		bgCoverUI.setImage(val);
+	};
 
 	if (OS_ANDROID) {
 
-		$this.addEventListener('open', function(e){
-			if (!$this.activity || !$this.activity.actionBar) return;
+		// Activity
+		// ====================================
 
-			if ($this.noActionBar) {
-				$.this.activity.actionBar.hide();
-				return;
-			}
+		$this.setActivityProperties = function(props, callback) {
+			onOpen(function(){
+				if (!$this.activity) return;
+				_.each(props, function(v,k) { $this.activity[k] = v; });
+				if (_.isFunction(callback)) callback($this.activity);
+			});
+		};
 
-			if ($this.subtitle) {
-				$this.activity.actionBar.title = $this.title;
-				$this.activity.actionBar.subtitle = $this.subtitle;
-			} else {
-				if ($this.subtitle===false) {
-					$this.activity.actionBar.title = $this.title;
-				} else {
-					$this.activity.actionBar.title =  Ti.App.name;
-					$this.activity.actionBar.subtitle = $this.title;
-				}
+		// ActionBar
+		// ====================================
+
+		$this.setActionBarProperties = function(props, callback) {
+			onOpen(function(){
+				if (!$this.activity.actionBar) return;
+				_.each(props, function(v,k) { $this.activity.actionBar[k] = v; });
+				if (_.isFunction(callback)) callback($this.activity.actionBar);
+			});
+		};
+
+		// DisplayHomeAsUp
+		// ====================================
+
+		var displayHomeAsUp = false;
+
+		$this.setDisplayHomeAsUp = function(value) {
+			displayHomeAsUp = value;
+			$this.setActionBarProperties({ displayHomeAsUp: displayHomeAsUp });
+		};
+
+		$this.setActionBarProperties({
+			onHomeIconItemSelected: function() {
+				if (!displayHomeAsUp) return;
+				$this.close();
 			}
 		});
 
-		$this.addActivityButton = function($btn, opt){
-			opt = opt || {};
 
-			if (!$this.activity) {
-				// I have promised you that I set the fucking button, so I'll do my best!
-				var _f = arguments.callee,
-				_a = Array.prototype.slice.call(arguments),
-				_func = function(){ return _f.apply(null, _a); };
-				return $this.addEventListener('open', _func);
+		// ActivityButton
+		// ====================================
+
+		var activityButtons = [];
+
+		$this.addActivityButton = function(opt){
+			while (opt.children && opt.children[0]) opt = opt.children[0];// hack for Alloy, just ignore it
+
+			if (!opt.title && !opt.image) {
+				Ti.API.error("XP.UI: please specify a title OR icon/image for ActivityButton");
+				return;
 			}
 
-			if ($btn) {
-				// hack for Alloy, just ignore it
-				while ($btn.children && $btn.children[0]) $btn = $btn.children[0];
-
-				if (!$btn.title && !$btn.image) {
-					Ti.API.error("XP.UI: please specify a title OR icon/image for ActivityButton");
-					$btn = null;
-				}
-
-				$this.activity.onCreateOptionsMenu = function(e){
-					if (opt.reset) {
-						e.menu.items = [];
-					}
-
-					if ($btn) {
-						var menuItem = e.menu.add({
-							title: $btn.title || '',
-							icon: $btn.icon || $btn.image || '',
-							showAsAction: $btn.showAsAction || Ti.Android.SHOW_AS_ACTION_ALWAYS
-						});
-						menuItem.addEventListener('click', function(){
-							if (_.isFunction($btn.click)) $btn.click();
-							if (_.isFunction($btn.fireEvent)) $btn.fireEvent('click');
-						});
-					}
-				};
-			}
-
-			if ($this.activity.invalidateOptionsMenu) {
-				$this.activity.invalidateOptionsMenu();
-			} else {
-				Ti.API.warn("XP.UI invalidateOptionsMenu is not a function!");
-			}
+			activityButtons.push(opt);
 		};
 
-		$this.setActivityButton = function(v) { $this.addActivityButton(v, { reset: true }); };
+		$this.setActivityProperties({
+			onCreateOptionsMenu: function(e){
+				_.each(activityButtons, function(btn){
+					var menuItem = e.menu.add({
+						title: btn.title || '',
+						icon: btn.icon || btn.image || '',
+						showAsAction: btn.showAsAction || Ti.Android.SHOW_AS_ACTION_ALWAYS
+					});
+					menuItem.addEventListener('click', function(){
+						if (_.isFunction(btn.click)) btn.click();
+						if (_.isFunction(btn.fireEvent)) btn.fireEvent('click');
+					});
+				});
+			}
+		}, function(act) {
+			if (act.invalidateOptionsMenu) act.invalidateOptionsMenu();
+		});
+
+		$this.setActivityButton = function(opt) {
+			activityButtons = [];
+			$this.addActivityButton(opt);
+		};
+
+
+ 		// RightNavButton (just an alias)
+ 		// ======================================
+
 		$this.setRightNavButton = $this.setActivityButton;
 
-		// UI-init
+	}
 
-		if (args.activityButton) {
-			$this.setActivityButton(args.activityButton);
-		}
 
-		if (args.activityButtons) {
-			_.each(args.activityButtons, function(val) {
-				$this.addActivityButton(val);
-			});
-		}
+	// ==================================
+	// PARSE ARGUMENTS AND INITIALIZATION
+	// ==================================
 
-		if (args.rightNavButton) {
-			$this.setRightNavButton(args.rightNavButton);
+	if (args.deferredBackgroundImage) $this.setDeferredBackgroundImage(args.deferredBackgroundImage);
+	if (args.backgroundCoverImage) $this.setBackgroundCoverImage(args.backgroundCoverImage);
+
+	if (OS_ANDROID) {
+
+		var bar = {};
+		if (args.subtitle) {
+			bar.title = args.title;
+			bar.subtitle = args.subtitle;
 		} else {
-			Ti.API.warn("XP.UI: Starting with Ti-SDK 3.3.0 GA you have to call setRightNavButton/setActivityButton({}) manually on your controller");
+			if (args.subtitle===false) bar.title = args.title;
+			else {
+				bar.title =  Ti.App.name;
+				bar.subtitle = args.title;
+			}
 		}
+		$this.setActionBarProperties(bar);
+
+		if (args.activityProperties) $this.setActivityProperties(args.activityProperties);
+		if (args.actionBarProperties) $this.setActionBarProperties(args.actionBarProperties);
+
+		if (args.rightNavButton) $this.setRightNavButton(args.rightNavButton);
+		if (args.activityButtons) _.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
+		if (args.activityButton) $this.setActivityButton(args.activityButton);
+		if (args.displayHomeAsUp) $this.setDisplayHomeAsUp(args.displayHomeAsUp);
+
 	}
 
 	return $this;
@@ -273,52 +338,18 @@ exports.createWindow = function(args) {
 
 
 
-
-/* ========== TEXTAREA =========== */
-
-function __onTextAreaFocus(e) {
-	if (!e.source.getRealValue().length) {
-		e.source.applyProperties({
-			value: '',
-			color: e.source.originalColor
-		});
-	}
-}
-
-function __onTextAreaBlur(e) {
-	if (!e.source.value.length) {
-		e.source.applyProperties({
-			value: e.source.__hintText,
-			color: e.source.hintTextColor || '#AAA'
-		});
-	} else {
-		e.source.color = e.source.originalColor;
-	}
-}
-
-function __enableAutoFocus(e) {
-	e.source.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS;
-}
-
 /**
  * @method  createTextField
  *
- * Added methods:
+ * ## Creation properties
  *
- * * **getRealValue()**: get the effective value when using hintText hack
+ * `textType`
  *
- * Added properties:
+ * Can be *email* or *password*, and adjust the keyboard or the mask automatically.
  *
- * * **textType**: Can be *email* or *password*, and adjust the keyboard or the mask automatically.
- * * **realValue**: get the effective value when using hintText hack
+ * ## Android Fixes
  *
- * ## iOS
- *
- * Nothing done
- *
- * ## Android
- *
- * Removed the annoying autofocus.
+ * Removed the annoying autofocus on Android.
  *
  * @param  {Object} args
  * @return {Ti.UI.TextField}
@@ -329,13 +360,46 @@ exports.createTextField = function(args) {
 	switch (args.textType) {
 		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
 		case 'password': args.passwordMask = true; break;
+		case 'passwordEye': args.passwordMask = true; break;
 	}
 
 	var $this = Ti.UI.createTextField(args);
 
+
+	// PasswordEye
+	// ===============================
+
+	if (OS_IOS && args.textType=='passwordEye') {
+		var eyeButton = Ti.UI.createButton({
+			image: '/images/T/eye.png',
+			height: 40, width: 40,
+			opacity: 0.2,
+			active: false,
+			tintColor: $this.color
+		});
+		$this.setRightButton(eyeButton);
+		$this.setRightButtonPadding(0);
+		$this.setRightButtonMode(Ti.UI.INPUT_BUTTONMODE_ALWAYS);
+
+		eyeButton.addEventListener('click', function(e){
+			eyeButton.active = !eyeButton.active;
+			eyeButton.opacity = eyeButton.active ? 1 : 0.2;
+			$this.setPasswordMask(!eyeButton.active);
+		});
+	}
+
+
+	// ==================================
+	// PARSE ARGUMENTS AND INITIALIZATION
+	// ==================================
+
+	// Remove autofocus
+
 	if (OS_ANDROID) {
-		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
-		$this.addEventListener('touchstart', __enableAutoFocus);
+		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
+		$this.addEventListener('touchstart',  function(e) {
+			$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS);
+		});
 	}
 
 	return $this;
@@ -345,19 +409,17 @@ exports.createTextField = function(args) {
 /**
  * @method  createTextArea
  *
- * Added methods:
+ * ## iOS Fixes
  *
- * * **getRealValue()**: get the effective value when using hintText hack
+ * Add support for `hintText`, that is missing on iOS.
  *
- * Added properties:
+ * ### New methods
  *
- * * **realValue**: get the effective value when using hintText hack
+ * `getRealValue()`
  *
- * ## iOS
+ * Get the effective value when using hintText hack
  *
- * Adds xp-support for hintText, that is missing on iOS.
- *
- * ## Android
+ * ## Android Fixes
  *
  * Removed the annoying autofocus.
  *
@@ -366,36 +428,67 @@ exports.createTextField = function(args) {
  */
 exports.createTextArea = function(args) {
 	args = args || {};
+	var $this = Ti.UI.createTextArea(args);
 
-	var $this = Ti.UI.createTextArea(args || {});
+	var originalColor = $this.color || '#000';
+
+	var onTextAreaFocus = function() {
+		if (!$this.getRealValue().length) {
+			$this.applyProperties({ value: '', color: originalColor });
+		}
+	};
+
+	var onTextAreaBlur = function() {
+		if (0===$this.value.length) {
+			$this.applyProperties({ value: $this.hintText, color: $this.hintTextColor || '#AAA' });
+		} else {
+			$this.color = originalColor;
+		}
+	};
 
 	if (OS_IOS) {
-		$this.__hintText = $this.hintText;
-		$this.originalColor = $this.color || '#000';
-		$this.addEventListener('focus', __onTextAreaFocus);
-		$this.addEventListener('blur', __onTextAreaBlur);
-		__onTextAreaBlur({ source: $this });
+
+		$this.getRealValue = function getRealValue(){
+			if ($this.hintText==$this.value) return '';
+			return $this.value;
+		};
+
+		$this.getHintText = function getHintText() {
+			return $this.hintText;
+		};
+
+		$this.setHintText = function setHintText(val) {
+			$this.hintText = val;
+		};
 	}
+
+
+ 	/*
+ 	==================================
+ 	PARSE ARGUMENTS AND INITIALIZATION
+ 	==================================
+ 	*/
+
+ 	if (OS_IOS && args.hintText) {
+ 		$this.setHintText(args.hintText);
+ 		$this.addEventListener('focus', onTextAreaFocus);
+ 		$this.addEventListener('blur', onTextAreaBlur);
+ 		onTextAreaBlur();
+ 	}
+
+ 	// Remove autofocus
 
 	if (OS_ANDROID) {
-		$this.softKeyboardOnFocus = Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS;
-		$this.addEventListener('touchstart', __enableAutoFocus);
+		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
+		$this.addEventListener('touchstart',  function(e) {
+			$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS);
+		});
 	}
-
-	// Define a method to get the value when hintText hack is used
-	$this.getRealValue = function(){
-		if ($this.__hintText==$this.value) return '';
-		return $this.value;
-	};
-	Object.defineProperty($this, 'realValue', { get: $this.getRealValue });
 
 	return $this;
 };
 
 
-
-
-/* ============= LABEL ============= */
 
 
 /* Thanks to @lastguest: https://gist.github.com/lastguest/10277461 */
@@ -434,9 +527,9 @@ function simpleHTMLParser(text) {
 /**
  * @method createLabel
  *
- * ## iOS
+ * ## iOS Fixes
  *
- * Add xp-support for **VERY BASIC** HTML.
+ * Add support for **VERY BASIC** HTML.
  *
  * For now, supports `<b><i><u><br><p>` tags.
  *
@@ -458,7 +551,8 @@ function simpleHTMLParser(text) {
  * @param  {Object} args
  */
 exports.createLabel = function(args) {
-	var $this = Ti.UI.createLabel(args || {});
+	args = args || {};
+	var $this = Ti.UI.createLabel(args);
 
 	if (OS_IOS) {
 
@@ -470,7 +564,6 @@ exports.createLabel = function(args) {
 				fontWeight: 'Bold'
 			}
 		}, args.fontTransform || {});
-
 
 		$this.setHtml = function(value) {
 			var htmlToAttrMap = {
@@ -502,10 +595,19 @@ exports.createLabel = function(args) {
 				}
 			});
 
-			$this.attributedString = Ti.UI.iOS.createAttributedString(attributedString);
+			$this.setAttributedString(Ti.UI.iOS.createAttributedString(attributedString));
 		};
 
-		if ($this.html) $this.setHtml($this.html);
+	}
+
+	/*
+ 	==================================
+ 	PARSE ARGUMENTS AND INITIALIZATION
+ 	==================================
+ 	*/
+
+	if (OS_IOS) {
+		if (args.html) $this.setHtml(args.html);
 	}
 
 	return $this;
@@ -516,9 +618,11 @@ exports.createLabel = function(args) {
 /**
  * @method createListView
  *
- * Added listeners:
+ * ## New listeners
  *
- * * **itemdblclick**: Similar to itemclick, but for double **item** click
+ * `itemdblclick`
+ *
+ * Similar to itemclick, but for double **item** click
  *
  * @param  {Object} args
  */
@@ -552,108 +656,105 @@ exports.createListView = function(args) {
 
 /**
  * @method createTabbedBar
- *
- * Create a TabbedBar fully compatible with Android
- *
  * @param  {Object} args
  */
 exports.createTabbedBar = function(args) {
 	args = args || {};
-
-	/*
-	iOS is better
-	*/
 	if (OS_IOS) {
 		return Ti.UI.iOS.createTabbedBar(args);
 	}
 
 	var $this = Ti.UI.createView(args);
 
-	$this._labels = [];
-	$this.getLabels = function() { return $this._labels; };
+	var labels = [];
+	var labelIndex = 0;
+	var UIWrapLabels = null;
+
+	$this.getLabels = function() {
+		return labels;
+	};
+
 	$this.setLabels = function(lbls) {
-		$this._labels = [];
+		labels = [];
 		_.each(lbls, function(l, i){
-			$this._labels.push(_.isObject(l) ? l.title : l);
+			labels.push(_.isObject(l) ? l.title : l);
 		});
 
-		var width = Math.floor(100/$this._labels.length)+'%';
-		var $wrap = Ti.UI.createView({
-			layout: 'horizontal',
-		});
-
-		_.each($this._labels, function(l, index){
+		var width = Math.floor(100/labels.length)+'%';
+		var $wrap = Ti.UI.createView({ layout: 'horizontal' });
+		_.each(labels, function(l, i){
 			$wrap.add(Ti.UI.createButton({
 				title: l,
-				index: index,
-				width: width,
-				left: 0, right: 0,
-				height: 32,
-				borderColor: args.tintColor || '#000',
+				index: i,
+				width: width, left: 0, right: 0, height: 32,
+				borderColor: $this.tintColor || '#000',
 				borderWidth: 1,
-				font: args.font || {},
+				font: $this.font || {},
 				backgroundColor: 'transparent',
-				color: args.tintColor || '#000'
+				color: $this.tintColor || '#000'
 			}));
 		});
 
-		if ($this.wrap) $this.remove($this.wrap);
-		$this.wrap = $wrap; $this.add($this.wrap);
-
-		if ($this._index) {
-			$this.setIndex($this._index);
-		}
+		if (null !== UIWrapLabels) $this.remove(UIWrapLabels);
+		$this.add($wrap);
+		UIWrapLabels = $wrap;
 	};
 
-	Object.defineProperty($this, 'labels', { set: $this.setLabels, get: $this.getLabels });
+	$this.getIndex = function() {
+		return labelIndex;
+	};
 
-	$this._index = 0;
-	$this.getIndex = function() { return $this._index; };
 	$this.setIndex = function(i) {
-		$this._index = +i;
+		if ( ! _.isNumber(i)) {
+			Ti.API.error("XP.UI: new index value is not a number");
+			return;
+		}
 
-		if (!$this.wrap.children || !$this.wrap.children.length) return;
-		_.each($this.wrap.children, function($c, _i) {
-			if (_i==$this._index) {
+		labelIndex = +i;
+		_.each(UIWrapLabels && UIWrapLabels.children ? UIWrapLabels.children : [], function($c, i) {
+			if (+i==labelIndex) {
 				$c.applyProperties({
-					backgroundColor: args.tintColor || '#000',
-					color: args.backgroundColor || '#fff',
+					backgroundColor: $this.tintColor || '#000',
+					color: $this.backgroundColor || '#fff',
 					active: false
 				});
 			} else {
 				$c.applyProperties({
 					backgroundColor: 'transparent',
-					color: args.tintColor || '#000',
+					color: $this.tintColor || '#000',
 					active: true
 				});
 			}
 		});
 	};
 
-	Object.defineProperty($this, 'index', { set: $this.setIndex, get: $this.getIndex });
+	/*
+ 	==================================
+ 	PARSE ARGUMENTS AND INITIALIZATION
+ 	==================================
+ 	*/
 
 	$this.addEventListener('click', function(e){
-		if ('index' in e.source) {
-			$this.setIndex(+e.source.index);
-		}
+		if (void(0)===e.source.index) return;
+		$this.setIndex(+e.source.index);
 	});
 
-	if (args.labels) {
-		$this.setLabels(args.labels);
-	}
-	$this.setIndex( _.isNumber(args.index) ? args.index : 0 );
+	if (args.labels) $this.setLabels(args.labels);
+	$this.setIndex(args.index||0);
 
 	return $this;
 };
+
 
 /**
  * @method createButton
  * @return {Ti.UI.Button}
  */
-exports.createButton = function(args) {
-	var $this = Ti.UI.createButton(args || {});
+ exports.createButton = function(args) {
+ 	args = args || {};
+ 	var $this = Ti.UI.createButton(args || {});
 
 
 
-	return $this;
-};
+ 	return $this;
+ };

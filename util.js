@@ -391,10 +391,14 @@ exports.isIOS8 = isIOS8;
 exports.parseSchema = function() {
 	if (OS_IOS) {
 		var cmd = Ti.App.getArguments();
-		if (cmd && 'url' in cmd) return cmd.url;
+		if (cmd && undefined!==cmd.url) {
+			return cmd.url;
+		}
 	} else if (OS_ANDROID) {
 		var url = Ti.Android.currentActivity.intent.data;
-		if (url) return url;
+		if (url) {
+			return url;
+		}
 	}
 	return '';
 };

@@ -27,9 +27,11 @@ Or, open your Terminal app, move to your Titanium project, and simply type:
 wget https://github.com/CaffeinaLab/Trimethyl/archive/1.2.3.tar.gz -O T.tar.gz;
 mkdir -p app/lib/T;
 tar -xvf T.tar.gz -C app/lib/T --strip-components=1
+ln -s ../../../lib/T/assets app/assets/iphone/images/T
+ln -s T/alloy app/lib/alloy
 ```
 
-### Master installation
+#### Repository installation (direct from Github) - Use at your risk
 
 If you want to install the master version directly from GitHub, just clone this repository:
 
@@ -38,6 +40,13 @@ git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
 ```
 
 The master version *coulb be* unstable, so use at your risk.
+
+Some directories must be symlinked in order to work.
+
+```
+ln -s ../../../lib/T/assets app/assets/iphone/images/T
+ln -s T/alloy app/lib/alloy
+```
 
 ## Configuration
 
