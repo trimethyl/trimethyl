@@ -124,35 +124,35 @@ exports.createNavigationWindow = function(args) {
  *
  * ## New methods
  *
- * `setDeferredBackgroundImage(String)`
+ * #### setDeferredBackgroundImage(String)
  *
  * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
  *
- * `setBackgroundCoverImage(String)`
+ * #### setBackgroundCoverImage(String)
  *
  * Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
  *
- * `addActivityButton(Dict)` (OS_ANDROID)
+ * #### addActivityButton(Dict) (OS_ANDROID)
  *
  * Add an activity right button
  *
- * `setActivityButton(Dict)` (OS_ANDROID)
+ * #### setActivityButton(Dict) (OS_ANDROID)
  *
  * Set an activity right button and remove all others
  *
- * `setRightNavButton(Dict)` (OS_ANDROID)
+ * #### setRightNavButton(Dict) (OS_ANDROID)
  *
  * Alias for `setActivityButton`
  *
- * `setActionBarProperties(Dict)` (OS_ANDROID)
+ * #### setActionBarProperties(Dict) (OS_ANDROID)
  *
  * Set the properties for the actionBar
  *
- * `setActivityProperties(Dict)`
+ * #### setActivityProperties(Dict)
  *
  * Set the properties for the activity
  *
- * `setDisplayHomeAsUp(Boolean)`
+ * #### setDisplayHomeAsUp(Boolean)
  *
  * Set the property displayHomeAsUp and the relative close listener
  *
@@ -343,9 +343,15 @@ exports.createWindow = function(args) {
  *
  * ## Creation properties
  *
- * `textType`
+ * #### textType
  *
- * Can be *email* or *password*, and adjust the keyboard or the mask automatically.
+ * Can be
+ *
+ * * email
+ * * password
+ * * passwordEye
+ *
+ * to adjust the keyboard or the mask automatically.
  *
  * ## Android Fixes
  *
@@ -381,7 +387,7 @@ exports.createTextField = function(args) {
 		$this.setRightButtonPadding(0);
 		$this.setRightButtonMode(Ti.UI.INPUT_BUTTONMODE_ALWAYS);
 
-		eyeButton.addEventListener('click', function(e){
+		eyeButton.addEventListener('click', function(){
 			eyeButton.active = !eyeButton.active;
 			eyeButton.opacity = eyeButton.active ? 1 : 0.2;
 			$this.setPasswordMask(!eyeButton.active);
@@ -397,7 +403,7 @@ exports.createTextField = function(args) {
 
 	if (OS_ANDROID) {
 		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
-		$this.addEventListener('touchstart',  function(e) {
+		$this.addEventListener('touchstart',  function() {
 			$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS);
 		});
 	}
@@ -415,7 +421,7 @@ exports.createTextField = function(args) {
  *
  * ### New methods
  *
- * `getRealValue()`
+ * #### getRealValue()
  *
  * Get the effective value when using hintText hack
  *
@@ -480,15 +486,13 @@ exports.createTextArea = function(args) {
 
 	if (OS_ANDROID) {
 		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
-		$this.addEventListener('touchstart',  function(e) {
+		$this.addEventListener('touchstart',  function() {
 			$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS);
 		});
 	}
 
 	return $this;
 };
-
-
 
 
 /* Thanks to @lastguest: https://gist.github.com/lastguest/10277461 */
@@ -620,7 +624,7 @@ exports.createLabel = function(args) {
  *
  * ## New listeners
  *
- * `itemdblclick`
+ * #### itemdblclick
  *
  * Similar to itemclick, but for double **item** click
  *
