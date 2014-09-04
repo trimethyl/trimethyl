@@ -121,7 +121,7 @@ function decorateRequest(request) {
 	}
 
 	request.method = request.method ? request.method.toUpperCase() : 'GET';
-	request.headers = _.extend(config.headers, request.headers || {});
+	request.headers = _.extend(_.clone(config.headers), request.headers || {});
 	request.timeout = request.timeout || config.timeout;
 	if (request.error===undefined) request.error = errorHandler;
 

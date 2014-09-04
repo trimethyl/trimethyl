@@ -49,6 +49,8 @@ exports.on = on;
  * @param  {String} 	link 		The route
  */
 function dispatch(link) {
+	Ti.API.debug("Router: ["+link+"]");
+
 	var run = false;
 	var matches = null;
 
