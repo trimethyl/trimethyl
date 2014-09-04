@@ -148,19 +148,17 @@ exports.createNavigationWindow = function(args) {
  *
  * Set the properties for the actionBar
  *
- * `setActivityProperties(Dict)`
+ * `setActivityProperties(Dict)` (OS_ANDROID)
  *
  * Set the properties for the activity
  *
- * `setDisplayHomeAsUp(Boolean)`
+ * `setDisplayHomeAsUp(Boolean)` (OS_ANDROID)
  *
  * Set the property displayHomeAsUp and the relative close listener
  *
  * ## Android improvements
  *
- * On Android, the properties `title` and `subtitle` automatically set the title and subtitle in the ActionBar.
- *
- * If you pass `displayHomeAsUp: true`, a back button is automatically generated on the left.
+ * The properties `title` and `subtitle` automatically set the title and subtitle in the ActionBar.
  *
  * @param  {Object} args
  */
@@ -196,18 +194,36 @@ exports.createWindow = function(args) {
 
 	var bgCoverUI = null, bgCoverUISview = null;
 	$this.setBackgroundCoverImage = function(val){
+		var SCREEN_RATIO = Alloy.Globals.SCREEN_WIDTH/Alloy.Globals.SCREEN_HEIGHT;
+
 		if (null===bgCoverUI) {
+			bgCoverUI = Ti.UI.createImageView();
+
+			// Wait for postlayout to determine where to stretch
+			bgCoverUI.addEventListener('postlayout', function(e){
+				if (bgCoverUI.postlayouted) return;
+				bgCoverUI.postlayouted = true;
+
+				var R = bgCoverUI.size.width/bgCoverUI.size.height;
+				bgCoverUI.applyProperties(
+					SCREEN_RATIO>R ?
+					{ width: Alloy.Globals.SCREEN_WIDTH, height: Ti.UI.SIZE } :
+					{ width: Ti.UI.SIZE, height: Alloy.Globals.SCREEN_HEIGHT }
+				);
+			});
+
 			bgCoverUISview = Ti.UI.createScrollView({
 				touchEnabled: false,
 				width: Alloy.Globals.SCREEN_WIDTH,
 				height: Alloy.Globals.SCREEN_HEIGHT,
 				zIndex: -1
 			});
-			bgCoverUI = Ti.UI.createImageView({ height: Alloy.Globals.SCREEN_HEIGHT });
 			bgCoverUISview.add(bgCoverUI);
+
 			$this.add(bgCoverUISview);
 		}
 
+		bgCoverUI.postlayouted = false;
  		bgCoverUI.setImage(val);
 	};
 
