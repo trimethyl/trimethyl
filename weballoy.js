@@ -176,12 +176,14 @@ function embedJS(f) {
  * @return {Ti.UI.WebView}
  */
 exports.createView = function(args) {
+	args = args || {};
 	if (!args.name) throw new Error('WebAlloy: you must pass a name');
 	var uniqid = T('util').uniqid();
 
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
 		uniqid: uniqid,
+		enableZoomControls: false,
 		backgroundColor: "transparent"
 	}, args));
 

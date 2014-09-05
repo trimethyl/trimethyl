@@ -595,7 +595,7 @@ exports.setAppFirstUsage = function(){
  * return {
  *	   properties: {
  *	      height: 52,
- *			itemId: el.get('id'),
+ *			itemId: el.id,
  *			searchableText: el.get('city')
  *		},
  *		title: { text: el.get('title') },
