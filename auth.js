@@ -19,8 +19,6 @@
 var config = _.extend({}, Alloy.CFG.T.auth);
 exports.config = config;
 
-var drivers = {};
-
 var Me = null;
 var authInfo = null;
 var Net = require('T/net');
