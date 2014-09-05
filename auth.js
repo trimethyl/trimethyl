@@ -264,3 +264,11 @@ function logout(cb) {
 }
 exports.logout = logout;
 
+/**
+ * Check if the user is logged in
+ *
+ * @return {Boolean}
+ */
+exports.isLogged = function() {
+	return null !== Me;
+};

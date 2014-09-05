@@ -69,7 +69,8 @@ if (!OS_IOS) {
 			opt = opt || {};
 
 			if (OS_ANDROID) {
-				if (opt.animated!==false) {
+				if (opt.animated!==false && window.animated!==false) {
+					opt.animated = true;
 					if (opt.modal) {
 						opt.activityEnterAnimation = Ti.Android.R.anim.fade_in;
 						opt.activityExitAnimation = Ti.Android.R.anim.fade_out;
@@ -78,6 +79,8 @@ if (!OS_IOS) {
 						opt.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
 					}
 					opt.modal = false; // set anyway to false to prevent heavyweight windows
+				} else {
+					opt.animated = true;
 				}
 			}
 
@@ -276,12 +279,6 @@ exports.createWindow = function(args) {
 
 		$this.addActivityButton = function(opt){
 			while (opt.children && opt.children[0]) opt = opt.children[0];// hack for Alloy, just ignore it
-
-			if (!opt.title && !opt.image) {
-				Ti.API.error("XP.UI: please specify a title OR icon/image for ActivityButton");
-				return;
-			}
-
 			activityButtons.push(opt);
 		};
 
