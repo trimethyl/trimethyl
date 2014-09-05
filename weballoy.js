@@ -259,17 +259,17 @@ exports.createView = function(args) {
 	// Install the API listener
 	if (args.webapi) {
 
-		$ui.__webapiListener = function(event) {
+		var webapiListener = function(event) {
 			if (!(event.name in args.webapi)) return;
 			if (!_.isFunction(args.webapi[event.name])) return;
 			args.webapi[event.name].call($ui, event.data);
 		};
 
 		$ui.webapiUnbind = function() {
-			Ti.App.removeEventListener('weballoy_'+uniqid, $ui.__webapiListener);
+			Ti.App.removeEventListener('weballoy_'+uniqid, webapiListener);
 		};
 
-		Ti.App.addEventListener('__weballoy'+uniqid, $ui.__webapiListener);
+		Ti.App.addEventListener('__weballoy'+uniqid, webapiListener);
 	}
 
 	return $ui;
