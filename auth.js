@@ -2,6 +2,18 @@
  * @class  Auth
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Authentication module interfaced with an API server
+ *
+ * This module works with global events.
+ *
+ * Listen for
+ *
+ * * `auth.success`: Login success
+ * * `auth.fail': Login failed
+ * * `auth.logut': User want to logout
+ * * `auth.login`: The app has no stored credentials
+ *
+ * then just call `T('auth').handle()` in the `alloy.js` file and wait for one of 4 events.
+ *
  */
 
 var config = _.extend({}, Alloy.CFG.T.auth);
