@@ -4,48 +4,27 @@
 
 ### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
-### Alloy-Titanium framework made in [Caffeina](http://caffeinalab.com)
+### Titanium toolchain made in Caffeina
 
-A collection of very useful modules to work with Appcelerator Titanium and Alloy.
+Trimethyl is not a framework.
 
-Most of these modules are proxy object for Titanium API and some of these add features missing or expose functions usefuls for UI normalization.
+Is a collection of very useful modules to work with Appcelerator Titanium.
+
+Most of these modules are proxies for Titanium API, and some of theese add missing features or expose usefuls functions for cross platform development.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
 
 ## Installation
 
-To install this framework, you have to copy it to your **app/lib** directory.
+To install Trimethyl, you have to copy it to your **app/lib/T** directory.
 
 ### Stable installation
 
-Download the latest release and unzip in **app/lib/T**
-
-Or, open your Terminal app, move to your Titanium project, and simply type:
+Open your Terminal app, **cd to your Titanium project**, and simply type:
 
 ```
-wget https://github.com/CaffeinaLab/Trimethyl/archive/1.2.3.tar.gz -O T.tar.gz;
-mkdir -p app/lib/T;
-tar -xvf T.tar.gz -C app/lib/T --strip-components=1
-ln -s ../../../lib/T/assets app/assets/iphone/images/T
-ln -s T/alloy app/lib/alloy
-```
-
-#### Repository installation (direct from Github) - Use at your risk
-
-If you want to install the master version directly from GitHub, just clone this repository:
-
-```
-git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
-```
-
-The master version *coulb be* unstable, so use at your risk.
-
-Some directories must be symlinked in order to work.
-
-```
-ln -s ../../../lib/T/assets app/assets/iphone/images/T
-ln -s T/alloy app/lib/alloy
+curl ... | sh
 ```
 
 ## Configuration
