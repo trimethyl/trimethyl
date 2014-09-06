@@ -17,14 +17,10 @@ Most of these modules are proxies for Titanium API, and some of theese add missi
 
 ## Installation
 
-To install Trimethyl, you have to copy it to your **app/lib/T** directory.
-
-### Stable installation
-
-Open your Terminal app, **cd to your Titanium project**, and simply type:
+Open your Terminal, **cd to your Titanium project**, and simply type:
 
 ```
-curl ... | sh
+curl -L https://raw.githubusercontent.com/CaffeinaLab/Trimethyl/master/install.sh | sh
 ```
 
 ## Configuration
