@@ -12,13 +12,12 @@
  */
 var config = _.extend({
 	accuracy: "ACCURACY_HIGH",
-	useGoogleForGeocode: true
+	useGoogleForGeocode: true,
 }, Alloy.CFG.geo);
 exports.config = config;
 
-
 function checkForServices() {
-	return Ti.Geolocation.locationServicesEnabled;
+	return !!Ti.Geolocation.locationServicesEnabled;
 }
 
 /**
@@ -35,38 +34,71 @@ exports.enableServicesAlert = enableServicesAlert;
 
 
 /**
- * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
- *
- * If there's an error, the callback is invoked with `{ error: true, success: false }`,
- * so pay attention to the returned value
- *
- * A `geo.start` event is fired at start
- *
- * A `geo.end` event is fired on end
- *
- * @param  {Function} cb Callback (success or error)
+ * @deprecated: Use `@getPosition` instead.
+ * @param {Function} callback
  */
-function localize(cb) {
-	if (!checkForServices()) {
-		return cb({ error: true, servicesDisabled: true });
-	}
-
-	Ti.App.fireEvent('geo.start');
-	Ti.Geolocation.purpose = L('geo_purpose');
-	Ti.Geolocation.accuracy = Ti.Geolocation[config.accuracy];
-
-	Ti.Geolocation.getCurrentPosition(function(e){
-		Ti.App.fireEvent('geo.end');
-
-		if (!e.success || !e.coords) {
-			cb({ error: true });
-		} else {
-			cb(e);
-		}
-
+function localize(callback) {
+	Ti.API.warn("[DEPRECATED] The use of 'Geo.localize' is deprecated, use 'Geo.getPosition' instead!");
+	getCurrentPosition({
+		success: function(e){
+			callback({ coords: e });
+		},
+		error: callback
 	});
 }
 exports.localize = localize;
+
+function decorateRequest(request) {
+	if (request.decorated) return request;
+
+	if (request.error===undefined) {
+		request.error = function(e) {
+			if (e.servicesDisabled) {
+				enableServicesAlert();
+			} else {
+				require('T/util').simpleAlert(L('geo_error_title'));
+			}
+		};
+	}
+
+	request.decorated = true;
+	return request;
+}
+
+/**
+ * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
+ *
+ * A `geo.start` event is fired at start, and a `geo.end` event is fired on end
+ *
+ * @param {Object} opt Dictionary for this request
+ */
+function getCurrentPosition(request) {
+	request = decorateRequest(request);
+
+	if (false===checkForServices()) {
+		if (_.isFunction(request.error)) request.error({ servicesDisabled: true });
+		return;
+	}
+
+	if (!request.silent) Ti.App.fireEvent('geo.start');
+
+	Ti.Geolocation.getCurrentPosition(function(e){
+		if (!request.silent) Ti.App.fireEvent('geo.end');
+
+		if (e.error) {
+			if (_.isFunction(request.error)) request.error({});
+			return;
+		}
+
+		if (!_.isObject(e.coords)) {
+			if (_.isFunction(request.error)) request.error({});
+			return;
+		}
+
+		if (_.isFunction(request.success)) request.success(e.coords);
+	});
+}
+exports.getCurrentPosition = getCurrentPosition;
 
 
 /**
@@ -77,18 +109,15 @@ exports.localize = localize;
  * @param  {String} [mode] GPS mode used (walking,driving)
  */
 function startNavigator(lat, lng, mode) {
-	localize(function(e) {
-		if (!e.success) {
-			require('T/util').alertError(L('geo_unabletonavigate'));
-			return;
+	getCurrentPosition({
+		success: function() {
+			var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
+			Ti.Platform.openURL(D + require('T/util').buildQuery({
+				directionsmode: mode || 'walking',
+				saddr: e.coords.latitude + "," + e.coords.longitude,
+				daddr: lat + "," + lng
+			}));
 		}
-
-		var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
-		Ti.Platform.openURL(D + require('T/util').buildQuery({
-			directionsmode: mode || 'walking',
-			saddr: e.coords.latitude + "," + e.coords.longitude,
-			daddr: lat + "," + lng
-		}));
 	});
 }
 exports.startNavigator = startNavigator;
@@ -215,3 +244,10 @@ function reverseGeocode(lat, lng, cb) {
 	}
 }
 exports.reverseGeocode = reverseGeocode;
+
+(function init(){
+
+	Ti.Geolocation.purpose = L('geo_purpose');
+	Ti.Geolocation.accuracy = Ti.Geolocation[config.accuracy];
+
+})();

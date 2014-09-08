@@ -115,7 +115,7 @@ exports.logout = logout;
 	}
 
 	FB.addEventListener('login', function(e){
-		// checking the `authorized` flag,
+		// by checking the `authorized` flag,
 		// we are sure that loginToServer is NOT called automatically on startup.
 		// This is a security hack caused by iOS SDK that
 		// automatically trigger the login event
