@@ -34,7 +34,8 @@ exports.enableServicesAlert = enableServicesAlert;
 
 
 /**
- * @deprecated: Use `@getPosition` instead.
+ * @method localize
+ * @deprecated 1.3.0 Use {@link getPosition} instead.
  * @param {Function} callback
  */
 function localize(callback) {
