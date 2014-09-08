@@ -1,71 +1,49 @@
-# Trimethyl
+# Trimethyl - Titanium toolchain made in Caffeina
 
 [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
 ### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
-### Alloy-Titanium framework made in [Caffeina](http://caffeinalab.com)
 
-A collection of very useful modules to work with Appcelerator Titanium and Alloy.
+Trimethyl is not a framework.
 
-Most of these modules are proxy object for Titanium API and some of these add features missing or expose functions usefuls for UI normalization.
+Is a collection of very useful modules to work with Appcelerator Titanium: you can't live without it!
+
+Most of these modules are proxies for Titanium API, and some of theese add missing features or expose usefuls functions for cross platform development.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
 
 ## Installation
 
-To install this framework, you have to copy it to your **app/lib** directory.
-
-### Stable installation
-
-Download the latest release and unzip in **app/lib/T**
-
-Or, open your Terminal app, move to your Titanium project, and simply type:
+Open your Terminal, **cd to your Titanium project**, and simply type:
 
 ```
-wget https://github.com/CaffeinaLab/Trimethyl/archive/1.2.3.tar.gz -O T.tar.gz;
-mkdir -p app/lib/T;
-tar -xvf T.tar.gz -C app/lib/T --strip-components=1
-ln -s ../../../lib/T/assets app/assets/iphone/images/T
-ln -s T/alloy app/lib/alloy
+curl -L https://raw.githubusercontent.com/CaffeinaLab/Trimethyl/master/install.sh | sh
 ```
 
-#### Repository installation (direct from Github) - Use at your risk
-
-If you want to install the master version directly from GitHub, just clone this repository:
-
-```
-git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
-```
-
-The master version *coulb be* unstable, so use at your risk.
-
-Some directories must be symlinked in order to work.
-
-```
-ln -s ../../../lib/T/assets app/assets/iphone/images/T
-ln -s T/alloy app/lib/alloy
-```
+This installation script download the toolchain, unzip it in `app/lib/T` (this is the directory where all modules lives), and synlinks some directories.
 
 ## Configuration
 
-Each module reads from the **config.json** its configuration.
+Each module reads from the **config.json** your personal configuration, extending its default.
 
-For example, the module named **X**, will read the `Alloy.CFG.T.X` object.
+For example, the module `Auth`, will read the `Alloy.CFG.T.auth` object.
 
-You can customize the options passed for each modules, editing your **config.json** file:
+You can customize the options, editing your **config.json** file:
 
 ```javascript
-{
-	...
+{ ...
 	"T":{
-		"X": {
+		"auth": {
 			...
 		},
+		"net": {
+			...
+		}
 		...
 	}
-	...
+... }
 ```
 
 ## Initialization
@@ -73,40 +51,55 @@ You can customize the options passed for each modules, editing your **config.jso
 In your *app/alloy.js* file, on the first line:
 
 ```javascript
-require('T/trimethyl');
-```
-
-Or, if you want to provide an helper to load the Trimethyl modules, write:
-
-```javascript
-function T(name) { return require('T/'+name); }
+function T(m) { return require('T/'+m); }
 T('trimethyl');
 ```
 
-Requiring **T** will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` vars.
+The `T` helper function, it's an easier method to load Trimethyl tools.
 
-## CommonJS Modules
+Requiring **trimethyl** module on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` vars.
 
-To require a module, just call
+
+## Modules
+
+To use a module, just require with `T` helper:
 
 ```javascript
-var X = require('T/X'); /* or T('X') */
+var Auth = T('auth');
 ```
 
-where `X` is the module that you want to use.
+## Alloy-View modules
 
-**Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage**.
+There are some modules that can be used too in yours Alloy view files, like:
 
-Each module read the `Alloy.CFG.T.__MODULENAME__` properties in your *config.json* file to configure itself.
+* **XP.UI**: Provide **cross-platforms** UI elements to handle differences between platforms
+* **UI**: Provide **new** UI elements that are missing from some platforms
 
-## NON-CommonJS modules
+This is an Alloy functionality: the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
 
-There are some modules that can be used too in your XML Alloy files, like:
+```xml
+<Alloy>
+	<Window title="Awesome window" module="T/xp.ui">
+		<TextField module="T/xp.ui" />
+	</Window>
+</Alloy>
+```
 
-* **XP.UI**: Provide cross-platforms UI elements to handle differences between platforms
-* **UI**: Provide new UI elements that missing from some platforms
+You can obviously wrap theese elements again with your own modules, creating a further module, for example creating a `ui.js` file in your `app/lib` directory:
 
-**Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage**.
+```javascript
+exports.createWindow = function(args) {
+	var $el = T('xp.ui').createWindow(args);
+	
+	...
+	
+	return $el;
+}
+```
+
+## API Documentation
+
+**Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage of all APIs**.
 
 ## License
 
