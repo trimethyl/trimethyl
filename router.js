@@ -49,13 +49,13 @@ exports.on = on;
  * @param  {String} 	link 		The route
  */
 function dispatch(link) {
-	Ti.API.debug("Router: ["+link+"]");
-
 	var run = false;
 	var matches = null;
 
 	var X = XCallbackURL.parse(link);
 	var path = X.path();
+
+	Ti.API.debug("Router: NEW Route", link, path);
 
 	for (var i in __Routes) {
 		var routeDefinition = __Routes[i];

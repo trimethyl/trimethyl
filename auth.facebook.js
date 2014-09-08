@@ -19,11 +19,12 @@ exports.config = config;
 var FB = require('facebook');
 var Auth = require('T/auth');
 
-var authorized = false;
-var lastEvent = null;
-var timeout = null;
-var successLogin = null;
-var silent = true;
+
+var authorized = false; // Flag to stop iOS automatic login on app startup
+var timeout = null; // Timeout for logging in
+var successLogin = null; // Callback when login success
+var silent = true; // Flag passed to `Auth.login` and `auth.fail` event
+
 
 function loginToServer(e) {
 	if (timeout) clearTimeout(timeout);
@@ -82,11 +83,6 @@ function login(success){
 	silent = false;
 	successLogin = success;
 
-	// If there's an error, try the legacy mode of Facebook login, that we are sure that works.
-	if (lastEvent && !lastEvent.success) {
-		FB.forceDialogAuth = true;
-	}
-
 	authorize();
 }
 exports.login = login;
@@ -119,13 +115,24 @@ exports.logout = logout;
 	}
 
 	FB.addEventListener('login', function(e){
-		lastEvent = e;
+		// checking the `authorized` flag,
+		// we are sure that loginToServer is NOT called automatically on startup.
+		// This is a security hack caused by iOS SDK that
+		// automatically trigger the login event
+		if (!authorized) {
+			Ti.API.debug("Auth.Facebook: login prevented due authorized flag");
+			return;
+		}
 
-		/*
-		checking the authorized flag, we are sure that loginToServer is not called automatically on startup,
-		because on iOS the SDK automatically trigger the login event
-		*/
-		if (authorized) loginToServer(e);
+		// If there's an error, and the user hasn't cancelled login,
+		// try the legacy mode of Facebook login on next Login,
+		// that we are SURE that works.
+		if (e.error && !e.cancelled) {
+			Ti.API.warn("Auth.Facebook: enabling the legacy mode of Facebook login due error");
+			FB.forceDialogAuth = true;
+		}
+
+		loginToServer(e);
 	});
 
 })();
