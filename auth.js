@@ -36,7 +36,6 @@ function getCurrentDriver(){
  * @return {Object}
  */
 function loadDriver(driver) {
-	if (!driver) return false;
 	return require('T/auth.'+driver);
 }
 exports.loadDriver = loadDriver;

@@ -17,8 +17,8 @@ var config = _.extend({
 exports.config = config;
 
 
-function getDriver(driver) {
-	return require('T/notifications.' + (driver||config.driver) );
+function loadDriver(driver) {
+	return require('T/notifications.' + (driver || config.driver));
 }
 
 var inBackground = false;
@@ -146,7 +146,7 @@ function subscribe(channel) {
 	subscribeFunction(function(token){
 		Ti.API.debug("Notifications: Subscribed, device token is "+token);
 
-		var driver = getDriver();
+		var driver = loadDriver();
 		if (driver) {
 			driver.subscribe(token, channel, function(){
 				Ti.API.debug("Notifications: Subscribed to selected driver ("+config.driver+')');
@@ -169,7 +169,7 @@ function unsubscribe(channel) {
 		return;
 	}
 
-	var driver = getDriver();
+	var driver = loadDriver();
 	if (driver) driver.unsubscribe(channel);
 }
 exports.unsubscribe = unsubscribe;
