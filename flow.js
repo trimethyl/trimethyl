@@ -47,7 +47,9 @@ function autoTrackWindow($win, key) {
 		if (!$win) return;
 
 		var startFocusTime = null;
-		$win.addEventListener('focus', function(){ startFocusTime = +(new Date()); });
+		$win.addEventListener('focus', function(){
+			startFocusTime = +(new Date());
+		});
 		$win.addEventListener('blur', function(){
 			if (!startFocusTime) return;
 			GA.time(key, +(new Date())-startFocusTime);
@@ -219,8 +221,8 @@ function openDirect(controller, args, opt, key) {
 	Ti.API.debug("Flow: opening DIRECT '"+controller+"' with args "+JSON.stringify(args));
 
 	// Open the controller
-	var $ctrl = Alloy.createController(controller, args || {});
-	key = key || $ctrl.analyticsKey || controller;
+	var $ctrl = Alloy.createController(controller, args);
+	key = key || $ctrl.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
 
 	var $win = $ctrl.getView();
 
@@ -254,7 +256,7 @@ function open(controller, args, opt, key) {
 	Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
 
 	var $ctrl = Alloy.createController(controller, args);
-	key = key || $ctrl.analyticsKey || controller;
+	key = key || $ctrl.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
 
 	var $win = $ctrl.getView();
 

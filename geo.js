@@ -110,11 +110,11 @@ exports.getCurrentPosition = getCurrentPosition;
  */
 function startNavigator(lat, lng, mode) {
 	getCurrentPosition({
-		success: function() {
+		success: function(g) {
 			var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
 			Ti.Platform.openURL(D + require('T/util').buildQuery({
 				directionsmode: mode || 'walking',
-				saddr: e.coords.latitude + "," + e.coords.longitude,
+				saddr: g.latitude + "," + g.longitude,
 				daddr: lat + "," + lng
 			}));
 		}

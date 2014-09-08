@@ -5,11 +5,9 @@
  */
 
 /**
- * * **trackWithGA**: Auto track the dispatched and resolved routes with GA
  * @type {Object}
  */
 var config = _.extend({
-	trackWithGA: false
 }, Alloy.CFG.T.router);
 exports.config = config;
 
@@ -82,11 +80,10 @@ function dispatch(link) {
 
 		if (run) {
 			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+")");
-			if (config.trackWithGA) require('T/ga').trackScreen(link);
 
 			routeDefinition.callback.apply(X, matches);
-
-			return; // IS VERY IMPORTANT TO EXIT
+			// break the cycle
+			return;
 		}
 	}
 
