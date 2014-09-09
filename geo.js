@@ -49,7 +49,7 @@ function originalErrorHandler(e) {
 		require('T/util').simpleAlert(L('geo_error_title'));
 	}
 }
-exports.originalErrorHandler = errorHandler;
+exports.originalErrorHandler = originalErrorHandler;
 
 function checkForServices() {
 	return !!Ti.Geolocation.locationServicesEnabled;

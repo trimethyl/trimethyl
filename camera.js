@@ -66,18 +66,18 @@ exports.choosePhoto = choosePhoto;
  */
 function selectPhoto(opt, cb){
 	require('T/util').optionWithDict([
-		{
-			title: L('camera_takephoto'),
-			callback: function(){
-				takePhoto(opt, cb);
-			}
-		},
-		{
-			title: L('camera_choosephoto'),
-			callback: function(){
-				choosePhoto(opt, cb);
-			}
+	{
+		title: L('camera_takephoto'),
+		callback: function(){
+			takePhoto(opt, cb);
 		}
+	},
+	{
+		title: L('camera_choosephoto'),
+		callback: function(){
+			choosePhoto(opt, cb);
+		}
+	}
 	]);
 }
 exports.selectPhoto = selectPhoto;
