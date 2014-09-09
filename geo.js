@@ -16,8 +16,13 @@ var config = _.extend({
 }, Alloy.CFG.geo);
 exports.config = config;
 
-function checkForServices() {
-	return !!Ti.Geolocation.locationServicesEnabled;
+function decorateRequest(request) {
+	if (request.decorated) return request;
+
+	if (request.error===undefined) request.error = originalErrorHandler;
+
+	request.decorated = true;
+	return request;
 }
 
 /**
@@ -31,6 +36,24 @@ function enableServicesAlert(){
 	}
 }
 exports.enableServicesAlert = enableServicesAlert;
+
+
+/**
+ * The original error handler
+ * @param  {Object} e
+ */
+function originalErrorHandler(e) {
+	if (e.servicesDisabled) {
+		enableServicesAlert();
+	} else {
+		require('T/util').simpleAlert(L('geo_error_title'));
+	}
+}
+exports.originalErrorHandler = errorHandler;
+
+function checkForServices() {
+	return !!Ti.Geolocation.locationServicesEnabled;
+}
 
 
 /**
@@ -48,22 +71,6 @@ function localize(callback) {
 }
 exports.localize = localize;
 
-function decorateRequest(request) {
-	if (request.decorated) return request;
-
-	if (request.error===undefined) {
-		request.error = function(e) {
-			if (e.servicesDisabled) {
-				enableServicesAlert();
-			} else {
-				require('T/util').simpleAlert(L('geo_error_title'));
-			}
-		};
-	}
-
-	request.decorated = true;
-	return request;
-}
 
 /**
  * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
@@ -76,6 +83,8 @@ function getCurrentPosition(request) {
 	request = decorateRequest(request);
 
 	if (false===checkForServices()) {
+		if (_.isFunction(request.complete)) request.complete();
+
 		if (_.isFunction(request.error)) request.error({ servicesDisabled: true });
 		return;
 	}
@@ -84,6 +93,7 @@ function getCurrentPosition(request) {
 
 	Ti.Geolocation.getCurrentPosition(function(e){
 		if (!request.silent) Ti.App.fireEvent('geo.end');
+		if (_.isFunction(request.complete)) request.complete();
 
 		if (e.error) {
 			if (_.isFunction(request.error)) request.error({});
