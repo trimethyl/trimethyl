@@ -1,128 +1,6 @@
 /**
  * @class  	WebAlloy
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * This is an entire µ-web-framework to write Titanium-Alloy apps in HTML/CSS/JS, without native objects.
- *
- * The unique method `WebAlloy.createView` create a WebView with static html inside.
- *
- * To work with WebAlloy, you have to replicate the exact structure in the app directory (Alloy).
- *
- * ### Globals
- *
- * #### app.css
- * Global CSS included in each view.
- *
- * #### app.jslocal
- * Global JS included in each view.
- *
- *	#### controllers/foo.jslocal
- *	Javascript file included in the specific controller, after app.jslocal and jquery.jslocal
- *
- * #### views/foo.tpl
- * HTML/TPL (underscore templating system) file that is parsed and written in the static HTML.
- *
- * #### styles/foo.css
- * CSS file included in the specific controller.
- *
- * ### lib/**.jslocal
- * Put your jslocal files here, they are automatically appended at the end of the HTML.
- *
- * When you have replicated this structure, you can just call:
- *
- * ```
- * WebAlloy.createView({
- * 	name: 'foo',
- * 	webdata: { ... },
- * 	webapi: { ... }
- * 	...
- * });
- * ```
- *
- * The **name** arg is to specific the files to load.
- *
- * The **webdata** object is passed to the HTML file and rendered with the Undescore template system.
- *
- * The **webapi** is an object containing a series of API that are automatically exposed in the webview.
- *
- *	All the other arguments are Ti-UI specific for the classic WebView.
- *
- * ### HTML output
- *
- * So, the final result is an HTML string passed to the WebView, like this:
- *
- * ```
- * <!DOCTYPE html>
- * <html>
- * 	<head>
- * 		... metas ...
- * 		<style>{{ app.css }}</style>
- * 		<style>{{ your_controller.css }}</style>
- * 	</head>
- * 	<body>
- * 		<div id="main">
- * 			{{ controller.tpl (rendered in undescore with webdata argument) }}
- * 		</div>
- * 		<script>{{ lib/**.jslocal }}</script>
- * 		<script>{{ app.jslocal }}</script>
- * 		<script>{{ controller.jslocal }}</script>
- * 	</body>
- * </html>
- * ```
- *
- * ### WebView additional method
- *
- * Basically, you can interact with DOM elements with `evalJS`.
- *
- * There are some proxy methods designed to interact directly:
- *
- * #### render({ data })
- *
- * Re-render the template with new data passed.
- *
- * #### call(...)
- *
- * Call a function in the WebView.
- *
- * For example, `$.wv.call('foo', 1, 2, {x:1})` will be converted to js in `foo(1, 2, {x:1})`.
- *
- * #### $(selector).call(...)
- *
- * Call a function in a DOM-RAW object.
- *
- * #### $(selector).get(...)
- *
- * Get a property of a DOM-RAW object.
- *
- * #### $(selector).set(...)
- *
- * Set a property of a DOM-RAW object.
- *
- * ## WebAPI - Event manager
- *
- * You can easily interface from the WebView to Titanium with the `webapi` object passed to the constructor.
- *
- * In the webview, you've got an helper `WebAlloy` to run the API exposed.
- *
- * For example:
- *
- * ```
- * WebAlloy.createView({
- * 	...
- * 	webapi: {
- *  		close: function() { this.close(); }
- *  	}
- * });
- * ```
- *
- * In the controller file, simply call:
- *
- * ```
- * WebAlloy.run('close');
- * ```
- *
- * **If you use this method, remember to call `.webapiUnbind()` to remove the listeners!!!**
- *
  */
 
 /**
@@ -187,7 +65,7 @@ exports.createView = function(args) {
 		backgroundColor: "transparent"
 	}, args));
 
-	$ui.addEventListener('load', function(e){
+	$ui.addEventListener('load', function(){
 		if (args.autoHeight) $ui.height = $ui.evalJS("document.body.clientHeight");
 		if (_.isFunction(args.loaded)) args.loaded();
 	});

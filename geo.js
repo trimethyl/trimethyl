@@ -57,7 +57,8 @@ function checkForServices() {
 
 
 /**
- * @deprecated: Use `@getPosition` instead.
+ * @method localize
+ * @deprecated 1.3.0 Use {@link Geo.getCurrentPosition} instead.
  * @param {Function} callback
  */
 function localize(callback) {

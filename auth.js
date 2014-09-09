@@ -25,7 +25,9 @@ var Net = require('T/net');
 
 
 function getCurrentDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver')) return false;
+	if (!Ti.App.Properties.hasProperty('auth.driver')) {
+		return false;
+	}
 	return Ti.App.Properties.getString('auth.driver');
 }
 
@@ -36,7 +38,6 @@ function getCurrentDriver(){
  * @return {Object}
  */
 function loadDriver(driver) {
-	if (!driver) return false;
 	return require('T/auth.'+driver);
 }
 exports.loadDriver = loadDriver;
@@ -227,11 +228,9 @@ exports.user = getCurrentUser;
 function logout(cb) {
 	var id = Me ? Me.id: null;
 
-	if (getCurrentDriver()) {
-		try {
-			loadCurrentDriver().logout();
-		} catch (e) {}
-	}
+	try {
+		loadCurrentDriver().logout();
+	} catch (e) {}
 
 	Me = null;
 	authInfo = null;

@@ -16,8 +16,8 @@ var DB = null;
 /**
  * Write the cache
  * @param  {Object} request  The network request
- * @param  {[type]} response The network response
- * @param  {[type]} info     [The network informations
+ * @param  {Object} response The network response
+ * @param  {Object} info     The network informations
  */
 function set(request, response, info) {
 	if (!DB) {

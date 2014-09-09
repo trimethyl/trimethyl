@@ -85,7 +85,7 @@ exports.offThenOn = remThenAdd;
  * Fires a synthesized event to any registered listeners.
  *
  * @param  {String} 		key  		The unique key
- * @param  {Arguments}	[...] 	The arguments to pass to the event
+ * @param  {Arguments}	args 		The arguments to pass to the event
  */
 function fire() {
 	var key = Array.prototype.shift.call(arguments);
