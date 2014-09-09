@@ -18,7 +18,7 @@ exports.config = config;
 
 
 function loadDriver(driver) {
-	return require('T/notifications.' + (driver || config.driver));
+	return require('T/notifications.'+driver);
 }
 
 var inBackground = false;
@@ -146,11 +146,13 @@ function subscribe(channel) {
 	subscribeFunction(function(token){
 		Ti.API.debug("Notifications: Subscribed, device token is "+token);
 
-		var driver = loadDriver();
-		if (driver) {
+		var driver = loadDriver(config.driver);
+		if (driver && driver.subscribe) {
 			driver.subscribe(token, channel, function(){
 				Ti.API.debug("Notifications: Subscribed to selected driver ("+config.driver+')');
 			});
+		} else {
+			Ti.API.error("Notifications: No subscribe method for selected driver ("+config.driver+")");
 		}
 
 	});
@@ -169,8 +171,12 @@ function unsubscribe(channel) {
 		return;
 	}
 
-	var driver = loadDriver();
-	if (driver) driver.unsubscribe(channel);
+	var driver = loadDriver(config.driver);
+	if (driver && driver.unsubscribe) {
+		driver.unsubscribe(channel);
+	} else {
+		Ti.API.error("Notifications: No unsubscribe method for selected driver ("+config.driver+")");
+	}
 }
 exports.unsubscribe = unsubscribe;
 
