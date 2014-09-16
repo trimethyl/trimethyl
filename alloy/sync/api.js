@@ -21,7 +21,7 @@ exports.sync = function(method, model, opt) {
 	}
 
 	if (opt.patch) method = 'patch';
-	var data = _.extend(opt.netArgs || {}, opt.networkArgs || {}, {
+	var data = _.extend(opt.http, {
 		url: url,
 		method: CRUD_TO_REST[method],
 		mime: 'json'

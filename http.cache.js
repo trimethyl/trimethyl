@@ -1,7 +1,7 @@
 /**
  * @class  HTTP.Cache
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Cache helper for HTTP network
+ * Cache helper for HTTP
  */
 
 /**
@@ -15,9 +15,9 @@ var DB = null;
 
 /**
  * Write the cache
- * @param  {Object} request  The network request
- * @param  {Object} response The network response
- * @param  {Object} info     The network informations
+ * @param  {Object} request  The HTTP request
+ * @param  {Object} response The HTTP response
+ * @param  {Object} info     The HTTP informations
  */
 function set(request, response, info) {
 	if (!DB) {
@@ -25,7 +25,7 @@ function set(request, response, info) {
 		return false;
 	}
 
-	DB.execute('INSERT OR REPLACE INTO net (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
+	DB.execute('INSERT OR REPLACE INTO http (id, expire, creation, content, info) VALUES (?,?,?,?,?)',
 		request.hash,
 		info.expire,
 		require('T/util').timestamp(),
@@ -38,7 +38,7 @@ exports.set = set;
 
 /**
  * Get the associated cache to that request
- * @param  {Object} request          		The network request
+ * @param  {Object} request          		The HTTP request
  * @param  {Boolean} [bypassExpiration] 	Control if bypassing the expiration check
  * @return {Object}
  */
@@ -48,7 +48,7 @@ function get(request, bypassExpiration) {
 		return false;
 	}
 
-	var cacheRow = DB.execute('SELECT expire, creation FROM net WHERE id = ? LIMIT 1', request.hash);
+	var cacheRow = DB.execute('SELECT expire, creation FROM http WHERE id = ? LIMIT 1', request.hash);
 	if (!cacheRow || !cacheRow.isValidRow()) {
 		return false;
 	}
@@ -61,7 +61,7 @@ function get(request, bypassExpiration) {
 		if (expire<now) return false;
 	}
 
-	cacheRow = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
+	cacheRow = DB.execute('SELECT info, content FROM http WHERE id = ? LIMIT 1', request.hash);
 	var content = cacheRow.fieldByName('content');
 	if (!content) {
 		Ti.API.error("HTTP.Cache: REQ-["+request.hash+"] has invalid cache content");
@@ -87,7 +87,7 @@ function reset() {
 		return false;
 	}
 
-	DB.execute('DELETE FROM net');
+	DB.execute('DELETE FROM http WHERE 1');
 }
 exports.reset = reset;
 
@@ -102,7 +102,7 @@ function del(hash) {
 		return false;
 	}
 
-	DB.execute('DELETE FROM net WHERE id = ?', hash);
+	DB.execute('DELETE FROM http WHERE id = ?', hash);
 }
 exports.del = del;
 
@@ -111,7 +111,7 @@ exports.del = del;
 
 	DB = require('T/db').open();
 	if (DB) {
-		DB.execute('CREATE TABLE IF NOT EXISTS net (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
+		DB.execute('CREATE TABLE IF NOT EXISTS http (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
 	}
 
 })();

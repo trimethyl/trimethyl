@@ -1,14 +1,13 @@
 /**
- * @class  	Image
+ * @class  	ImageUtil
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Image manipulation module
- *
  */
 
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.T.image);
+var config = _.extend({}, Alloy.CFG.T.imageutil);
 exports.config = config;
 
 

@@ -11,7 +11,7 @@ var config = _.extend({
 }, Alloy.CFG.T.router);
 exports.config = config;
 
-var __Routes = [];
+var routes = [];
 var XCallbackURL = require('T/ext/xcallbackurl');
 
 
@@ -28,7 +28,7 @@ var XCallbackURL = require('T/ext/xcallbackurl');
  * @param  {Function}	callback  		The callback
  */
 function on(key, callback) {
-	__Routes.push({ key: key, callback: callback });
+	routes.push({ key: key, callback: callback });
 }
 exports.on = on;
 
@@ -55,13 +55,13 @@ function dispatch(link) {
 
 	Ti.API.debug("Router: NEW Route", link, path);
 
-	for (var i in __Routes) {
-		var routeDefinition = __Routes[i];
+	for (var i in routes) {
+		var routeDefinition = routes[i];
 
 		if (_.isString(routeDefinition.key)) {
 
 			// Regular string equals
-			run = (routeDefinition.key===path);
+			run = (routeDefinition.key === path);
 
 		} else if (_.isRegExp(routeDefinition.key)) {
 
@@ -74,7 +74,7 @@ function dispatch(link) {
 
 			// Function match
 			matches = routeDefinition.key(path);
-			run = (matches!==undefined);
+			run = (matches !== undefined);
 
 		}
 
@@ -82,8 +82,7 @@ function dispatch(link) {
 			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+")");
 
 			routeDefinition.callback.apply(X, matches);
-			// break the cycle
-			return;
+			return; // break the cycle
 		}
 	}
 

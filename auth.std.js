@@ -7,7 +7,8 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
+var config = _.extend({
+}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
 exports.config = config;
 
 

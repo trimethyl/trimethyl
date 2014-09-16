@@ -7,11 +7,11 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.T.sounds);
+var config = _.extend({
+}, Alloy.CFG.T.sounds);
 exports.config = config;
 
-
-var _players = {};
+var players = {};
 
 
 /**
@@ -20,8 +20,8 @@ var _players = {};
  * @return {Ti.Media.Sound}
  */
 function create(key) {
-	_players[key] = Ti.Media.createSound({ url: key });
-	return _players[key];
+	players[key] = Ti.Media.createSound({ url: key });
+	return players[key];
 }
 exports.create = create;
 
@@ -31,8 +31,8 @@ exports.create = create;
  * @param  {String} key The sound file to play
  */
 function play(key) {
-	if (!(key in _players)) create(key);
-	_players[key].play();
+	if (!(key in players)) create(key);
+	players[key].play();
 }
 exports.play = play;
 
@@ -42,7 +42,7 @@ exports.play = play;
  * @param  {String} key The sound file to pause
  */
 function pause(key) {
-	if (!(key in _players)) create(key);
-	_players[key].pause();
+	if (!(key in players)) create(key);
+	players[key].pause();
 }
 exports.pause = pause;

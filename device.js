@@ -7,7 +7,8 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.T.device);
+var config = _.extend({
+}, Alloy.CFG.T.device);
 exports.config = config;
 
 

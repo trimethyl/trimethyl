@@ -10,7 +10,8 @@
 /**
  * @type {Object}
  */
-var config = _.extend({}, Alloy.CFG.T.sharer);
+var config = _.extend({
+}, Alloy.CFG.T.sharer);
 exports.config = config;
 
 var Util = require('T/util');

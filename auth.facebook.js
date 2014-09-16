@@ -31,15 +31,12 @@ function loginToServer(e) {
 	if (e.cancelled) return;
 
 	if (!e.success) {
-
 		Ti.API.error("Auth.Facebook: ", e);
 		require('T/event').trigger('auth.fail', {
 			silent: silent,
 			message: L('auth_facebook_error')
 		});
-
 	} else {
-
 		Ti.API.debug("Auth.Facebook: success");
 		Auth.login({
 			access_token: FB.accessToken,

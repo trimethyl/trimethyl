@@ -21,12 +21,15 @@
  */
 function openURL(url, fallback, error) {
 	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
+
 		try {
 			Ti.Platform.openURL(url);
 		} catch (err) {
 			Ti.API.error("Util: openURL failed but catched ("+err+")");
 		}
+
 	} else if (fallback) {
+
 		if (_.isFunction(fallback)) {
 			fallback();
 		} else {
@@ -36,6 +39,7 @@ function openURL(url, fallback, error) {
 				Ti.API.error("Util: openURL failed but catched ("+err+")");
 			}
 		}
+
 	} else if (error) {
 		alertError(error);
 	}
@@ -382,6 +386,14 @@ function isIOS8() {
 }
 exports.isIOS8 = isIOS8;
 
+/**
+ * Check if current device is a Simulator
+ * @return {Boolean}
+ */
+function isSimulator() {
+	return Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1;
+}
+exports.isSimulator = isSimulator;
 
 /**
  * Parse the URL schema according to X-Callback-URL standard
@@ -405,55 +417,12 @@ exports.parseSchema = function() {
 
 
 /**
- * @method  uniqid
- * View [link](http://www.php.net/manual/en/function.uniqid.php)
- * @return {String}
- */
-exports.uniqid = function(prefix, more_entropy) {
-	if (typeof prefix === 'undefined') {
-		prefix = '';
-	}
-
-	var retId;
-	var formatSeed = function (seed, reqWidth) {
-		seed = parseInt(seed, 10) .toString(16);
-		if (reqWidth < seed.length) {
-			return seed.slice(seed.length - reqWidth);
-		}
-		if (reqWidth > seed.length) {
-			return Array(1 + (reqWidth - seed.length)).join('0') + seed;
-		}
-		return seed;
-	};
-
-	if (!this.php_js) {
-		this.php_js = {};
-	}
-	if (!this.php_js.uniqidSeed) {
-		this.php_js.uniqidSeed = Math.floor(Math.random() * 0x75bcd15);
-	}
-	this.php_js.uniqidSeed++;
-
-	retId = prefix;
-	retId += formatSeed(parseInt(new Date()
-	.getTime() / 1000, 10), 8);
-	retId += formatSeed(this.php_js.uniqidSeed, 5);
-	if (more_entropy) {
-		retId += (Math.random() * 10)
-		.toFixed(8)
-		.toString();
-	}
-
-	return retId;
-};
-
-/**
  * @method now
  * Get the current UNIX timestamp.
  * @return {Number}
  */
 function now(t) {
-	return parseInt((+new Date())/1000,10);
+	return parseInt((+new Date())/1000, 10);
 }
 exports.now = now;
 
@@ -628,8 +597,7 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 	if (opt.groupBy) {
 
 		if (_.isFunction(opt.groupBy)) {
-			if (C instanceof Backbone.Collection) array = C.groupBy(opt.groupBy);
-			else array = _.groupBy(C, opt.groupBy);
+			array = C instanceof Backbone.Collection ? C.groupBy(opt.groupBy) : _.groupBy(C, opt.groupBy);
 		} else {
 			array = C;
 		}
@@ -657,9 +625,7 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 
 	} else {
 
-		if (C instanceof Backbone.Collection) array = C.toJSON();
-		else array = C;
-
+		array = C instanceof Backbone.Collection ? C.toJSON() : C;
 		var dataset = [];
 		_.each(array, function(el){
 			dataset.push(opt.datasetCb(el));
@@ -689,7 +655,7 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 	obj = obj || {};
 	obj.access_token = opt.appid+'|'+opt.appsecret;
-	T('net').send({
+	require('T/http').send({
 		url: 'https://graph.facebook.com/'+path.replace(/^\//, ''),
 		data: obj,
 		mime: 'json',

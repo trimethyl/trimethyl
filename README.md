@@ -38,7 +38,7 @@ You can customize the options, editing your **config.json** file:
 		"auth": {
 			...
 		},
-		"net": {
+		"http": {
 			...
 		}
 		...
@@ -90,9 +90,9 @@ You can obviously wrap theese elements again with your own modules, creating a f
 ```javascript
 exports.createWindow = function(args) {
 	var $el = T('xp.ui').createWindow(args);
-	
+
 	...
-	
+
 	return $el;
 }
 ```

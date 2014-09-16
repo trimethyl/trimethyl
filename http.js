@@ -217,7 +217,7 @@ function onComplete(request, response, e){
 		if (returnValue && returnValue.error) {
 			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
 		} else {
-			returnError = L('net_error');
+			returnError = L('http_error');
 		}
 
 		// Build the error
@@ -456,7 +456,7 @@ function send(request) {
 		Event.trigger('http.offline', { cache: false });
 
 		if (config.autoOfflineMessage) {
-			require('T/util').alert(L('net_offline_title'), L('net_offline_message'));
+			require('T/util').alert(L('http_offline_title'), L('http_offline_message'));
 		}
 
 		if (_.isFunction(request.complete)) request.complete();

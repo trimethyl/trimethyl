@@ -16,7 +16,8 @@
  *
  */
 
-var config = _.extend({}, Alloy.CFG.T.auth);
+var config = _.extend({
+}, Alloy.CFG.T.auth);
 exports.config = config;
 
 
@@ -154,7 +155,7 @@ function login(data, driver, cb) {
 			});
 
 			Me.fetch({
-				networkArgs: {
+				http: {
 					refresh: true,
 					cache: false,
 					silent: data.silent

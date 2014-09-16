@@ -147,7 +147,7 @@ exports.startNavigator = startNavigator;
 function geocode(address, cb) {
 	if (config.useGoogleForGeocode) {
 
-		require('T/net').send({
+		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			cache: false,
 			data: {
@@ -211,7 +211,7 @@ function reverseGeocode(lat, lng, cb) {
 
 	if (config.useGoogleForGeocode) {
 
-		require('T/net').send({
+		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			noCache: true,
 			data: {
