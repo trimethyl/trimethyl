@@ -22,7 +22,6 @@
  *
  */
 
-
 if (!OS_IOS) {
 
 	var NavigationWindow = function NavigationWindow(args) {

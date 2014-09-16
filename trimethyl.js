@@ -5,7 +5,7 @@
  */
 
 Ti.Trimethyl = true;
-exports.VERSION = '1.4.1';
+exports.VERSION = '2.0.0';
 
 var Util = require('T/util');
 var Device 	= require('T/device');
@@ -15,6 +15,7 @@ var pauseURL = null;
 
 Ti.App.addEventListener('pause', function(){
 	pauseURL = launchURL;
+	require('T/event').trigger('app.paused');
 });
 
 Ti.App.addEventListener('resumed', function() {
