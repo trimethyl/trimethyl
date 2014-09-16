@@ -4,7 +4,7 @@ if [ ! -f tiapp.xml ]; then
 fi
 
 echo "Downloading Trimethyl.."
-curl -L "https://github.com/CaffeinaLab/Trimethyl/archive/1.2.3.tar.gz" -o "T.tar.gz"
+curl -L "https://github.com/CaffeinaLab/Trimethyl/archive/1.2.4.tar.gz" -o "T.tar.gz"
 if [ ! -f "T.tar.gz" ]; then
 	echo "Error while downloading Trimethyl"
 	exit
