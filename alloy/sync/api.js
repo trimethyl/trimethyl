@@ -3,7 +3,7 @@
  * API-Rest Alloy Adapter
  */
 
-var Net = require('T/net');
+var HTTP = require('T/http');
 var CRUD_TO_REST = {
 	'create' : 'POST',
 	'read' : 'GET',
@@ -37,7 +37,7 @@ exports.sync = function(method, model, opt) {
 	switch (method) {
 
 		case 'create':
-		Net.send(_.extend(data, {
+		HTTP.send(_.extend(data, {
 			data: model.toJSON(),
 			success: function(resp) {
 
@@ -55,7 +55,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'read':
-		Net.send(_.extend(data, {
+		HTTP.send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
 
@@ -79,7 +79,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'update':
-		Net.send(_.extend(data, {
+		HTTP.send(_.extend(data, {
 			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
 
@@ -97,7 +97,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'delete':
-		Net.send(_.extend(data, {
+		HTTP.send(_.extend(data, {
 			data: opt.args || {},
 			success: function(resp) {
 

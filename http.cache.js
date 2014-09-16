@@ -1,14 +1,14 @@
 /**
- * @class  Net.Cache
+ * @class  HTTP.Cache
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Network Cache module
+ * Cache helper for HTTP network
  */
 
 /**
  * @type {Object}
  */
 var config = _.extend({
-}, Alloy.CFG.T.net ? Alloy.CFG.T.net.cache : {});
+}, Alloy.CFG.T.http ? Alloy.CFG.T.http.cache : {});
 exports.config = config;
 
 var DB = null;
@@ -21,7 +21,7 @@ var DB = null;
  */
 function set(request, response, info) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open");
+		Ti.API.error("HTTP.Cache: database not open");
 		return false;
 	}
 
@@ -44,7 +44,7 @@ exports.set = set;
  */
 function get(request, bypassExpiration) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open");
+		Ti.API.error("HTTP.Cache: database not open");
 		return false;
 	}
 
@@ -57,14 +57,14 @@ function get(request, bypassExpiration) {
 	var now = require('T/util').timestamp();
 
 	if (!bypassExpiration) {
-		Ti.API.debug("Net.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+Math.floor((expire-now)/60)+"min");
+		Ti.API.debug("HTTP.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+Math.floor((expire-now)/60)+"min");
 		if (expire<now) return false;
 	}
 
 	cacheRow = DB.execute('SELECT info, content FROM net WHERE id = ? LIMIT 1', request.hash);
 	var content = cacheRow.fieldByName('content');
 	if (!content) {
-		Ti.API.error("Net.Cache: REQ-["+request.hash+"] has invalid cache content");
+		Ti.API.error("HTTP.Cache: REQ-["+request.hash+"] has invalid cache content");
 		return false;
 	}
 
@@ -83,7 +83,7 @@ exports.get = get;
  */
 function reset() {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open");
+		Ti.API.error("HTTP.Cache: database not open");
 		return false;
 	}
 
@@ -98,7 +98,7 @@ exports.reset = reset;
  */
 function del(hash) {
 	if (!DB) {
-		Ti.API.error("Net.Cache: database not open");
+		Ti.API.error("HTTP.Cache: database not open");
 		return false;
 	}
 

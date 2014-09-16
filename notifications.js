@@ -16,6 +16,7 @@ var config = _.extend({
 }, Alloy.CFG.T.notifications);
 exports.config = config;
 
+var Event = require('T/event');
 
 function loadDriver(driver) {
 	return require('T/notifications.'+driver);
@@ -51,7 +52,7 @@ function onNotificationReceived(e) {
 	}
 
 	// Trigger the glob event
-	Ti.App.fireEvent('notifications.received', e || {});
+	Event.trigger('notifications.received', e || {});
 
 	if (config.autoReset) resetBadge();
 }
@@ -69,7 +70,7 @@ if (OS_IOS) {
 			success: function(e){
 				if (!e.deviceToken) {
 					Ti.API.error("Notifications: Subscribing - Unable to get device token; "+e.error);
-					Ti.App.fireEvent('notifications.subscription.error', e);
+					Event.trigger('notifications.subscription.error', e);
 					return;
 				}
 
@@ -78,7 +79,7 @@ if (OS_IOS) {
 			},
 			error: function(e){
 				Ti.API.error("Notifications: Subscribing - "+e.error);
-				Ti.App.fireEvent('notifications.subscription.error', e);
+				Event.trigger('notifications.subscription.error', e);
 			},
 		});
 	};
@@ -109,7 +110,7 @@ if (OS_IOS) {
 			success: function(e) {
 				if (!e.deviceToken) {
 					Ti.API.error("Notifications: Retrieve device token success but invalid - "+e.error);
-					Ti.App.fireEvent('notifications.subscription.error', e);
+					Event.trigger('notifications.subscription.error', e);
 					return;
 				}
 
@@ -117,7 +118,7 @@ if (OS_IOS) {
 			},
 			error: function(e) {
 				Ti.API.error("Notifications: Retrieve device token failed - "+e.error);
-				Ti.App.fireEvent('notifications.subscription.error', e);
+				Event.trigger('notifications.subscription.error', e);
 			}
 		});
 	};

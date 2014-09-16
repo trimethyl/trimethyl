@@ -1,7 +1,7 @@
 /**
- * @class  Net
+ * @class  HTTP
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Network module
+ * HTTP network module
  */
 
 /**
@@ -22,12 +22,15 @@ var config = _.extend({
 	usePingServer: true,
 	autoOfflineMessage: true,
 	httpieDebug: true
-}, Alloy.CFG.T.net);
+}, Alloy.CFG.T.http);
 exports.config = config;
 
 
-var NetCache = null;
+var Event = require('T/event');
+
+var HTTPCache = null;
 var queue = {};
+
 var serverConnected = null;
 var errorHandler = null;
 
@@ -47,7 +50,6 @@ function jsonToWWW(obj, sep, eq, k, ret) {
 function originalErrorHandler(e) {
 	require('T/util').alertError( e && e.message ? e.message : 'Error' );
 }
-errorHandler = originalErrorHandler;
 
 function calculateHash(request) {
 	return Ti.Utils.md5HexDigest(request.url+JSON.stringify(request.data||{})+JSON.stringify(request.headers||{}));
@@ -148,7 +150,7 @@ function decorateRequest(request) {
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
-	Ti.API.debug("Net: REQ-["+request.hash+"] completed in "+(request.endTime-request.startTime)+'ms');
+	Ti.API.debug("HTTP: REQ-["+request.hash+"] completed in "+(request.endTime-request.startTime)+'ms');
 
 	// Delete request from queue
 	delete queue[request.hash];
@@ -157,7 +159,7 @@ function onComplete(request, response, e){
 
 	// Fire the global event
 	if (!request.silent) {
-		Ti.App.fireEvent('net.end', {
+		Event.trigger('http.end', {
 			id: request.hash,
 			eventName: request.eventName || null
 		});
@@ -166,7 +168,7 @@ function onComplete(request, response, e){
 	// If the readyState is not DONE, trigger error, because
 	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
 	if (response.readyState<=1) {
-		Ti.API.error("Net: REQ-["+request.hash+"] is broken (readyState<=1)");
+		Ti.API.error("HTTP: REQ-["+request.hash+"] is broken (readyState<=1)");
 		if (_.isFunction(request.error)) request.error();
 		return false;
 	}
@@ -197,9 +199,9 @@ function onComplete(request, response, e){
 		*/
 
 		// Write cache
-		if (NetCache) {
+		if (HTTPCache) {
 			if (request.cache!==false && request.method==='GET' && info.expire>require('T/util').timestamp()) {
-				NetCache.set(request, response, info);
+				HTTPCache.set(request, response, info);
 			}
 		}
 
@@ -220,7 +222,7 @@ function onComplete(request, response, e){
 
 		// Build the error
 		var E = { message: returnError, code: response.status };
-		Ti.API.error("Net: REQ-["+request.hash+"] error - "+JSON.stringify(E));
+		Ti.API.error("HTTP: REQ-["+request.hash+"] error - "+JSON.stringify(E));
 
 		if (_.isFunction(request.error)) request.error(E);
 
@@ -293,9 +295,9 @@ exports.usePingServer = usePingServer;
  *
  * This method also set the properties for **settings.{X}**
  *
- * Fire a *net.ping.success* on success
+ * Trigger a *http.ping.success* on success
  *
- * Fire a *net.ping.error* on error
+ * Trigger a *http.ping.error* on error
  *
  * @param  {Function} cb The success callback
  */
@@ -309,13 +311,13 @@ function connectToServer(cb) {
 
 			setApplicationInfo(appInfo);
 
-			Ti.App.fireEvent('net.ping.success');
+			Event.trigger('http.ping.success');
 			if (cb) cb(true);
 		},
 		error: function(){
 			serverConnected = false;
 
-			Ti.App.fireEvent('net.ping.error');
+			Event.trigger('http.ping.error');
 			if (cb) cb(false);
 		}
 	});
@@ -370,9 +372,9 @@ function abortRequest(hash) {
 	if (!httpClient) return;
 	try {
 		httpClient.abort();
-		Ti.API.debug("Net: REQ-["+hash+"] request aborted");
+		Ti.API.debug("HTTP: REQ-["+hash+"] request aborted");
 	} catch (e) {
-		Ti.API.error("Net: REQ-["+hash+"] aborting error");
+		Ti.API.error("HTTP: REQ-["+hash+"] aborting error");
 	}
 }
 exports.abortRequest = abortRequest;
@@ -382,8 +384,9 @@ exports.abortRequest = abortRequest;
  * Reset all cache
  */
 exports.resetCache = function(){
-	if (!NetCache) return;
-	NetCache.reset();
+	if (!HTTPCache) return;
+
+	HTTPCache.reset();
 };
 
 
@@ -404,9 +407,10 @@ exports.resetCookies = resetCookies;
  * @param  {String|Object} request [description]
  */
 exports.deleteCache = function(hash) {
-	if (!NetCache) return;
+	if (!HTTPCache) return;
+
 	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
-	NetCache.del(hash);
+	HTTPCache.del(hash);
 };
 
 
@@ -433,10 +437,10 @@ function send(request) {
 	request = decorateRequest(request);
 
 	// Try to get the cache, otherwise make the HTTP request
-	if (NetCache) {
+	if (HTTPCache) {
 		if (request.cache!==false && !request.refresh && request.method==='GET') {
 
-			var cache = NetCache.get(request, !onlineStatus);
+			var cache = HTTPCache.get(request, !onlineStatus);
 			if (cache) {
 				if (_.isFunction(request.complete)) request.complete();
 				if (_.isFunction(request.success)) request.success(cache);
@@ -447,9 +451,9 @@ function send(request) {
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
 	if (!onlineStatus) {
-		Ti.API.error("Net: connection is offline");
+		Ti.API.error("HTTP: connection is offline");
 
-		Ti.App.fireEvent('net.offline', { cache: false });
+		Event.trigger('http.offline', { cache: false });
 
 		if (config.autoOfflineMessage) {
 			require('T/util').alert(L('net_offline_title'), L('net_offline_message'));
@@ -475,13 +479,15 @@ function send(request) {
 	H.cache = false; // disable integrated iOS cache
 
 	// onLoad && onError are the same because we have an internal parser that discern the event.success property; WOW!
-	H.onload = H.onerror = function(e){ onComplete(request, this, e); };
+	H.onload = H.onerror = function(e){
+		onComplete(request, this, e);
+	};
 
 	// Add this request to the queue
 	queue[request.hash] = H;
 
 	if (!request.silent) {
-		Ti.App.fireEvent('net.start', {
+		Event.trigger('http.start', {
 			id: request.hash,
 			eventName: request.eventName || null
 		});
@@ -584,8 +590,10 @@ exports.postJSON = function(url, data, success, error) {
 
 (function init(){
 
+	errorHandler = originalErrorHandler;
+
 	if (config.useCache) {
-		NetCache = require('T/net.cache');
+		HTTPCache = require('T/http.cache');
 	}
 
 })();

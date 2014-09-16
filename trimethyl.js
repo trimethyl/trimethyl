@@ -19,7 +19,7 @@ Ti.App.addEventListener('pause', function(){
 Ti.App.addEventListener('resumed', function() {
 	launchURL = Util.parseSchema();
 	if (launchURL!==pauseURL) {
-		Ti.App.fireEvent('app.resumed', {
+		require('T/event').trigger('app.resumed', {
 			url: launchURL
 		});
 	}

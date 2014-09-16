@@ -143,11 +143,11 @@ exports.createView = function(args) {
 			args.webapi[event.name].call($ui, event.data);
 		};
 
+		Ti.App.addEventListener('__weballoy'+uniqid, webapiListener);
+
 		$ui.webapiUnbind = function() {
 			Ti.App.removeEventListener('weballoy_'+uniqid, webapiListener);
 		};
-
-		Ti.App.addEventListener('__weballoy'+uniqid, webapiListener);
 	}
 
 	return $ui;

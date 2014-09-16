@@ -49,11 +49,12 @@ function subscribe(deviceToken, channel, callback) {
 	}, function (e) {
 		if (!e.success) {
 			Ti.API.error("Notifications.Cloud: "+e.error);
-			return Ti.App.fireEvent('notifications.subscription.error', e);
+			require('T/event').trigger('notifications.subscription.error', e);
+			return;
 		}
 
-		Ti.App.fireEvent('notifications.subscription.success', { channel: channel });
-		if (callback) callback();
+		require('T/event').trigger('notifications.subscription.success', { channel: channel });
+		if (_.isFunction(callback)) callback();
 	});
 }
 exports.subscribe = subscribe;

@@ -76,7 +76,8 @@ exports.localize = localize;
 /**
  * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
  *
- * A `geo.start` event is fired at start, and a `geo.end` event is fired on end
+ * A `geo.start` event is triggered at start,
+ * and a `geo.end` event is triggered on end
  *
  * @param {Object} opt Dictionary for this request
  */
@@ -90,10 +91,10 @@ function getCurrentPosition(request) {
 		return;
 	}
 
-	if (!request.silent) Ti.App.fireEvent('geo.start');
+	if (!request.silent) require('T/event').trigger('geo.start');
 
 	Ti.Geolocation.getCurrentPosition(function(e){
-		if (!request.silent) Ti.App.fireEvent('geo.end');
+		if (!request.silent) require('T/event').trigger('geo.end');
 		if (_.isFunction(request.complete)) request.complete();
 
 		if (e.error) {

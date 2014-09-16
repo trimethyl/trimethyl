@@ -11,7 +11,7 @@ var config = _.extend({}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
 exports.config = config;
 
 
-var Net = require('T/net');
+var HTTP = require('T/http');
 var Auth = require('T/auth');
 
 /**
@@ -57,7 +57,7 @@ exports.logout = logout;
  * @param  {Function} cb   Success callback
  */
 function signup(data, cb) {
-	Net.send({
+	HTTP.send({
 		url: '/signup',
 		method: 'POST',
 		data: data,
@@ -76,7 +76,7 @@ exports.signup = signup;
  * @param  {Function} cb   Success callback
  */
 function lost(data, cb){
-	Net.send({
+	HTTP.send({
 		url: '/lost',
 		method: 'POST',
 		data: data,

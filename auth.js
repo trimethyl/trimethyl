@@ -19,10 +19,12 @@
 var config = _.extend({}, Alloy.CFG.T.auth);
 exports.config = config;
 
+
 var Me = null;
 var authInfo = null;
-var Net = require('T/net');
 
+var HTTP = require('T/http');
+var Event = require('T/event');
 
 function getCurrentDriver(){
 	if (!Ti.App.Properties.hasProperty('auth.driver')) {
@@ -67,7 +69,7 @@ function handleLogin() {
 	try {
 		loadCurrentDriver().handleLogin();
 	} catch (e) {
-		Ti.App.fireEvent('app.login');
+		Event.trigger('app.login');
 	}
 }
 exports.handleLogin = handleLogin;
@@ -76,35 +78,36 @@ exports.handleLogin = handleLogin;
 /**
  * Try to login in offline mode, filling the user information from offline data
  *
- * Fire an **app.login** event in case of no offline data is present
+ * Trigger an **app.login** event in case of no offline data is present
  *
- * Otherwise, an **auth.success** event is fired
+ * Otherwise, an **auth.success** event is triggered
  *
  * @param  {Function} success Success callback
  */
 function handleOfflineLogin(success){
 	if (!Ti.App.Properties.hasProperty('auth.me')) {
-		Ti.App.fireEvent('app.login');
+		Event.trigger('app.login');
 		return;
 	}
 
 	Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
-	Ti.App.fireEvent('auth.success');
+	Event.trigger('auth.success');
 	if (success) success();
 }
 exports.handleOfflineLogin = handleOfflineLogin;
 
 
 /**
- * Try to login, switching automatically to offline mode if an internet connection is not detected
+ * Try to login, switching automatically to offline mode
+ * if an internet connection is not detected
  *
  * If fail, it fails silently
  *
  */
 function handle() {
-	if (Net.isOnline()) {
-		if (Net.usePingServer()) {
-			Net.connectToServer(handleLogin);
+	if (HTTP.isOnline()) {
+		if (HTTP.usePingServer()) {
+			HTTP.connectToServer(handleLogin);
 		} else {
 			handleLogin();
 		}
@@ -118,9 +121,9 @@ exports.handle = handle;
 /**
  * Login in the API server
  *
- * Fire an *auth.fail* in case of fail
+ * Trigger an *auth.fail* in case of fail
  *
- * Fire an *auth.success* if success
+ * Trigger an *auth.success* if success
  *
  * @param  {Object}   data   Data sent to the server
  * @param  {String}   driver Driver used to login
@@ -129,7 +132,7 @@ exports.handle = handle;
 function login(data, driver, cb) {
 	data.method = driver;
 
-	Net.send({
+	HTTP.send({
 		url: '/auth',
 		method: 'POST',
 		data: data,
@@ -139,7 +142,7 @@ function login(data, driver, cb) {
 
 			if (!authInfo.id) {
 				Ti.API.error("Auth: authInfo.id is null");
-				Ti.App.fireEvent('auth.fail', {
+				Event.trigger('auth.fail', {
 					message: L('auth_error'),
 					silent: data.silent
 				});
@@ -160,13 +163,13 @@ function login(data, driver, cb) {
 				success: function(){
 					Ti.App.Properties.setObject('auth.me', Me.toJSON());
 					Ti.App.Properties.setString('auth.driver', driver);
-					Ti.App.fireEvent('auth.success', authInfo);
+					Event.trigger('auth.success', authInfo);
 
 					if (cb) cb();
 				},
 
 				error: function(e){
-					Ti.App.fireEvent('auth.fail', {
+					Event.trigger('auth.fail', {
 						message: e.message,
 						silent: data.silent
 					});
@@ -174,7 +177,7 @@ function login(data, driver, cb) {
 			});
 		},
 		error: function(e){
-			Ti.App.fireEvent('auth.fail', {
+			Event.trigger('auth.fail', {
 				message: e.message,
 				silent: data.silent
 			});
@@ -221,7 +224,7 @@ exports.user = getCurrentUser;
 /**
  * Logout calling "current-driver" logout, logout from the API server and empty all auth infos
  *
- * Fire an *auth.logout* in any case when completed
+ * Trigger an *auth.logout* in any case when completed
  *
  * @param  {Function} cb Success callback
  */
@@ -237,27 +240,29 @@ function logout(cb) {
 
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
-	Net.resetCache();
+	HTTP.resetCache();
 
-	if (Net.isOnline()) {
+	if (HTTP.isOnline()) {
 
-		Net.send({
+		HTTP.send({
 			url: '/logout',
 			method: 'POST',
 			silent: true,
 			success: function(){},
 			error: function(){},
 			complete: function(){
-				Net.resetCookies();
-				Ti.App.fireEvent('auth.logout', { id: id });
+				HTTP.resetCookies();
+				Event.trigger('auth.logout', { id: id });
 
 				if (cb) cb();
 			},
 		});
 
 	} else {
-		Net.resetCookies();
-		Ti.App.fireEvent('auth.logout', { id: id });
+
+		HTTP.resetCookies();
+		Event.trigger('auth.logout', { id: id });
+
 	}
 
 }
