@@ -21,16 +21,14 @@ var config = _.extend({
 exports.config = config;
 
 
-var Me = null;
-var authInfo = null;
+var Me = null; // model of current user
+var authInfo = null; // auth info stored
 
 var HTTP = require('T/http');
 var Event = require('T/event');
 
 function getCurrentDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver')) {
-		return false;
-	}
+	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
 	return Ti.App.Properties.getString('auth.driver');
 }
 
@@ -62,15 +60,22 @@ exports.loadCurrentDriver = loadCurrentDriver;
  *
  */
 function handleLogin() {
-	if (!getCurrentDriver()) {
-		Ti.API.warn("Auth: no driver stored to handle authentication");
+	if (getCurrentDriver() === null) {
+		Ti.API.warn('Auth: no driver stored to handle authentication');
 		return false;
 	}
 
 	try {
-		loadCurrentDriver().handleLogin();
-	} catch (e) {
-		Event.trigger('app.login');
+		var driver = loadCurrentDriver();
+		if (driver == null) throw new Error();
+
+		return driver.handleLogin();
+
+	} catch (err) {
+		Event.trigger('app.login', {
+			message: err
+		});
+		return false;
 	}
 }
 exports.handleLogin = handleLogin;
@@ -86,14 +91,16 @@ exports.handleLogin = handleLogin;
  * @param  {Function} success Success callback
  */
 function handleOfflineLogin(success){
-	if (!Ti.App.Properties.hasProperty('auth.me')) {
+	if (Ti.App.Properties.hasProperty('auth.me') === false) {
 		Event.trigger('app.login');
 		return;
 	}
 
+	// Create the User model.
 	Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+
 	Event.trigger('auth.success');
-	if (success) success();
+	if (_.isFunction(success)) success();
 }
 exports.handleOfflineLogin = handleOfflineLogin;
 
@@ -128,21 +135,26 @@ exports.handle = handle;
  *
  * @param  {Object}   data   Data sent to the server
  * @param  {String}   driver Driver used to login
- * @param  {Function} cb     Success callback
+ * @param  {Function} callback     Success callback
  */
-function login(data, driver, cb) {
-	data.method = driver;
-
+function login(data, driver, callback) {
 	HTTP.send({
 		url: '/auth',
 		method: 'POST',
-		data: data,
-		silent: data.silent || false,
+		data: _.extend(data, { method: driver }),
+		silent: data.silent,
+		error: function(e){
+			Event.trigger('auth.fail', {
+				message: e.message,
+				silent: data.silent
+			});
+		},
 		success: function(response){
 			authInfo = response;
 
-			if (!authInfo.id) {
-				Ti.API.error("Auth: authInfo.id is null");
+			if (authInfo.id == null) {
+				Ti.API.error('Auth: authInfo.id is null');
+
 				Event.trigger('auth.fail', {
 					message: L('auth_error'),
 					silent: data.silent
@@ -150,37 +162,31 @@ function login(data, driver, cb) {
 				return;
 			}
 
+			// Create User model
 			Me = Alloy.createModel('user', {
 				id: authInfo.id
 			});
 
+			// Fetch user informations
 			Me.fetch({
 				http: {
 					refresh: true,
 					cache: false,
 					silent: data.silent
 				},
-
-				success: function(){
-					Ti.App.Properties.setObject('auth.me', Me.toJSON());
-					Ti.App.Properties.setString('auth.driver', driver);
-					Event.trigger('auth.success', authInfo);
-
-					if (cb) cb();
-				},
-
 				error: function(e){
 					Event.trigger('auth.fail', {
 						message: e.message,
 						silent: data.silent
 					});
+				},
+				success: function(){
+					Ti.App.Properties.setObject('auth.me', Me.toJSON());
+					Ti.App.Properties.setString('auth.driver', driver);
+
+					Event.trigger('auth.success', authInfo);
+					if (_.isFunction(callback)) callback();
 				}
-			});
-		},
-		error: function(e){
-			Event.trigger('auth.fail', {
-				message: e.message,
-				silent: data.silent
 			});
 		}
 	});
@@ -227,43 +233,44 @@ exports.user = getCurrentUser;
  *
  * Trigger an *auth.logout* in any case when completed
  *
- * @param  {Function} cb Success callback
+ * @param  {Function} callback Success callback
  */
-function logout(cb) {
-	var id = Me ? Me.id: null;
+function logout(callback) {
+	var id = (Me !== null ? Me.id: null);
 
-	try {
+	try {
 		loadCurrentDriver().logout();
-	} catch (e) {}
+	} catch (err) {}
 
 	Me = null;
 	authInfo = null;
 
+	// Remove stored infos
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
+
 	HTTP.resetCache();
 
-	if (HTTP.isOnline()) {
+	var onLogoutComplete = function() {
+		HTTP.resetCookies();
+		Event.trigger('auth.logout', {
+			id: id
+		});
 
+		if (_.isFunction(callback)) callback();
+	};
+
+	if (HTTP.isOnline()) {
 		HTTP.send({
 			url: '/logout',
 			method: 'POST',
 			silent: true,
-			success: function(){},
-			error: function(){},
-			complete: function(){
-				HTTP.resetCookies();
-				Event.trigger('auth.logout', { id: id });
-
-				if (cb) cb();
-			},
+			success: function(){ },
+			error: function(){ },
+			complete: onLogoutComplete
 		});
-
 	} else {
-
-		HTTP.resetCookies();
-		Event.trigger('auth.logout', { id: id });
-
+		onLogoutComplete();
 	}
 
 }
@@ -275,5 +282,5 @@ exports.logout = logout;
  * @return {Boolean}
  */
 exports.isLogged = function() {
-	return null !== Me;
+	return Me !== null;
 };

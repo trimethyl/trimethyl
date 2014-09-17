@@ -40,7 +40,6 @@
  *
  * If `true`, provide the **alphabet on the right** functionality.
  *
- *
  * @param  {Ti.UI.ListView} [$ui]
  * The ListView to populate. If is not specified, return the elements instead populating directly.
  *
@@ -50,14 +49,9 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 	var array = [];
 	var sec = [];
 
-	if (opt.groupBy) {
+	if (opt.groupBy != null) {
 
-		if (_.isFunction(opt.groupBy)) {
-			array = C instanceof Backbone.Collection ? C.groupBy(opt.groupBy) : _.groupBy(C, opt.groupBy);
-		} else {
-			array = C;
-		}
-
+		array = C instanceof Backbone.Collection ? C.groupBy(opt.groupBy) : _.groupBy(C, opt.groupBy);
 		_.each(array, function(els, key){
 			var dataset = [];
 			_.each(els, function(el){
@@ -65,13 +59,13 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 			});
 
 			var s = Ti.UI.createListSection({ items: dataset });
-			if (opt.headerViewCb) s.headerView = opt.headerViewCb(key);
+			if (_.isFunction(opt.headerViewCb)) s.headerView = opt.headerViewCb(key);
 			else s.headerTitle = key;
 
 			sec.push(s);
 		});
 
-		if ($ui && opt.sectionIndex) {
+		if ($ui != null && opt.sectionIndex != null) {
 			var sit = [];
 			_.each(_.keys(array), function(u,k){
 				sit.push({ title: u, index: k });
@@ -90,6 +84,7 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 		sec = [ Ti.UI.createListSection({ items: dataset }) ];
 	}
 
-	if ($ui) $ui.sections = sec;
-	else return sec;
+	if ($ui != null) $ui.sections = sec;
+
+	return sec;
 };

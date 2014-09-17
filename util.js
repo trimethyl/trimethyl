@@ -19,27 +19,15 @@
  * @param  {String} [error]    The error to show
  */
 function openURL(url, fallback, error) {
-	if (OS_IOS && Ti.Platform.canOpenURL(url)) {
-
-		try {
-			Ti.Platform.openURL(url);
-		} catch (err) {
-			Ti.API.error("Util: openURL failed but catched ("+err+")");
-		}
-
-	} else if (fallback) {
-
+	if (OS_IOS && Ti.Platform.canOpenURL(url) === true) {
+		Ti.Platform.openURL(url);
+	} else if (fallback != null) {
 		if (_.isFunction(fallback)) {
 			fallback();
-		} else {
-			try {
-				Ti.Platform.openURL(fallback);
-			} catch (err) {
-				Ti.API.error("Util: openURL failed but catched ("+err+")");
-			}
+		} else if (_.isString(fallback)) {
+			Ti.Platform.openURL(fallback);
 		}
-
-	} else if (error) {
+	} else if (error != null) {
 		alertError(error);
 	}
 }
@@ -63,7 +51,7 @@ function tryOpenURL(array) {
 			}
 		}
 	} else {
-		Ti.Platform.openURL(array.pop());
+		Ti.Platform.openURL(_.last(array));
 	}
 }
 exports.tryOpenURL = tryOpenURL;
@@ -81,7 +69,7 @@ function startActivity(opt, error) {
 	try {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
-		if (error) {
+		if (error != null) {
 			alertError(error);
 		}
 	}
@@ -95,7 +83,7 @@ exports.startActivity = startActivity;
  * @param  {String} fbid Facebook ID
  */
 exports.openFacebookProfile = function(fbid) {
-	openURL("fb://profile/"+fbid, "https://facebook.com/"+fbid);
+	openURL('fb://profile/' + fbid, 'https://facebook.com/' + fbid);
 };
 
 
@@ -105,7 +93,7 @@ exports.openFacebookProfile = function(fbid) {
  * @param  {String} twid Twitter screen name
  */
 exports.openTwitterProfile = function(twid) {
-	return openURL("twitter://user?screen_name="+twid, "http://twitter.com/"+twid);
+	return openURL('twitter://user?screen_name=' + twid, 'http://twitter.com/' + twid);
 };
 
 
@@ -116,7 +104,7 @@ exports.openTwitterProfile = function(twid) {
  * @param  {String} statusid The status id
  */
 exports.openTwitterStatus = function(userid, statusid) {
-	return openURL("twitter://status?id="+statusid, "http://twitter.com/"+userid+"/statuses/"+statusid);
+	return openURL('twitter://status?id=' + statusid, 'http://twitter.com/' + userid + '/statuses/' + statusid);
 };
 
 
@@ -129,7 +117,7 @@ exports.openTwitterStatus = function(userid, statusid) {
  * @return {String}      	The open graph url pointing to the image
  */
 exports.getFacebookAvatar = function(fbid, w, h) {
-	return 'http://graph.facebook.com/'+fbid+'/picture/?width='+(w||150)+'&height='+(h||150);
+	return 'http://graph.facebook.com/' + fbid + '/picture/?width=' + (w || 150) + '&height=' + (h || 150);
 };
 
 /**
@@ -139,12 +127,11 @@ exports.getFacebookAvatar = function(fbid, w, h) {
  */
 exports.openInStore = function(appid) {
 	if (OS_IOS) {
-		Ti.Platform.openURL('https://itunes.apple.com/app/id'+appid);
+		Ti.Platform.openURL('https://itunes.apple.com/app/id' + appid);
 	} else if (OS_ANDROID) {
-		Ti.Platform.openURL('https://play.google.com/store/apps/details?id='+appid);
+		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=' + appid);
 	}
 };
-
 
 
 /**
@@ -173,7 +160,8 @@ exports.reviewInStore = function(appid) {
  */
 exports.getDomainFromURL = function(url) {
 	var matches = url.match(/https?\:\/\/([^\/]*)/i);
-	if (!matches) return '';
+	if (matches == null || matches[1] == null) return '';
+
 	return matches[1].replace('www.', '');
 };
 
@@ -193,7 +181,11 @@ function alertDialog(title, msg, callback) {
 		message: msg,
 		ok: L('OK')
 	});
-	if (callback) dialog.addEventListener('click', callback);
+
+	if (_.isFunction(callback)) {
+		dialog.addEventListener('click', callback);
+	}
+
 	dialog.show();
 	return dialog;
 }
@@ -232,12 +224,14 @@ function alertPrompt(title, msg, buttons, cancelIndex, callback, opt) {
 		buttonNames: buttons,
 		message: msg,
 		title: title
-	}, opt || {}));
+	}, opt));
+
 	dialog.addEventListener('click', function(e){
-		if (OS_IOS && e.index==cancelIndex) return;
-		if (OS_ANDROID && e.cancel) return;
-		if (callback) callback(e.index);
+		if (OS_IOS && e.index == cancelIndex) return;
+		if (OS_ANDROID && e.cancel === true) return;
+		if (_.isFunction(callback)) callback(e.index);
 	});
+
 	dialog.show();
 	return dialog;
 }
@@ -248,13 +242,13 @@ exports.prompt = alertPrompt;
  * @method confirm
  * Create and show a confirm dialog with *Cancel* and *Yes* button.
  *
- * @param  {String}   title 		The title
- * @param  {String}   msg   		The message
- * @param  {Function} [cb]    	The callback to invoke when clicking *Yes*.
+ * @param  {String}   title 				The title
+ * @param  {String}   msg   				The message
+ * @param  {Function} [callback]    	The callback to invoke when clicking *Yes*.
  * @return {Ti.UI.AlertDialog}
  */
-function confirm(title, msg, cb) {
-	return alertPrompt(title, msg, [ L('Cancel'), L('Yes') ], 0, cb, { selectedIndex: 1 });
+function confirm(title, msg, callback) {
+	return alertPrompt(title, msg, [ L('Cancel'), L('Yes') ], 0, callback, { selectedIndex: 1 });
 }
 exports.confirm = confirm;
 
@@ -263,14 +257,14 @@ exports.confirm = confirm;
  * @method  confirmCustom
  * Create and show a confirm dialog with *Cancel* and a custom button.
  *
- * @param  {String}   	title 		The title
- * @param  {String}   	msg   		The message
- * @param  {String}   	btnTitle 	The custom button title
- * @param  {Function} 	[cb]    		The callback to invoke when clicking your custom button title.
+ * @param  {String}   	title 				The title
+ * @param  {String}   	msg   				The message
+ * @param  {String}   	btnTitle 			The custom button title
+ * @param  {Function} 	[callback]    		The callback to invoke when clicking your custom button title.
  * @return {Ti.UI.AlertDialog}
  */
-exports.confirmCustom = function(title, msg, btnTitle, cb) {
-	return alertPrompt(title, msg, [ L('Cancel'), btnTitle ], 0, cb, { selectedIndex: 1 });
+exports.confirmCustom = function(title, msg, btnTitle, callback) {
+	return alertPrompt(title, msg, [ L('Cancel'), btnTitle ], 0, callback, { selectedIndex: 1 });
 };
 
 
@@ -289,12 +283,14 @@ function optionDialog(options, cancelIndex, callback, opt) {
 	var dialog = Ti.UI.createOptionDialog(_.extend({
 		options: options,
 		cancel: cancelIndex
-	}, opt || {}));
+	}, opt));
+
 	dialog.addEventListener('click', function(e){
-		if (OS_IOS && e.index==cancelIndex) return;
-		if (OS_ANDROID && e.cancel) return;
-		if (callback) callback(e.index);
+		if (OS_IOS && e.index == cancelIndex) return;
+		if (OS_ANDROID && e.cancel === true) return;
+		if (_.isFunction(callback)) callback(e.index);
 	});
+
 	dialog.show();
 	return dialog;
 }
@@ -313,8 +309,8 @@ exports.option = optionDialog;
  *
  * ```javascript
  * [
- * 	{ title: "Option one", callback: function(){ ... } },
- * 	{ title: "Option two", callback: function(){ ... } },
+ * 	{ title: 'Option one', callback: function(){ ... } },
+ * 	{ title: 'Option two', callback: function(){ ... } },
  * 	...
  * ]
  * ```
@@ -326,7 +322,9 @@ function optionDialogWithDict(dict) {
 	var options = _.pluck(dict, 'title');
 	options.push(L('Cancel'));
 	return optionDialog(options, options.length-1, function(i){
-		if (dict[+i] && dict[+i].callback) dict[+i].callback();
+		if (dict[+i] != null && _.isFunction(dict[+i].callback)) {
+			dict[+i].callback();
+		}
 	});
 }
 exports.optionWithDict = optionDialogWithDict;
@@ -353,7 +351,7 @@ exports.alertError = exports.error = alertError;
  */
 function getIOSVersion() {
 	if (!OS_IOS) return false;
-	return parseInt(Ti.Platform.version.split(".")[0]);
+	return parseInt(Ti.Platform.version.split('.')[0], 10);
 }
 exports.getIOSVersion = getIOSVersion;
 
@@ -362,7 +360,7 @@ exports.getIOSVersion = getIOSVersion;
  * @return {Boolean}
  */
 function isIOS6() {
-	return getIOSVersion()==6;
+	return getIOSVersion() === 6;
 }
 exports.isIOS6 = isIOS6;
 
@@ -372,7 +370,7 @@ exports.isIOS6 = isIOS6;
  * @return {Boolean}
  */
 function isIOS7() {
-	return getIOSVersion()==7;
+	return getIOSVersion() === 7;
 }
 exports.isIOS7 = isIOS7;
 
@@ -381,7 +379,7 @@ exports.isIOS7 = isIOS7;
  * @return {Boolean}
  */
 function isIOS8() {
-	return getIOSVersion()==8;
+	return getIOSVersion() === 8;
 }
 exports.isIOS8 = isIOS8;
 
@@ -390,26 +388,22 @@ exports.isIOS8 = isIOS8;
  * @return {Boolean}
  */
 function isSimulator() {
-	return Ti.Platform.model==='Simulator' || Ti.Platform.model.indexOf('sdk')!==-1;
+	return Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
 }
 exports.isSimulator = isSimulator;
 
 /**
- * Parse the URL schema according to X-Callback-URL standard
+ * Parse the initial arguments URL schema
  *
  * @return {String}
  */
 exports.parseSchema = function() {
 	if (OS_IOS) {
 		var cmd = Ti.App.getArguments();
-		if (cmd && undefined!==cmd.url) {
-			return cmd.url;
-		}
+		if (cmd != null && cmd.url != null) return cmd.url;
 	} else if (OS_ANDROID) {
 		var url = Ti.Android.currentActivity.intent.data;
-		if (url) {
-			return url;
-		}
+		if (url != null) return url;
 	}
 	return '';
 };
@@ -420,7 +414,7 @@ exports.parseSchema = function() {
  * Get the current UNIX timestamp.
  * @return {Number}
  */
-function now(t) {
+function now() {
 	return parseInt((+new Date())/1000, 10);
 }
 exports.now = now;
@@ -434,8 +428,8 @@ exports.now = now;
  * @return {Number}
  */
 function timestamp(t) {
-	if (!t) return now();
-	return parseInt((+new Date(t))/1000,10);
+	if (t == null) return now();
+	return parseInt((+new Date(t))/1000, 10);
 }
 exports.timestamp = timestamp;
 
@@ -448,7 +442,7 @@ exports.timestamp = timestamp;
  * @return {Number}
  */
 exports.fromnow = function(t) {
-	return timestamp( (now()+t)*1000 );
+	return timestamp((now() + t) * 1000);
 };
 
 
@@ -480,8 +474,8 @@ exports.buildQuery = function(obj) {
 
 	var q = [];
 	_.each(obj, function(v, k) {
-		if (v !== null && v !== false && v !== void(0)) {
-			q.push(k+'='+encodeURIComponent(v));
+		if (v != null) {
+			q.push(k + '=' + encodeURIComponent(v));
 		}
 	});
 	if (q.length === 0) return '';
@@ -497,7 +491,7 @@ exports.buildQuery = function(obj) {
  * @return {String}
  */
 exports.getAppDataDirectory = function() {
-	if (Ti.Filesystem.isExternalStoragePresent()) {
+	if (Ti.Filesystem.isExternalStoragePresent() === true) {
 		return Ti.Filesystem.externalStorageDirectory;
 	}
 	return Ti.Filesystem.applicationDataDirectory;
@@ -511,16 +505,17 @@ exports.getAppDataDirectory = function() {
  * @param  {String} tel The number to call.
  */
 exports.dial = function(tel) {
-	tel = tel.match(/[0-9]/g).join('');
+	var telString = tel.match(/[0-9]/g).join('');
+	var errString = String.format(L('util_dial_failed'), tel);
 	if (OS_ANDROID) {
 
 		startActivity({
 			action: Ti.Android.ACTION_CALL,
-			data: 'tel:'+tel
-		}, String.format(L('util_dial_failed'), tel));
+			data: 'tel:' + telString
+		}, errString);
 
 	} else {
-		openURL('tel:'+tel, null, String.format(L('util_dial_failed'), tel));
+		openURL('tel:' + telString, null, errString);
 	}
 };
 
@@ -534,7 +529,7 @@ exports.dial = function(tel) {
  * @return {Boolean}
  */
 exports.isAppFirstUsage = function() {
-	return !Ti.App.Properties.hasProperty('app.firstusage');
+	return ! Ti.App.Properties.hasProperty('app.firstusage');
 };
 
 
@@ -546,7 +541,7 @@ exports.isAppFirstUsage = function() {
  *
  */
 exports.setAppFirstUsage = function() {
-	Ti.App.Properties.setString('app.firstusage', +new Date().toString());
+	Ti.App.Properties.setString('app.firstusage', now());
 };
 
 
@@ -566,14 +561,15 @@ exports.setAppFirstUsage = function() {
  */
 exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 	obj = obj || {};
-	obj.access_token = opt.appid+'|'+opt.appsecret;
+	obj.access_token = opt.appid + '|' + opt.appsecret;
+
 	require('T/http').send({
-		url: 'https://graph.facebook.com/'+path.replace(/^\//, ''),
+		url: 'https://graph.facebook.com/' + path.replace(/^\//, ''),
 		data: obj,
 		mime: 'json',
 		refresh: opt.refresh,
-		expire: opt.expire || 0,
-		silent: opt.silent || false,
+		expire: opt.expire,
+		silent: opt.silent,
 		error: opt.error,
 		success: callback
 	});

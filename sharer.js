@@ -14,34 +14,35 @@ var config = _.extend({
 }, Alloy.CFG.T.sharer);
 exports.config = config;
 
+
 var Util = require('T/util');
 
-// Handle all callbacks by this-
-var callback = null;
+var callback = null;// Handle all callbacks
 
-// Native modules
 var dkNappSocial = null;
 var Facebook = null;
 var benCodingSMS = null;
 
 function onSocialComplete(e) {
-	if (!callback) return;
+	if (!_.isFunction(callback)) return;
+
 	e.type = 'complete';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
 }
 
 function onSocialCancel(e) {
-	if (!callback) return;
+	if (!_.isFunction(callback)) return;
+
 	e.type = 'cancelled';
 	if (e.activityName) e.platform = e.activityName;
 	callback(e);
 }
 
 function parseArgs(args) {
-	if (!args) return {};
+	if (!_.isObject(args)) return {};
 
-	if (args.image) {
+	if (args.image != null) {
 		if (_.isObject(args.image)) {
 			if (args.image.resolve) {
 				args.imageBlob = args.image;
@@ -52,28 +53,30 @@ function parseArgs(args) {
 			} else {
 				delete args.image;
 			}
-		} else if (_.isString(args.image) && args.image.indexOf('://')) {
+		} else if (_.isString(args.image) && args.image.indexOf('://') !== -1) {
 			args.imageUrl = args.image;
 		}
 	}
 
-	if (args.link) {
+	if (args.link != null) {
 		args.url = args.link;
 		delete args.link;
 	}
 
-	if (args.removeIcons && args.removeIcons=='ALL') {
-		args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
+	if (args.removeIcons === 'ALL') args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
+
+	if (args.text != null && args.url != null) args.fullText = args.text + ' (' + args.url + ')';
+	else if (args.text != null) args.fullText = args.text;
+	else if (args.url != null) args.fullText = args.url;
+
+	if (_.isFunction(args.callback)) {
+		callback = args.callback;
+		delete args.callback;
 	}
 
-	if (args.text && args.url) args.fullText = args.text + ' (' + args.url + ')';
-	else if (args.text) args.fullText = args.text;
-	else if (args.url) args.fullText = args.url;
-
-	delete args.callback;
+	args.useSDK = args.useSDK || false;
 	return args;
 }
-
 
 
 /**
@@ -99,15 +102,14 @@ exports.internal = internal;
  * @param {Object} args
  */
 function facebook(args) {
-	callback = args.callback || null;
 	args = parseArgs(args);
 
 	// IOS-BUG: iOS Sharer doesn't share Facebook links
-	if (args.url && args.url.match(/https?\:\/\/(www\.)?facebook\.com/)) {
+	if (/https?\:\/\/(www\.)?facebook\.com/.test(args.url) === true) {
 		args.useSDK = true;
 	}
 
-	if (!args.useSDK && args.native!==false && dkNappSocial && dkNappSocial.isFacebookSupported()) {
+	if (args.useSDK !== true && args.native !== false && dkNappSocial !== null && dkNappSocial.isFacebookSupported() === true) {
 
 		/*
 		Native iOS dialog
@@ -131,19 +133,18 @@ function facebook(args) {
 			link: args.url,
 			picture: args.imageUrl
 		}, function(e) {
-
-			if (!e.cancelled) {
-				onSocialComplete({
-					success: e.success,
-					platform: 'facebook'
-				});
-			} else {
+			if (e.cancelled === true) {
 				onSocialCancel({
 					success: false,
 					platform: 'facebook'
 				});
+				return;
 			}
 
+			onSocialComplete({
+				success: e.success,
+				platform: 'facebook'
+			});
 		});
 
 	} else {
@@ -152,7 +153,7 @@ function facebook(args) {
 		Browser sharing
 		*/
 
-		if (args.url) {
+		if (args.url != null) {
 			Ti.Platform.openURL('https://www.facebook.com/sharer.php?u='+args.url);
 		}
 
@@ -166,15 +167,14 @@ exports.facebook = facebook;
  * @param {Object} args
  */
 function twitter(args) {
-	callback = args.callback || null;
 	parseArgs(args);
 
 	var WEB_URL = 'http://www.twitter.com/intent';
 	var webIntent;
-	if (args.retweet) {
-		webIntent = WEB_URL+'/retweet?tweet_id='+args.retweet;
+	if (args.retweet != null) {
+		webIntent = WEB_URL + '/retweet?tweet_id=' + args.retweet;
 	} else {
-		webIntent = WEB_URL+'/tweet'+require('T/util').buildQuery({
+		webIntent = WEB_URL + '/tweet' + require('T/util').buildQuery({
 			text: args.text,
 			url: args.url
 		});
@@ -190,14 +190,14 @@ function twitter(args) {
 
 	} else {
 
-		if (args.native!==false && dkNappSocial && dkNappSocial.isTwitterSupported()) {
+		if (args.native !== false && dkNappSocial !== null && dkNappSocial.isTwitterSupported() === true) {
 
 			/*
 			Native iOS Dialog
 			*/
 
 			var text = args.text;
-			if (args.retweetUser) text = 'RT @'+args.retweetUser+': '+text;
+			if (args.retweetUser) text = 'RT @' + args.retweetUser + ': ' + text;
 
 			dkNappSocial.twitter({
 				text: text,
@@ -212,7 +212,7 @@ function twitter(args) {
 			Browser fallback
 			*/
 
-			Util.openURL('twitter://post?message='+encodeURIComponent(args.fullText), webIntent);
+			Util.openURL('twitter://post?message=' + encodeURIComponent(args.fullText), webIntent);
 
 		}
 	}
@@ -226,7 +226,6 @@ exports.twitter = twitter;
  * @param {Object} args
  */
 function mail(args) {
-	callback = args.callback || null;
 	args = parseArgs(args);
 
 	var $dialog = Ti.UI.createEmailDialog({
@@ -234,22 +233,23 @@ function mail(args) {
 		messageBody: args.fullText,
 	});
 
-	if (args.imageBlob) {
+	if (args.imageBlob != null) {
 		$dialog.addAttachment(args.imageBlob);
 	}
 
 	$dialog.addEventListener('complete', function(e) {
-		if (e.result===this.CANCELLED) {
+		if (e.result === this.CANCELLED) {
 			onSocialCancel({
 				success: false,
 				platform: 'mail'
 			});
-		} else {
-			onSocialComplete({
-				success: (e.result===this.SENT),
-				platform: 'mail'
-			});
+			return;
 		}
+
+		onSocialComplete({
+			success: (e.result === this.SENT),
+			platform: 'mail'
+		});
 	});
 
 	$dialog.open();
@@ -264,15 +264,15 @@ exports.mail = mail;
  */
 function googleplus(args) {
 	args = parseArgs(args);
-	if (!args.url) {
-		Ti.API.error("Sharer: sharing on G+ require a URL");
+	if (_.isEmpty(args.url)) {
+		Ti.API.error('Sharer: sharing on G+ require a URL');
 		return;
 	}
 
 	/*
 	Browser unique implementation
 	*/
-	Ti.Platform.openURL("https://plus.google.com/share?url="+encodeURIComponent(args.url));
+	Ti.Platform.openURL('https://plus.google.com/share?url=' + encodeURIComponent(args.url));
 }
 exports.googleplus = googleplus;
 
@@ -290,7 +290,7 @@ function whatsapp(args) {
 		/*
 		Native protocol binding
 		 */
-		Util.openURL('whatsapp://send?text='+args.fullText, function() {
+		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
 			Util.confirm(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
 				Util.openInStore('310633997');
 			});
@@ -307,7 +307,7 @@ function whatsapp(args) {
 				type: 'text/plain',
 				packageName: 'com.whatsapp'
 			});
-			if (!intent) throw new Error();
+			if (intent == null) throw new Error();
 			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 			Ti.Android.currentActivity.startActivity(intent, L('Share'));
 		} catch (err) {
@@ -327,30 +327,30 @@ exports.whatsapp = whatsapp;
  * @param {Object} args
  */
 function sms(args) {
-	callback = args.callback || null;
 	args = parseArgs(args);
 
-	if (OS_IOS && !benCodingSMS) {
-		throw new Error("Sharer: 'bencoding.sms' module is required to send SMS");
-	}
+	if (OS_IOS) {
 
-	if (benCodingSMS) {
+		if (benCodingSMS == null) {
+			Ti.API.error('Sharer: `bencoding.sms` module is required to send SMS');
+			return;
+		}
 
 		/*
 		iOS Native modal
 		*/
 
-		var $dialog = benCodingSMS.createSMSDialog({ messageBody: args.fullText });
+		var $dialog = benCodingSMS.createSMSDialog({
+			messageBody: args.fullText
+		});
 
-		$dialog.addEventListener('completed', function(e){
+		$dialog.addEventListener('completed', function(){
 			onSocialComplete({ success: true, platform: 'messages' });
 		});
-
-		$dialog.addEventListener('cancelled', function(e){
+		$dialog.addEventListener('cancelled', function(){
 			onSocialCancel({ success: false, platform: 'messages' });
 		});
-
-		$dialog.addEventListener('errored', function(e){
+		$dialog.addEventListener('errored', function(){
 			onSocialComplete({ success: false, platform: 'messages' });
 		});
 
@@ -380,7 +380,6 @@ exports.sms = sms;
  * @param {Object} args
  */
 function activity(args) {
-	callback = args.callback || null;
 	args = parseArgs(args);
 
 	if (OS_IOS) {
@@ -389,12 +388,12 @@ function activity(args) {
 		iOS Activity native
 		*/
 
-		if (!dkNappSocial) {
-			throw new Error("Sharer: module 'dk.napp.social' is required for 'activity' method");
+		if (dkNappSocial == null) {
+			Ti.API.error('Sharer: module `dk.napp.social` is required for `activity` method');
+			return;
 		}
 
-		dkNappSocial[ Ti.Platform.osname==='ipad' ? 'activityPopover' : 'activityView' ]
-		({
+		dkNappSocial[ Ti.Platform.osname==='ipad' ? 'activityPopover' : 'activityView' ]({
 			text: args.text,
 			title: args.title,
 			image: args.image,
@@ -425,7 +424,6 @@ function activity(args) {
 
 	}
 }
-
 exports.activity = activity;
 exports.multi = activity;
 
@@ -436,40 +434,40 @@ exports.multi = activity;
 
 	try {
 		Facebook = require('facebook');
-		if (!Facebook) throw new Error();
+		if (Facebook == null) throw new Error();
 	} catch (ex) {
-		Ti.API.warn("Sharer: 'facebook' can't be loaded");
+		Ti.API.warn('Sharer: `facebook` can\'t be loaded');
 	}
 
 	if (OS_IOS) {
 
 		try {
 			dkNappSocial = require('dk.napp.social');
-			if (!dkNappSocial) throw new Error();
+			if (dkNappSocial == null) throw new Error();
 		} catch (ex) {
-			Ti.API.warn("Sharer: 'dk.napp.social' can't be loaded");
+			Ti.API.warn('Sharer: `dk.napp.social` can\'t be loaded');
 		}
 
 		try {
 			benCodingSMS = require('bencoding.sms');
-			if (!benCodingSMS) throw new Error();
+			if (benCodingSMS == null) throw new Error();
 		} catch (ex) {
-			Ti.API.warn("Sharer: 'bencoding.sms' can't be loaded");
+			Ti.API.warn('Sharer: `bencoding.sms` can\'t be loaded');
 		}
 
 	}
 
 	// Configure modules
 
-	if (!Facebook.appid) {
+	if (Facebook.appid == null) {
 		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
 			Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 		} else {
-			Ti.API.error("Sharer: Please specify a Facebook AppID");
+			Ti.API.error('Sharer: Please specify a Facebook AppID');
 		}
 	}
 
-	if (dkNappSocial) {
+	if (dkNappSocial !== null) {
 		dkNappSocial.addEventListener('complete', onSocialComplete);
 		dkNappSocial.addEventListener('cancelled', onSocialCancel);
 	}

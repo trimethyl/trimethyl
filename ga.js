@@ -18,11 +18,11 @@ exports.config = config;
 
 
 var AnalyticsGoogle = require('analytics.google');
-var __tracker = null;
+var tracker = null;
 
 function track(method, what) {
-	Ti.API.debug("GA: "+method+" - "+JSON.stringify(what));
-	__tracker["track"+method](what);
+	Ti.API.debug('GA: ' + method + ' - ' + JSON.stringify(what));
+	tracker['track'+method](what);
 }
 
 
@@ -35,7 +35,7 @@ function track(method, what) {
  * @param  {String} [val]	Value
  */
 function trackEvent(cat, act, lbl, val){
-	if (!__tracker) return;
+	if (tracker === null) return;
 	var obj = {};
 
 	if (_.isObject(cat)) {
@@ -65,7 +65,7 @@ exports.event = trackEvent;
  * @param  {String} name The screen name
  */
 function trackScreen(obj){
-	if (!__tracker) return;
+	if (tracker === null) return;
 
 	track('Screen', obj);
 }
@@ -87,7 +87,7 @@ exports.screen = trackScreen;
  * @param  {String} [tar] 		Target
  */
 function trackSocial(net, act, tar){
-	if (!__tracker) return;
+	if (tracker === null) return;
 	var obj = {};
 
 	if (_.isObject(net)) {
@@ -120,7 +120,7 @@ exports.social = trackSocial;
  * @param  {String} [lbl]		Label
  */
 function trackTiming(cat, time, name, lbl){
-	if (!__tracker) return;
+	if (tracker === null) return;
 	var obj = {};
 
 	if (_.isObject(cat)) {
@@ -150,7 +150,7 @@ exports.time = trackTiming;
  * @param {String} ua
  */
 function setTrackerUA(ua) {
-	__tracker = AnalyticsGoogle.getTracker(ua);
+	tracker = AnalyticsGoogle.getTracker(ua);
 }
 exports.setTrackerUA = setTrackerUA;
 

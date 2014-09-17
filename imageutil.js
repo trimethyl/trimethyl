@@ -12,7 +12,7 @@ exports.config = config;
 
 
 /**
- * Process the image and output in memory or filesystem
+ * Process the image and output in memory/filesystem
  *
  * `blob` is required to process the image, or an error is thrown
  *
@@ -27,48 +27,49 @@ exports.config = config;
  * If `width` and `height` are both passed, the image will be resized
  * stretching the image with the specified width and height.
  *
- * ## Optional parameters
- *
- * `quality`: to degrade the image
+ * When you set `retina : true`, the output size is multipied for density factor.
  *
  * ## Output options
  *
  * `filename`: output the blob in the filesystem and release memory blob
  *
- * `success`: call the function passing the output blob or output file if the keyword `filename` is specified
- *
- * `error`: call the function in case of errors
- *
  * @param  {Object} opt The options, see the description above.
+ * @return {Object} {Ti.Blob/Ti.File}
  */
 function process(opt) {
-	if (!opt.blob) {
-		Ti.API.error("Image: Set a blob please");
+	if (opt.blob == null) {
+		Ti.API.error('Image: Blob is null');
 		return;
 	}
 
-	var density = opt.retina ? Alloy.Globals.SCREEN_DENSITY : 1;
+	var density = opt.retina === true ? Alloy.Globals.SCREEN_DENSITY : 1;
 	var R = null;
 
-	if (opt.size) {
+	if (opt.size != null) {
 		R = opt.blob.imageAsThumbnail(opt.size*density);
-	} else if (opt.width || opt.height) {
-		opt.width = opt.width || opt.height*(opt.blob.width/opt.blob.height);
-		opt.height = opt.height || opt.width*(opt.blob.height/opt.blob.width);
-		R = opt.blob.imageAsResized(opt.width*density, opt.height*density);
+	} else if (opt.width != null || opt.height != null) {
+		opt.width = opt.width || opt.height * (opt.blob.width / opt.blob.height);
+		opt.height = opt.height || opt.width * (opt.blob.height / opt.blob.width);
+		R = opt.blob.imageAsResized(opt.width * density, opt.height * density);
 	} else {
 		R = opt.blob;
 	}
 
-	if (!R) return;
-	if (!opt.filename) return R;
+	if (R == null) {
+		Ti.API.error('Image: Unexeptected error');
+		return;
+	}
+
+	if (opt.filename == null) {
+		return R;
+	}
 
 	var file = Ti.Filesystem.getFile(require('T/util').getAppDataDirectory(), opt.filename);
 	var result = file.write(R);
-	R = null;
+	R = null; // GC
 
-	if (!result) {
-		Ti.API.error("Image: error writing file");
+	if (result === false) {
+		Ti.API.error('Image: Unexeptected error while writing file');
 		return;
 	}
 

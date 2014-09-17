@@ -20,14 +20,15 @@ var DB = null;
  * @return {Titanium.Database.DB}
  */
 function open() {
-	if (DB) return DB;
+	if (DB !== null) return DB;
 
 	try {
 		DB = Ti.Database.open('app');
-		return DB;
 	} catch (ex) {
-		Ti.API.error("DB: "+ex);
-		return false;
+		DB = null;
+		Ti.API.error('DB: ERROR', ex);
 	}
+
+	return DB;
 }
 exports.open = open;

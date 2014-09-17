@@ -40,8 +40,8 @@ if (!OS_IOS) {
 		}
 
 		self.open = function open(opt) {
-			if (!args.window) {
-				Ti.API.error("XP.UI: no window defined in NavigationWindow");
+			if (args.window == null) {
+				Ti.API.error('XP.UI: no window defined in NavigationWindow');
 				return false;
 			}
 
@@ -49,8 +49,8 @@ if (!OS_IOS) {
 		};
 
 		self.close = function close(callback) {
-			function _close(cb) {
-				if (self.windows.length===0) {
+			(function _close() {
+				if (self.windows.length === 0) {
 					if (_.isFunction(callback)) callback();
 					return;
 				}
@@ -59,18 +59,16 @@ if (!OS_IOS) {
 				w.removeEventListener('close', onWindowClose);
 				w.addEventListener('close', _close);
 				w.close({ animated: false });
-			}
-
-			_close();
+			})();
 		};
 
-		self.openWindow = function openWindow(window, opt) {
+		self.openWindow = function(window, opt) {
 			opt = opt || {};
 
 			if (OS_ANDROID) {
-				if (opt.animated!==false && window.animated!==false) {
+				if (opt.animated !== false && window.animated !== false) {
 					opt.animated = true;
-					if (opt.modal) {
+					if (opt.modal === true) {
 						opt.activityEnterAnimation = Ti.Android.R.anim.fade_in;
 						opt.activityExitAnimation = Ti.Android.R.anim.fade_out;
 					} else {
@@ -166,10 +164,10 @@ exports.createNavigationWindow = function(args) {
  */
 exports.createWindow = function(args) {
 	args = args || {};
+
 	var $this = Ti.UI.createWindow(args);
 
 	var opened = false;
-
 	var onOpenFuncs = [], onOpen = function(fun) {
 		if (opened) { fun(); return; }
 		onOpenFuncs.push(fun);
@@ -198,15 +196,15 @@ exports.createWindow = function(args) {
 	$this.setBackgroundCoverImage = function(val){
 		var SCREEN_RATIO = Alloy.Globals.SCREEN_WIDTH/Alloy.Globals.SCREEN_HEIGHT;
 
-		if (null===bgCoverUI) {
+		if (bgCoverUI === null) {
 			bgCoverUI = Ti.UI.createImageView();
 
 			// Wait for postlayout to determine where to stretch
-			bgCoverUI.addEventListener('postlayout', function(e){
-				if (bgCoverUI.postlayouted) return;
+			bgCoverUI.addEventListener('postlayout', function(){
+				if (bgCoverUI.postlayouted === true) return;
 				bgCoverUI.postlayouted = true;
 
-				var R = bgCoverUI.size.width/bgCoverUI.size.height;
+				var R = bgCoverUI.size.width / bgCoverUI.size.height;
 				bgCoverUI.applyProperties(
 					SCREEN_RATIO>R ?
 					{ width: Alloy.Globals.SCREEN_WIDTH, height: Ti.UI.SIZE } :
@@ -236,8 +234,8 @@ exports.createWindow = function(args) {
 
 		$this.setActivityProperties = function(props, callback) {
 			onOpen(function(){
-				if (!$this.activity) return;
-				_.each(props, function(v,k) { $this.activity[k] = v; });
+				if ($this.activity == null) return;
+				_.each(props, function(v, k) { $this.activity[k] = v; });
 				if (_.isFunction(callback)) callback($this.activity);
 			});
 		};
@@ -247,8 +245,8 @@ exports.createWindow = function(args) {
 
 		$this.setActionBarProperties = function(props, callback) {
 			onOpen(function(){
-				if (!$this.activity.actionBar) return;
-				_.each(props, function(v,k) { $this.activity.actionBar[k] = v; });
+				if ($this.activity == null || $this.activity.actionBar == null) return;
+				_.each(props, function(v, k) { $this.activity.actionBar[k] = v; });
 				if (_.isFunction(callback)) callback($this.activity.actionBar);
 			});
 		};
@@ -265,7 +263,7 @@ exports.createWindow = function(args) {
 
 		$this.setActionBarProperties({
 			onHomeIconItemSelected: function() {
-				if (!displayHomeAsUp) return;
+				if (displayHomeAsUp === false) return;
 				$this.close();
 			}
 		});
@@ -276,14 +274,14 @@ exports.createWindow = function(args) {
 
 		var activityButtons = [];
 
-		$this.addActivityButton = function(opt){
+		$this.addActivityButton = function(opt) {
 			while (opt.children && opt.children[0]) opt = opt.children[0];// hack for Alloy, just ignore it
 			activityButtons.push(opt);
 		};
 
 		$this.setActivityProperties({
-			onCreateOptionsMenu: function(e){
-				_.each(activityButtons, function(btn){
+			onCreateOptionsMenu: function(e) {
+				_.each(activityButtons, function(btn) {
 					var menuItem = e.menu.add({
 						title: btn.title || '',
 						icon: btn.icon || btn.image || '',
@@ -296,7 +294,7 @@ exports.createWindow = function(args) {
 				});
 			}
 		}, function(act) {
-			if (act.invalidateOptionsMenu) act.invalidateOptionsMenu();
+			if (_.isFunction(act.invalidateOptionsMenu)) act.invalidateOptionsMenu();
 		});
 
 		$this.setActivityButton = function(opt) {
@@ -317,17 +315,17 @@ exports.createWindow = function(args) {
 	// PARSE ARGUMENTS AND INITIALIZATION
 	// ==================================
 
-	if (args.deferredBackgroundImage) $this.setDeferredBackgroundImage(args.deferredBackgroundImage);
-	if (args.backgroundCoverImage) $this.setBackgroundCoverImage(args.backgroundCoverImage);
+	if (args.deferredBackgroundImage != null) $this.setDeferredBackgroundImage(args.deferredBackgroundImage);
+	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);
 
 	if (OS_ANDROID) {
 
 		var bar = {};
-		if (args.subtitle) {
+		if (args.subtitle != null) {
 			bar.title = args.title;
 			bar.subtitle = args.subtitle;
 		} else {
-			if (args.subtitle===false) bar.title = args.title;
+			if (args.subtitle === false) bar.title = args.title;
 			else {
 				bar.title =  Ti.App.name;
 				bar.subtitle = args.title;
@@ -335,13 +333,15 @@ exports.createWindow = function(args) {
 		}
 		$this.setActionBarProperties(bar);
 
-		if (args.activityProperties) $this.setActivityProperties(args.activityProperties);
-		if (args.actionBarProperties) $this.setActionBarProperties(args.actionBarProperties);
+		if (args.activityProperties != null) $this.setActivityProperties(args.activityProperties);
+		if (args.actionBarProperties != null) $this.setActionBarProperties(args.actionBarProperties);
 
-		if (args.rightNavButton) $this.setRightNavButton(args.rightNavButton);
-		if (args.activityButtons) _.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
-		if (args.activityButton) $this.setActivityButton(args.activityButton);
-		if (args.displayHomeAsUp) $this.setDisplayHomeAsUp(args.displayHomeAsUp);
+		if (args.rightNavButton != null) $this.setRightNavButton(args.rightNavButton);
+		if (args.activityButtons != null) {
+			_.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
+		}
+		if (args.activityButton != null) $this.setActivityButton(args.activityButton);
+		if (args.displayHomeAsUp != null) $this.setDisplayHomeAsUp(args.displayHomeAsUp);
 
 	}
 
@@ -387,7 +387,7 @@ exports.createTextField = function(args) {
 	// PasswordEye
 	// ===============================
 
-	if (OS_IOS && args.textType=='passwordEye') {
+	if (OS_IOS && args.textType === 'passwordEye') {
 		var eyeButton = Ti.UI.createButton({
 			image: '/images/T/eye.png',
 			height: 40, width: 40,
@@ -446,19 +446,26 @@ exports.createTextField = function(args) {
  */
 exports.createTextArea = function(args) {
 	args = args || {};
+
 	var $this = Ti.UI.createTextArea(args);
 
 	var originalColor = $this.color || '#000';
 
 	var onTextAreaFocus = function() {
-		if (!$this.getRealValue().length) {
-			$this.applyProperties({ value: '', color: originalColor });
+		if (_.isEmpty($this.getRealValue())) {
+			$this.applyProperties({
+				value: '',
+				color: originalColor
+			});
 		}
 	};
 
 	var onTextAreaBlur = function() {
-		if (0===$this.value.length) {
-			$this.applyProperties({ value: $this.hintText, color: $this.hintTextColor || '#AAA' });
+		if (_.isEmpty($this.value)) {
+			$this.applyProperties({
+				value: $this.hintText,
+				color: $this.hintTextColor || '#AAA'
+			});
 		} else {
 			$this.color = originalColor;
 		}
@@ -466,16 +473,16 @@ exports.createTextArea = function(args) {
 
 	if (OS_IOS) {
 
-		$this.getRealValue = function getRealValue(){
-			if ($this.hintText==$this.value) return '';
+		$this.getRealValue = function(){
+			if ($this.hintText === $this.value) return '';
 			return $this.value;
 		};
 
-		$this.getHintText = function getHintText() {
+		$this.getHintText = function() {
 			return $this.hintText;
 		};
 
-		$this.setHintText = function setHintText(val) {
+		$this.setHintText = function(val) {
 			$this.hintText = val;
 		};
 	}
@@ -487,7 +494,7 @@ exports.createTextArea = function(args) {
  	==================================
  	*/
 
- 	if (OS_IOS && args.hintText) {
+ 	if (OS_IOS && args.hintText != null) {
  		$this.setHintText(args.hintText);
  		$this.addEventListener('focus', onTextAreaFocus);
  		$this.addEventListener('blur', onTextAreaBlur);
@@ -579,7 +586,7 @@ exports.createLabel = function(args) {
 			bold: {
 				fontWeight: 'Bold'
 			}
-		}, args.fontTransform || {});
+		}, args.fontTransform);
 
 		$this.setHtml = function(value) {
 			var htmlToAttrMap = {
@@ -597,15 +604,18 @@ exports.createLabel = function(args) {
 				}
 			};
 
-			var parseResult = simpleHTMLParser(value.replace(/<br\/?>/g, "\n").replace(/<p>/g, '').replace(/<\/p>/g, "\n\n"));
+			value = value.replace(/<br\/?>/g, '\n');
+			value = value.replace(/<p>/g, '').replace(/<\/p>/g, '\n\n');
+			var parseResult = simpleHTMLParser(value);
+
 			var attributedString = {
 				text: parseResult.text,
 				attributes: []
 			};
 
 			_.each(parseResult.style, function(v){
-				if (v.type in htmlToAttrMap) {
-					attributedString.attributes.push(_.extend(_.clone(htmlToAttrMap[v.type]), {
+				if (htmlToAttrMap[v.type] != null) {
+					attributedString.attributes.push(_.extend({}, htmlToAttrMap[v.type], {
 						range: [ v.start, v.length ]
 					}));
 				}
@@ -623,7 +633,7 @@ exports.createLabel = function(args) {
  	*/
 
 	if (OS_IOS) {
-		if (args.html) $this.setHtml(args.html);
+		if (args.html != null) $this.setHtml(args.html);
 	}
 
 	return $this;
@@ -643,7 +653,9 @@ exports.createLabel = function(args) {
  * @param  {Object} args
  */
 exports.createListView = function(args) {
-	var $this = Ti.UI.createListView(args || {});
+	args = args || {};
+
+	var $this = Ti.UI.createListView(args);
 
 	var DBL_CLICK_TIMEOUT = 500;
 	var devtClick = {};
@@ -657,7 +669,7 @@ exports.createListView = function(args) {
 			sectionIndex: e.sectionIndex,
 			itemIndex: e.itemIndex
 		};
-		if (evtTime-devtTime<DBL_CLICK_TIMEOUT && _.isEqual(devtClick, evtClick)) {
+		if (evtTime - devtTime < DBL_CLICK_TIMEOUT && _.isEqual(devtClick, evtClick)) {
 			evtClick.section = e.section;
 			$this.fireEvent('itemdblclick', evtClick);
 			evtClick = {}; // prevent non 2n-clicks
@@ -676,6 +688,7 @@ exports.createListView = function(args) {
  */
 exports.createTabbedBar = function(args) {
 	args = args || {};
+
 	if (OS_IOS) {
 		return Ti.UI.iOS.createTabbedBar(args);
 	}
@@ -692,11 +705,11 @@ exports.createTabbedBar = function(args) {
 
 	$this.setLabels = function(lbls) {
 		labels = [];
-		_.each(lbls, function(l, i){
+		_.each(lbls, function(l){
 			labels.push(_.isObject(l) ? l.title : l);
 		});
 
-		var width = Math.floor(100/labels.length)+'%';
+		var width = Math.floor(100 / labels.length) + '%';
 		var $wrap = Ti.UI.createView({ layout: 'horizontal' });
 		_.each(labels, function(l, i){
 			$wrap.add(Ti.UI.createButton({
@@ -711,7 +724,7 @@ exports.createTabbedBar = function(args) {
 			}));
 		});
 
-		if (null !== UIWrapLabels) $this.remove(UIWrapLabels);
+		if (UIWrapLabels !== null) $this.remove(UIWrapLabels);
 		$this.add($wrap);
 		UIWrapLabels = $wrap;
 	};
@@ -721,14 +734,15 @@ exports.createTabbedBar = function(args) {
 	};
 
 	$this.setIndex = function(i) {
-		if ( ! _.isNumber(i)) {
-			Ti.API.error("XP.UI: new index value is not a number");
+		i = parseInt(i, 10);
+		if (!_.isNumber(i)) {
+			Ti.API.error('XP.UI: new index value is not a number');
 			return;
 		}
 
 		labelIndex = +i;
 		_.each(UIWrapLabels && UIWrapLabels.children ? UIWrapLabels.children : [], function($c, i) {
-			if (+i==labelIndex) {
+			if (+i === labelIndex) {
 				$c.applyProperties({
 					backgroundColor: $this.tintColor || '#000',
 					color: $this.backgroundColor || '#fff',
@@ -751,12 +765,12 @@ exports.createTabbedBar = function(args) {
  	*/
 
 	$this.addEventListener('click', function(e){
-		if (void(0)===e.source.index) return;
-		$this.setIndex(+e.source.index);
+		if (e.source.index == null) return;
+		$this.setIndex(e.source.index);
 	});
 
-	if (args.labels) $this.setLabels(args.labels);
-	$this.setIndex(args.index||0);
+	if (args.labels != null) $this.setLabels(args.labels);
+	$this.setIndex(args.index || 0);
 
 	return $this;
 };
@@ -768,9 +782,7 @@ exports.createTabbedBar = function(args) {
  */
  exports.createButton = function(args) {
  	args = args || {};
- 	var $this = Ti.UI.createButton(args || {});
-
-
+ 	var $this = Ti.UI.createButton(args);
 
  	return $this;
  };

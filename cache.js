@@ -11,24 +11,23 @@ var config = _.extend({
 }, Alloy.CFG.T.cache);
 exports.config = config;
 
-
 var DB = null;
 
 function getFromDB(id) {
-	if (!DB) {
-		Ti.API.error("Cache: database not open.");
+	if (DB === null) {
+		Ti.API.error('Cache: database not open.');
 		return false;
 	}
 
 	var row = DB.execute('SELECT expire FROM cache WHERE id = ? LIMIT 1', id);
-	if (false === row.isValidRow()) return false;
+	if (row.isValidRow() === false) return false;
 
 	var expire = row.field(0) || 0;
 	var now = require('T/util').timestamp();
-	if (expire!==-1 && now>expire) return false;
+	if (expire!==-1 && now > expire) return false;
 
 	row = DB.execute('SELECT value FROM cache WHERE id = ? LIMIT 1', id);
-	if (false === row.isValidRow()) return false;
+	if (row.isValidRow() === false) return false;
 
 	return require('T/util').parseJSON(row.field(0));
 }
@@ -43,10 +42,11 @@ function getFromDB(id) {
  */
 function get(id, value, expire) {
 	var databaseValue = getFromDB(id);
-	if (databaseValue) return databaseValue;
+	if (databaseValue !== false) return databaseValue;
 
+	// Parse value to set
 	if (_.isFunction(value)) value = value();
-	if (!value) return;
+	if (value == null) return;
 
 	set(id, value, expire);
 	return value;
@@ -62,8 +62,8 @@ exports.get = get;
  * @param {Number} expire TTL of this property, expressed is seconds from now
  */
 function set(id, value, expire) {
-	if (!DB) {
-		Ti.API.error("Cache: database not open.");
+	if (DB === null) {
+		Ti.API.error('Cache: database not open.');
 		return false;
 	}
 
@@ -76,7 +76,7 @@ exports.set = set;
 (function init() {
 
 	DB = require('T/db').open();
-	if (DB) {
+	if (DB !== null) {
 		DB.execute('CREATE TABLE IF NOT EXISTS cache (id TEXT PRIMARY KEY, expire INTEGER, value TEXT)');
 	}
 

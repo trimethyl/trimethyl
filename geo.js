@@ -6,20 +6,21 @@
  */
 
 /**
- * * **accuracy**: Accuracy of Geo. Must be one of `"ACCURACY_HIGH"`, `"ACCURACY_LOW"`
+ * * **accuracy**: Accuracy of Geo. Must be one of `'ACCURACY_HIGH'`, `'ACCURACY_LOW'`
  * * **useGoogleForGeocode**: Tell to use Google Services instead of Titanium geocoding services.
  * @type {Object}
  */
 var config = _.extend({
-	accuracy: "ACCURACY_HIGH",
+	accuracy: 'ACCURACY_HIGH',
 	useGoogleForGeocode: true,
 }, Alloy.CFG.geo);
 exports.config = config;
 
+
 function decorateRequest(request) {
 	if (request.decorated) return request;
 
-	if (request.error===undefined) request.error = originalErrorHandler;
+	if (request.error === undefined) request.error = originalErrorHandler;
 
 	request.decorated = true;
 	return request;
@@ -43,7 +44,7 @@ exports.enableServicesAlert = enableServicesAlert;
  * @param  {Object} e
  */
 function originalErrorHandler(e) {
-	if (e.servicesDisabled) {
+	if (e.servicesDisabled === true) {
 		enableServicesAlert();
 	} else {
 		require('T/util').simpleAlert(L('geo_error_title'));
@@ -52,7 +53,7 @@ function originalErrorHandler(e) {
 exports.originalErrorHandler = originalErrorHandler;
 
 function checkForServices() {
-	return !!Ti.Geolocation.locationServicesEnabled;
+	return !! Ti.Geolocation.locationServicesEnabled;
 }
 
 
@@ -62,7 +63,8 @@ function checkForServices() {
  * @param {Function} callback
  */
 function localize(callback) {
-	Ti.API.warn("[DEPRECATED] The use of 'Geo.localize' is deprecated, use 'Geo.getPosition' instead!");
+	Ti.API.warn('[DEPRECATED] The use of `Geo.localize` is deprecated, use `Geo.getPosition` instead!');
+
 	getCurrentPosition({
 		success: function(e){
 			callback({ coords: e });
@@ -84,20 +86,20 @@ exports.localize = localize;
 function getCurrentPosition(request) {
 	request = decorateRequest(request);
 
-	if (false===checkForServices()) {
+	if (checkForServices() === false) {
 		if (_.isFunction(request.complete)) request.complete();
-
 		if (_.isFunction(request.error)) request.error({ servicesDisabled: true });
 		return;
 	}
 
-	if (!request.silent) require('T/event').trigger('geo.start');
+	if (request.silent !== false) require('T/event').trigger('geo.start');
 
 	Ti.Geolocation.getCurrentPosition(function(e){
-		if (!request.silent) require('T/event').trigger('geo.end');
+		if (request.silent !== false) require('T/event').trigger('geo.end');
+
 		if (_.isFunction(request.complete)) request.complete();
 
-		if (e.error) {
+		if (e.success === false) {
 			if (_.isFunction(request.error)) request.error({});
 			return;
 		}
@@ -107,7 +109,9 @@ function getCurrentPosition(request) {
 			return;
 		}
 
-		if (_.isFunction(request.success)) request.success(e.coords);
+		if (_.isFunction(request.success)) {
+			request.success(e.coords);
+		}
 	});
 }
 exports.getCurrentPosition = getCurrentPosition;
@@ -123,12 +127,15 @@ exports.getCurrentPosition = getCurrentPosition;
 function startNavigator(lat, lng, mode) {
 	getCurrentPosition({
 		success: function(g) {
-			var D = OS_IOS ? "http://maps.apple.com/" : "https://maps.google.com/maps/";
-			Ti.Platform.openURL(D + require('T/util').buildQuery({
+
+			Ti.Platform.openURL(
+			(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
+			require('T/util').buildQuery({
 				directionsmode: mode || 'walking',
-				saddr: g.latitude + "," + g.longitude,
-				daddr: lat + "," + lng
+				saddr: g.latitude + ',' + g.longitude,
+				daddr: lat + ',' + lng
 			}));
+
 		}
 	});
 }
@@ -142,9 +149,9 @@ exports.startNavigator = startNavigator;
  * anyway with `{ error: true, success: false }`
  *
  * @param  {String}   address 	The address to geocode
- * @param  {Function} cb      	The callback
+ * @param  {Function} callback      	The callback
  */
-function geocode(address, cb) {
+function geocode(address, callback) {
 	if (config.useGoogleForGeocode) {
 
 		require('T/http').send({
@@ -155,39 +162,36 @@ function geocode(address, cb) {
 				sensor: 'false'
 			},
 			mime: 'json',
-			success: function(res){
-
-				if (res.status!='OK' || !res.results.length) {
-					cb({ error: true });
-				} else {
-					cb({
-						success: true,
-						latitude: res.results[0].geometry.location.lat,
-						longitude: res.results[0].geometry.location.lng
-					});
+			success: function(res) {
+				if (res.status !== 'OK' || _.isEmpty(res.results)) {
+					callback({ error: true });
+					return;
 				}
 
+				callback({
+					success: true,
+					latitude: res.results[0].geometry.location.lat,
+					longitude: res.results[0].geometry.location.lng
+				});
 			},
-			error: function(err){
-				Ti.API.error("Geo: "+err);
-				cb({ error: true });
+			error: function() {
+				callback({ error: true });
 			}
 		});
 
 	} else {
 
-		Ti.Geolocation.forwardGeocoder(address, function(res){
-
-			if (!res.success) {
-				cb({ error: true });
-			} else {
-				cb({
-					success: true,
-					latitude: res.latitude,
-					longitude: res.longitude
-				});
+		Ti.Geolocation.forwardGeocoder(address, function(res) {
+			if (res.success === false) {
+				callback({ error: true });
+				return;
 			}
 
+			callback({
+				success: true,
+				latitude: res.latitude,
+				longitude: res.longitude
+			});
 		});
 	}
 }
@@ -202,56 +206,48 @@ exports.geocode = geocode;
  *
  * @param  {Number}   lat 	The latitude of the address
  * @param  {Number}   lng 	The longitude of the address
- * @param  {Function} cb  The callback
+ * @param  {Function} callback  The callback
  */
-function reverseGeocode(lat, lng, cb) {
-	if (!lat || !lng) {
-		return cb({ error: true });
-	}
-
+function reverseGeocode(lat, lng, callback) {
 	if (config.useGoogleForGeocode) {
 
 		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			noCache: true,
 			data: {
-				latlng: lat+','+lng,
+				latlng: lat + ',' + lng,
 				sensor: 'false'
 			},
 			mime: 'json',
-			success: function(res){
-
-				if (res.status!='OK' || !res.results.length) {
-					cb({ error: true });
-				} else {
-					cb({
-						success: true,
-						address: res.results[0].formatted_address,
-						results: res.results
-					});
+			success: function(res) {
+				if (res.status !== 'OK' || res.results.length === 0) {
+					callback({ error: true });
+					return;
 				}
-
+				callback({
+					success: true,
+					address: res.results[0].formatted_address,
+					results: res.results
+				});
 			},
-			error: function(err){
-				Ti.API.error("Geo: "+err);
-				cb({ error: true });
+			error: function() {
+				callback({ error: true });
 			}
 		});
 
 	} else {
 
-		Ti.Geolocation.reverseGeocoder(lat, lng, function(res){
-
-			if (!res.success || !res.places || !res.places.length) {
-				cb({ error: true });
-			} else {
-				cb({
-					success: true,
-					address: res.places[0].address,
-					results: res.places
-				});
+		Ti.Geolocation.reverseGeocoder(lat, lng, function(res) {
+			if (res.success === false || _.isEmpty(res.places)) {
+				callback({ error: true });
+				return;
 			}
 
+			callback({
+				success: true,
+				address: res.places[0].address,
+				results: res.places
+			});
 		});
 	}
 }

@@ -28,7 +28,10 @@ var XCallbackURL = require('T/ext/xcallbackurl');
  * @param  {Function}	callback  		The callback
  */
 function on(key, callback) {
-	routes.push({ key: key, callback: callback });
+	routes.push({
+		key: key,
+		callback: callback
+	});
 }
 exports.on = on;
 
@@ -53,40 +56,34 @@ function dispatch(link) {
 	var X = XCallbackURL.parse(link);
 	var path = X.path();
 
-	Ti.API.debug("Router: NEW Route", link, path);
+	Ti.API.debug('Router: NEW Route', link, path);
 
 	for (var i in routes) {
 		var routeDefinition = routes[i];
 
 		if (_.isString(routeDefinition.key)) {
-
 			// Regular string equals
 			run = (routeDefinition.key === path);
-
 		} else if (_.isRegExp(routeDefinition.key)) {
-
 			// Regular expression complex match
 			matches = path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
-
 		} else if (_.isFunction(routeDefinition.key)) {
-
 			// Function match
 			matches = routeDefinition.key(path);
 			run = (matches !== undefined);
-
 		}
 
-		if (run) {
-			Ti.API.debug("Router: Match found ("+routeDefinition.key.toString()+", "+JSON.stringify(matches)+")");
+		if (run === true) {
+			Ti.API.debug('Router: Match found', routeDefinition.key, matches);
 
 			routeDefinition.callback.apply(X, matches);
-			return; // break the cycle
+			return; // break the f***g cycle
 		}
 	}
 
-	Ti.API.warn("Router: no matches for the selected route ("+link+")");
+	Ti.API.warn('Router: no matches for the selected route', link);
 }
 exports.dispatch = dispatch;
 

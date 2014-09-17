@@ -19,19 +19,20 @@ exports.config = config;
  */
 function onTilt(callback) {
 	if (Alloy.Globals.SIMULATOR){
-		Ti.API.error("Device: accelerometer doesn't work on virtual devices");
+		Ti.API.error('Device: accelerometer doesn\'t work on virtual devices');
 		return;
 	}
 
 	Ti.Accelerometer.addEventListener('update', callback);
 
-	// remove listener on android to preserve battery life
 	if (OS_ANDROID){
-		Ti.Android.currentActivity.addEventListener('pause', function(e) {
+		// remove listeners on android to preserve battery life
+
+		Ti.Android.currentActivity.addEventListener('pause', function() {
 			Ti.Accelerometer.removeEventListener('update', callback);
 		});
 
-		Ti.Android.currentActivity.addEventListener('resume', function(e) {
+		Ti.Android.currentActivity.addEventListener('resume', function() {
 			Ti.Accelerometer.addEventListener('update', callback);
 		});
 	}

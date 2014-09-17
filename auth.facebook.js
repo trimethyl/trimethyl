@@ -7,18 +7,18 @@
 /**
  * * **appid**: Application ID. Default: `null`
  * * **permissions**: Array of permissions. Default: `[]`
+ * * **authTimeout**: Timeout for logging in
  * @type {Object}
  */
 var config = _.extend({
 	appid: null,
-	permissions: []
+	permissions: [],
+	authTimeout: 10000
 }, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
-
 var FB = require('facebook');
 var Auth = require('T/auth');
-
 
 var authorized = false; // Flag to stop iOS automatic login on app startup
 var timeout = null; // Timeout for logging in
@@ -27,26 +27,28 @@ var silent = true; // Flag passed to `Auth.login` and `auth.fail` event
 
 
 function loginToServer(e) {
-	if (timeout) clearTimeout(timeout);
-	if (e.cancelled) return;
+	clearTimeout(timeout);
+	if (e.cancelled === true) return;
 
-	if (!e.success) {
-		Ti.API.error("Auth.Facebook: ", e);
+	if (e.success !== true) {
+		Ti.API.error('Auth.Facebook: ERROR', e);
+
 		require('T/event').trigger('auth.fail', {
 			silent: silent,
 			message: L('auth_facebook_error')
 		});
-	} else {
-		Ti.API.debug("Auth.Facebook: success");
-		Auth.login({
-			access_token: FB.accessToken,
-			silent: silent
-		}, 'facebook', successLogin);
+		return;
 	}
+
+	Ti.API.debug('Auth.Facebook: SUCCESS', e);
+	Auth.login({
+		access_token: FB.accessToken,
+		silent: silent
+	}, 'facebook', successLogin);
 }
 
 function authorize() {
-	if (FB.loggedIn && FB.accessToken) {
+	if (FB.loggedIn === true && ! _.isEmpty(FB.accessToken)) {
 		loginToServer({ success: true });
 	} else {
 		authorized = true;
@@ -63,8 +65,10 @@ function handleLogin() {
 
 	// Prevent app freezing
 	timeout = setTimeout(function(){
-		return loginToServer({ success: false });
-	}, 10000);
+		loginToServer({
+			success: false
+		});
+	}, config.authTimeout);
 
 	authorize();
 }
@@ -95,19 +99,20 @@ exports.logout = logout;
 
 
 (function init(){
+
 	FB.forceDialogAuth = false;
 
-	if (!FB.appid) {
-		if (config.appid) {
+	if (FB.appid == null) {
+		if (config.appid != null) {
 			FB.appid = config.appid;
 		} else if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
 			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);	// Legacy mode
 		} else {
-			Ti.API.warn("Auth.Facebook: Please specify a Facebook AppID");
+			Ti.API.warn('Auth.Facebook: Please specify a Facebook AppID');
 		}
 	}
 
-	if (config.permissions) {
+	if (config.permissions != null) {
 		FB.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
 	}
 
@@ -116,16 +121,16 @@ exports.logout = logout;
 		// we are sure that loginToServer is NOT called automatically on startup.
 		// This is a security hack caused by iOS SDK that
 		// automatically trigger the login event
-		if (!authorized) {
-			Ti.API.debug("Auth.Facebook: login prevented due authorized flag");
+		if (authorized === false) {
+			Ti.API.debug('Auth.Facebook: login prevented due authorized flag');
 			return;
 		}
 
 		// If there's an error, and the user hasn't cancelled login,
 		// try the legacy mode of Facebook login on next Login,
 		// that we are SURE that works.
-		if (e.error && !e.cancelled) {
-			Ti.API.warn("Auth.Facebook: enabling the legacy mode of Facebook login due error");
+		if (e.error === true && e.cancelled === false) {
+			Ti.API.warn('Auth.Facebook: enabling the legacy mode of Facebook login due error');
 			FB.forceDialogAuth = true;
 		}
 

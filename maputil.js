@@ -39,7 +39,7 @@ function dist(a,b) {
 function distanceInKm(lat1, lon1, lat2, lon2) {
 	var dLat = deg2rad(lat2-lat1)/2;
 	var dLon = deg2rad(lon2-lon1)/2;
-	var a = Math.sin(dLat)*Math.sin(dLat) + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLon)*Math.sin(dLon);
+	var a = Math.sin(dLat) * Math.sin(dLat) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon) * Math.sin(dLon);
 	return 12742 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 exports.distanceInKm = distanceInKm;
@@ -109,21 +109,17 @@ exports.distanceInKm = distanceInKm;
  *
  */
 function cluster(e, markers, keys){
-	keys = _.extend({
-		latitude: 'lat',
-		longitude: 'lng',
-		id: 'id'
-	}, keys);
+	_.defaults(keys, { latitude: 'lat', longitude: 'lng', id: 'id' });
 
-	var c={};
-	var g={};
+	var c = {};
+	var g = {};
 
 	/* latR, lngR represents the current degrees visible */
 	var latR = (e.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / e.latitudeDelta;
 	var lngR = (e.source.size.width || Alloy.Globals.SCREEN_WIDTH) / e.longitudeDelta;
 
-	var degreeLat = 2*config.pixelRadius/latR;
-	var degreeLng = 2*config.pixelRadius/lngR;
+	var degreeLat = 2 * config.pixelRadius/latR;
+	var degreeLng = 2 * config.pixelRadius/lngR;
 
 	var boundingBox = [
 	e.latitude - e.latitudeDelta/2 - degreeLat,
@@ -132,12 +128,12 @@ function cluster(e, markers, keys){
 	e.longitude - e.longitudeDelta/2 - degreeLng
 	];
 
-	var isBackbone = !!(markers instanceof Backbone.Collection);
+	var isBackbone = (markers instanceof Backbone.Collection);
 
 	function removeOutOfBBFunction(m){
 		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
 		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
-		if (tmpLat<boundingBox[2] && tmpLat>boundingBox[0] && tmpLng>boundingBox[3] && tmpLng<boundingBox[1]) {
+		if (tmpLat < boundingBox[2] && tmpLat > boundingBox[0] && tmpLng > boundingBox[3] && tmpLng < boundingBox[1]) {
 			c[m[keys.id]] = { latitude: tmpLat, longitude: tmpLng };
 		}
 	}
@@ -152,18 +148,18 @@ function cluster(e, markers, keys){
 	// Start clustering
 
 	if (isBackbone) {
-		markers.map( config.removeOutOfBB ? removeOutOfBBFunction : createCObjFunction );
+		markers.map(config.removeOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	} else {
-		_.each(markers, config.removeOutOfBB ? removeOutOfBBFunction : createCObjFunction );
+		_.each(markers,config.removeOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
-	var zoomToCluster = e.longitudeDelta>config.maxDeltaToCluster;
+	var zoomToCluster = e.longitudeDelta > config.maxDeltaToCluster;
 	_.each(c, function(a, id){
 		_.each(c, function(b, jd){
-			if (id==jd || !zoomToCluster) return;
-			var dst = dist(lngR*Math.abs(a.latitude-b.latitude), lngR*Math.abs(a.longitude-b.longitude));
-			if (dst<config.pixelRadius) {
+			if (id == jd || zoomToCluster === false) return;
+			var dst = dist(lngR * Math.abs(a.latitude - b.latitude), lngR * Math.abs(a.longitude - b.longitude));
+			if (dst < config.pixelRadius) {
 				if (!(id in g)) g[id] = [id];
 				g[id].push(jd);
 				delete c[jd];
@@ -174,29 +170,31 @@ function cluster(e, markers, keys){
 	});
 
 	// cycle all over pin and calculate the average of group pin
-
 	_.each(g, function(a, id){
-		c[id] = { latitude: 0.0,  longitude: 0.0,  count: Object.keys(g[id]).length };
-		_.each(g[id], function(b, jd){
-			c[id].latitude += parseFloat( isBackbone ? markers.get(b).get(keys.latitude) : markers[b][keys.latitude] );
-			c[id].longitude += parseFloat( isBackbone ? markers.get(b).get(keys.longitude) : markers[b][keys.longitude] );
+		c[id] = { latitude: 0.0,  longitude: 0.0, count: _.keys(a).length };
+		_.each(a, function(b){
+			c[id].latitude += parseFloat(isBackbone ? markers.get(b).get(keys.latitude) : markers[b][keys.latitude]);
+			c[id].longitude += parseFloat(isBackbone ? markers.get(b).get(keys.longitude) : markers[b][keys.longitude]);
 		});
-		c[id].latitude = c[id].latitude/c[id].count;
-		c[id].longitude = c[id].longitude/c[id].count;
+		c[id].latitude = c[id].latitude / c[id].count;
+		c[id].longitude = c[id].longitude / c[id].count;
 	});
 
 
 	// Set all annotations
 	var data = [];
 	_.each(c, function(a, id){
-		if (a.count>1) {
+		if (a.count > 1) {
 			data.push({
-				latitude: +(c[id].latitude.toFixed(2)),
-				longitude: +(c[id].longitude.toFixed(2)),
+				latitude: parseFloat(c[id].latitude.toFixed(2)),
+				longitude: parseFloat(c[id].longitude.toFixed(2)),
 				count: c[id].count
 			});
-		} else data.push(+id);
+		} else {
+			data.push(+id);
+		}
 	});
+
 	return data;
 }
 exports.cluster = cluster;
@@ -218,7 +216,7 @@ function checkForDependencies() {
 	var TiMap = require('ti.map');
 	var rc = TiMap.isGooglePlayServicesAvailable();
 
-	if (rc==TiMap.SUCCESS) {
+	if (rc === TiMap.SUCCESS) {
 		return true;
 	}
 
@@ -262,10 +260,10 @@ function getRegionBounds(array, mulGap) {
 	var lngs = _.pluck(array, 'longitude');
 	var bb = [ _.min(lats), _.min(lngs), _.max(lats), _.max(lngs) ];
 	return {
-		latitude: (bb[0]+bb[2])/2,
-		longitude: (bb[1]+bb[3])/2,
-		latitudeDelta: mulGap*(bb[2]-bb[0]),
-		longitudeDelta: mulGap*(bb[3]-bb[1])
+		latitude: (bb[0] + bb[2]) / 2,
+		longitude: (bb[1] + bb[3]) / 2,
+		latitudeDelta: mulGap * (bb[2] - bb[0]),
+		longitudeDelta: mulGap * (bb[3] - bb[1])
 	};
 }
 exports.getRegionBounds = getRegionBounds;

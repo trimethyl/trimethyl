@@ -30,17 +30,17 @@ exports.createModalWindow = function(args) {
 exports.createModalWebView = function(args) {
 	args = args || {};
 
-	var opt = {};
-	if (args.url) {
-		opt.url = args.url;
+	var webViewArgs = {};
+	if (args.url != null) {
+		webViewArgs.url = args.url;
 		delete args.url;
-	} else if (args.html) {
-		opt.html = args.html;
+	} else if (args.html != null) {
+		webViewArgs.html = args.html;
 		delete args.html;
 	}
 
 	var $modal = Alloy.createWidget("com.caffeinalab.titanium.modalwindow", args);
-	$modal.add(Ti.UI.createWebView(opt));
+	$modal.add(Ti.UI.createWebView(webViewArgs));
 	return $modal;
 };
 
@@ -56,31 +56,31 @@ exports.createModalWebView = function(args) {
  * @return {Ti.UI.WebView}      [description]
  */
 exports.createYoutubeVideoWebView = function(args){
-	args = args || {};
-	args.disableBounce = true;
-	args.willHandleTouches = true;
-	args.showScrollbars = false;
-	args.scalesPageToFit = false;
-	args.hideLoadIndicator = true;
-	args.enableZoomControls = false;
+	args = _.extend(args, {
+		disableBounce : true,
+		willHandleTouches : true,
+		showScrollbars : false,
+		scalesPageToFit : false,
+		hideLoadIndicator : true,
+		enableZoomControls : false,
+		youtube: {}
+	},
+	OS_ANDROID ? {
+		overScrollMode : Ti.UI.Android.OVER_SCROLL_NEVER,
+		pluginState : Ti.UI.Android.WEBVIEW_PLUGINS_ON
+	} : {});
 
-	if (OS_ANDROID) {
-		args.overScrollMode = Ti.UI.Android.OVER_SCROLL_NEVER;
-		args.pluginState = Ti.UI.Android.WEBVIEW_PLUGINS_ON;
-	}
-
-	args.youtube = args.youtube || {};
-	if (!args.youtube.width) args.youtube.width = args.width;
-	if (!args.youtube.height) args.youtube.height = args.height;
+	if (args.youtube.width == null) args.youtube.width = args.width;
+	if (args.youtube.height == null) args.youtube.height = args.height;
 
 	var $ui = Ti.UI.createWebView(args);
 
 	var html = '<!doctype html><html><head>';
 	html += '<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />';
-	html += '<style>html,body{padding:0;background:black;margin:0;overflow:hidden;}</style>';
+	html += '<style>html,body { padding:0; background:black; margin:0; overflow:hidden; }</style>';
 	html += '</head><body><div id="player"></div>';
 	html += '<script src="http://www.youtube.com/player_api"></script>';
-	html += '<script>function onYouTubePlayerAPIReady(){window.player=new YT.Player("player",'+JSON.stringify(args.youtube)+');}</script>';
+	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",' + JSON.stringify(args.youtube) + ');}</script>';
 	html += '</body></html>';
 	$ui.html = html;
 

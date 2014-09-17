@@ -27,32 +27,31 @@ exports.config = config;
 
 
 var Event = require('T/event');
-
 var HTTPCache = null;
-var queue = {};
 
-var serverConnected = null;
-var errorHandler = null;
+var queue = {}; // queue object for all requests
+var serverConnected = null; // in case of ping server
+var errorHandler = null; // global error ha handler
 
 function jsonToWWW(obj, sep, eq, k, ret) {
 	ret = ret || [];
-	for (var i in obj) {
-		var _k = k!==undefined;
+	_.each(obj, function(v, i) {
+		var _k = k !== undefined;
 		if (_.isObject(obj[i])) {
-			jsonToWWW(obj[i], null, eq, (_k?k+'[':'')+i+(_k?']':''), ret);
+			jsonToWWW(v, null, eq, (_k ? k + '[' : '') + i + (_k ? ']' : ''), ret);
 		} else {
-			ret.push((_k?k+'['+i+']':i)+(eq||'=')+obj[i]);
+			ret.push((_k ? k + '[' + i + ']' : i) + (eq || '=') + v);
 		}
-	}
-	return ret.join(sep||'&');
+	});
+	return ret.join(sep || '&');
 }
 
 function originalErrorHandler(e) {
-	require('T/util').alertError( e && e.message ? e.message : 'Error' );
+	require('T/util').alertError( e && e.message ? e.message : L('Error') );
 }
 
 function calculateHash(request) {
-	return Ti.Utils.md5HexDigest(request.url+JSON.stringify(request.data||{})+JSON.stringify(request.headers||{}));
+	return Ti.Utils.md5HexDigest(request.url + JSON.stringify(request.data || {}) + JSON.stringify(request.headers || {}));
 }
 
 function setApplicationInfo(appInfo) {
@@ -88,21 +87,22 @@ function getResponseInfo(response) {
 
 	// Check first the Content-Type
 	var contentType = response.getResponseHeader('Content-Type');
-	if (contentType) {
-		if (contentType.match(/application\/json/)) info.mime = 'json';
+	if (contentType != null) {
+		if (contentType.match(/application\/json/)) {
+			info.mime = 'json';
+		}
 	}
 
 	// Check the Expires header
 	var expires = response.getResponseHeader('Expires');
-	if (expires) {
-		var t = require('T/util').timestamp(expires);
-		if (t) info.expire = t;
+	if (expires != null) {
+		info.expire = require('T/util').timestamp(expires);
 	}
 
 	// Check againts X-Cache-Ttl header (in seconds)
 	var ttl = response.getResponseHeader('X-Cache-Ttl');
-	if (ttl) {
-		info.expire = require('T/util').timestamp( 1000*(require('T/util').timestamp()+parseInt(ttl,10)) );
+	if (ttl != null) {
+		info.expire = require('T/util').fromnow(ttl);
 	}
 
 	return info;
@@ -110,37 +110,34 @@ function getResponseInfo(response) {
 
 
 function decorateRequest(request) {
-	if (request.hash) {
-		// yet decorated
-		return request;
-	}
+	if (request.hash != null) return request;
 
-	if (!request.url) request.url = '/';
+	if (request.url == null) request.url = '/';
 
-	// if the url is not matching :// (a protocol), assign the base URL
-	if (!request.url.match(/\:\/\//)) {
+	// if the url is not matching `://` (a protocol), assign the base URL
+	if (/\:\/\//.test(request.url) === false) {
 		request.url = config.base.replace(/\/$/,'') + '/' + request.url.replace(/^\//, '');
 	}
 
 	request.method = request.method ? request.method.toUpperCase() : 'GET';
-	request.headers = _.extend(_.clone(config.headers), request.headers || {});
+	request.headers = _.extend({}, config.headers, request.headers);
 	request.timeout = request.timeout || config.timeout;
-	if (request.error===undefined) request.error = errorHandler;
+	if (request.error === undefined) request.error = errorHandler;
 
 	// httpie debug
-	if (config.httpieDebug) {
+	if (config.httpieDebug === true) {
 		Ti.API.debug(
-		"http "+request.method+" "+request.url+" "+
-		jsonToWWW(request.headers,' ','=')+" "+
-		jsonToWWW(request.data, ' ', request.method==='GET'?'==':'=')
+		'http ' + request.method + ' ' + request.url + ' ' +
+		jsonToWWW(request.headers,' ','=') + ' ' +
+		jsonToWWW(request.data, ' ', request.method === 'GET' ? '==' : '=')
 		);
 	}
 
 	// Rebuild the URL if is a GET and there's data
-	if (request.method==='GET' && request.data) {
+	if (request.method === 'GET' && _.isObject(request.data)) {
 		var buildedQuery = require('T/util').buildQuery(request.data);
 		delete request.data;
-		request.url = request.url + buildedQuery.toString();
+		request.url = request.url + buildedQuery;
 	}
 
 	request.hash = calculateHash(request);
@@ -150,7 +147,7 @@ function decorateRequest(request) {
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
-	Ti.API.debug("HTTP: REQ-["+request.hash+"] completed in "+(request.endTime-request.startTime)+'ms');
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] completed in ' + (request.endTime-request.startTime) + 'ms');
 
 	// Delete request from queue
 	delete queue[request.hash];
@@ -158,7 +155,7 @@ function onComplete(request, response, e){
 	if (_.isFunction(request.complete)) request.complete();
 
 	// Fire the global event
-	if (!request.silent) {
+	if (request.silent !== true) {
 		Event.trigger('http.end', {
 			id: request.hash,
 			eventName: request.eventName || null
@@ -167,40 +164,37 @@ function onComplete(request, response, e){
 
 	// If the readyState is not DONE, trigger error, because
 	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
-	if (response.readyState<=1) {
-		Ti.API.error("HTTP: REQ-["+request.hash+"] is broken (readyState<=1)");
+	if (response.readyState <= 1) {
+		Ti.API.error('HTTP: REQ-['+request.hash+'] is broken (readyState<=1)');
 		if (_.isFunction(request.error)) request.error();
+
 		return false;
 	}
 
 	// Get the response information and override
-	var info = _.extend(getResponseInfo(response), request.info || {});
-	_.each(['mime','expire'], function(k){
-		if (request[k]!==undefined) info[k] = request[k];
-	});
-
+	var info = _.extend(getResponseInfo(response), _.pluck(request, 'mime', 'expire'), request.info);
 
 	var returnValue = null;
 	var returnError = null;
 
 	// Parse based on response info
-	if (info.mime=='json') {
+	if (info.mime === 'json') {
 		returnValue = require('T/util').parseJSON(response.responseText);
-	} else if (info.mime=='text') {
+	} else if (info.mime === 'text') {
 		returnValue = response.responseText;
 	} else {
 		returnValue = response.responseData;
 	}
 
-	if (e.success) {
+	if (e.success === true) {
 
 		/*
 		SUCCESS
 		*/
 
 		// Write cache
-		if (HTTPCache) {
-			if (request.cache!==false && request.method==='GET' && info.expire>require('T/util').timestamp()) {
+		if (config.useCache === true) {
+			if (request.cache !== false && request.method === 'GET' && info.expire > require('T/util').timestamp()) {
 				HTTPCache.set(request, response, info);
 			}
 		}
@@ -221,10 +215,10 @@ function onComplete(request, response, e){
 		}
 
 		// Build the error
-		var E = { message: returnError, code: response.status };
-		Ti.API.error("HTTP: REQ-["+request.hash+"] error - "+JSON.stringify(E));
+		var err = { message: returnError, code: response.status };
+		Ti.API.error('HTTP: REQ-['+request.hash+'] error', err);
 
-		if (_.isFunction(request.error)) request.error(E);
+		if (_.isFunction(request.error)) request.error(err);
 
 	}
 }
@@ -299,26 +293,25 @@ exports.usePingServer = usePingServer;
  *
  * Trigger a *http.ping.error* on error
  *
- * @param  {Function} cb The success callback
+ * @param  {Function} callback The success callback
  */
-function connectToServer(cb) {
+function connectToServer(callback) {
 	return send({
 		url: '/ping',
 		method: 'POST',
 		silent: true,
 		success: function(appInfo){
 			serverConnected = true;
-
 			setApplicationInfo(appInfo);
 
 			Event.trigger('http.ping.success');
-			if (cb) cb(true);
+			if (_.isFunction(callback)) callback(true);
 		},
 		error: function(){
 			serverConnected = false;
 
 			Event.trigger('http.ping.error');
-			if (cb) cb(false);
+			if (_.isFunction(callback)) callback(false);
 		}
 	});
 }
@@ -330,7 +323,7 @@ exports.connectToServer = connectToServer;
  * @return {Boolean}
  */
 function isQueueEmpty(){
-	return !queue.length;
+	return _.isEmpty(queue);
 }
 exports.isQueueEmpty = isQueueEmpty;
 
@@ -369,13 +362,12 @@ exports.getQueuedRequest = getQueuedRequest;
  */
 function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
-	if (!httpClient) return;
+	if (httpClient == null) return;
+
 	try {
 		httpClient.abort();
-		Ti.API.debug("HTTP: REQ-["+hash+"] request aborted");
-	} catch (e) {
-		Ti.API.error("HTTP: REQ-["+hash+"] aborting error");
-	}
+		Ti.API.debug('HTTP: REQ-['+hash+'] request aborted');
+	} catch (err) {}
 }
 exports.abortRequest = abortRequest;
 
@@ -384,7 +376,7 @@ exports.abortRequest = abortRequest;
  * Reset all cache
  */
 exports.resetCache = function(){
-	if (!HTTPCache) return;
+	if (HTTPCache === null) return;
 
 	HTTPCache.reset();
 };
@@ -407,7 +399,7 @@ exports.resetCookies = resetCookies;
  * @param  {String|Object} request [description]
  */
 exports.deleteCache = function(hash) {
-	if (!HTTPCache) return;
+	if (HTTPCache === null) return;
 
 	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
 	HTTPCache.del(hash);
@@ -437,35 +429,28 @@ function send(request) {
 	request = decorateRequest(request);
 
 	// Try to get the cache, otherwise make the HTTP request
-	if (HTTPCache) {
-		if (request.cache!==false && !request.refresh && request.method==='GET') {
+	if (config.useCache === true) {
+		if (request.cache !== false && request.refresh !== true && request.method === 'GET') {
 
 			var cache = HTTPCache.get(request, !onlineStatus);
-			if (cache) {
+			if (cache != null) {
 				if (_.isFunction(request.complete)) request.complete();
 				if (_.isFunction(request.success)) request.success(cache);
+
 				return request.hash;
 			}
 		}
 	}
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
-	if (!onlineStatus) {
-		Ti.API.error("HTTP: connection is offline");
+	if (onlineStatus === false) {
+		Ti.API.error('HTTP: connection is offline');
+
+		if (config.autoOfflineMessage === true) require('T/util').alert(L('http_offline_title'), L('http_offline_message'));
+		if (_.isFunction(request.complete)) request.complete();
+		if (_.isFunction(request.error)) request.error({ message: L('http_offline_message') });
 
 		Event.trigger('http.offline', { cache: false });
-
-		if (config.autoOfflineMessage) {
-			require('T/util').alert(L('http_offline_title'), L('http_offline_message'));
-		}
-
-		if (_.isFunction(request.complete)) request.complete();
-		if (_.isFunction(request.error)) {
-			request.error({
-				message: "Connection is offline"
-			});
-		}
-
 		return request.hash;
 	}
 
@@ -486,7 +471,7 @@ function send(request) {
 	// Add this request to the queue
 	queue[request.hash] = H;
 
-	if (!request.silent) {
+	if (request.silent !== true) {
 		Event.trigger('http.start', {
 			id: request.hash,
 			eventName: request.eventName || null
@@ -501,8 +486,11 @@ function send(request) {
 	});
 
 	// Finally, send the request
-	if (request.data) H.send(request.data);
-	else H.send();
+	if (_.isObject(request.data)) {
+		H.send(request.data);
+	} else {
+		H.send();
+	}
 
 	// And return the hash of this request
 	return request.hash;
@@ -592,7 +580,7 @@ exports.postJSON = function(url, data, success, error) {
 
 	errorHandler = originalErrorHandler;
 
-	if (config.useCache) {
+	if (config.useCache === true) {
 		HTTPCache = require('T/http.cache');
 	}
 

@@ -17,15 +17,15 @@ exports.config = config;
 
 var GA = require('T/ga');
 
-var Navigator = null;
-var navPreviousRoute = null;
+var Navigator = null; // represents current navigator
+var navPreviousRoute = null; // route to handle on startup
 
-var _windows = {};
-var _windowsId = [];
+var windows = {}; // all windows objects
+var windowsId = []; // all windows id
 
-var _currentControllerName = null;
-var _currentController = null;
-var _currentControllerArgs = null;
+var currentControllerName = null;
+var currentController = null;
+var currentControllerArgs = null;
 
 
 /**
@@ -35,7 +35,7 @@ var _currentControllerArgs = null;
  * @param  {String} 			key  	The tracking key
  */
 function autoTrackWindow($win, key) {
-	if (!key) return;
+	if (_.isEmpty(key)) return;
 
 	// Track screen with GA
 	if (config.trackWithGA) {
@@ -44,12 +44,14 @@ function autoTrackWindow($win, key) {
 
 	// Track timing with GA
 	if (config.trackTimingWithGA) {
-		if (!$win) return;
+		if ($win == null) return;
 
 		var startFocusTime = null;
+
 		$win.addEventListener('focus', function(){
 			startFocusTime = +(new Date());
 		});
+
 		$win.addEventListener('blur', function(){
 			if (!startFocusTime) return;
 			GA.time(key, +(new Date())-startFocusTime);
@@ -60,25 +62,26 @@ exports.autoTrackWindow = autoTrackWindow;
 
 
 function onWindowClose(e) {
-	delete _windows[e.source._flowid];
-	_windowsId = _.without(_windowsId, e.source._flowid);
+	delete windows[e.source._flowid];
+	windowsId = _.without(windowsId, e.source._flowid);
 }
+
 
 /**
  * Set current Window and push in the windows stack
  * @param {Ti.UI.Window} $win
  */
 function setCurrentWindow($win) {
-	if (!$win) return;
+	if ($win == null) return;
 
-	var uid = T('util').uniqid();
-	Ti.API.debug("Flow: NEW Window - assigned id is "+uid);
-
+	var uid = _.uniqueId();
 	$win._flowid = uid;
 
-	_windows[uid] = $win;
-	_windowsId.push(uid);
+	// Store IDs
+	windows[uid] = $win;
+	windowsId.push(uid);
 
+	// Add listener
 	$win.addEventListener('close', onWindowClose);
 }
 exports.setCurrentWindow = setCurrentWindow;
@@ -88,9 +91,10 @@ exports.setCurrentWindow = setCurrentWindow;
  * @return {Ti.UI.Window}
  */
 function getCurrentWindow() {
-	var id = _.last(_windowsId);
-	if (!id) return;
-	return _windows[id];
+	var id = _.last(windowsId);
+	if (id == null) return;
+
+	return windows[id];
 }
 exports.getCurrentWindow = getCurrentWindow;
 
@@ -118,18 +122,20 @@ exports.win = getCurrentWindow;
  * @param {Boolean} 	[openNow] 	Specify if call instantly the open on the navigation controller
  */
 function setNavigationController(nav, openNow) {
-	Ti.API.debug("Flow: NEW Navigator");
+	Ti.API.debug('Flow: NEW Navigator');
 
 	Navigator = nav;
-	if (!openNow) return;
 
-	Navigator.open();
+	if (openNow) {
+		Navigator.open();
 
-	// If is stored navNextRoute object, forward the request to current navigator
-	if (null!==navPreviousRoute) {
-		var tmp = { "open": open, "openWindow": openWindow };
-		tmp[navPreviousRoute.method](navPreviousRoute.arg1, navPreviousRoute.arg2, navPreviousRoute.arg3);
-		navPreviousRoute = null;
+		// If is stored navNextRoute object,
+		// forward the request to current navigator
+		if (navPreviousRoute !== null) {
+			var tmp = { 'open': open, 'openWindow': openWindow };
+			tmp[navPreviousRoute.method](navPreviousRoute.arg1, navPreviousRoute.arg2, navPreviousRoute.arg3);
+			navPreviousRoute = null;
+		}
 	}
 }
 exports.setNavigationController = setNavigationController;
@@ -187,16 +193,16 @@ exports.startup = startup;
  */
 function openWindow($win, opt, key) {
 	opt = opt || {};
+	Ti.API.debug('Flow: openWindow');
 
-	Ti.API.debug("Flow: opening window");
+	if (Navigator === null) {
+		Ti.API.warn('Flow: A NavigationController is not defined yet, waiting for next assignment');
 
-	if (!Navigator) {
 		navPreviousRoute = { method: 'openWindow', arg1: $win, arg2: opt, arg3: null };
-		Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 		return;
 	}
 
-	if (key) autoTrackWindow($win, key);
+	autoTrackWindow($win, key);
 
 	// Open the window
 	Navigator.openWindow($win, opt);
@@ -217,19 +223,15 @@ exports.openWindow = openWindow;
 function openDirect(controller, args, opt, key) {
 	args = args || {};
 	opt = opt || {};
-
-	Ti.API.debug("Flow: opening DIRECT '"+controller+"' with args "+JSON.stringify(args));
+	Ti.API.debug('Flow: openDirect', controller, args);
 
 	// Open the controller
-	var $ctrl = Alloy.createController(controller, args);
-	key = key || $ctrl.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
+	var controller = Alloy.createController(controller, args);
+	key = key || controller.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
 
-	var $win = $ctrl.getView();
+	GA.trackScreen(key);
 
-	// Attach events
-	autoTrackWindow(null, key);
-
-	return $ctrl;
+	return controller;
 }
 exports.openDirect = openDirect;
 
@@ -252,17 +254,17 @@ exports.openDirect = openDirect;
 function open(controller, args, opt, key) {
 	args = args || {};
 	opt = opt || {};
+	Ti.API.debug('Flow: Open', controller, args);
 
-	Ti.API.debug("Flow: opening '"+controller+"' with args "+JSON.stringify(args));
+	var controller = Alloy.createController(controller, args);
+	key = key || controller.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
 
-	var $ctrl = Alloy.createController(controller, args);
-	key = key || $ctrl.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
+	var $win = controller.getView();
 
-	var $win = $ctrl.getView();
+	if (Navigator === null) {
+		Ti.API.warn('Flow: A NavigationController is not defined yet, waiting for next assignment');
 
-	if (!Navigator) {
 		navPreviousRoute = { method: 'open', arg1: controller, arg2: args, arg3: opt };
-		Ti.API.warn("Flow: A NavigationController is not defined yet, waiting for next assignment");
 		return;
 	}
 
@@ -270,15 +272,18 @@ function open(controller, args, opt, key) {
 	Navigator.openWindow($win, opt.openArgs || {});
 
 	// Attach events
-	$win.addEventListener('close', function(){ $ctrl.destroy(); });
 	setCurrentWindow($win);
+	$win.addEventListener('close', function(){
+		controller.destroy();
+	});
+
 	autoTrackWindow($win, key);
 
-	_currentControllerName = controller;
-	_currentControllerArgs = args;
-	_currentController = $ctrl;
+	currentControllerName = controller;
+	currentControllerArgs = args;
+	currentController = controller;
 
-	return $ctrl;
+	return controller;
 }
 exports.open = open;
 
@@ -287,10 +292,10 @@ exports.open = open;
  * Close current Navigatgor and all windows associated with it
  */
 function close() {
-	if (!Navigator) return;
+	if (Navigator === null) return;
 
-	_windows = {};
-	_windowsId = [];
+	windows = {};
+	windowsId = [];
 	Navigator.close();
 }
 exports.close = close;
@@ -305,9 +310,9 @@ function getCurrent() {
 	return {
 		navigator: Navigator,
 		window: getCurrentWindow(),
-		controller: _currentController,
-		controllerName: _currentControllerName,
-		args: _currentControllerArgs,
+		controller: currentController,
+		controllerName: currentControllerName,
+		args: currentControllerArgs,
 	};
 }
 exports.getCurrent = getCurrent;
@@ -325,7 +330,7 @@ exports.current = getCurrent;
  * @param {Alloy.Controller} controller
  */
 function setCurrentController(controller) {
-	_currentController = controller;
+	currentController = controller;
 }
 exports.setCurrentController = setCurrentController;
 
@@ -335,7 +340,7 @@ exports.setCurrentController = setCurrentController;
  * @return {Alloy.Controller}
  */
 function getCurrentController() {
-	return _currentController;
+	return currentController;
 }
 exports.getCurrentController = getCurrentController;
 
@@ -352,8 +357,8 @@ exports.controller = getCurrentController;
  */
 function getStack() {
 	return {
-		order: _windowsId,
-		windows: _windows
+		order: windowsId,
+		windows: windows
 	};
 }
-exports.getStack = exports.getStack;
+exports.getStack = getStack;

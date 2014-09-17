@@ -13,8 +13,7 @@ var config = _.extend({
 exports.config = config;
 
 var libDir = [];
-var _helpers = {};
-
+var helpers = {};
 
 /**
  * Add an helper for the WebView
@@ -22,15 +21,15 @@ var _helpers = {};
  * @param {Function} 	method The callback
  */
 function addHelper(name, method) {
-	_helpers[name] = method;
+	helpers[name] = method;
 }
 exports.addHelper = addHelper;
 
 
 function embedText(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
-	if (!file.exists()) {
-		Ti.API.warn("Weballoy: File not found ("+f+")");
+	if (file.exists() === false) {
+		Ti.API.warn('Weballoy: File not found (' + f + ')');
 		return '';
 	}
 
@@ -40,11 +39,11 @@ function embedText(f) {
 }
 
 function embedCSS(f) {
-	return '<style type="text/css">'+embedText(f)+'</style>';
+	return '<style type="text/css">' + embedText(f) + '</style>';
 }
 
 function embedJS(f) {
-	return '<script type="text/javascript">'+embedText(f)+'</script>';
+	return '<script type="text/javascript">' + embedText(f) + '</script>';
 }
 
 
@@ -55,18 +54,22 @@ function embedJS(f) {
  */
 exports.createView = function(args) {
 	args = args || {};
-	if (!args.name) throw new Error('WebAlloy: you must pass a name');
-	var uniqid = T('util').uniqid();
+	if (_.isEmpty(args.name)) {
+		throw new Error('WebAlloy: you must pass a name');
+	}
 
+	var uniqid = _.uniqueId();
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
 		uniqid: uniqid,
 		enableZoomControls: false,
-		backgroundColor: "transparent"
+		backgroundColor: 'transparent'
 	}, args));
 
 	$ui.addEventListener('load', function(){
-		if (args.autoHeight) $ui.height = $ui.evalJS("document.body.clientHeight");
+		if (args.autoHeight === true) {
+			$ui.height = $ui.evalJS('document.body.clientHeight');
+		}
 		if (_.isFunction(args.loaded)) args.loaded();
 	});
 
@@ -75,21 +78,20 @@ exports.createView = function(args) {
 	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
 
 	// Install the global event handler for this specific WebView
-	html += '<script>WebAlloy={ run: function(e,d){ Ti.App.fireEvent("__weballoy'+uniqid+'",{name:e,data:d}); } };</script>';
+	html += '<script>WebAlloy={ run: function(e,d){ Ti.App.fireEvent("__weballoy' + uniqid + '",{ name: e, data: d }); } };</script>';
 
 	// Include global css
 	html += embedCSS('web/app.css');
-	html += embedCSS('web/styles/'+args.name+'.css');
+	html += embedCSS('web/styles/' + args.name + '.css');
 
 	html += '</head><body>';
 
 
 	// Include template
-	$ui.tpl = _.template(embedText('web/views/'+args.name+'.tpl'));
+	$ui.tpl = _.template(embedText('web/views/' + args.name + '.tpl'));
 
 	html += '<div id="main">';
-	var data = _.extend(_helpers || {}, args.webdata || {});
-	html += $ui.tpl(data);
+	html += $ui.tpl(_.extend({}, helpers, args.webdata));
 	html += '</div>';
 
 	// Include libs
@@ -98,8 +100,8 @@ exports.createView = function(args) {
 	});
 
 	// Include footer
-	html += embedJS('web/app'+config.jsExt);
-	html += embedJS('web/controllers/'+args.name+config.jsExt);
+	html += embedJS('web/app' + config.jsExt);
+	html += embedJS('web/controllers/' + args.name + config.jsExt);
 	html += '</body></html>';
 
 	$ui.html = html;
@@ -129,24 +131,21 @@ exports.createView = function(args) {
 	};
 
 	$ui.render = function(data) {
-		data = _.extend(_helpers, data);
-		$ui.$('#main').set('innerHTML', $ui.tpl(data));
+		$ui.$('#main').set('innerHTML', $ui.tpl(_.extend({}, helpers, data)));
 	};
 
 
 	// Install the API listener
-	if (args.webapi) {
+	if (args.webapi != null) {
 
 		var webapiListener = function(event) {
-			if (!(event.name in args.webapi)) return;
 			if (!_.isFunction(args.webapi[event.name])) return;
 			args.webapi[event.name].call($ui, event.data);
 		};
 
-		Ti.App.addEventListener('__weballoy'+uniqid, webapiListener);
-
+		Ti.App.addEventListener('__weballoy' + uniqid, webapiListener);
 		$ui.webapiUnbind = function() {
-			Ti.App.removeEventListener('weballoy_'+uniqid, webapiListener);
+			Ti.App.removeEventListener('weballoy_' + uniqid, webapiListener);
 		};
 	}
 

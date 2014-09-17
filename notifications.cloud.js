@@ -6,12 +6,12 @@
  * You must set this properties in your TiApp.xml file
  *
  * ```
- * <property name="acs-api-key-development" type="string">...</property>
- * <property name="acs-oauth-key-development" type="string">...</property>
- * <property name="acs-oauth-secret-development" type="string">...</property>
- * <property name="acs-api-key-production" type="string">...</property>
- * <property name="acs-oauth-key-production" type="string">...</property>
- * <property name="acs-oauth-secret-production" type="string">...</property>
+ * <property name='acs-api-key-development' type='string'>...</property>
+ * <property name='acs-oauth-key-development' type='string'>...</property>
+ * <property name='acs-oauth-secret-development' type='string'>...</property>
+ * <property name='acs-api-key-production' type='string'>...</property>
+ * <property name='acs-oauth-key-production' type='string'>...</property>
+ * <property name='acs-oauth-secret-production' type='string'>...</property>
  * ```
  *
  */
@@ -42,18 +42,18 @@ function subscribe(deviceToken, channel, callback) {
 	Cloud.PushNotifications.subscribeToken({
 		device_token: deviceToken,
 		channel: channel || 'none',
-		type: (function(){
-			if (OS_IOS) return 'ios';
-			if (OS_ANDROID) return 'gcm';
-		})()
+		type: (OS_IOS ? 'ios' : (OS_ANDROID ? 'gcm' : ''))
 	}, function (e) {
-		if (!e.success) {
-			Ti.API.error("Notifications.Cloud: "+e.error);
+		if (e.success === false) {
+			Ti.API.error('Notifications.Cloud: ', e);
+
 			require('T/event').trigger('notifications.subscription.error', e);
 			return;
 		}
 
-		require('T/event').trigger('notifications.subscription.success', { channel: channel });
+		require('T/event').trigger('notifications.subscription.success', {
+			channel: channel
+		});
 		if (_.isFunction(callback)) callback();
 	});
 }
@@ -68,8 +68,8 @@ exports.subscribe = subscribe;
  */
 function unsubscribe(channel) {
 	var token = Ti.App.Properties.getString('notifications.token');
-	if (!token) {
-		Ti.API.error("Notifications.Cloud: Error while getting notification token in subscribing");
+	if (_.isEmpty(token)) {
+		Ti.API.error('Notifications.Cloud: Error while getting notification token in subscribing');
 		return;
 	}
 
@@ -77,8 +77,8 @@ function unsubscribe(channel) {
 	Cloud.PushNotifications.unsubscribeToken({
 		device_token: token,
 		channel: channel || null
-	}, function(){
-		Ti.API.debug("Notifications.Cloud: Unsubscribing success");
+	}, function() {
+		Ti.API.debug('Notifications.Cloud: Unsubscribing success');
 	});
 }
 exports.unsubscribe = unsubscribe;

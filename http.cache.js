@@ -20,8 +20,8 @@ var DB = null;
  * @param  {Object} info     The HTTP informations
  */
 function set(request, response, info) {
-	if (!DB) {
-		Ti.API.error("HTTP.Cache: database not open");
+	if (DB === null) {
+		Ti.API.error('HTTP.Cache: database not open');
 		return false;
 	}
 
@@ -38,38 +38,36 @@ exports.set = set;
 
 /**
  * Get the associated cache to that request
- * @param  {Object} request          		The HTTP request
+ * @param  {Object} 	request          		The HTTP request
  * @param  {Boolean} [bypassExpiration] 	Control if bypassing the expiration check
  * @return {Object}
  */
 function get(request, bypassExpiration) {
-	if (!DB) {
-		Ti.API.error("HTTP.Cache: database not open");
+	if (DB === null) {
+		Ti.API.error('HTTP.Cache: database not open');
 		return false;
 	}
 
 	var cacheRow = DB.execute('SELECT expire, creation FROM http WHERE id = ? LIMIT 1', request.hash);
-	if (!cacheRow || !cacheRow.isValidRow()) {
-		return false;
-	}
+	if (cacheRow.isValidRow() === false) return false;
 
-	var expire = +cacheRow.fieldByName('expire') || 0;
+	var expire = parseInt(cacheRow.fieldByName('expire'), 10) || 0;
 	var now = require('T/util').timestamp();
 
-	if (!bypassExpiration) {
-		Ti.API.debug("HTTP.Cache: REQ-["+request.hash+"] cache values are "+expire+"-"+now+" = "+Math.floor((expire-now)/60)+"min");
-		if (expire<now) return false;
+	if ( ! bypassExpiration) {
+		Ti.API.debug('HTTP.Cache: REQ-['+request.hash+'] cache values are '+expire+'-'+now+' = '+Math.floor((expire-now)/60)+'min');
+		if (expire < now) return false;
 	}
 
 	cacheRow = DB.execute('SELECT info, content FROM http WHERE id = ? LIMIT 1', request.hash);
 	var content = cacheRow.fieldByName('content');
-	if (!content) {
-		Ti.API.error("HTTP.Cache: REQ-["+request.hash+"] has invalid cache content");
+	if (content == null) {
+		Ti.API.error('HTTP.Cache: REQ-['+request.hash+'] has invalid cache content');
 		return false;
 	}
 
-	var info = require('T/util').parseJSON(cacheRow.fieldByName('info')) || {};
-	if (info.mime=='json') {
+	var info = require('T/util').parseJSON(cacheRow.fieldByName('info'));
+	if (info.mime === 'json') {
 		return require('T/util').parseJSON(content);
 	} else {
 		return content;
@@ -82,8 +80,8 @@ exports.get = get;
  * Reset all cache
  */
 function reset() {
-	if (!DB) {
-		Ti.API.error("HTTP.Cache: database not open");
+	if (DB === null) {
+		Ti.API.error('HTTP.Cache: database not open');
 		return false;
 	}
 
@@ -97,8 +95,8 @@ exports.reset = reset;
  * @param  {String|Object} request [description]
  */
 function del(hash) {
-	if (!DB) {
-		Ti.API.error("HTTP.Cache: database not open");
+	if (DB === null) {
+		Ti.API.error('HTTP.Cache: database not open');
 		return false;
 	}
 
@@ -110,7 +108,7 @@ exports.del = del;
 (function init(){
 
 	DB = require('T/db').open();
-	if (DB) {
+	if (DB !== null) {
 		DB.execute('CREATE TABLE IF NOT EXISTS http (id TEXT PRIMARY KEY, expire INTEGER, creation INTEGER, content TEXT, info TEXT)');
 	}
 
