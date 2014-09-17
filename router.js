@@ -12,8 +12,8 @@ var config = _.extend({
 exports.config = config;
 
 var routes = [];
-var XCallbackURL = require('T/ext/xcallbackurl');
 
+var Util = require('T/util');
 
 /**
  * Register a route with defined callbacks
@@ -53,7 +53,7 @@ function dispatch(link) {
 	var run = false;
 	var matches = null;
 
-	var X = XCallbackURL.parse(link);
+	var X = Util.parseAsXCallbackURL(link);
 	var path = X.path();
 
 	Ti.API.debug('Router: NEW Route', link, path);

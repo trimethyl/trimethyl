@@ -574,3 +574,12 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 		success: callback
 	});
 };
+
+/**
+ * @method parseAsXCallbackURL
+ * @param  {String} 	url  The URL to parse
+ * @return {XCallbackURL}
+ */
+exports.parseAsXCallbackURL = function(url) {
+	return new require('T/xcallbackurl')(url);
+};
