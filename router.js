@@ -11,7 +11,7 @@ var config = _.extend({
 }, Alloy.CFG.T.router);
 exports.config = config;
 
-var routes = [];
+var routes = []; // storage for all routes
 
 var Util = require('T/util');
 
@@ -47,31 +47,29 @@ exports.on = on;
  *
  * The arguments passed are the matches for your regex definition (if present)
  *
- * @param  {String} 	link 		The route
+ * @param  {String} 	url 		The route
  */
-function dispatch(link) {
+function dispatch(url) {
 	var run = false;
 	var matches = null;
 
-	var X = Util.parseAsXCallbackURL(link);
-	var path = X.path();
-
-	Ti.API.debug('Router: NEW Route', link, path);
+	var X = Util.parseAsXCallbackURL(url);
+	Ti.API.debug('Router: dispatching', url, X.path);
 
 	for (var i in routes) {
 		var routeDefinition = routes[i];
 
 		if (_.isString(routeDefinition.key)) {
 			// Regular string equals
-			run = (routeDefinition.key === path);
+			run = (routeDefinition.key === X.path);
 		} else if (_.isRegExp(routeDefinition.key)) {
 			// Regular expression complex match
-			matches = path.match(routeDefinition.key);
+			matches = X.path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
 		} else if (_.isFunction(routeDefinition.key)) {
 			// Function match
-			matches = routeDefinition.key(path);
+			matches = routeDefinition.key(X.path);
 			run = (matches !== undefined);
 		}
 
@@ -83,7 +81,7 @@ function dispatch(link) {
 		}
 	}
 
-	Ti.API.warn('Router: no matches for the selected route', link);
+	Ti.API.warn('Router: no matches for the selected route', url);
 }
 exports.dispatch = dispatch;
 

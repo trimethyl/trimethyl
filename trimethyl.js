@@ -9,20 +9,21 @@ exports.VERSION = '2.0.0';
 
 var Util = require('T/util');
 var Device 	= require('T/device');
+var Event = require('T/event');
 
 var launchURL = Util.parseSchema();
 var pauseURL = null;
 
 Ti.App.addEventListener('pause', function(){
 	pauseURL = launchURL;
-	require('T/event').trigger('app.paused');
+	Event.trigger('app.paused');
 });
 
 Ti.App.addEventListener('resumed', function() {
 	launchURL = Util.parseSchema();
 
-	if (launchURL!==pauseURL) {
-		require('T/event').trigger('app.resumed', {
+	if (launchURL !== pauseURL) {
+		Event.trigger('app.resumed', {
 			url: launchURL
 		});
 	}

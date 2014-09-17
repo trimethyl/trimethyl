@@ -400,7 +400,7 @@ exports.isSimulator = isSimulator;
 exports.parseSchema = function() {
 	if (OS_IOS) {
 		var cmd = Ti.App.getArguments();
-		if (cmd != null && cmd.url != null) return cmd.url;
+		if (cmd.url != null) return cmd.url;
 	} else if (OS_ANDROID) {
 		var url = Ti.Android.currentActivity.intent.data;
 		if (url != null) return url;
@@ -580,6 +580,32 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
  * @param  {String} 	url  The URL to parse
  * @return {XCallbackURL}
  */
-exports.parseAsXCallbackURL = function(url) {
-	return new require('T/xcallbackurl')(url);
+
+var XCU = {
+	key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
+	q: {
+		name: 'queryKey',
+		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+	},
+	parser: {
+		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+		loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	}
+};
+
+exports.parseAsXCallbackURL = function(str) {
+	var m = XCU.parser.strict.exec(str);
+	var i = XCU.key.length;
+	var uri = {};
+
+	while (i--) {
+		uri[XCU.key[i]] = m[i] || '';
+	}
+
+	uri[XCU.q.name] = {};
+	uri[XCU.key[12]].replace(XCU.q.parser, function($0, $1, $2) {
+		if ($1) uri[XCU.q.name][$1] = $2;
+	});
+
+	return uri;
 };

@@ -35,7 +35,10 @@ var currentControllerArgs = null;
  * @param  {String} 			key  	The tracking key
  */
 function autoTrackWindow($win, key) {
-	if (_.isEmpty(key)) return;
+	if (_.isEmpty(key)) {
+		Ti.API.warn("Flow: empty key for tracking");
+		return;
+	}
 
 	// Track screen with GA
 	if (config.trackWithGA) {
@@ -202,7 +205,7 @@ function openWindow($win, opt, key) {
 		return;
 	}
 
-	autoTrackWindow($win, key);
+	if (!_.isEmpty(key)) autoTrackWindow($win, key);
 
 	// Open the window
 	Navigator.openWindow($win, opt);
@@ -277,7 +280,7 @@ function open(controller, args, opt, key) {
 		controller.destroy();
 	});
 
-	autoTrackWindow($win, key);
+	if (!_.isEmpty(key)) autoTrackWindow($win, key);
 
 	currentControllerName = controller;
 	currentControllerArgs = args;
