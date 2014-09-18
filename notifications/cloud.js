@@ -3,7 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Appcellerator ACS driver for notifications
  *
- * You must set this properties in your TiApp.xml file
+ * You must set this properties in `tiapp.xml`
  *
  * ```
  * <property name='acs-api-key-development' type='string'>...</property>

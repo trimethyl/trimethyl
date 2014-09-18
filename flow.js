@@ -36,7 +36,7 @@ var currentControllerArgs = null;
  */
 function autoTrackWindow($win, key) {
 	if (_.isEmpty(key)) {
-		Ti.API.warn("Flow: empty key for tracking");
+		Ti.API.warn('Flow: empty key for tracking');
 		return;
 	}
 

@@ -18,9 +18,17 @@ exports.config = config;
 
 var Event = require('T/event');
 
+/**
+ * Require the selected driver
+ *
+ * @param  {String} driver The driver
+ * @return {Object}
+ */
 function loadDriver(driver) {
-	return require('T/notifications.'+driver);
+	return require('T/notifications/'+driver);
 }
+exports.loadDriver = loadDriver;
+
 
 var inBackground = false;
 function onNotificationReceived(e) {

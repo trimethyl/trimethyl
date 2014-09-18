@@ -27,11 +27,25 @@ exports.config = config;
 
 
 var Event = require('T/event');
-var HTTPCache = null;
+var Cache = require('T/cache');
+var Util = require('T/util');
 
 var queue = {}; // queue object for all requests
 var serverConnected = null; // in case of ping server
 var errorHandler = null; // global error ha handler
+
+
+/**
+ * Require the selected driver
+ *
+ * @param  {String} driver The driver
+ * @return {Object}
+ */
+function loadDriver(driver) {
+	return require('T/http/'+driver);
+}
+exports.loadDriver = loadDriver;
+
 
 function jsonToWWW(obj, sep, eq, k, ret) {
 	ret = ret || [];
@@ -47,11 +61,14 @@ function jsonToWWW(obj, sep, eq, k, ret) {
 }
 
 function originalErrorHandler(e) {
-	require('T/util').alertError( e && e.message ? e.message : L('Error') );
+	Util.alertError( e && e.message ? e.message : L('Error') );
 }
 
 function calculateHash(request) {
-	return Ti.Utils.md5HexDigest(request.url + JSON.stringify(request.data || {}) + JSON.stringify(request.headers || {}));
+	var hash = request.url + JSON.stringify(request.data || {}) + JSON.stringify(request.headers || {});
+	hash = Ti.Utils.md5HexDigest(hash);
+	hash = hash.substr(0, 6);
+	return 'net_' + hash;
 }
 
 function setApplicationInfo(appInfo) {
@@ -80,10 +97,7 @@ exports.resetErrorHandler = resetErrorHandler;
 
 
 function getResponseInfo(response) {
-	var info = {
-		mime: 'blob',
-		expire: 0,
-	};
+	var info = { mime: 'blob', expire: 0 };
 
 	// Check first the Content-Type
 	var contentType = response.getResponseHeader('Content-Type');
@@ -96,13 +110,13 @@ function getResponseInfo(response) {
 	// Check the Expires header
 	var expires = response.getResponseHeader('Expires');
 	if (expires != null) {
-		info.expire = require('T/util').timestamp(expires);
+		info.expire = Util.timestamp(expires);
 	}
 
 	// Check againts X-Cache-Ttl header (in seconds)
 	var ttl = response.getResponseHeader('X-Cache-Ttl');
 	if (ttl != null) {
-		info.expire = require('T/util').fromnow(ttl);
+		info.expire = Util.fromnow(ttl);
 	}
 
 	return info;
@@ -135,7 +149,7 @@ function decorateRequest(request) {
 
 	// Rebuild the URL if is a GET and there's data
 	if (request.method === 'GET' && _.isObject(request.data)) {
-		var buildedQuery = require('T/util').buildQuery(request.data);
+		var buildedQuery = Util.buildQuery(request.data);
 		delete request.data;
 		request.url = request.url + buildedQuery;
 	}
@@ -179,14 +193,14 @@ function onComplete(request, response, e){
 
 	// Parse based on response info
 	if (info.mime === 'json') {
-		returnValue = require('T/util').parseJSON(response.responseText);
+		returnValue = Util.parseJSON(response.responseText);
 	} else if (info.mime === 'text') {
 		returnValue = response.responseText;
 	} else {
 		returnValue = response.responseData;
 	}
 
-	if (e.success === true) {
+	if (e.success === true && returnValue != null) {
 
 		/*
 		SUCCESS
@@ -194,8 +208,12 @@ function onComplete(request, response, e){
 
 		// Write cache
 		if (config.useCache === true) {
-			if (request.cache !== false && request.method === 'GET' && info.expire > require('T/util').timestamp()) {
-				HTTPCache.set(request, response, info);
+			if (request.cache !== false && request.method === 'GET') {
+				if (+info.expire > Util.now()) {
+					Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + (new Date(info.expire*1000).toDateString()));
+
+					Cache.set(request.hash, returnValue, info.expire);
+				}
 			}
 		}
 
@@ -208,7 +226,7 @@ function onComplete(request, response, e){
 		*/
 
 		// Parse the error returned from the server
-		if (returnValue && returnValue.error) {
+		if (returnValue != null && returnValue.error != null) {
 			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
 		} else {
 			returnError = L('http_error');
@@ -373,12 +391,24 @@ exports.abortRequest = abortRequest;
 
 
 /**
- * Reset all cache
+ * Prune all HTTP cache
  */
-exports.resetCache = function(){
-	if (HTTPCache === null) return;
+exports.pruneCache = function(){
+	if (Cache === null) return;
+	Cache.prune();
+};
 
-	HTTPCache.reset();
+/**
+ * Delete the cache entry for the passed request
+ *
+ * If a complete request object is passed, the hash is calculated
+ *
+ * @param  {String|Object} request [description]
+ */
+exports.removeCache = function(hash) {
+	if (Cache === null) return;
+	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
+	Cache.remove(hash);
 };
 
 
@@ -391,19 +421,15 @@ function resetCookies() {
 exports.resetCookies = resetCookies;
 
 
-/**
- * Delete the cache entry for the passed request
- *
- * If a complete request object is passed, the hash is calculated
- *
- * @param  {String|Object} request [description]
- */
-exports.deleteCache = function(hash) {
-	if (HTTPCache === null) return;
+function getCachedResponse(request) {
+	if (config.useCache === false) return;
+	if (request.cache === false || request.refresh === true || request.method !== 'GET') return;
 
-	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
-	HTTPCache.del(hash);
-};
+	var response = Cache.get(request.hash);
+	if (response == null) return;
+
+	return response;
+}
 
 
 /**
@@ -428,29 +454,29 @@ function send(request) {
 	var onlineStatus = isOnline();
 	request = decorateRequest(request);
 
-	// Try to get the cache, otherwise make the HTTP request
-	if (config.useCache === true) {
-		if (request.cache !== false && request.refresh !== true && request.method === 'GET') {
+	// Get cached response, othwerise send the HTTP request
+	var cachedResponse = getCachedResponse(request);
+	if (cachedResponse != null) {
+		Ti.API.debug('HTTP: REQ-['+request.hash+'] is found on cache');
 
-			var cache = HTTPCache.get(request, !onlineStatus);
-			if (cache != null) {
-				if (_.isFunction(request.complete)) request.complete();
-				if (_.isFunction(request.success)) request.success(cache);
+		if (_.isFunction(request.complete)) request.complete();
+		if (_.isFunction(request.success)) request.success(cachedResponse);
 
-				return request.hash;
-			}
-		}
+		return request.hash;
 	}
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
 	if (onlineStatus === false) {
 		Ti.API.error('HTTP: connection is offline');
 
-		if (config.autoOfflineMessage === true) require('T/util').alert(L('http_offline_title'), L('http_offline_message'));
+		if (config.autoOfflineMessage === true) {
+			Util.alert(L('http_offline_title'), L('http_offline_message'));
+		}
+
 		if (_.isFunction(request.complete)) request.complete();
 		if (_.isFunction(request.error)) request.error({ message: L('http_offline_message') });
 
-		Event.trigger('http.offline', { cache: false });
+		Event.trigger('http.offline');
 		return request.hash;
 	}
 
@@ -463,7 +489,8 @@ function send(request) {
 	H.timeout = request.timeout;
 	H.cache = false; // disable integrated iOS cache
 
-	// onLoad && onError are the same because we have an internal parser that discern the event.success property; WOW!
+	// onLoad && onError are the same because we have an internal parser
+	// that discern the event.success property
 	H.onload = H.onerror = function(e){
 		onComplete(request, this, e);
 	};
@@ -479,8 +506,6 @@ function send(request) {
 	}
 
 	H.open(request.method, request.url);
-
-	// Set the headers
 	_.each(request.headers, function(h, k) {
 		H.setRequestHeader(k, h);
 	});
@@ -492,7 +517,6 @@ function send(request) {
 		H.send();
 	}
 
-	// And return the hash of this request
 	return request.hash;
 }
 exports.send = send;
@@ -579,9 +603,5 @@ exports.postJSON = function(url, data, success, error) {
 (function init(){
 
 	errorHandler = originalErrorHandler;
-
-	if (config.useCache === true) {
-		HTTPCache = require('T/http.cache');
-	}
 
 })();

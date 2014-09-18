@@ -20,17 +20,11 @@ var config = _.extend({
 }, Alloy.CFG.T.auth);
 exports.config = config;
 
-
 var Me = null; // model of current user
 var authInfo = null; // auth info stored
 
 var HTTP = require('T/http');
 var Event = require('T/event');
-
-function getCurrentDriver(){
-	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
-	return Ti.App.Properties.getString('auth.driver');
-}
 
 /**
  * Require the selected driver
@@ -39,9 +33,21 @@ function getCurrentDriver(){
  * @return {Object}
  */
 function loadDriver(driver) {
-	return require('T/auth.'+driver);
+	return require('T/auth/'+driver);
 }
 exports.loadDriver = loadDriver;
+
+
+/**
+ * Get the stored driver as String
+ *
+ * @return {String}
+ */
+function getCurrentDriver(){
+	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
+	return Ti.App.Properties.getString('auth.driver');
+}
+exports.getCurrentDriver = getCurrentDriver;
 
 
 /**
@@ -50,7 +56,7 @@ exports.loadDriver = loadDriver;
  * @return {Object}
  */
 function loadCurrentDriver() {
-	return loadDriver(getCurrentDriver());
+	return loadDriver( getCurrentDriver() );
 }
 exports.loadCurrentDriver = loadCurrentDriver;
 

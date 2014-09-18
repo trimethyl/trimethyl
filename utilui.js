@@ -1,8 +1,15 @@
 /**
- * @class  	UI-Util
+ * @class  	Util.UI
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * UI Util module.
  */
+
+
+/**
+ * @type {Object}
+ */
+var config = _.extend({
+}, Alloy.CFG.T.util ? Alloy.CFG.T.util.ui : {});
+exports.config = config;
 
 
 /**

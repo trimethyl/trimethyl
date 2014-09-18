@@ -7,6 +7,7 @@
  *
  */
 
+
 /**
  * Try to open the URL with `Ti.Platform.openURL`, catching errors.
  *
