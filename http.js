@@ -115,7 +115,7 @@ function getResponseInfo(response) {
 
 	// Check againts X-Cache-Ttl header (in seconds)
 	var ttl = response.getResponseHeader('X-Cache-Ttl');
-	if (ttl != null) {
+	if (ttl != null && _.isNumber(ttl)) {
 		info.expire = Util.fromnow(ttl);
 	}
 
@@ -202,28 +202,10 @@ function onComplete(request, response, e){
 
 	if (e.success === true && returnValue != null) {
 
-		/*
-		SUCCESS
-		*/
-
-		// Write cache
-		if (config.useCache === true) {
-			if (request.cache !== false && request.method === 'GET') {
-				if (+info.expire > Util.now()) {
-					Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + (new Date(info.expire*1000).toDateString()));
-
-					Cache.set(request.hash, returnValue, info.expire);
-				}
-			}
-		}
-
+		saveCachedResponse(request, response, info);
 		if (_.isFunction(request.success)) request.success(returnValue);
 
 	} else {
-
-		/*
-		ERROR
-		*/
 
 		// Parse the error returned from the server
 		if (returnValue != null && returnValue.error != null) {
@@ -420,7 +402,6 @@ function resetCookies() {
 }
 exports.resetCookies = resetCookies;
 
-
 function getCachedResponse(request) {
 	if (config.useCache === false) return;
 	if (request.cache === false || request.refresh === true || request.method !== 'GET') return;
@@ -429,6 +410,15 @@ function getCachedResponse(request) {
 	if (response == null) return;
 
 	return response;
+}
+
+function saveCachedResponse(request, response, info) {
+	if (config.useCache === false) return;
+	if (request.cache === false || request.method !== 'GET') return;
+	if (info.expire < Util.now() || info.mime === 'blob') return;
+
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + (new Date(info.expire*1000).toDateString()));
+	Cache.set(request.hash, response.responseText, info.expire);
 }
 
 
