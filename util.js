@@ -418,7 +418,7 @@ exports.parseSchema = function() {
  * @return {Number}
  */
 function timestamp(t) {
-	var ts = new Date(t).geTime() / 1000;
+	var ts = new Date(t).getTime() / 1000;
 	if (!_.isNumber(ts)) return 0;
 	return parseInt(ts, 10);
 }
