@@ -90,7 +90,7 @@ function prune() {
 	}
 
 	return DB.execute('DELETE FROM cache WHERE 1');
-};
+}
 exports.prune = prune;
 
 

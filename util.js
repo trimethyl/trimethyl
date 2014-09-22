@@ -411,17 +411,6 @@ exports.parseSchema = function() {
 
 
 /**
- * @method now
- * Get the current UNIX timestamp.
- * @return {Number}
- */
-function now() {
-	return parseInt((+new Date())/1000, 10);
-}
-exports.now = now;
-
-
-/**
  * @method timestamp
  * Get the UNIX timestamp.
  *
@@ -429,10 +418,22 @@ exports.now = now;
  * @return {Number}
  */
 function timestamp(t) {
-	if (t == null) return now();
-	return parseInt((+new Date(t))/1000, 10);
+	var ts = new Date(t).getTime() / 1000;
+	if (!_.isNumber(ts)) return 0;
+	return parseInt(ts, 10);
 }
 exports.timestamp = timestamp;
+
+
+/**
+ * @method now
+ * Get the current UNIX timestamp.
+ * @return {Number}
+ */
+function now() {
+	return timestamp(new Date());
+}
+exports.now = now;
 
 
 /**
@@ -443,7 +444,7 @@ exports.timestamp = timestamp;
  * @return {Number}
  */
 exports.fromnow = function(t) {
-	return timestamp((now() + t) * 1000);
+	return timestamp( new Date().getTime() + t*1000 );
 };
 
 
