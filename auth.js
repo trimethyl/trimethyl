@@ -52,37 +52,26 @@ exports.getCurrentDriver = getCurrentDriver;
 
 
 /**
- * Require current-used driver, false if no driver is stored
- *
- * @return {Object}
- */
-function loadCurrentDriver() {
-	return loadDriver(getCurrentDriver());
-}
-exports.loadCurrentDriver = loadCurrentDriver;
-
-
-/**
  * Trigger the handleLogin on current-used driver
  *
  */
 function handleLogin() {
-	if (getCurrentDriver() === null) {
+	var currentDriver = getCurrentDriver();
+
+	if (currentDriver === null) {
 		Ti.API.warn('Auth: no driver stored to handle authentication');
 		return false;
 	}
 
 	try {
-		var driver = loadCurrentDriver();
-		if (driver == null) throw new Error();
-
-		return driver.handleLogin();
-
+		loadDriver(currentDriver).handleLogin();
 	} catch (err) {
+
 		Event.trigger('app.login', {
 			message: err
 		});
 		return false;
+
 	}
 }
 exports.handleLogin = handleLogin;
@@ -244,9 +233,10 @@ exports.user = getCurrentUser;
  */
 function logout(callback) {
 	var id = (Me !== null ? Me.id: null);
+	var currentDriver = getCurrentDriver();
 
 	try {
-		loadCurrentDriver().logout();
+		loadDriver(currentDriver).logout();
 	} catch (err) {}
 
 	Me = null;
