@@ -11,6 +11,8 @@ var config = _.extend({
 }, Alloy.CFG.T.db);
 exports.config = config;
 
+var DB = null;
+
 /**
  * Open the `app` database, or return current database instance
  *
@@ -18,8 +20,7 @@ exports.config = config;
  * @return {Titanium.Database.DB}
  */
 function open() {
-	return _.memoize(function() {
-		return Ti.Database.open('app');
-	});
+	if (DB === null) DB = Ti.Database.open('app');
+	return DB;
 }
 exports.open = open;

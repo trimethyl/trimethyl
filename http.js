@@ -11,13 +11,15 @@
  * * **headers**: Global headers for all requests. Default: `{}`
  * * **usePingServer**: Enable the PING-Server support. Default: `true`
  * * **autoOfflineMessage**: Enable the automatic alert if the connection is offline
- * * **defaultCacheTTL**: Force a predef TTL if not found on the headers
+ * * **defaultCacheTTL**: Force a predef TTL if not found on the headers. Default: `0`
+ * * **cacheDriver**: Set a different cache driver. Default: `null`
  * @type {Object}
  */
 var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	useCache: true,
+	cacheDriver: null,
 	headers: {},
 	usePingServer: true,
 	autoOfflineMessage: true,
@@ -33,18 +35,23 @@ var queue = {}; // queue object for all requests
 var serverConnected = null; // in case of ping server
 var errorHandler = null; // global error ha handler
 
+function hashObject(obj) {
+	if (obj == null) return '';
+	var keys = _.keys(obj).sort();
+	return _.object(keys, _.map(keys, function (key) {
+		return obj[key];
+	}));
+}
+
 function calculateHash(request) {
-	var hash = request.url + JSON.stringify(request.data || {}) + JSON.stringify(request.headers || {});
+	var hash = request.url + hashObject(request.data) + hashObject(request.headers);
 	hash = Ti.Utils.md5HexDigest(hash);
 	hash = hash.substr(0, 6);
 	return 'net_' + hash;
 }
 
 function getResponseInfo(response, request) {
-	var info = {
-		mime: 'blob',
-		ttl: config.defaultCacheTTL
-	};
+	var info = { mime: 'blob', ttl: config.defaultCacheTTL };
 
 	var httpExpires = response.getResponseHeader('Expires');
 	var httpContentType = response.getResponseHeader('Content-Type');
@@ -62,9 +69,14 @@ function getResponseInfo(response, request) {
 	return _.extend(info, _.pluck('mime','ttl', request));
 }
 
+function getHTTPErrorMessage(data) {
+	if (_.isObject(data.error) && _.isString(data.error.message)) return data.error.message;
+	if (_.isString(data.error)) return data.error;
+	return L('http_error');
+}
+
 function decorateRequest(request) {
 	if (request.hash != null) return request;
-
 	if (request.url == null) request.url = '/';
 
 	// if the url is not matching `://` (a protocol), assign the base URL
@@ -122,29 +134,25 @@ function onComplete(request, response, e){
 	// Get the response information and override
 	var info = getResponseInfo(response, request);
 	var httpData = parseHTTPData(response.responseData, info);
-	var httpError = null;
 
 	Ti.API.debug('HTTP: REQ-['+request.hash+'] infos ', info);
 
-	// Parse based on response info
-
 	if (e.success === true && httpData != null) {
 
-		// Save the response
-		maybeCacheResponse(request, response.responseData, info);
+		cacheResponse(request, response.responseData, info);
+
+		Ti.API.debug('HTTP: REQ-['+request.hash+'] success');
 		if (_.isFunction(request.success)) request.success(httpData);
 
 	} else {
 
-		// Parse the error returned from the server
-		if (httpData != null && httpData.error != null) {
-			httpError = httpData.error.message ? httpData.error.message : httpData.error;
-		} else httpError = L('http_error');
+		var errObject = {
+			message: getHTTPErrorMessage(httpData),
+			code: response.status
+		};
 
-		var err = { message: httpError, code: response.status };
-		Ti.API.error('HTTP: REQ-['+request.hash+'] error', err);
-
-		if (_.isFunction(request.error)) request.error(err);
+		Ti.API.error('HTTP: REQ-['+request.hash+'] error', errObject);
+		if (_.isFunction(request.error)) request.error(errObject);
 	}
 }
 
@@ -154,7 +162,7 @@ function getCachedResponse(request) {
 	return Cache.get(request.hash);
 }
 
-function maybeCacheResponse(request, data, info) {
+function cacheResponse(request, data, info) {
 	if (config.useCache === false) return;
 	if (request.cache === false || request.method !== 'GET') return;
 	if (info.ttl <= 0) return;
@@ -190,7 +198,6 @@ function parseHTTPData(data, info) {
  * @return {String}	The hash to identify this request
  */
 function send(request) {
-	var onlineStatus = isOnline();
 	request = decorateRequest(request);
 
 	// Get cached response, othwerise send the HTTP request
@@ -206,7 +213,7 @@ function send(request) {
 	}
 
 	// If we aren't online and we are here, we can't proceed, so STOP!
-	if (onlineStatus === false) {
+	if (isOnline() === false) {
 		Ti.API.error('HTTP: connection is offline');
 
 		if (config.autoOfflineMessage === true) {
@@ -264,7 +271,7 @@ exports.send = send;
 
 
 function originalErrorHandler(e) {
-	Util.alertError( e && e.message ? e.message : L('Error') );
+	Util.alertError( e != null && e.message != null ? e.message : L('Error') );
 }
 
 function setApplicationInfo(appInfo) {
@@ -432,10 +439,8 @@ function abortRequest(hash) {
 	var httpClient = getQueuedRequest(hash);
 	if (httpClient == null) return;
 
-	try {
-		httpClient.abort();
-		Ti.API.debug('HTTP: REQ-['+hash+'] request aborted');
-	} catch (err) {}
+	httpClient.abort();
+	Ti.API.debug('HTTP: REQ-['+hash+'] request aborted');
 }
 exports.abortRequest = abortRequest;
 
@@ -457,7 +462,8 @@ exports.pruneCache = function(){
  */
 exports.removeCache = function(hash) {
 	if (Cache === null) return;
-	Cache.remove( _.isObject(hash) ? decorateRequest(hash).hash : hash );
+	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
+	Cache.remove(hash);
 };
 
 
@@ -552,5 +558,8 @@ exports.postJSON = function(url, data, success, error) {
 (function init(){
 
 	errorHandler = originalErrorHandler;
+	if (config.cacheDriver != null) {
+		Cache.setDriver(config.cacheDriver);
+	}
 
 })();

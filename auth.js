@@ -44,7 +44,8 @@ exports.loadDriver = loadDriver;
  * @return {String}
  */
 function getCurrentDriver(){
-	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
+	if (Ti.App.Properties.hasProperty('auth.driver') === false)
+		return null;
 	return Ti.App.Properties.getString('auth.driver');
 }
 exports.getCurrentDriver = getCurrentDriver;
@@ -56,7 +57,7 @@ exports.getCurrentDriver = getCurrentDriver;
  * @return {Object}
  */
 function loadCurrentDriver() {
-	return loadDriver( getCurrentDriver() );
+	return loadDriver(getCurrentDriver());
 }
 exports.loadCurrentDriver = loadCurrentDriver;
 

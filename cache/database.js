@@ -35,12 +35,10 @@ exports.get = get;
  * @param {Object} 	info
  */
 function set(hash, value, ttl, info) {
-	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)',
-	hash,
-	ttl ? Util.fromnow(ttl * 1000) : -1,
-	value,
-	info != null ? JSON.stringify(info) : ''
-	);
+	ttl = ttl != null ? Util.fromnow(ttl * 1000) : -1;
+	info = info != null ? JSON.stringify(info) : '';
+	var q = 'INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)';
+	DB.execute(q, hash, ttl, value, info);
 }
 exports.set = set;
 
