@@ -12,21 +12,10 @@ var config = _.extend({
 }, Alloy.CFG.T.cache);
 exports.config = config;
 
-
-/**
- * Require the selected driver
- *
- * @param  {String} driver The driver
- * @return {Object}
- */
-function setInterface(driver) {
-	module.exports = require('T/cache/'+driver);
+function use(what) {
+	return require('T/cache/'+what);
 }
-exports.setDriver = setDriver;
 
-
-/*
-Init
-*/
-
-setInterface(config.driver);
+module.exports = _.extend(use(config.driver), {
+	use: use
+});

@@ -17,6 +17,7 @@ var config = _.extend({
 exports.config = config;
 
 var Event = require('T/event');
+var inBackground = false;
 
 /**
  * Require the selected driver
@@ -24,13 +25,12 @@ var Event = require('T/event');
  * @param  {String} driver The driver
  * @return {Object}
  */
-function loadDriver(driver) {
+function load(driver) {
 	return require('T/notifications/'+driver);
 }
-exports.loadDriver = loadDriver;
+exports.load = load;
 
 
-var inBackground = false;
 function onNotificationReceived(e) {
 	if (OS_ANDROID) {
 
@@ -130,19 +130,8 @@ if (OS_IOS) {
  * @param  {String} channel Channel name
  */
 function subscribe(channel) {
-	if (!_.isFunction(subscribeFunction))	{
-		Ti.API.error('Notifications: No subscribe function has been defined');
-		return;
-	}
-
 	subscribeFunction(function(token) {
-		var driver = loadDriver(config.driver);
-		if (driver == null || !_.isFunction(driver.subscribe)) {
-			Ti.API.error('Notifications: No subscribe method for driver ' + config.driver);
-			return;
-		}
-
-		driver.subscribe(token, channel, function(){
+		load(config.driver).subscribe(token, channel, function(){
 			Ti.API.debug('Notifications: Subscribtion OK with driver ' + config.driver);
 		});
 	});
@@ -155,18 +144,7 @@ exports.subscribe = subscribe;
  * @param  {String} channel Channel name
  */
 function unsubscribe(channel) {
-	if (!_.isFunction(unsubscribeFunction)) {
-		Ti.API.error('Notifications: No unsubscribe function has been defined');
-		return;
-	}
-
-	var driver = loadDriver(config.driver);
-	if (driver == null || !_.isFunction(driver.unsubscribe)) {
-		Ti.API.error('Notifications: No unsubscribe method with driver ('+config.driver+')');
-		return;
-	}
-
-	driver.unsubscribe(channel);
+	load(config.driver).unsubscribe(channel);
 }
 exports.unsubscribe = unsubscribe;
 

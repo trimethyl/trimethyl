@@ -32,10 +32,10 @@ var Event = require('T/event');
  * @param  {String} driver The driver
  * @return {Object}
  */
-function loadDriver(driver) {
+function load(driver) {
 	return require('T/auth/'+driver);
 }
-exports.loadDriver = loadDriver;
+exports.load = load;
 
 
 /**
@@ -44,8 +44,7 @@ exports.loadDriver = loadDriver;
  * @return {String}
  */
 function getCurrentDriver(){
-	if (Ti.App.Properties.hasProperty('auth.driver') === false)
-		return null;
+	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
 	return Ti.App.Properties.getString('auth.driver');
 }
 exports.getCurrentDriver = getCurrentDriver;
@@ -64,7 +63,7 @@ function handleLogin() {
 	}
 
 	try {
-		loadDriver(currentDriver).handleLogin();
+		load(currentDriver).handleLogin();
 	} catch (err) {
 
 		Event.trigger('app.login', {
@@ -236,7 +235,7 @@ function logout(callback) {
 	var currentDriver = getCurrentDriver();
 
 	try {
-		loadDriver(currentDriver).logout();
+		load(currentDriver).logout();
 	} catch (err) {}
 
 	Me = null;
