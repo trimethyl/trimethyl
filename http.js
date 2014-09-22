@@ -19,7 +19,7 @@ var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	useCache: true,
-	cacheDriver: null,
+	cacheDriver: 'database',
 	headers: {},
 	usePingServer: true,
 	autoOfflineMessage: true,
@@ -27,13 +27,17 @@ var config = _.extend({
 }, Alloy.CFG.T.http);
 exports.config = config;
 
-var Cache = require('T/cache');
+var Cache = null;
 var Event = require('T/event');
 var Util = require('T/util');
 
 var queue = {}; // queue object for all requests
 var serverConnected = null; // in case of ping server
 var errorHandler = null; // global error ha handler
+
+function setCacheDriver(driver) {
+	Cache = require('T/cache').use(driver);
+}
 
 function hashObject(obj) {
 	if (obj == null) return '';
@@ -563,6 +567,4 @@ Init
 */
 
 errorHandler = originalErrorHandler;
-if (config.cacheDriver != null) {
-	Cache.setInterface(config.cacheDriver);
-}
+setCacheDriver(config.cacheDriver);
