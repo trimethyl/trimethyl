@@ -47,9 +47,7 @@ function hashObject(obj) {
 
 function calculateHash(request) {
 	var hash = request.url + hashObject(request.data) + hashObject(request.headers);
-	hash = Ti.Utils.md5HexDigest(hash);
-	hash = hash.substr(0, 6);
-	return 'net_' + hash;
+	return 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 6);
 }
 
 function getResponseInfo(response, request) {
