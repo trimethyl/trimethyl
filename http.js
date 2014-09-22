@@ -102,7 +102,7 @@ function getResponseInfo(response, request) {
 	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
 	if (httpTTL != null) info.ttl = httpTTL;
 
-	return _.extend(info, _.pluck('mime','expire', request), request.info || {});
+	return _.extend(info, _.pluck('mime','ttl', request), request.info || {});
 }
 
 
@@ -420,7 +420,7 @@ function saveCachedResponse(request, response, info) {
  * * **success**: The success callback
  * * **error**: The error callback
  * * **mime**: Override the mime for that request (like `json`)
- * * **expire**: Override the TTL seconds for the cache
+ * * **ttl**: Override the TTL seconds for the cache
  *
  * @param  {Object} request The request dictionary
  * @return {String}	The hash to identify this request
