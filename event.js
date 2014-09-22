@@ -15,4 +15,8 @@ var config = _.extend({
 }, Alloy.CFG.T.event);
 exports.config = config;
 
+/*
+Init
+*/
+
 module.exports = _.clone(Backbone.Events);

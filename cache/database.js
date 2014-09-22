@@ -60,9 +60,9 @@ function remove(hash) {
 exports.remove = remove;
 
 
-(function init() {
+/*
+Init
+*/
 
-	DB = require('T/db').open();
-	DB.execute('CREATE TABLE IF NOT EXISTS cache (hash TEXT PRIMARY KEY, expire INTEGER, value TEXT, info TEXT)');
-
-})();
+DB = require('T/db').open();
+DB.execute('CREATE TABLE IF NOT EXISTS cache (hash TEXT PRIMARY KEY, expire INTEGER, value TEXT, info TEXT)');

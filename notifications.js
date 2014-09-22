@@ -214,11 +214,11 @@ function incBadge(i) {
 exports.incBadge = incBadge;
 
 
-(function init(){
+/*
+Init
+*/
 
-	if (config.autoReset) {
-		resetBadge();
-		Ti.App.addEventListener('resumed', resetBadge);
-	}
-
-})();
+if (config.autoReset) {
+	resetBadge();
+	Ti.App.addEventListener('resumed', resetBadge);
+}

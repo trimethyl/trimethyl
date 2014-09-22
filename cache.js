@@ -25,8 +25,8 @@ function setDriver(driver) {
 exports.setDriver = setDriver;
 
 
-(function init() {
+/*
+Init
+*/
 
-	setDriver(config.driver);
-
-})();
+setDriver(config.driver);

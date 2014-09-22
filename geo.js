@@ -509,9 +509,9 @@ function getRegionBounds(array, mulGap) {
 exports.getRegionBounds = getRegionBounds;
 
 
-(function init(){
+/*
+Init
+*/
 
-	Ti.Geolocation.purpose = L('geo_purpose');
-	Ti.Geolocation.accuracy = Ti.Geolocation[config.gpsAccuracy];
-
-})();
+Ti.Geolocation.purpose = L('geo_purpose');
+Ti.Geolocation.accuracy = Ti.Geolocation[config.gpsAccuracy];

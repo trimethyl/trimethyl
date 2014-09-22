@@ -558,11 +558,11 @@ exports.postJSON = function(url, data, success, error) {
 };
 
 
-(function init(){
+/*
+Init
+*/
 
-	errorHandler = originalErrorHandler;
-	if (config.cacheDriver != null) {
-		Cache.setDriver(config.cacheDriver);
-	}
-
-})();
+errorHandler = originalErrorHandler;
+if (config.cacheDriver != null) {
+	Cache.setDriver(config.cacheDriver);
+}

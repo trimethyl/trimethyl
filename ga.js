@@ -155,13 +155,13 @@ function setTrackerUA(ua) {
 exports.setTrackerUA = setTrackerUA;
 
 
-(function init(){
+/*
+Init
+*/
 
-	AnalyticsGoogle.trackUncaughtExceptions = true;
-	AnalyticsGoogle.debug = false;
+AnalyticsGoogle.trackUncaughtExceptions = true;
+AnalyticsGoogle.debug = false;
 
-	if (config.ua) {
-		setTrackerUA(config.ua);
-	}
-
-})();
+if (config.ua) {
+	setTrackerUA(config.ua);
+}

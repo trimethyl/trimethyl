@@ -153,10 +153,11 @@ exports.createView = function(args) {
 };
 
 
-(function init() {
+/*
+Init
+*/
 
-	_.each(Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing(), function(js) {
-		libDir.push('web/lib/'+js);
-	});
-
-})();
+var jsFiles = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing();
+_.each(jsFiles, function(js) {
+	libDir.push('web/lib/'+js);
+});

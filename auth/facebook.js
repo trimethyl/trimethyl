@@ -97,43 +97,43 @@ function logout() {
 exports.logout = logout;
 
 
-(function init(){
+/*
+Init
+*/
 
-	FB.forceDialogAuth = false;
+FB.forceDialogAuth = false;
 
-	if (FB.appid == null) {
-		if (config.appid != null) {
-			FB.appid = config.appid;
-		} else if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);	// Legacy mode
-		} else {
-			Ti.API.warn('Auth.Facebook: Please specify a Facebook AppID');
-		}
+if (FB.appid == null) {
+	if (config.appid != null) {
+		FB.appid = config.appid;
+	} else if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+		FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+	} else {
+		Ti.API.warn('Auth.Facebook: Please specify a Facebook AppID');
+	}
+}
+
+if (config.permissions != null) {
+	FB.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
+}
+
+FB.addEventListener('login', function(e){
+	// by checking the `authorized` flag,
+	// we are sure that loginToServer is NOT called automatically on startup.
+	// This is a security hack caused by iOS SDK that
+	// automatically trigger the login event
+	if (authorized === false) {
+		Ti.API.debug('Auth.Facebook: login prevented due authorized flag');
+		return;
 	}
 
-	if (config.permissions != null) {
-		FB.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
+	// If there's an error, and the user hasn't cancelled login,
+	// try the legacy mode of Facebook login on next Login,
+	// that we are SURE that works.
+	if (e.error === true && e.cancelled === false) {
+		Ti.API.warn('Auth.Facebook: enabling the legacy mode of Facebook login due error');
+		FB.forceDialogAuth = true;
 	}
 
-	FB.addEventListener('login', function(e){
-		// by checking the `authorized` flag,
-		// we are sure that loginToServer is NOT called automatically on startup.
-		// This is a security hack caused by iOS SDK that
-		// automatically trigger the login event
-		if (authorized === false) {
-			Ti.API.debug('Auth.Facebook: login prevented due authorized flag');
-			return;
-		}
-
-		// If there's an error, and the user hasn't cancelled login,
-		// try the legacy mode of Facebook login on next Login,
-		// that we are SURE that works.
-		if (e.error === true && e.cancelled === false) {
-			Ti.API.warn('Auth.Facebook: enabling the legacy mode of Facebook login due error');
-			FB.forceDialogAuth = true;
-		}
-
-		loginToServer(e);
-	});
-
-})();
+	loginToServer(e);
+});

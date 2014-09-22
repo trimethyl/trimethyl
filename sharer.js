@@ -427,49 +427,48 @@ function activity(args) {
 exports.activity = activity;
 exports.multi = activity;
 
+/*
+Init
+*/
 
-(function init() {
+// Load modules
 
-	// Load modules
+try {
+	Facebook = require('facebook');
+	if (Facebook == null) throw new Error();
+} catch (ex) {
+	Ti.API.warn('Sharer: `facebook` can\'t be loaded');
+}
+
+if (OS_IOS) {
 
 	try {
-		Facebook = require('facebook');
-		if (Facebook == null) throw new Error();
+		dkNappSocial = require('dk.napp.social');
+		if (dkNappSocial == null) throw new Error();
 	} catch (ex) {
-		Ti.API.warn('Sharer: `facebook` can\'t be loaded');
+		Ti.API.warn('Sharer: `dk.napp.social` can\'t be loaded');
 	}
 
-	if (OS_IOS) {
-
-		try {
-			dkNappSocial = require('dk.napp.social');
-			if (dkNappSocial == null) throw new Error();
-		} catch (ex) {
-			Ti.API.warn('Sharer: `dk.napp.social` can\'t be loaded');
-		}
-
-		try {
-			benCodingSMS = require('bencoding.sms');
-			if (benCodingSMS == null) throw new Error();
-		} catch (ex) {
-			Ti.API.warn('Sharer: `bencoding.sms` can\'t be loaded');
-		}
-
+	try {
+		benCodingSMS = require('bencoding.sms');
+		if (benCodingSMS == null) throw new Error();
+	} catch (ex) {
+		Ti.API.warn('Sharer: `bencoding.sms` can\'t be loaded');
 	}
 
-	// Configure modules
+}
 
-	if (Facebook.appid == null) {
-		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-		} else {
-			Ti.API.error('Sharer: Please specify a Facebook AppID');
-		}
+// Configure modules
+
+if (Facebook.appid == null) {
+	if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+		Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+	} else {
+		Ti.API.error('Sharer: Please specify a Facebook AppID');
 	}
+}
 
-	if (dkNappSocial !== null) {
-		dkNappSocial.addEventListener('complete', onSocialComplete);
-		dkNappSocial.addEventListener('cancelled', onSocialCancel);
-	}
-
-})();
+if (dkNappSocial !== null) {
+	dkNappSocial.addEventListener('complete', onSocialComplete);
+	dkNappSocial.addEventListener('cancelled', onSocialCancel);
+}
