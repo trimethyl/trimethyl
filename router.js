@@ -91,3 +91,19 @@ exports.dispatch = dispatch;
  * Alias for {@link #dispatch}
  */
 exports.go = dispatch;
+
+
+function autoMapModel(single, plural) {
+	plural = plural || single+'s';
+
+	on('/'+plural, function() {
+		require('T/flow').open(plural);
+	});
+
+	on(new RegExp('/'+plural+'/([0-9]+)'), function(id) {
+		require('T/flow').open(single, {
+			id: id
+		});
+	});
+}
+exports.autoMapModel = autoMapModel;

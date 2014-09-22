@@ -11,7 +11,7 @@
  * * **headers**: Global headers for all requests. Default: `{}`
  * * **usePingServer**: Enable the PING-Server support. Default: `true`
  * * **autoOfflineMessage**: Enable the automatic alert if the connection is offline
- * * **httpieDebug**: Enable the httpie debug. Default: `true`
+ * * **defaultCacheTTL**: Force a predef TTL if not found on the headers
  * @type {Object}
  */
 var config = _.extend({
@@ -21,7 +21,7 @@ var config = _.extend({
 	headers: {},
 	usePingServer: true,
 	autoOfflineMessage: true,
-	httpieDebug: true
+	defaultCacheTTL: 0,
 }, Alloy.CFG.T.http);
 exports.config = config;
 
@@ -46,19 +46,6 @@ function loadDriver(driver) {
 }
 exports.loadDriver = loadDriver;
 
-
-function jsonToWWW(obj, sep, eq, k, ret) {
-	ret = ret || [];
-	_.each(obj, function(v, i) {
-		var _k = k !== undefined;
-		if (_.isObject(obj[i])) {
-			jsonToWWW(v, null, eq, (_k ? k + '[' : '') + i + (_k ? ']' : ''), ret);
-		} else {
-			ret.push((_k ? k + '[' + i + ']' : i) + (eq || '=') + v);
-		}
-	});
-	return ret.join(sep || '&');
-}
 
 function originalErrorHandler(e) {
 	Util.alertError( e && e.message ? e.message : L('Error') );
@@ -96,30 +83,28 @@ function resetErrorHandler(){
 exports.resetErrorHandler = resetErrorHandler;
 
 
-function getResponseInfo(response) {
-	var info = { mime: 'blob', expire: 0 };
+function getResponseInfo(response, request) {
+	var info = {
+		mime: 'blob',
+		ttl: config.defaultCacheTTL
+	};
 
-	// Check first the Content-Type
-	var contentType = response.getResponseHeader('Content-Type');
-	if (contentType != null) {
-		if (contentType.match(/application\/json/)) {
-			info.mime = 'json';
+	var httpExpires = response.getResponseHeader('Expires');
+	var httpContentType = response.getResponseHeader('Content-Type');
+	var httpTTL = response.getResponseHeader('X-Cache-Ttl');
+
+	if (response.responseText != null) {
+		info.mime = 'text';
+		if (httpContentType != null) {
+			if (httpContentType.match(/application\/json/)) {
+				info.mime = 'json';
+			}
 		}
 	}
+	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
+	if (httpTTL != null) info.ttl = httpTTL;
 
-	// Check the Expires header
-	var expires = response.getResponseHeader('Expires');
-	if (expires != null) {
-		info.expire = Util.timestamp(expires);
-	}
-
-	// Check againts X-Cache-Ttl header (in seconds)
-	var ttl = response.getResponseHeader('X-Cache-Ttl');
-	if (ttl != null) {
-		info.expire = Util.fromnow(ttl);
-	}
-
-	return info;
+	return _.extend(info, _.pluck('mime','expire', request), request.info || {});
 }
 
 
@@ -138,15 +123,6 @@ function decorateRequest(request) {
 	request.timeout = request.timeout || config.timeout;
 	if (request.error === undefined) request.error = errorHandler;
 
-	// httpie debug
-	if (config.httpieDebug === true) {
-		Ti.API.debug(
-		'http ' + request.method + ' ' + request.url + ' ' +
-		jsonToWWW(request.headers,' ','=') + ' ' +
-		jsonToWWW(request.data, ' ', request.method === 'GET' ? '==' : '=')
-		);
-	}
-
 	// Rebuild the URL if is a GET and there's data
 	if (request.method === 'GET' && _.isObject(request.data)) {
 		var buildedQuery = Util.buildQuery(request.data);
@@ -161,7 +137,12 @@ function decorateRequest(request) {
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] completed in ' + (request.endTime-request.startTime) + 'ms');
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] complete ', {
+		time: (request.endTime-request.startTime),
+		httpCode: response.status,
+		success: e.success,
+		error: e.error
+	});
 
 	// Delete request from queue
 	delete queue[request.hash];
@@ -186,7 +167,8 @@ function onComplete(request, response, e){
 	}
 
 	// Get the response information and override
-	var info = _.extend(getResponseInfo(response), _.pluck(request, 'mime', 'expire'), request.info);
+	var info = getResponseInfo(response, request);
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] infos ', info);
 
 	var returnValue = null;
 	var returnError = null;
@@ -209,10 +191,11 @@ function onComplete(request, response, e){
 		// Write cache
 		if (config.useCache === true) {
 			if (request.cache !== false && request.method === 'GET') {
-				if (+info.expire > Util.now()) {
-					Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + (new Date(info.expire*1000).toDateString()));
+				if (info.ttl > 0) {
+					var untilString = (new Date(1000 * Util.fromnow(info.ttl))).toString();
+					Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + untilString);
 
-					Cache.set(request.hash, returnValue, info.expire);
+					Cache.set(request.hash, returnValue, info.ttl);
 				}
 			}
 		}
@@ -233,7 +216,10 @@ function onComplete(request, response, e){
 		}
 
 		// Build the error
-		var err = { message: returnError, code: response.status };
+		var err = {
+			message: returnError,
+			code: response.status
+		};
 		Ti.API.error('HTTP: REQ-['+request.hash+'] error', err);
 
 		if (_.isFunction(request.error)) request.error(err);
@@ -516,6 +502,8 @@ function send(request) {
 	} else {
 		H.send();
 	}
+
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] sent', request);
 
 	return request.hash;
 }

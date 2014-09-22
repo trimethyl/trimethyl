@@ -201,11 +201,18 @@ function openWindow($win, opt, key) {
 	if (Navigator === null) {
 		Ti.API.warn('Flow: A NavigationController is not defined yet, waiting for next assignment');
 
-		navPreviousRoute = { method: 'openWindow', arg1: $win, arg2: opt, arg3: null };
+		navPreviousRoute = {
+			method: 'openWindow',
+			arg1: $win,
+			arg2: opt,
+			arg3: null
+		};
 		return;
 	}
 
-	if (!_.isEmpty(key)) autoTrackWindow($win, key);
+	if (!_.isEmpty(key)) {
+		autoTrackWindow($win, key);
+	}
 
 	// Open the window
 	Navigator.openWindow($win, opt);
@@ -229,12 +236,14 @@ function openDirect(controller, args, opt, key) {
 	Ti.API.debug('Flow: openDirect', controller, args);
 
 	// Open the controller
-	var controller = Alloy.createController(controller, args);
-	key = key || controller.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
+	var $c = Alloy.createController(controller, args);
+	key = key || $c.analyticsKey || (controller + (args.id?'/'+args.id:''));
 
-	GA.trackScreen(key);
+	if (!_.isEmpty(key)) {
+		GA.trackScreen(key);
+	}
 
-	return controller;
+	return $c;
 }
 exports.openDirect = openDirect;
 
@@ -259,10 +268,10 @@ function open(controller, args, opt, key) {
 	opt = opt || {};
 	Ti.API.debug('Flow: Open', controller, args);
 
-	var controller = Alloy.createController(controller, args);
-	key = key || controller.analyticsKey || ( controller + (args.id ? '/'+args.id : '') );
+	var $c = Alloy.createController(controller, args);
+	var $win = $c.getView();
 
-	var $win = controller.getView();
+	key = key || $c.analyticsKey || (controller + (args.id!=null ? '/'+args.id : ''));
 
 	if (Navigator === null) {
 		Ti.API.warn('Flow: A NavigationController is not defined yet, waiting for next assignment');
@@ -276,15 +285,18 @@ function open(controller, args, opt, key) {
 
 	// Attach events
 	setCurrentWindow($win);
-	$win.addEventListener('close', function(){
-		controller.destroy();
-	});
+	autoTrackWindow($win, key);
 
-	if (!_.isEmpty(key)) autoTrackWindow($win, key);
+	// Clean up controller on window close
+	$win.addEventListener('close', function(){
+		$c.destroy();
+		$c.off();
+		if (_.isFunction($c.cleanup)) $c.cleanup();
+	});
 
 	currentControllerName = controller;
 	currentControllerArgs = args;
-	currentController = controller;
+	currentController = $c;
 
 	return controller;
 }

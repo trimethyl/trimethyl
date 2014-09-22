@@ -62,16 +62,19 @@ exports.get = get;
  *
  * @param {String} 	hash     The unique key
  * @param {Mixed} 	value  	Value to set
- * @param {Number} 	expire 	TTL of this property, expressed is seconds from now
+ * @param {Number} 	ttl 		TTL of this property, expressed is seconds from now
  */
-function set(hash, value, expire) {
+function set(hash, value, ttl) {
 	if (DB === null) {
 		Ti.API.error('Cache: database not open.');
 		return false;
 	}
 
-	var expireTs = expire ? Util.fromnow(expire) : -1; // forever
-	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value) VALUES (?,?,?)', hash, expireTs, JSON.stringify(value));
+	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value) VALUES (?,?,?)',
+		hash,
+		ttl ? Util.fromnow(ttl * 1000) : -1,
+		JSON.stringify(value)
+	);
 }
 exports.set = set;
 

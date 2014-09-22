@@ -21,7 +21,7 @@ var AnalyticsGoogle = require('analytics.google');
 var tracker = null;
 
 function track(method, what) {
-	Ti.API.debug('GA: ' + method + ' - ' + JSON.stringify(what));
+	Ti.API.debug('GA: track' + method, what);
 	tracker['track'+method](what);
 }
 

@@ -14,7 +14,6 @@ exports.config = config;
 var HTTP = require('T/http');
 var Auth = require('T/auth');
 
-
 /**
  * Login to the API server using stored data
  */
