@@ -12,14 +12,12 @@
  * * **usePingServer**: Enable the PING-Server support. Default: `true`
  * * **autoOfflineMessage**: Enable the automatic alert if the connection is offline
  * * **defaultCacheTTL**: Force a predef TTL if not found on the headers. Default: `0`
- * * **cacheDriver**: Set a different cache driver. Default: `null`
  * @type {Object}
  */
 var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	useCache: true,
-	cacheDriver: 'database',
 	headers: {},
 	usePingServer: true,
 	autoOfflineMessage: true,
@@ -35,9 +33,6 @@ var queue = {}; // queue object for all requests
 var serverConnected = null; // in case of ping server
 var errorHandler = null; // global error ha handler
 
-function setCacheDriver(driver) {
-	Cache = require('T/cache').use(driver);
-}
 
 function hash(obj) {
 	if (obj == null) return '';
@@ -451,6 +446,15 @@ function abortRequest(hash) {
 }
 exports.abortRequest = abortRequest;
 
+
+/**
+ * Set a different cache strategy
+ * @param {Strig} driver
+ */
+function setCacheDriver(driver) {
+	Cache = require('T/cache').use(driver);
+}
+exports.setCacheDriver = setCacheDriver;
 
 /**
  * Prune all HTTP cache
