@@ -51,7 +51,10 @@ function calculateHash(request) {
 }
 
 function getResponseInfo(response, request) {
-	var info = { mime: 'blob', ttl: config.defaultCacheTTL };
+	var info = {
+		mime: 'blob',
+		ttl: config.defaultCacheTTL,
+	};
 
 	var httpExpires = response.getResponseHeader('Expires');
 	var httpContentType = response.getResponseHeader('Content-Type');
