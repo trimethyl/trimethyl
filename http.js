@@ -37,6 +37,7 @@ var errorHandler = null; // global error ha handler
 
 function hashObject(obj) {
 	if (obj == null) return '';
+	if (_.isArray(obj)) return obj;
 	var keys = _.keys(obj).sort();
 	return _.object(keys, _.map(keys, function (key) {
 		return obj[key];
