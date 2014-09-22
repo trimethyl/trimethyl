@@ -39,7 +39,7 @@ function setCacheDriver(driver) {
 	Cache = require('T/cache').use(driver);
 }
 
-function hashObject(obj) {
+function hash(obj) {
 	if (obj == null) return '';
 	if (_.isArray(obj)) return obj;
 	if (_.isObject(obj)) {
@@ -50,7 +50,7 @@ function hashObject(obj) {
 }
 
 function calculateHash(request) {
-	var hash = request.url + hashObject(request.data) + hashObject(request.headers);
+	var hash = request.url + hash(request.data) + hash(request.headers);
 	return 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 6);
 }
 
