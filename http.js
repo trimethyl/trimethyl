@@ -564,5 +564,5 @@ Init
 
 errorHandler = originalErrorHandler;
 if (config.cacheDriver != null) {
-	Cache.setDriver(config.cacheDriver);
+	Cache.setInterface(config.cacheDriver);
 }

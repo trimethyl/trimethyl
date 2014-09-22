@@ -19,7 +19,7 @@ exports.config = config;
  * @param  {String} driver The driver
  * @return {Object}
  */
-function setDriver(driver) {
+function setInterface(driver) {
 	module.exports = require('T/cache/'+driver);
 }
 exports.setDriver = setDriver;
@@ -29,4 +29,4 @@ exports.setDriver = setDriver;
 Init
 */
 
-setDriver(config.driver);
+setInterface(config.driver);
