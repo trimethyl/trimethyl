@@ -25,31 +25,13 @@ var config = _.extend({
 }, Alloy.CFG.T.http);
 exports.config = config;
 
-
-var Event = require('T/event');
 var Cache = require('T/cache');
+var Event = require('T/event');
 var Util = require('T/util');
 
 var queue = {}; // queue object for all requests
 var serverConnected = null; // in case of ping server
 var errorHandler = null; // global error ha handler
-
-
-/**
- * Require the selected driver
- *
- * @param  {String} driver The driver
- * @return {Object}
- */
-function loadDriver(driver) {
-	return require('T/http/'+driver);
-}
-exports.loadDriver = loadDriver;
-
-
-function originalErrorHandler(e) {
-	Util.alertError( e && e.message ? e.message : L('Error') );
-}
 
 function calculateHash(request) {
 	var hash = request.url + JSON.stringify(request.data || {}) + JSON.stringify(request.headers || {});
@@ -57,31 +39,6 @@ function calculateHash(request) {
 	hash = hash.substr(0, 6);
 	return 'net_' + hash;
 }
-
-function setApplicationInfo(appInfo) {
-	_.each(appInfo, function(v,k){
-		Ti.App.Properties.setString('settings.'+k, v);
-	});
-}
-
-/**
- * Set a new global handler for the errors
- * @param {Function} fun The new function
- */
-function setErrorHandler(fun) {
-	errorHandler = fun;
-}
-exports.setErrorHandler = setErrorHandler;
-
-
-/**
- * Reset the original error handler
- */
-function resetErrorHandler(){
-	errorHandler = originalErrorHandler;
-}
-exports.resetErrorHandler = resetErrorHandler;
-
 
 function getResponseInfo(response, request) {
 	var info = {
@@ -102,9 +59,8 @@ function getResponseInfo(response, request) {
 	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
 	if (httpTTL != null) info.ttl = httpTTL;
 
-	return _.extend(info, _.pluck('mime','ttl', request), request.info || {});
+	return _.extend(info, _.pluck('mime','ttl', request));
 }
-
 
 function decorateRequest(request) {
 	if (request.hash != null) return request;
@@ -131,7 +87,6 @@ function decorateRequest(request) {
 	request.hash = calculateHash(request);
 	return request;
 }
-
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
@@ -166,45 +121,175 @@ function onComplete(request, response, e){
 
 	// Get the response information and override
 	var info = getResponseInfo(response, request);
+	var httpData = parseHTTPData(response.responseData, info);
+	var httpError = null;
+
 	Ti.API.debug('HTTP: REQ-['+request.hash+'] infos ', info);
 
-	var returnValue = null;
-	var returnError = null;
-
 	// Parse based on response info
-	if (info.mime === 'json') {
-		returnValue = Util.parseJSON(response.responseText);
-	} else if (info.mime === 'text') {
-		returnValue = response.responseText;
-	} else {
-		returnValue = response.responseData;
-	}
 
-	if (e.success === true && returnValue != null) {
+	if (e.success === true && httpData != null) {
 
-		saveCachedResponse(request, response, info);
-		if (_.isFunction(request.success)) request.success(returnValue);
+		// Save the response
+		maybeCacheResponse(request, response.responseData, info);
+		if (_.isFunction(request.success)) request.success(httpData);
 
 	} else {
 
 		// Parse the error returned from the server
-		if (returnValue != null && returnValue.error != null) {
-			returnError = returnValue.error.message ? returnValue.error.message : returnValue.error;
-		} else {
-			returnError = L('http_error');
-		}
+		if (httpData != null && httpData.error != null) {
+			httpError = httpData.error.message ? httpData.error.message : httpData.error;
+		} else httpError = L('http_error');
 
-		// Build the error
-		var err = {
-			message: returnError,
-			code: response.status
-		};
+		var err = { message: httpError, code: response.status };
 		Ti.API.error('HTTP: REQ-['+request.hash+'] error', err);
 
 		if (_.isFunction(request.error)) request.error(err);
-
 	}
 }
+
+function getCachedResponse(request) {
+	if (config.useCache === false) return;
+	if (request.cache === false || request.refresh === true || request.method !== 'GET') return;
+	return Cache.get(request.hash);
+}
+
+function maybeCacheResponse(request, data, info) {
+	if (config.useCache === false) return;
+	if (request.cache === false || request.method !== 'GET') return;
+	if (info.ttl <= 0) return;
+
+	var untilString = (new Date(1000 * Util.fromnow(info.ttl))).toString();
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + untilString);
+
+	Cache.set(request.hash, data, info.ttl, info);
+}
+
+function parseHTTPData(data, info) {
+	if (info.mime === 'json') return Util.parseJSON(data.toString());
+	if (info.mime === 'text') return data.toString();
+	return data;
+}
+
+/**
+ * The main function of the module, create the HTTPClient and make the request
+ *
+ *	There are various options to pass:
+ *
+ * * **url**: The endpoint URL
+ * * **method**: The HTTP method to use (GET|POST|PUT|PATCH|..)
+ * * **headers**: An Object key-value of additional headers
+ * * **timeout**: Timeout after stopping the request and triggering an error
+ * * **cache**: Set to false to disable the cache
+ * * **success**: The success callback
+ * * **error**: The error callback
+ * * **mime**: Override the mime for that request (like `json`)
+ * * **ttl**: Override the TTL seconds for the cache
+ *
+ * @param  {Object} request The request dictionary
+ * @return {String}	The hash to identify this request
+ */
+function send(request) {
+	var onlineStatus = isOnline();
+	request = decorateRequest(request);
+
+	// Get cached response, othwerise send the HTTP request
+	var cachedData = getCachedResponse(request);
+	if (cachedData != null) {
+		var httpParsedData = parseHTTPData(cachedData.value, cachedData.info);
+		Ti.API.debug('HTTP: REQ-['+request.hash+'] has been found on cache');
+
+		if (_.isFunction(request.complete)) request.complete();
+		if (_.isFunction(request.success)) request.success(httpParsedData);
+
+		return request.hash;
+	}
+
+	// If we aren't online and we are here, we can't proceed, so STOP!
+	if (onlineStatus === false) {
+		Ti.API.error('HTTP: connection is offline');
+
+		if (config.autoOfflineMessage === true) {
+			Util.alert(L('http_offline_title'), L('http_offline_message'));
+		}
+
+		if (_.isFunction(request.complete)) request.complete();
+		if (_.isFunction(request.error)) request.error({ message: L('http_offline_message') });
+
+		Event.trigger('http.offline');
+		return request.hash;
+	}
+
+
+	// Start real request
+
+	var H = Ti.Network.createHTTPClient();
+	request.startTime = +new Date();
+
+	H.timeout = request.timeout;
+	H.cache = false; // disable integrated iOS cache
+
+	// onLoad && onError are the same because we have an internal parser
+	// that discern the event.success property
+	H.onload = H.onerror = function(e){
+		onComplete(request, this, e);
+	};
+
+	// Add this request to the queue
+	queue[request.hash] = H;
+
+	if (request.silent !== true) {
+		Event.trigger('http.start', {
+			id: request.hash,
+			eventName: request.eventName || null
+		});
+	}
+
+	H.open(request.method, request.url);
+	_.each(request.headers, function(h, k) {
+		H.setRequestHeader(k, h);
+	});
+
+	// Finally, send the request
+	if (_.isObject(request.data)) {
+		H.send(request.data);
+	} else {
+		H.send();
+	}
+
+	Ti.API.debug('HTTP: REQ-['+request.hash+'] sent', request);
+	return request.hash;
+}
+exports.send = send;
+
+
+function originalErrorHandler(e) {
+	Util.alertError( e && e.message ? e.message : L('Error') );
+}
+
+function setApplicationInfo(appInfo) {
+	_.each(appInfo, function(v,k){
+		Ti.App.Properties.setString('settings.'+k, v);
+	});
+}
+
+/**
+ * Set a new global handler for the errors
+ * @param {Function} fun The new function
+ */
+function setErrorHandler(fun) {
+	errorHandler = fun;
+}
+exports.setErrorHandler = setErrorHandler;
+
+
+/**
+ * Reset the original error handler
+ */
+function resetErrorHandler(){
+	errorHandler = originalErrorHandler;
+}
+exports.resetErrorHandler = resetErrorHandler;
 
 
 /**
@@ -372,8 +457,7 @@ exports.pruneCache = function(){
  */
 exports.removeCache = function(hash) {
 	if (Cache === null) return;
-	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
-	Cache.remove(hash);
+	Cache.remove( _.isObject(hash) ? decorateRequest(hash).hash : hash );
 };
 
 
@@ -385,118 +469,6 @@ function resetCookies() {
 }
 exports.resetCookies = resetCookies;
 
-function getCachedResponse(request) {
-	if (config.useCache === false) return;
-	if (request.cache === false || request.refresh === true || request.method !== 'GET') return;
-
-	var response = Cache.get(request.hash);
-	if (response == null) return;
-
-	return response;
-}
-
-function saveCachedResponse(request, response, info) {
-	if (config.useCache === false) return;
-	if (request.cache === false || request.method !== 'GET') return;
-	if (info.ttl <= 0 || info.mime === 'blob') return;
-
-	var untilString = (new Date(1000 * Util.fromnow(info.ttl))).toString();
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + untilString);
-
-	Cache.set(request.hash, response.responseText, info.ttl);
-}
-
-
-/**
- * The main function of the module, create the HTTPClient and make the request
- *
- *	There are various options to pass:
- *
- * * **url**: The endpoint URL
- * * **method**: The HTTP method to use (GET|POST|PUT|PATCH|..)
- * * **headers**: An Object key-value of additional headers
- * * **timeout**: Timeout after stopping the request and triggering an error
- * * **cache**: Set to false to disable the cache
- * * **success**: The success callback
- * * **error**: The error callback
- * * **mime**: Override the mime for that request (like `json`)
- * * **ttl**: Override the TTL seconds for the cache
- *
- * @param  {Object} request The request dictionary
- * @return {String}	The hash to identify this request
- */
-function send(request) {
-	var onlineStatus = isOnline();
-	request = decorateRequest(request);
-
-	// Get cached response, othwerise send the HTTP request
-	var cachedResponse = getCachedResponse(request);
-	if (cachedResponse != null) {
-		Ti.API.debug('HTTP: REQ-['+request.hash+'] is found on cache');
-
-		if (_.isFunction(request.complete)) request.complete();
-		if (_.isFunction(request.success)) request.success(cachedResponse);
-
-		return request.hash;
-	}
-
-	// If we aren't online and we are here, we can't proceed, so STOP!
-	if (onlineStatus === false) {
-		Ti.API.error('HTTP: connection is offline');
-
-		if (config.autoOfflineMessage === true) {
-			Util.alert(L('http_offline_title'), L('http_offline_message'));
-		}
-
-		if (_.isFunction(request.complete)) request.complete();
-		if (_.isFunction(request.error)) request.error({ message: L('http_offline_message') });
-
-		Event.trigger('http.offline');
-		return request.hash;
-	}
-
-
-	// Start real request
-
-	var H = Ti.Network.createHTTPClient();
-	request.startTime = +new Date();
-
-	H.timeout = request.timeout;
-	H.cache = false; // disable integrated iOS cache
-
-	// onLoad && onError are the same because we have an internal parser
-	// that discern the event.success property
-	H.onload = H.onerror = function(e){
-		onComplete(request, this, e);
-	};
-
-	// Add this request to the queue
-	queue[request.hash] = H;
-
-	if (request.silent !== true) {
-		Event.trigger('http.start', {
-			id: request.hash,
-			eventName: request.eventName || null
-		});
-	}
-
-	H.open(request.method, request.url);
-	_.each(request.headers, function(h, k) {
-		H.setRequestHeader(k, h);
-	});
-
-	// Finally, send the request
-	if (_.isObject(request.data)) {
-		H.send(request.data);
-	} else {
-		H.send();
-	}
-
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] sent', request);
-
-	return request.hash;
-}
-exports.send = send;
 
 
 /**
