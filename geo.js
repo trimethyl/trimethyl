@@ -40,7 +40,7 @@ function enableServicesAlert(){
 	if (OS_IOS) {
 		UtilUI.alert(L('geo_error_title'), L('geo_error_msg'));
 	} else {
-		UtilUI.simpleAlert(L('geo_error_title'));
+		UtilUI.alert(null, L('geo_error_title'));
 	}
 }
 exports.enableServicesAlert = enableServicesAlert;
@@ -54,7 +54,7 @@ function originalErrorHandler(e) {
 	if (e.servicesDisabled === true) {
 		enableServicesAlert();
 	} else {
-		UtilUI.simpleAlert(L('geo_error_title'));
+		UtilUI.alert(null, L('geo_error_title'));
 	}
 }
 exports.originalErrorHandler = originalErrorHandler;
@@ -483,7 +483,7 @@ function checkForDependencies() {
 	}
 
 	// Open Play Store to download
-	UtilUI.alertError(errorMessage, function(){
+	UtilUI.alert(L('Error'), errorMessage, function(){
 		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
 		Ti.Android.currentActivity.finish();
 	});

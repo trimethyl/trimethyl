@@ -31,7 +31,7 @@ function openURL(url, fallback, error) {
 			Ti.Platform.openURL(fallback);
 		}
 	} else if (error != null) {
-		UtilUI.alertError(error);
+		UtilUI.alert(L('Error'), error);
 	}
 }
 exports.openURL = openURL;
@@ -73,7 +73,7 @@ function startActivity(opt, error) {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
 		if (error != null) {
-			UtilUI.alertError(error);
+			UtilUI.alert(L('Error'), error);
 		}
 	}
 }

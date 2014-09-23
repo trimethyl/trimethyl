@@ -290,7 +290,7 @@ function whatsapp(args) {
 		Native protocol binding
 		 */
 		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
-			require('T/utilui').confirm(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+			require('T/utilui').confirmYes(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
 				Util.openInStore('310633997');
 			});
 		});
@@ -310,7 +310,7 @@ function whatsapp(args) {
 			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 			Ti.Android.currentActivity.startActivity(intent, L('Share'));
 		} catch (err) {
-			require('T/utilui').confirm(Ti.App.name, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+			require('T/utilui').confirmYes(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
 				Util.openInStore('com.whatsapp');
 			});
 		}

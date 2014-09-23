@@ -73,7 +73,10 @@ function getResponseInfo(response, request) {
 		info.ttl = httpTTL;
 	}
 
-	return _.extend(info, _.pluck('format','ttl', request));
+	if (request.format != null) info.format = request.format;
+	if (request.ttl != null) info.ttl = request.ttl;
+
+	return info;
 }
 
 function getHTTPErrorMessage(data, info) {
@@ -285,7 +288,10 @@ exports.send = send;
 
 
 function originalErrorHandler(e) {
-	require('T/utilui').alertError( e != null && e.message != null ? e.message : L('Error') );
+	var message = '';
+	if (e != null && e.message != null) message = e.message;
+	else message = L('Unexpected error');
+	require('T/utilui').alert(L('Error'), message);
 }
 
 function setApplicationInfo(appInfo) {
