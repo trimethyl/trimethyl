@@ -51,8 +51,8 @@ function calculateHash(request) {
 
 function getResponseInfo(response, request) {
 	var info = {
-		mime: 'blob',
-		ttl: config.defaultCacheTTL,
+		format: 'blob',
+		ttl: config.defaultCacheTTL
 	};
 
 	var httpExpires = response.getResponseHeader('Expires');
@@ -60,20 +60,28 @@ function getResponseInfo(response, request) {
 	var httpTTL = response.getResponseHeader('X-Cache-Ttl');
 
 	if (response.responseText != null) {
-		info.mime = 'text';
+		info.format = 'text';
 		if (httpContentType != null) {
-			if (httpContentType.match(/application\/json/)) info.mime = 'json';
+			if (httpContentType.match(/application\/json/)) info.format = 'json';
 		}
 	}
-	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
-	if (httpTTL != null) info.ttl = httpTTL;
+	if (httpExpires != null) {
+		info.ttl = Util.timestamp(httpExpires) - Util.now();
+	}
+	if (httpTTL != null) {
+		info.ttl = httpTTL;
+	}
 
-	return _.extend(info, _.pluck('mime','ttl', request));
+	return _.extend(info, _.pluck('format','ttl', request));
 }
 
-function getHTTPErrorMessage(data) {
-	if (_.isObject(data.error) && _.isString(data.error.message)) return data.error.message;
-	if (_.isString(data.error)) return data.error;
+function getHTTPErrorMessage(data, info) {
+	if (data != null) {
+		if (info.format === 'json') {
+			if (_.isObject(data.error) && _.isString(data.error.message)) return data.error.message;
+			if (_.isString(data.error)) return data.error;
+		}
+	}
 	return L('http_error');
 }
 
@@ -149,12 +157,13 @@ function onComplete(request, response, e){
 	} else {
 
 		var errObject = {
-			message: getHTTPErrorMessage(httpData),
+			message: getHTTPErrorMessage(httpData, info),
 			code: response.status
 		};
 
 		Ti.API.error('HTTP: REQ-['+request.hash+'] error', errObject);
 		if (_.isFunction(request.error)) request.error(errObject);
+
 	}
 }
 
@@ -176,8 +185,8 @@ function cacheResponse(request, data, info) {
 }
 
 function extractHTTPData(data, info) {
-	if (info.mime === 'json') return Util.parseJSON(data.toString());
-	if (info.mime === 'text') return data.toString();
+	if (info.format === 'json') return Util.parseJSON(data.toString());
+	if (info.format === 'text') return data.toString();
 	return data;
 }
 
@@ -193,7 +202,7 @@ function extractHTTPData(data, info) {
  * * **cache**: Set to false to disable the cache
  * * **success**: The success callback
  * * **error**: The error callback
- * * **mime**: Override the mime for that request (like `json`)
+ * * **format**: Override the format for that request (like `json`)
  * * **ttl**: Override the TTL seconds for the cache
  *
  * @param  {Object} request The request dictionary
@@ -527,7 +536,7 @@ exports.post = function(url, data, success, error) {
 
 /**
  * @method  getJSON
- * Make a GET request to that url with that data and setting the mime forced to JSON
+ * Make a GET request to that url with that data and setting the format forced to JSON
  * @param  {String}   	url 	The endpoint url
  * @param  {Object}   	data 	The data
  * @param  {Function} 	success  Success callback
@@ -539,7 +548,7 @@ exports.getJSON = function(url, data, success, error) {
 		url: url,
 		data: data,
 		method: 'GET',
-		mime: 'json',
+		format: 'json',
 		success: success,
 		error: error
 	});
@@ -547,7 +556,7 @@ exports.getJSON = function(url, data, success, error) {
 
 /**
  * @method  postJSON
- * Make a POST request to that url with that data and setting the mime forced to JSON
+ * Make a POST request to that url with that data and setting the format forced to JSON
  * @param  {String}   	url 	The endpoint url
  * @param  {Object}   	data 	The data
  * @param  {Function} 	success  Success callback
@@ -559,7 +568,7 @@ exports.postJSON = function(url, data, success, error) {
 		url: url,
 		data: data,
 		method: 'POST',
-		mime: 'json',
+		format: 'json',
 		success: success,
 		error: error
 	});
