@@ -16,7 +16,9 @@ tar -xvf T.tar.gz -C app/lib/T --strip-components=1
 rm T.tar.gz
 
 echo "Symlinking.."
-ln -s ../../../lib/T/assets app/assets/iphone/images/T
+if [ -d app/assets/iphone/images/T ]; then
+	ln -s ../../../lib/T/assets app/assets/iphone/images/T
+fi
 ln -s T/alloy app/lib/alloy
 
 echo "Installation OK!"

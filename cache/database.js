@@ -4,6 +4,14 @@
  * Fast cache module using SQLite
  */
 
+/**
+ * @type {Object}
+ */
+var config = _.extend({
+}, Alloy.CFG.T.cache ? Alloy.CFG.T.cache.database : {});
+exports.config = config;
+
+
 var Util = require('T/util');
 var DB = null;
 

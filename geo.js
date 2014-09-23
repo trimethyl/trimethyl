@@ -22,10 +22,13 @@ var config = _.extend({
 }, Alloy.CFG.geo);
 exports.config = config;
 
+var Util = require('T/util');
 
 function decorateRequest(request) {
 	if (request.decorated) return request;
+
 	if (request.error === undefined) request.error = originalErrorHandler;
+
 	request.decorated = true;
 	return request;
 }
@@ -35,9 +38,9 @@ function decorateRequest(request) {
  */
 function enableServicesAlert(){
 	if (OS_IOS) {
-		require('T/util').alert(L('geo_error_title'), L('geo_error_msg'));
+		Util.alert(L('geo_error_title'), L('geo_error_msg'));
 	} else {
-		require('T/util').simpleAlert(L('geo_error_title'));
+		Util.simpleAlert(L('geo_error_title'));
 	}
 }
 exports.enableServicesAlert = enableServicesAlert;
@@ -51,7 +54,7 @@ function originalErrorHandler(e) {
 	if (e.servicesDisabled === true) {
 		enableServicesAlert();
 	} else {
-		require('T/util').simpleAlert(L('geo_error_title'));
+		Util.simpleAlert(L('geo_error_title'));
 	}
 }
 exports.originalErrorHandler = originalErrorHandler;
@@ -134,7 +137,7 @@ function startNavigator(lat, lng, mode) {
 
 			Ti.Platform.openURL(
 			(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
-			require('T/util').buildQuery({
+			Util.buildQuery({
 				directionsmode: mode || 'walking',
 				saddr: g.latitude + ',' + g.longitude,
 				daddr: lat + ',' + lng
@@ -480,7 +483,7 @@ function checkForDependencies() {
 	}
 
 	// Open Play Store to download
-	require('T/util').alertError(errorMessage, function(){
+	Util.alertError(errorMessage, function(){
 		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
 		Ti.Android.currentActivity.finish();
 	});

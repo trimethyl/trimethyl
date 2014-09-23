@@ -135,7 +135,7 @@ function onComplete(request, response, e){
 
 	// Get the response information and override
 	var info = getResponseInfo(response, request);
-	var httpData = parseHTTPData(response.responseData, info);
+	var httpData = extractHTTPData(response.responseData, info);
 
 	Ti.API.debug('HTTP: REQ-['+request.hash+'] infos ', info);
 
@@ -175,7 +175,7 @@ function cacheResponse(request, data, info) {
 	Cache.set(request.hash, data, info.ttl, info);
 }
 
-function parseHTTPData(data, info) {
+function extractHTTPData(data, info) {
 	if (info.mime === 'json') return Util.parseJSON(data.toString());
 	if (info.mime === 'text') return data.toString();
 	return data;
@@ -205,7 +205,7 @@ function send(request) {
 	// Get cached response, othwerise send the HTTP request
 	var cachedData = getCachedResponse(request);
 	if (cachedData != null) {
-		var httpParsedData = parseHTTPData(cachedData.value, cachedData.info);
+		var httpParsedData = extractHTTPData(cachedData.value, cachedData.info);
 		Ti.API.debug('HTTP: REQ-['+request.hash+'] has been found on cache');
 
 		if (_.isFunction(request.complete)) request.complete();

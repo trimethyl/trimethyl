@@ -7,7 +7,7 @@
 
 /**
  * * **autoReset**: Check if auto-reset the badge when app is open.
- * * **driver**: The driver to use. Possible value are `cloud`.
+ * * **driver**: The driver to use. Default: `cloud`
  * @type {Object}
  */
 var config = _.extend({
@@ -36,8 +36,8 @@ function onNotificationReceived(e) {
 
 		// Android trigger two types of callback
 		// When the app is in background, the type is !== 'callback'
-		// So, we simply save the state inBackground and return because the notification.received
-		// event must NOT be triggered
+		// So, we simply save the state inBackground and return
+		// because the notification.received event must NOT be triggered
 		if (e.type !== 'callback') {
 			inBackground = true;
 			return;
@@ -65,8 +65,8 @@ function onNotificationReceived(e) {
 }
 
 
-var subscribeFunction;
-var unsubscribeFunction;
+var subscribeFunction = null;
+var unsubscribeFunction = null;
 
 if (OS_IOS) {
 
