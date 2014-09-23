@@ -206,8 +206,8 @@ function extractHTTPData(data, info) {
  * * **format**: Override the format for that request (like `json`)
  * * **ttl**: Override the TTL seconds for the cache
  *
- * @param  {Object} request The request dictionary
- * @return {String}	The hash to identify this request
+ * @param  {Object} request 	The request dictionary
+ * @return {String} The hash to identify this request
  */
 function send(request) {
 	request = decorateRequest(request);
