@@ -235,7 +235,7 @@ function send(request) {
 		Ti.API.error('HTTP: connection is offline');
 
 		if (config.autoOfflineMessage === true) {
-			require('T/utilui').alert(L('http_offline_title'), L('http_offline_message'));
+			require('T/dialog').alert(L('http_offline_title'), L('http_offline_message'));
 		}
 
 		if (_.isFunction(request.complete)) request.complete();
@@ -291,7 +291,7 @@ function originalErrorHandler(e) {
 	var message = '';
 	if (e != null && e.message != null) message = e.message;
 	else message = L('Unexpected error');
-	require('T/utilui').alert(L('Error'), message);
+	require('T/dialog').alert(L('Error'), message);
 }
 
 function setApplicationInfo(appInfo) {
