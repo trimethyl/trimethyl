@@ -113,12 +113,9 @@ function decorateRequest(request) {
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
-	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE ', {
-		time: (request.endTime-request.startTime),
-		httpCode: response.status,
-		success: e.success,
-		error: e.error
-	});
+	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE ',
+	'- Time='+(request.endTime-request.startTime)+'ms',
+	'- Status='+response.status);
 
 	// Delete request from queue
 	delete queue[request.hash];
@@ -136,7 +133,7 @@ function onComplete(request, response, e){
 	// If the readyState is not DONE, trigger error, because
 	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
 	if (response.readyState <= 1) {
-		Ti.API.error('HTTP: ['+request.hash+'] is broken (readyState<=1)');
+		Ti.API.error('HTTP: ['+request.hash+'] BROKEN (readyState<=1)');
 		if (_.isFunction(request.error)) request.error();
 
 		return false;
@@ -146,7 +143,9 @@ function onComplete(request, response, e){
 	var info = getResponseInfo(response, request);
 	var httpData = extractHTTPData(response.responseData, info);
 
-	Ti.API.debug('HTTP: ['+request.hash+'] info are', info);
+	Ti.API.debug('HTTP: ['+request.hash+'] PARSED',
+	'- Format='+info.format,
+	'- TTL='+info.format);
 
 	if (e.success === true && httpData != null) {
 
@@ -180,7 +179,7 @@ function cacheResponse(request, data, info) {
 	if (info.ttl <= 0) return;
 
 	Ti.API.debug('HTTP: ['+request.hash+'] CACHED ',
-	'- Until '+Util.timestampForHumans(Util.fromnow(info.ttl)));
+	'- Expire='+Util.timestampForHumans(Util.fromnow(info.ttl)));
 
 	Cache.set(request.hash, data, info.ttl, info);
 }
@@ -217,8 +216,8 @@ function send(request) {
 	var cachedData = getCachedResponse(request);
 	if (cachedData != null) {
 		Ti.API.debug('HTTP: ['+request.hash+'] CACHE SUCCESS',
-		'- Expire on '+Util.timestampForHumans(cachedData.expire),
-		'- Remain time is '+(cachedData.expire-Util.now())+'s');
+		'- Expire='+Util.timestampForHumans(cachedData.expire),
+		'- Remaintime='+(cachedData.expire-Util.now())+'s');
 
 		var httpParsedData = extractHTTPData(cachedData.value, cachedData.info);
 
@@ -247,8 +246,6 @@ function send(request) {
 	// Start real request
 
 	var H = Ti.Network.createHTTPClient();
-	request.startTime = +new Date();
-
 	H.timeout = request.timeout;
 	H.cache = false; // disable integrated iOS cache
 
@@ -274,6 +271,7 @@ function send(request) {
 	});
 
 	// Finally, send the request
+	request.startTime = +new Date();
 	if (_.isObject(request.data)) {
 		H.send(request.data);
 	} else {
@@ -456,7 +454,7 @@ function abortRequest(hash) {
 	if (httpClient == null) return;
 
 	httpClient.abort();
-	Ti.API.debug('HTTP: ['+hash+'] request aborted');
+	Ti.API.debug('HTTP: ['+hash+'] ABORTED');
 }
 exports.abortRequest = abortRequest;
 
