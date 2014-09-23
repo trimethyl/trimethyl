@@ -114,8 +114,8 @@ function decorateRequest(request) {
 function onComplete(request, response, e){
 	request.endTime = +new Date();
 	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE ',
-	'- Time='+(request.endTime-request.startTime)+'ms',
-	'- Status='+response.status);
+	'- Time is '+(request.endTime-request.startTime)+'ms',
+	'- Status is '+response.status);
 
 	// Delete request from queue
 	delete queue[request.hash];
@@ -144,8 +144,8 @@ function onComplete(request, response, e){
 	var httpData = extractHTTPData(response.responseData, info);
 
 	Ti.API.debug('HTTP: ['+request.hash+'] PARSED',
-	'- Format='+info.format,
-	'- TTL='+info.format);
+	'- Format is '+info.format,
+	'- TTL is '+info.ttl);
 
 	if (e.success === true && httpData != null) {
 
@@ -179,7 +179,7 @@ function cacheResponse(request, data, info) {
 	if (info.ttl <= 0) return;
 
 	Ti.API.debug('HTTP: ['+request.hash+'] CACHED ',
-	'- Expire='+Util.timestampForHumans(Util.fromnow(info.ttl)));
+	'- Expire on '+Util.timestampForHumans(Util.fromnow(info.ttl)));
 
 	Cache.set(request.hash, data, info.ttl, info);
 }
@@ -216,8 +216,8 @@ function send(request) {
 	var cachedData = getCachedResponse(request);
 	if (cachedData != null) {
 		Ti.API.debug('HTTP: ['+request.hash+'] CACHE SUCCESS',
-		'- Expire='+Util.timestampForHumans(cachedData.expire),
-		'- Remaintime='+(cachedData.expire-Util.now())+'s');
+		'- Expire on '+Util.timestampForHumans(cachedData.expire),
+		'- Remain time is '+(cachedData.expire-Util.now())+'s');
 
 		var httpParsedData = extractHTTPData(cachedData.value, cachedData.info);
 
