@@ -13,15 +13,18 @@ var CRUD_to_REST = {
 };
 
 exports.sync = function(method, model, opt) {
-	var collection = true;
+	var isCollection;
 	var url = (model.config.adapter.baseUrl || '/') + model.config.adapter.name;
 
 	if (model.id) {
-		collection = false;
+		isCollection = false;
 		url += '/' + model.id;
+	} else {
+		isCollection = true;
 	}
 
 	if (opt.patch) method = 'patch';
+
 	var data = _.extend({}, opt.http, {
 		url: url,
 		method: CRUD_to_REST[method],
@@ -30,8 +33,10 @@ exports.sync = function(method, model, opt) {
 
 	if (Alloy.Backbone.emulateHTTP) {
 		if (['DELETE','PUT','PATCH'].indexOf(data.method)!==-1) {
-			data.headers = _.extend({}, data.headers, { 'X-HTTP-Method-Override': data.method });
 			data.method = 'POST';
+			data.headers = _.extend({}, data.headers, {
+				'X-HTTP-Method-Override': data.method
+			});
 		}
 	}
 
@@ -42,14 +47,13 @@ exports.sync = function(method, model, opt) {
 			data: model.toJSON(),
 			success: function(resp) {
 
-				if (resp && resp.id) {
+				if (resp != null && resp.id != null) {
 					opt.success(resp);
 				} else {
 					opt.error();
 				}
 
-				if (opt.ready) opt.ready();
-				model.trigger("fetch");
+				model.trigger('fetch');
 			},
 			error: opt.error
 		}));
@@ -60,9 +64,9 @@ exports.sync = function(method, model, opt) {
 			data: opt.args || {},
 			success: function(resp) {
 
-				if (resp) {
-					if (collection) {
-						if (_.isObject(resp) && resp.data) opt.success(resp.data);
+				if (resp != null) {
+					if (isCollection === true) {
+						if (_.isObject(resp) && resp.data != null) opt.success(resp.data);
 						else if (_.isArray(resp)) opt.success(resp);
 						else opt.error();
 					} else {
@@ -72,8 +76,7 @@ exports.sync = function(method, model, opt) {
 					opt.error();
 				}
 
-				if (opt.ready) opt.ready();
-				model.trigger("fetch");
+				model.trigger('fetch');
 			},
 			error: opt.error
 		}));
@@ -84,14 +87,13 @@ exports.sync = function(method, model, opt) {
 			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
 
-				if (resp) {
+				if (resp != null) {
 					opt.success();
 				} else {
 					opt.error();
 				}
 
-				if (opt.ready) opt.ready();
-				model.trigger("fetch");
+				model.trigger('fetch');
 			},
 			error: opt.error
 		}));
@@ -102,14 +104,13 @@ exports.sync = function(method, model, opt) {
 			data: opt.args || {},
 			success: function(resp) {
 
-				if (resp) {
+				if (resp != null) {
 					opt.success();
 				} else {
 					opt.error();
 				}
 
-				if (opt.ready) opt.ready();
-				model.trigger("fetch");
+				model.trigger('fetch');
 			},
 			error: opt.error
 		}));

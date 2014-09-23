@@ -8,7 +8,7 @@
  * @type {Object}
  */
 var config = _.extend({
-}, Alloy.CFG.T.util ? Alloy.CFG.T.util.ui : {});
+}, Alloy.CFG.T.utilui);
 exports.config = config;
 
 

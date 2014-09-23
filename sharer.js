@@ -16,27 +16,26 @@ exports.config = config;
 
 
 var Util = require('T/util');
-
-var callback = null;// Handle all callbacks
+var globalCallback = null;// Handle all callbacks
 
 var dkNappSocial = null;
 var Facebook = null;
 var benCodingSMS = null;
 
 function onSocialComplete(e) {
-	if (!_.isFunction(callback)) return;
+	if (!_.isFunction(globalCallback)) return;
 
 	e.type = 'complete';
 	if (e.activityName) e.platform = e.activityName;
-	callback(e);
+	globalCallback(e);
 }
 
 function onSocialCancel(e) {
-	if (!_.isFunction(callback)) return;
+	if (!_.isFunction(globalCallback)) return;
 
 	e.type = 'cancelled';
 	if (e.activityName) e.platform = e.activityName;
-	callback(e);
+	globalCallback(e);
 }
 
 function parseArgs(args) {
@@ -70,7 +69,7 @@ function parseArgs(args) {
 	else if (args.url != null) args.fullText = args.url;
 
 	if (_.isFunction(args.callback)) {
-		callback = args.callback;
+		globalCallback = args.callback;
 		delete args.callback;
 	}
 

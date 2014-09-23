@@ -11,9 +11,10 @@ var config = _.extend({
 }, Alloy.CFG.T.router);
 exports.config = config;
 
+var Util = require('T/util');
+
 var routes = []; // storage for all routes
 
-var Util = require('T/util');
 
 /**
  * Register a route with defined callbacks
