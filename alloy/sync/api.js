@@ -28,7 +28,7 @@ exports.sync = function(method, model, opt) {
 	var data = _.extend({}, opt.http, {
 		url: url,
 		method: CRUD_to_REST[method],
-		mime: 'json'
+		format: 'json'
 	});
 
 	if (Alloy.Backbone.emulateHTTP) {

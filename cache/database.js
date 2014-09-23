@@ -24,13 +24,13 @@ function get(hash) {
 	var row = DB.execute('SELECT expire, value, info FROM cache WHERE hash = ? LIMIT 1', hash);
 	if (row.isValidRow() === false) return;
 
-	var expire = row.fieldByName('expire', Ti.Database.FIELD_TYPE_FLOAT);
+	var expire = parseInt(row.fieldByName('expire'), 10);
 	if (expire !== -1 && Util.now() > expire) return;
 
 	return {
 		expire: expire,
 		value: row.fieldByName('value'),
-		info: row.fieldByName('info')
+		info: Util.parseJSON(row.fieldByName('info'))
 	};
 }
 exports.get = get;
@@ -43,10 +43,9 @@ exports.get = get;
  * @param {Object} 	info
  */
 function set(hash, value, ttl, info) {
-	ttl = ttl != null ? Util.fromnow(ttl * 1000) : -1;
-	info = info != null ? JSON.stringify(info) : '';
+	var expire = ttl != null ? Util.fromnow(ttl) : -1;
 	var q = 'INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)';
-	DB.execute(q, hash, ttl, value, info);
+	DB.execute(q, hash, expire, value, JSON.stringify(info));
 }
 exports.set = set;
 

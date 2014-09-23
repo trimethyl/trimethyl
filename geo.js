@@ -168,7 +168,7 @@ function geocode(address, callback) {
 				address: address,
 				sensor: 'false'
 			},
-			mime: 'json',
+			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || _.isEmpty(res.results)) {
 					callback({ error: true });
@@ -225,7 +225,7 @@ function reverseGeocode(lat, lng, callback) {
 				latlng: lat + ',' + lng,
 				sensor: 'false'
 			},
-			mime: 'json',
+			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || res.results.length === 0) {
 					callback({ error: true });

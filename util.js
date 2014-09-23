@@ -444,7 +444,18 @@ exports.now = now;
  * @return {Number}
  */
 exports.fromnow = function(t) {
-	return timestamp( new Date().getTime() + t*1000 );
+	return timestamp( new Date().getTime() + t );
+};
+
+/**
+ * @method timestampForHumans
+ * Return in human readable format a timestamp
+ * @param  {Integer} ts The timestamp
+ * @return {String}
+ */
+exports.timestampForHumans = function(ts) {
+	var moment = require('T/ext/moment');
+	return moment(ts*1000).format();
 };
 
 
@@ -568,7 +579,7 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 	require('T/http').send({
 		url: 'https://graph.facebook.com/' + path.replace(/^\//, ''),
 		data: obj,
-		mime: 'json',
+		format: 'json',
 		refresh: opt.refresh,
 		expire: opt.expire,
 		silent: opt.silent,

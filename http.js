@@ -8,6 +8,7 @@
  * * **base**: The base URL of the API
  * * **timeout**: Global timeout for the requests. After this value (express in milliseconds) the requests throw an error. Default: `http://localhost`
  * * **useCache**: Check if the requests are automatically cached. Default: `true`
+ * * **cacheDriver**: Cache driver to use. Default `database`
  * * **headers**: Global headers for all requests. Default: `{}`
  * * **usePingServer**: Enable the PING-Server support. Default: `true`
  * * **autoOfflineMessage**: Enable the automatic alert if the connection is offline
@@ -18,6 +19,7 @@ var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	useCache: true,
+	cacheDriver: 'database',
 	headers: {},
 	usePingServer: true,
 	autoOfflineMessage: true,
@@ -33,19 +35,18 @@ var queue = {}; // queue object for all requests
 var serverConnected = null; // in case of ping server
 var errorHandler = null; // global error ha handler
 
-
-function hash(obj) {
+function hashJSObject(obj) {
 	if (obj == null) return '';
-	if (_.isArray(obj)) return obj;
+	if (_.isArray(obj)) return JSON.stringify(obj);
 	if (_.isObject(obj)) {
 		var keys = _.keys(obj).sort();
-		return _.object(keys, _.map(keys, function (key) { return obj[key]; }));
+		return JSON.stringify(_.object(keys, _.map(keys, function (key) { return obj[key]; })));
 	}
 	return obj.toString();
 }
 
 function calculateHash(request) {
-	var hash = request.url + hash(request.data) + hash(request.headers);
+	var hash = request.url + hashJSObject(request.data) + hashJSObject(request.headers);
 	return 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 6);
 }
 
@@ -112,7 +113,7 @@ function decorateRequest(request) {
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] complete ', {
+	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE ', {
 		time: (request.endTime-request.startTime),
 		httpCode: response.status,
 		success: e.success,
@@ -135,7 +136,7 @@ function onComplete(request, response, e){
 	// If the readyState is not DONE, trigger error, because
 	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
 	if (response.readyState <= 1) {
-		Ti.API.error('HTTP: REQ-['+request.hash+'] is broken (readyState<=1)');
+		Ti.API.error('HTTP: ['+request.hash+'] is broken (readyState<=1)');
 		if (_.isFunction(request.error)) request.error();
 
 		return false;
@@ -145,13 +146,13 @@ function onComplete(request, response, e){
 	var info = getResponseInfo(response, request);
 	var httpData = extractHTTPData(response.responseData, info);
 
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] infos ', info);
+	Ti.API.debug('HTTP: ['+request.hash+'] info are', info);
 
 	if (e.success === true && httpData != null) {
 
 		cacheResponse(request, response.responseData, info);
 
-		Ti.API.debug('HTTP: REQ-['+request.hash+'] success');
+		Ti.API.debug('HTTP: ['+request.hash+'] SUCCESS');
 		if (_.isFunction(request.success)) request.success(httpData);
 
 	} else {
@@ -161,7 +162,7 @@ function onComplete(request, response, e){
 			code: response.status
 		};
 
-		Ti.API.error('HTTP: REQ-['+request.hash+'] error', errObject);
+		Ti.API.error('HTTP: ['+request.hash+'] ERROR', errObject);
 		if (_.isFunction(request.error)) request.error(errObject);
 
 	}
@@ -178,13 +179,14 @@ function cacheResponse(request, data, info) {
 	if (request.cache === false || request.method !== 'GET') return;
 	if (info.ttl <= 0) return;
 
-	var untilString = (new Date(1000 * Util.fromnow(info.ttl))).toString();
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] hash been cached until ' + untilString);
+	Ti.API.debug('HTTP: ['+request.hash+'] CACHED ',
+	'- Until '+Util.timestampForHumans(Util.fromnow(info.ttl)));
 
 	Cache.set(request.hash, data, info.ttl, info);
 }
 
 function extractHTTPData(data, info) {
+	info = info || {};
 	if (info.format === 'json') return Util.parseJSON(data.toString());
 	if (info.format === 'text') return data.toString();
 	return data;
@@ -214,8 +216,11 @@ function send(request) {
 	// Get cached response, othwerise send the HTTP request
 	var cachedData = getCachedResponse(request);
 	if (cachedData != null) {
+		Ti.API.debug('HTTP: ['+request.hash+'] CACHE SUCCESS',
+		'- Expire on '+Util.timestampForHumans(cachedData.expire),
+		'- Remain time is '+(cachedData.expire-Util.now())+'s');
+
 		var httpParsedData = extractHTTPData(cachedData.value, cachedData.info);
-		Ti.API.debug('HTTP: REQ-['+request.hash+'] has been found on cache');
 
 		if (_.isFunction(request.complete)) request.complete();
 		if (_.isFunction(request.success)) request.success(httpParsedData);
@@ -275,7 +280,7 @@ function send(request) {
 		H.send();
 	}
 
-	Ti.API.debug('HTTP: REQ-['+request.hash+'] sent', request);
+	Ti.API.debug('HTTP: ['+request.hash+'] SENT', request);
 	return request.hash;
 }
 exports.send = send;
@@ -451,7 +456,7 @@ function abortRequest(hash) {
 	if (httpClient == null) return;
 
 	httpClient.abort();
-	Ti.API.debug('HTTP: REQ-['+hash+'] request aborted');
+	Ti.API.debug('HTTP: ['+hash+'] request aborted');
 }
 exports.abortRequest = abortRequest;
 
