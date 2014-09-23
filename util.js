@@ -444,7 +444,7 @@ exports.now = now;
  * @return {Number}
  */
 exports.fromnow = function(t) {
-	return timestamp( new Date().getTime() + t );
+	return timestamp( new Date().getTime() + t*1000 );
 };
 
 /**
