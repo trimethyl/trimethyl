@@ -232,7 +232,7 @@ function send(request) {
 		Ti.API.error('HTTP: connection is offline');
 
 		if (config.autoOfflineMessage === true) {
-			Util.alert(L('http_offline_title'), L('http_offline_message'));
+			require('T/utilui').alert(L('http_offline_title'), L('http_offline_message'));
 		}
 
 		if (_.isFunction(request.complete)) request.complete();
@@ -285,7 +285,7 @@ exports.send = send;
 
 
 function originalErrorHandler(e) {
-	Util.alertError( e != null && e.message != null ? e.message : L('Error') );
+	require('T/utilui').alertError( e != null && e.message != null ? e.message : L('Error') );
 }
 
 function setApplicationInfo(appInfo) {

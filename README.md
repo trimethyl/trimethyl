@@ -51,7 +51,7 @@ You can customize the options, editing your **config.json** file:
 In your *app/alloy.js* file, on the first line:
 
 ```javascript
-function T(m) { return require('T/'+m); }
+T = function(name) { return require('T/'+name); }
 T('trimethyl');
 ```
 
