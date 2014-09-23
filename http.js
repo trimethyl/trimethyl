@@ -113,7 +113,7 @@ function decorateRequest(request) {
 
 function onComplete(request, response, e){
 	request.endTime = +new Date();
-	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE ',
+	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE',
 	'- Time is '+(request.endTime-request.startTime)+'ms',
 	'- Status is '+response.status);
 
@@ -178,7 +178,7 @@ function cacheResponse(request, data, info) {
 	if (request.cache === false || request.method !== 'GET') return;
 	if (info.ttl <= 0) return;
 
-	Ti.API.debug('HTTP: ['+request.hash+'] CACHED ',
+	Ti.API.debug('HTTP: ['+request.hash+'] CACHED',
 	'- Expire on '+Util.timestampForHumans(Util.fromnow(info.ttl)));
 
 	Cache.set(request.hash, data, info.ttl, info);
