@@ -25,13 +25,11 @@ function onTilt(callback) {
 
 	Ti.Accelerometer.addEventListener('update', callback);
 
-	if (OS_ANDROID){
-		// remove listeners on android to preserve battery life
-
+	// remove listeners on android to preserve battery life
+	if (OS_ANDROID) {
 		Ti.Android.currentActivity.addEventListener('pause', function() {
 			Ti.Accelerometer.removeEventListener('update', callback);
 		});
-
 		Ti.Android.currentActivity.addEventListener('resume', function() {
 			Ti.Accelerometer.addEventListener('update', callback);
 		});

@@ -79,23 +79,6 @@ function parseArgs(args) {
 
 
 /**
- * @method internal
- * Open the following url inside the app, in a webview
- *
- * Require the widget **com.caffeinalab.titanium.modalwindow**
- *
- * @param  {String} url The URL to open
- */
-function internal(url) {
-	require('T/ui').createModalWebView({
-		title: L('Share'),
-		url: url
-	}).open();
-}
-exports.internal = internal;
-
-
-/**
  * @method facebook
  * Share on Facebook
  * @param {Object} args
