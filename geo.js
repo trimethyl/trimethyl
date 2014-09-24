@@ -48,10 +48,6 @@ function enableServicesAlert(){
 exports.enableServicesAlert = enableServicesAlert;
 
 
-/**
- * The original error handler
- * @param  {Object} e
- */
 function originalErrorHandler(e) {
 	if (e != null) {
 		if (e.servicesDisabled === true) {
@@ -61,7 +57,15 @@ function originalErrorHandler(e) {
 
 	Dialog.alert(null, L('geo_error_title'));
 }
-exports.originalErrorHandler = _.clone(originalErrorHandler);
+
+/**
+ * @method originalErrorHandler
+ * The original error handler
+ * @param  {Object} e
+ */
+exports.originalErrorHandler = function() {
+	return originalErrorHandler;
+};
 
 
 function checkForServices() {
@@ -75,14 +79,14 @@ function checkForServices() {
  * A `geo.start` event is triggered at start,
  * and a `geo.end` event is triggered on end
  *
- * @param {Object} opt Dictionary for this request
+ * @param {Dictionary}	request
  */
 function getCurrentPosition(request) {
 	request = decorateRequest(request);
 
 	if (checkForServices() === false) {
 		request.complete();
-		request.error({ servicesDisabled: true });
+		if (_.isFunction(request.error)) request.error({ servicesDisabled: true });
 		return;
 	}
 
@@ -91,18 +95,19 @@ function getCurrentPosition(request) {
 	}
 
 	Ti.Geolocation.getCurrentPosition(function(e){
+		request.complete();
 		if (request.silent !== false) {
 			require('T/event').trigger('geo.end');
 		}
 
-		request.complete();
-
 		if (e.success === false) {
-			return request.error();
+			if (_.isFunction(request.error)) request.error();
+			return;
 		}
 
 		if (!_.isObject(e.coords)) {
-			return request.error();
+			if (_.isFunction(request.error)) request.error();
+			return;
 		}
 
 		request.success(e.coords);
@@ -138,50 +143,43 @@ exports.startNavigator = startNavigator;
 
 /**
  * Return the coordinates of an address
- *
- * If some errors occurs, the callback in invoked
- * anyway with `{ error: true, success: false }`
- *
- * @param  {String}   address 	The address to geocode
- * @param  {Function} callback      	The callback
+ * @param {Dictionary}	request
  */
-function geocode(address, callback) {
+function geocode(opt) {
 	if (config.geocodeUseGoogle) {
 
 		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			cache: false,
 			data: {
-				address: address,
+				address: opt.address,
 				sensor: 'false'
 			},
 			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || _.isEmpty(res.results)) {
-					callback({ error: true });
+					if (_.isFunction(opt.error)) opt.error();
 					return;
 				}
 
-				callback({
+				opt.success({
 					success: true,
 					latitude: res.results[0].geometry.location.lat,
 					longitude: res.results[0].geometry.location.lng
 				});
 			},
-			error: function() {
-				callback({ error: true });
-			}
+			error: opt.error
 		});
 
 	} else {
 
-		Ti.Geolocation.forwardGeocoder(address, function(res) {
+		Ti.Geolocation.forwardGeocoder(opt.address, function(res) {
 			if (res.success === false) {
-				callback({ error: true });
+				if (_.isFunction(opt.error)) opt.error();
 				return;
 			}
 
-			callback({
+			opt.success({
 				success: true,
 				latitude: res.latitude,
 				longitude: res.longitude
@@ -194,50 +192,43 @@ exports.geocode = geocode;
 
 /**
  * Return the address with the specified coordinates
- *
- * If some errors occurs, the callback in invoked
- * anyway with `{ error: true, success: false }`
- *
- * @param  {Number}   lat 	The latitude of the address
- * @param  {Number}   lng 	The longitude of the address
- * @param  {Function} callback  The callback
+ * @param {Dictionary}	request
  */
-function reverseGeocode(lat, lng, callback) {
+function reverseGeocode(opt) {
 	if (config.useGoogleForGeocode) {
 
 		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			noCache: true,
 			data: {
-				latlng: lat + ',' + lng,
+				latlng: opt.lat + ',' + opt.lng,
 				sensor: 'false'
 			},
 			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || res.results.length === 0) {
-					callback({ error: true });
+					if (_.isFunction(opt.error)) opt.error();
 					return;
 				}
-				callback({
+
+				opt.success({
 					success: true,
 					address: res.results[0].formatted_address,
 					results: res.results
 				});
 			},
-			error: function() {
-				callback({ error: true });
-			}
+			error: opt.error
 		});
 
 	} else {
 
-		Ti.Geolocation.reverseGeocoder(lat, lng, function(res) {
+		Ti.Geolocation.reverseGeocoder(opt.lat, opt.lng, function(res) {
 			if (res.success === false || _.isEmpty(res.places)) {
-				callback({ error: true });
+				if (_.isFunction(opt.error)) opt.error();
 				return;
 			}
 
-			callback({
+			opt.success({
 				success: true,
 				address: res.places[0].address,
 				results: res.places
@@ -369,15 +360,15 @@ function markerCluster(e, markers, keys){
 	}
 
 	function createCObjFunction(m) {
-		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
-		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
+		var tmpLat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmpLng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
 		c[m.id] = { latitude: tmpLat, longitude: tmpLng };
 	}
 
 
 	// Start clustering
 
-	if (isBackbone) {
+	if (isBackbone === true) {
 		markers.map(config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	} else {
 		_.each(markers, config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
@@ -439,9 +430,7 @@ exports.markerCluster = markerCluster;
  *
  */
 function checkForDependencies() {
-	if (!OS_ANDROID) {
-		return false;
-	}
+	if (!OS_ANDROID) return false;
 
 	var TiMap = require('ti.map');
 	var rc = TiMap.isGooglePlayServicesAvailable();
