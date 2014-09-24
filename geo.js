@@ -24,16 +24,6 @@ exports.config = config;
 
 var Dialog = require('T/Dialog');
 
-function decorateRequest(request) {
-	if (request.decorated) return request;
-
-	if (!_.isFunction(request.complete)) request.complete = function(){};
-	if (!_.isFunction(request.success)) request.success = function(){};
-	if (request.error === undefined) request.error = originalErrorHandler;
-
-	request.decorated = true;
-	return request;
-}
 
 /**
  * Alert the user that Location is off
@@ -79,38 +69,39 @@ function checkForServices() {
  * A `geo.start` event is triggered at start,
  * and a `geo.end` event is triggered on end
  *
- * @param {Dictionary}	request
+ * @param {Dictionary}	opt
  */
-function getCurrentPosition(request) {
-	request = decorateRequest(request);
+function getCurrentPosition(opt) {
+	if (!_.isFunction(opt.complete)) opt.complete = function(){};
+	if (!_.isFunction(opt.success)) opt.success = function(){};
+	opt.error = opt.error !== undefined ? opt.error : originalErrorHandler;
 
 	if (checkForServices() === false) {
-		request.complete();
-		if (_.isFunction(request.error)) request.error({ servicesDisabled: true });
+		opt.complete();
+		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
 		return;
 	}
 
-	if (request.silent !== false) {
+	if (opt.silent !== false) {
 		require('T/event').trigger('geo.start');
 	}
 
-	Ti.Geolocation.getCurrentPosition(function(e){
-		request.complete();
-		if (request.silent !== false) {
+	Ti.Geolocation.getCurrentPosition(function(e) {
+		opt.complete();
+		if (opt.silent !== false) {
 			require('T/event').trigger('geo.end');
 		}
 
 		if (e.success === false) {
-			if (_.isFunction(request.error)) request.error();
-			return;
+			if (_.isFunction(opt.error)) opt.error();
 		}
 
 		if (!_.isObject(e.coords)) {
-			if (_.isFunction(request.error)) request.error();
+			if (_.isFunction(opt.error)) opt.error();
 			return;
 		}
 
-		request.success(e.coords);
+		opt.success(e.coords);
 	});
 }
 exports.getCurrentPosition = getCurrentPosition;
