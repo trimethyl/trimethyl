@@ -441,3 +441,13 @@ exports.parseAsXCallbackURL = function(str) {
 
 	return uri;
 };
+
+exports.hashJavascriptObject = function(obj) {
+	if (obj == null) return 'null';
+	if (_.isArray(obj)) return JSON.stringify(obj);
+	if (_.isObject(obj)) {
+		var keys = _.keys(obj).sort();
+		return JSON.stringify(_.object(keys, _.map(keys, function (key) { return obj[key]; })));
+	}
+	return obj.toString();
+};

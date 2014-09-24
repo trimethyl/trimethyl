@@ -21,283 +21,18 @@ var config = _.extend({
 	useCache: true,
 	cacheDriver: 'database',
 	headers: {},
-	usePingServer: true,
 	autoOfflineMessage: true,
 	defaultCacheTTL: 0,
 }, Alloy.CFG.T.http);
 exports.config = config;
 
-var Cache = null;
-var Event = require('T/event');
-var Util = require('T/util');
+exports.Request = require('T/http/request');
 
-var queue = {}; // queue object for all requests
-var serverConnected = null; // in case of ping server
-var errorHandler = null; // global error ha handler
-
-function hashJSObject(obj) {
-	if (obj == null) return '';
-	if (_.isArray(obj)) return JSON.stringify(obj);
-	if (_.isObject(obj)) {
-		var keys = _.keys(obj).sort();
-		return JSON.stringify(_.object(keys, _.map(keys, function (key) { return obj[key]; })));
-	}
-	return obj.toString();
-}
-
-function calculateHash(request) {
-	var hash = request.url + hashJSObject(request.data) + hashJSObject(request.headers);
-	return 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 6);
-}
-
-function getResponseInfo(response, request) {
-	var info = {
-		format: 'blob',
-		ttl: config.defaultCacheTTL
-	};
-
-	var httpExpires = response.getResponseHeader('Expires');
-	var httpContentType = response.getResponseHeader('Content-Type');
-	var httpTTL = response.getResponseHeader('X-Cache-Ttl');
-
-	if (response.responseText != null) {
-		info.format = 'text';
-		if (httpContentType != null) {
-			if (httpContentType.match(/application\/json/)) info.format = 'json';
-		}
-	}
-	if (httpExpires != null) {
-		info.ttl = Util.timestamp(httpExpires) - Util.now();
-	}
-	if (httpTTL != null) {
-		info.ttl = httpTTL;
-	}
-
-	if (request.format != null) info.format = request.format;
-	if (request.ttl != null) info.ttl = request.ttl;
-
-	return info;
-}
-
-function getHTTPErrorMessage(data, info) {
-	if (data != null) {
-		if (info.format === 'json') {
-			if (_.isObject(data.error) && _.isString(data.error.message)) return data.error.message;
-			if (_.isString(data.error)) return data.error;
-		}
-	}
-	return L('http_error');
-}
-
-function decorateRequest(request) {
-	if (request.hash != null) return request;
-	if (request.url == null) request.url = '/';
-
-	// if the url is not matching `://` (a protocol), assign the base URL
-	if (/\:\/\//.test(request.url) === false) {
-		request.url = config.base.replace(/\/$/,'') + '/' + request.url.replace(/^\//, '');
-	}
-
-	request.method = request.method ? request.method.toUpperCase() : 'GET';
-	request.headers = _.extend({}, config.headers, request.headers);
-	request.timeout = request.timeout || config.timeout;
-	if (request.error === undefined) request.error = errorHandler;
-
-	// Rebuild the URL if is a GET and there's data
-	if (request.method === 'GET' && _.isObject(request.data)) {
-		var buildedQuery = Util.buildQuery(request.data);
-		delete request.data;
-		request.url = request.url + buildedQuery;
-	}
-
-	request.hash = calculateHash(request);
-	return request;
-}
-
-function onComplete(request, response, e){
-	request.endTime = +new Date();
-	Ti.API.debug('HTTP: ['+request.hash+'] COMPLETE',
-	'- Time is '+(request.endTime-request.startTime)+'ms',
-	'- Status is '+response.status);
-
-	// Delete request from queue
-	delete queue[request.hash];
-
-	if (_.isFunction(request.complete)) request.complete();
-
-	// Fire the global event
-	if (request.silent !== true) {
-		Event.trigger('http.end', {
-			id: request.hash,
-			eventName: request.eventName || null
-		});
-	}
-
-	// If the readyState is not DONE, trigger error, because
-	// HTTPClient.onload is the function to be called upon a SUCCESSFULL response.
-	if (response.readyState <= 1) {
-		Ti.API.error('HTTP: ['+request.hash+'] BROKEN (readyState<=1)');
-		if (_.isFunction(request.error)) request.error();
-
-		return false;
-	}
-
-	// Get the response information and override
-	var info = getResponseInfo(response, request);
-	var httpData = extractHTTPData(response.responseData, info);
-
-	Ti.API.debug('HTTP: ['+request.hash+'] PARSED',
-	'- Format is '+info.format,
-	'- TTL is '+info.ttl);
-
-	if (e.success === true && httpData != null) {
-
-		cacheResponse(request, response.responseData, info);
-
-		Ti.API.debug('HTTP: ['+request.hash+'] SUCCESS');
-		if (_.isFunction(request.success)) request.success(httpData);
-
-	} else {
-
-		var errObject = {
-			message: getHTTPErrorMessage(httpData, info),
-			code: response.status
-		};
-
-		Ti.API.error('HTTP: ['+request.hash+'] ERROR', errObject);
-		if (_.isFunction(request.error)) request.error(errObject);
-
-	}
-}
-
-function getCachedResponse(request) {
-	if (config.useCache === false) return;
-	if (request.cache === false || request.refresh === true || request.method !== 'GET') return;
-	return Cache.get(request.hash);
-}
-
-function cacheResponse(request, data, info) {
-	if (config.useCache === false) return;
-	if (request.cache === false || request.method !== 'GET') return;
-	if (info.ttl <= 0) return;
-
-	Ti.API.debug('HTTP: ['+request.hash+'] CACHED',
-	'- Expire on '+Util.timestampForHumans(Util.fromnow(info.ttl)));
-
-	Cache.set(request.hash, data, info.ttl, info);
-}
-
-function extractHTTPData(data, info) {
-	info = info || {};
-	if (info.format === 'json') return Util.parseJSON(data.toString());
-	if (info.format === 'text') return data.toString();
-	return data;
-}
-
-/**
- * The main function of the module, create the HTTPClient and make the request
- *
- *	There are various options to pass:
- *
- * * **url**: The endpoint URL
- * * **method**: The HTTP method to use (GET|POST|PUT|PATCH|..)
- * * **headers**: An Object key-value of additional headers
- * * **timeout**: Timeout after stopping the request and triggering an error
- * * **cache**: Set to false to disable the cache
- * * **success**: The success callback
- * * **error**: The error callback
- * * **format**: Override the format for that request (like `json`)
- * * **ttl**: Override the TTL seconds for the cache
- *
- * @param  {Object} request 	The request dictionary
- * @return {String} The hash to identify this request
- */
-function send(request) {
-	request = decorateRequest(request);
-
-	// Get cached response, othwerise send the HTTP request
-	var cachedData = getCachedResponse(request);
-	if (cachedData != null) {
-		Ti.API.debug('HTTP: ['+request.hash+'] CACHE SUCCESS',
-		'- Expire on '+Util.timestampForHumans(cachedData.expire),
-		'- Remain time is '+(cachedData.expire-Util.now())+'s');
-
-		var httpParsedData = extractHTTPData(cachedData.value, cachedData.info);
-
-		if (_.isFunction(request.complete)) request.complete();
-		if (_.isFunction(request.success)) request.success(httpParsedData);
-
-		return request.hash;
-	}
-
-	// If we aren't online and we are here, we can't proceed, so STOP!
-	if (isOnline() === false) {
-		Ti.API.error('HTTP: connection is offline');
-
-		if (config.autoOfflineMessage === true) {
-			require('T/dialog').alert(L('http_offline_title'), L('http_offline_message'));
-		}
-
-		if (_.isFunction(request.complete)) request.complete();
-		if (_.isFunction(request.error)) request.error({ message: L('http_offline_message') });
-
-		Event.trigger('http.offline');
-		return request.hash;
-	}
-
-
-	// Start real request
-
-	var H = Ti.Network.createHTTPClient();
-	H.timeout = request.timeout;
-	H.cache = false; // disable integrated iOS cache
-
-	// onLoad && onError are the same because we have an internal parser
-	// that discern the event.success property
-	H.onload = H.onerror = function(e){
-		onComplete(request, this, e);
-	};
-
-	// Add this request to the queue
-	queue[request.hash] = H;
-
-	if (request.silent !== true) {
-		Event.trigger('http.start', {
-			id: request.hash,
-			eventName: request.eventName || null
-		});
-	}
-
-	H.open(request.method, request.url);
-	_.each(request.headers, function(h, k) {
-		H.setRequestHeader(k, h);
-	});
-
-	// Finally, send the request
-	request.startTime = +new Date();
-	if (_.isObject(request.data)) {
-		H.send(request.data);
-	} else {
-		H.send();
-	}
-
-	Ti.API.debug('HTTP: ['+request.hash+'] SENT', request);
-	return request.hash;
-}
-exports.send = send;
-
+var queue = {};
 
 function originalErrorHandler(e) {
-	var message = '';
-	if (e != null && e.message != null) message = e.message;
-	else message = L('Unexpected error');
+	var message = (e != null && e.message != null) ? e.message : L('Unexpected error');
 	require('T/dialog').alert(L('Error'), message);
-}
-
-function setApplicationInfo(appInfo) {
-	_.each(appInfo, function(v,k){
-		Ti.App.Properties.setString('settings.'+k, v);
-	});
 }
 
 /**
@@ -305,7 +40,7 @@ function setApplicationInfo(appInfo) {
  * @param {Function} fun The new function
  */
 function setErrorHandler(fun) {
-	errorHandler = fun;
+	exports.errorHandler = fun;
 }
 exports.setErrorHandler = setErrorHandler;
 
@@ -314,7 +49,7 @@ exports.setErrorHandler = setErrorHandler;
  * Reset the original error handler
  */
 function resetErrorHandler(){
-	errorHandler = originalErrorHandler;
+	exports.errorHandler = originalErrorHandler;
 }
 exports.resetErrorHandler = resetErrorHandler;
 
@@ -360,60 +95,6 @@ exports.resetHeaders = resetHeaders;
 
 
 /**
- * When using a PING-Server, check if the connection has been estabilished
- * @return {Boolean}
- */
-function isServerConnected(){
-	return serverConnected;
-}
-exports.isServerConnected = isServerConnected;
-
-
-/**
- * Return the value of config.usePingServer
- * @return {Boolean}
- */
-function usePingServer(){
-	return config.usePingServer;
-}
-exports.usePingServer = usePingServer;
-
-
-/**
- * Connect to the PING-Server
- *
- * This method also set the properties for **settings.{X}**
- *
- * Trigger a *http.ping.success* on success
- *
- * Trigger a *http.ping.error* on error
- *
- * @param  {Function} callback The success callback
- */
-function connectToServer(callback) {
-	return send({
-		url: '/ping',
-		method: 'POST',
-		silent: true,
-		success: function(appInfo){
-			serverConnected = true;
-			setApplicationInfo(appInfo);
-
-			Event.trigger('http.ping.success');
-			if (_.isFunction(callback)) callback(true);
-		},
-		error: function(){
-			serverConnected = false;
-
-			Event.trigger('http.ping.error');
-			if (_.isFunction(callback)) callback(false);
-		}
-	});
-}
-exports.connectToServer = connectToServer;
-
-
-/**
  * Check if the requests queue is empty
  * @return {Boolean}
  */
@@ -421,7 +102,6 @@ function isQueueEmpty(){
 	return _.isEmpty(queue);
 }
 exports.isQueueEmpty = isQueueEmpty;
-
 
 /**
  * Get the current requests queue
@@ -432,69 +112,51 @@ function getQueue(){
 }
 exports.getQueue = getQueue;
 
+/**
+ * Add a request to queue
+ * @param {HTTP.Request} request
+ */
+function addToQueue(request) {
+	queue[request.hash] = request;
+}
+exports.addToQueue = addToQueue;
 
 /**
- * Get the request identified by the hash in the queued requests
- *
- * If a complete request object is passed, the hash is calculated
- *
- * @param  {String|Object} hash The hash or the request
- * @return {Ti.Network.HTTPClient}
+ * Remove a request from queue
  */
-function getQueuedRequest(hash) {
-	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
-	return queue[hash];
+function removeFromQueue(request) {
+	delete queue[request.hash];
 }
-exports.getQueuedRequest = getQueuedRequest;
-
-
-/**
- * Abort the request identified by the hash in the queued requests
- *
- *  If a complete request object is passed, the hash is calculated
- *
- * @param  {String|Object} hash The hash or the request
- */
-function abortRequest(hash) {
-	var httpClient = getQueuedRequest(hash);
-	if (httpClient == null) return;
-
-	httpClient.abort();
-	Ti.API.debug('HTTP: ['+hash+'] ABORTED');
-}
-exports.abortRequest = abortRequest;
+exports.removeFromQueue = removeFromQueue;
 
 
 /**
  * Set a different cache strategy
- * @param {Strig} driver
+ * @param {String} driver
  */
 function setCacheDriver(driver) {
-	Cache = require('T/cache').use(driver);
+	exports.Cache = require('T/cache').use(driver);
 }
 exports.setCacheDriver = setCacheDriver;
+
 
 /**
  * Prune all HTTP cache
  */
 exports.pruneCache = function(){
-	if (Cache === null) return;
-	Cache.prune();
+	if (exports.Cache === null) return;
+	exports.Cache.prune();
 };
 
 /**
- * Delete the cache entry for the passed request
- *
- * If a complete request object is passed, the hash is calculated
+ * Delete the cache entry by hash
  *
  * @param  {String|Object} request [description]
  */
 exports.removeCache = function(hash) {
-	if (Cache === null) return;
-	if (_.isObject(hash)) hash = decorateRequest(hash).hash;
-	Cache.remove(hash);
+	if (exports.Cache === null) return;
+	exports.Cache.remove(hash);
 };
-
 
 /**
  * Reset the cookies for all requests
@@ -504,6 +166,30 @@ function resetCookies() {
 }
 exports.resetCookies = resetCookies;
 
+
+/**
+ * The main function of the module.
+ *
+ * Create an HTTP.Request and resolve it
+ *
+ * @param  {Object}	 opt 		The request dictionary
+ * * * **url**: The endpoint URL
+ * * **method**: The HTTP method to use (GET|POST|PUT|PATCH|..)
+ * * **headers**: An Object key-value of additional headers
+ * * **timeout**: Timeout after stopping the request and triggering an error
+ * * **cache**: Set to false to disable the cache
+ * * **success**: The success callback
+ * * **error**: The error callback
+ * * **format**: Override the format for that request (like `json`)
+ * * **ttl**: Override the TTL seconds for the cache
+ * @return {HTTP.Request}
+ */
+function send(opt) {
+	var request = new exports.Request(opt);
+	request.resolve();
+	return request;
+}
+exports.send = send;
 
 
 /**
@@ -588,5 +274,8 @@ exports.postJSON = function(url, data, success, error) {
 Init
 */
 
-errorHandler = originalErrorHandler;
+// Set the default error handler
+resetErrorHandler();
+
+// Set the default driver
 setCacheDriver(config.cacheDriver);

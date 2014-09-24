@@ -29,7 +29,7 @@
 exports.createNavigationWindow = function(args) {
 	args = args || {};
 	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args);
-	return require('T/uifactory/navigationwindow')(args);
+	return new require('T/uifactory/navigationwindow')(args);
 };
 
 /**
