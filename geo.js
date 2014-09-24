@@ -27,6 +27,8 @@ var Dialog = require('T/Dialog');
 function decorateRequest(request) {
 	if (request.decorated) return request;
 
+	if (!_.isFunction(request.complete)) request.complete = function(){};
+	if (!_.isFunction(request.success)) request.success = function(){};
 	if (request.error === undefined) request.error = originalErrorHandler;
 
 	request.decorated = true;
@@ -51,35 +53,20 @@ exports.enableServicesAlert = enableServicesAlert;
  * @param  {Object} e
  */
 function originalErrorHandler(e) {
-	if (e.servicesDisabled === true) {
-		enableServicesAlert();
-	} else {
-		Dialog.alert(null, L('geo_error_title'));
+	if (e != null) {
+		if (e.servicesDisabled === true) {
+			enableServicesAlert();
+		}
 	}
+
+	Dialog.alert(null, L('geo_error_title'));
 }
-exports.originalErrorHandler = originalErrorHandler;
+exports.originalErrorHandler = _.clone(originalErrorHandler);
+
 
 function checkForServices() {
 	return !! Ti.Geolocation.locationServicesEnabled;
 }
-
-
-/**
- * @method localize
- * @deprecated 1.3.0 Use {@link Geo.getCurrentPosition} instead.
- * @param {Function} callback
- */
-function localize(callback) {
-	Ti.API.warn('[DEPRECATED] The use of `Geo.localize` is deprecated, use `Geo.getPosition` instead!');
-
-	getCurrentPosition({
-		success: function(e){
-			callback({ coords: e });
-		},
-		error: callback
-	});
-}
-exports.localize = localize;
 
 
 /**
@@ -94,31 +81,31 @@ function getCurrentPosition(request) {
 	request = decorateRequest(request);
 
 	if (checkForServices() === false) {
-		if (_.isFunction(request.complete)) request.complete();
-		if (_.isFunction(request.error)) request.error({ servicesDisabled: true });
+		request.complete();
+		request.error({ servicesDisabled: true });
 		return;
 	}
 
-	if (request.silent !== false) require('T/event').trigger('geo.start');
+	if (request.silent !== false) {
+		require('T/event').trigger('geo.start');
+	}
 
 	Ti.Geolocation.getCurrentPosition(function(e){
-		if (request.silent !== false) require('T/event').trigger('geo.end');
+		if (request.silent !== false) {
+			require('T/event').trigger('geo.end');
+		}
 
-		if (_.isFunction(request.complete)) request.complete();
+		request.complete();
 
 		if (e.success === false) {
-			if (_.isFunction(request.error)) request.error({});
-			return;
+			return request.error();
 		}
 
 		if (!_.isObject(e.coords)) {
-			if (_.isFunction(request.error)) request.error({});
-			return;
+			return request.error();
 		}
 
-		if (_.isFunction(request.success)) {
-			request.success(e.coords);
-		}
+		request.success(e.coords);
 	});
 }
 exports.getCurrentPosition = getCurrentPosition;
