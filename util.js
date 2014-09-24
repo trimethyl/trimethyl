@@ -7,7 +7,7 @@
  *
  */
 
-var UtilUI = require('T/utilui');
+var Dialog = require('T/dialog');
 
 
 /**
@@ -31,7 +31,7 @@ function openURL(url, fallback, error) {
 			Ti.Platform.openURL(fallback);
 		}
 	} else if (error != null) {
-		UtilUI.alert(L('Error'), error);
+		Dialog.alert(L('Error'), error);
 	}
 }
 exports.openURL = openURL;
@@ -73,7 +73,7 @@ function startActivity(opt, error) {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
 		if (error != null) {
-			UtilUI.alert(L('Error'), error);
+			Dialog.alert(L('Error'), error);
 		}
 	}
 }
@@ -433,10 +433,7 @@ exports.parseAsXCallbackURL = function(str) {
 	var i = XCU.key.length;
 	var uri = {};
 
-	while (i--) {
-		uri[XCU.key[i]] = m[i] || '';
-	}
-
+	while (i--) uri[XCU.key[i]] = m[i] || '';
 	uri[XCU.q.name] = {};
 	uri[XCU.key[12]].replace(XCU.q.parser, function($0, $1, $2) {
 		if ($1) uri[XCU.q.name][$1] = $2;
