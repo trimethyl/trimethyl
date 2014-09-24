@@ -26,7 +26,6 @@ var config = _.extend({
 }, Alloy.CFG.T.http);
 exports.config = config;
 
-exports.Request = require('T/http/request');
 
 function originalErrorHandler(e) {
 	var message = (e != null && e.message != null) ? e.message : L('Unexpected error');
@@ -39,7 +38,6 @@ function originalErrorHandler(e) {
  * @type {Function}
  */
 exports.errorHandler = originalErrorHandler;
-
 
 /**
  * Get the error handler
@@ -95,7 +93,6 @@ function addHeader(key, value) {
 }
 exports.addHeader = addHeader;
 
-
 /**
  * Remove a global header
  * @param {String} key 		The header key
@@ -104,7 +101,6 @@ function removeHeader(key) {
 	delete exports.headers[key];
 }
 exports.removeHeader = removeHeader;
-
 
 /**
  * Reset all globals headers
@@ -130,7 +126,6 @@ function isQueueEmpty(){
 	return _.isEmpty(exports.queue);
 }
 exports.isQueueEmpty = isQueueEmpty;
-
 
 /**
  * Get the current requests queue
@@ -286,3 +281,6 @@ exports.postJSON = function(url, data, success, error) {
 		error: error
 	});
 };
+
+
+exports.Request = require('T/http/request');

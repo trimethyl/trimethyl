@@ -156,7 +156,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	// Write the cache (if needed and supported by configuration)
-	this.cacheResponse();
+	this._cacheResponse();
 
 	Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
 	this.onSuccess(httpData);
@@ -167,6 +167,11 @@ HTTPRequest.prototype._calculateHash = function() {
 	return 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 10);
 };
 
+/**
+ * @method getCachedResponse
+ * Return (if exists) the cache
+ * @return {Binary}
+ */
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (HTTP.config.useCache === false) return;
 	if (this.opt.cache === false || this.opt.refresh === true) return;
@@ -182,6 +187,10 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	return extractHTTPData(cachedData.value, cachedData.info);
 };
 
+/**
+ * @method send
+ * Sent the request over the network
+ */
 HTTPRequest.prototype.send = function() {
 	this.client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
@@ -220,6 +229,12 @@ HTTPRequest.prototype.send = function() {
 	Ti.API.debug('HTTP: ['+this.hash+'] SENT', this);
 };
 
+/**
+ * @method resolve
+ *
+ * Magically resolve the request.
+ * It checks cache, connectivity, and resolve.
+ */
 HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {

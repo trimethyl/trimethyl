@@ -25,6 +25,7 @@ var timeout = null; // Timeout for logging in
 var successLogin = null; // Callback when login success
 var silent = true; // Flag passed to `Auth.login` and `auth.fail` event
 
+
 function loginToServer(e) {
 	clearTimeout(timeout);
 	if (e.cancelled === true) return;
@@ -64,9 +65,7 @@ function handleLogin() {
 
 	// Prevent app freezing
 	timeout = setTimeout(function(){
-		loginToServer({
-			success: false
-		});
+		loginToServer({ success: false });
 	}, config.authTimeout);
 
 	authorize();

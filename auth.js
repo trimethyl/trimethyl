@@ -20,11 +20,23 @@ var config = _.extend({
 }, Alloy.CFG.T.auth);
 exports.config = config;
 
-var Me = null; // model of current user
-var authInfo = null; // auth info stored
-
 var HTTP = require('T/http');
 var Event = require('T/event');
+
+/**
+ * @property Me
+ * Current user model
+ * @type {Backbone.Model}
+ */
+exports.Me = null;
+
+/**
+ * @property authInfo
+ * Authentication info processed during login
+ * @type {Object}
+ */
+exports.authInfo = null; // auth info stored
+
 
 /**
  * Require the selected driver
@@ -59,18 +71,15 @@ function handleLogin() {
 
 	if (currentDriver === null) {
 		Ti.API.warn('Auth: no driver stored to handle authentication');
-		return false;
+		return;
 	}
 
 	try {
-		load(currentDriver).handleLogin();
+		return load(currentDriver).handleLogin();
 	} catch (err) {
-
 		Event.trigger('app.login', {
 			message: err
 		});
-		return false;
-
 	}
 }
 exports.handleLogin = handleLogin;
@@ -91,8 +100,8 @@ function handleOfflineLogin(success){
 		return;
 	}
 
-	// Create the User model.
-	Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+	// Create the User model
+	exports.Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 
 	Event.trigger('auth.success');
 	if (_.isFunction(success)) success();
@@ -109,16 +118,34 @@ exports.handleOfflineLogin = handleOfflineLogin;
  */
 function handle() {
 	if (HTTP.isOnline()) {
-		if (HTTP.usePingServer()) {
-			HTTP.connectToServer(handleLogin);
-		} else {
-			handleLogin();
-		}
+		handleLogin();
 	} else {
 		handleOfflineLogin();
 	}
 }
 exports.handle = handle;
+
+
+function getUserModel(data, callback) {
+	exports.Me = Alloy.createModel('user', {
+		id: exports.authInfo.id
+	});
+
+	exports.Me.fetch({
+		http: {
+			refresh: true,
+			cache: false,
+			silent: data.silent
+		},
+		success: callback,
+		error: function(e){
+			Event.trigger('auth.fail', {
+				message: e.message,
+				silent: data.silent
+			});
+		}
+	});
+}
 
 
 /**
@@ -138,90 +165,68 @@ function login(data, driver, callback) {
 		method: 'POST',
 		data: _.extend(data, { method: driver }),
 		silent: data.silent,
+		success: function(response){
+			exports.authInfo = response;
+
+			if (exports.authInfo.id != null) {
+
+				getUserModel(data, function() {
+					Ti.App.Properties.setObject('auth.me', exports.Me.toJSON());
+					Ti.App.Properties.setString('auth.driver', driver);
+					Event.trigger('auth.success', exports.authInfo);
+
+					if (_.isFunction(callback)) callback(exports.authInfo);
+				});
+
+			} else {
+
+				Ti.API.error('Auth: authInfo.id is null');
+				Event.trigger('auth.fail', {
+					message: L('auth_error'),
+					silent: data.silent
+				});
+
+			}
+		},
 		error: function(e){
 			Event.trigger('auth.fail', {
 				message: e.message,
 				silent: data.silent
 			});
 		},
-		success: function(response){
-			authInfo = response;
-
-			if (authInfo.id == null) {
-				Ti.API.error('Auth: authInfo.id is null');
-
-				Event.trigger('auth.fail', {
-					message: L('auth_error'),
-					silent: data.silent
-				});
-				return;
-			}
-
-			// Create User model
-			Me = Alloy.createModel('user', {
-				id: authInfo.id
-			});
-
-			// Fetch user informations
-			Me.fetch({
-				http: {
-					refresh: true,
-					cache: false,
-					silent: data.silent
-				},
-				error: function(e){
-					Event.trigger('auth.fail', {
-						message: e.message,
-						silent: data.silent
-					});
-				},
-				success: function(){
-					Ti.App.Properties.setObject('auth.me', Me.toJSON());
-					Ti.App.Properties.setString('auth.driver', driver);
-
-					Event.trigger('auth.success', authInfo);
-					if (_.isFunction(callback)) callback();
-				}
-			});
-		}
 	});
 }
 exports.login = login;
 
 
 /**
- * Get the object returned from the API server when authenticated
- *
- * @return {Object}
- */
-function getAuthInfo() {
-	return authInfo;
-}
-exports.getAuthInfo = getAuthInfo;
-
-
-/**
+ * @method getUser
  * Get current User model
  * @return {Object}
  */
-function getCurrentUser(){
-	return Me;
-}
-exports.getCurrentUser = getCurrentUser;
-
-/**
- * @method  me
- * @inheritDoc #getCurrentUser
- * Alias for {@link #getCurrentUser}
- */
-exports.me = getCurrentUser;
+exports.getUser = function(){
+	return exports.Me;
+};
 
 /**
  * @method user
- * @inheritDoc #getCurrentUser
- * Alias for {@link #getCurrentUser}
+ * @inheritDoc #getUser
+ * Alias for {@link #getUser}
  */
-exports.user = getCurrentUser;
+exports.user = exports.getUser;
+
+
+/**
+ * @method getUserID
+ * Get current User ID
+ * @return {Number}
+ */
+function getUserID(){
+	if (exports.Me == null) return 0;
+	return exports.Me.id;
+}
+exports.getUserID = getUserID;
+
 
 /**
  * Logout calling "current-driver" logout, logout from the API server and empty all auth infos
@@ -231,40 +236,40 @@ exports.user = getCurrentUser;
  * @param  {Function} callback Success callback
  */
 function logout(callback) {
-	var id = (Me !== null ? Me.id: null);
+	var id = getUserID();
 	var currentDriver = getCurrentDriver();
 
 	try {
 		load(currentDriver).logout();
 	} catch (err) {}
 
-	Me = null;
-	authInfo = null;
+	exports.Me = null;
+	exports.authInfo = null;
 
 	// Remove stored infos
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
 
-	HTTP.resetCache();
+	// Remove cache, because can contain sensibile data
+	HTTP.Cache.prune();
 
 	var onLogoutComplete = function() {
 		HTTP.resetCookies();
-		Event.trigger('auth.logout', {
-			id: id
-		});
-
+		Event.trigger('auth.logout', { id: id });
 		if (_.isFunction(callback)) callback();
 	};
 
 	if (HTTP.isOnline()) {
+
 		HTTP.send({
 			url: '/logout',
 			method: 'POST',
 			silent: true,
-			success: function(){ },
-			error: function(){ },
+			success: function(){},
+			error: function(){},
 			complete: onLogoutComplete
 		});
+
 	} else {
 		onLogoutComplete();
 	}
@@ -272,11 +277,12 @@ function logout(callback) {
 }
 exports.logout = logout;
 
+
 /**
  * Check if the user is logged in
  *
  * @return {Boolean}
  */
 exports.isLogged = function() {
-	return Me !== null;
+	return exports.Me !== null;
 };

@@ -4,15 +4,9 @@
  * Auth driver to handle Standard authentication
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.auth ? Alloy.CFG.auth.std : {});
-exports.config = config;
-
 var HTTP = require('T/http');
 var Auth = require('T/auth');
+
 
 /**
  * Login to the API server using stored data
@@ -29,13 +23,13 @@ exports.handleLogin = handleLogin;
 /**
  * Login to the API server
  *
- * @param {Object} data Data passed to API
- * @param  {Function} callback Callback when login success
+ * @param {Object} 		data 		Data passed to API
+ * @param  {Function} 	success 	Callback when login success
  */
-function login(data, callback) {
+function login(data, success) {
 	Auth.login(data, 'std', function(){
 		Ti.App.Properties.setObject('auth.std.data', data);
-		if (_.isFunction(callback)) callback();
+		if (_.isFunction(success)) success();
 	});
 }
 exports.login = login;
@@ -61,9 +55,7 @@ function signup(data, callback) {
 		url: '/signup',
 		method: 'POST',
 		data: data,
-		success: function(){
-			if (_.isFunction(callback)) callback();
-		}
+		success: callback
 	});
 }
 exports.signup = signup;
@@ -80,9 +72,14 @@ function lost(data, callback){
 		url: '/lost',
 		method: 'POST',
 		data: data,
-		success: function(){
-			if (_.isFunction(callback)) callback();
-		}
+		success: callback
 	});
 }
 exports.lost = lost;
+
+/**
+ * @method reset
+ * @inheritDoc #lost
+ * Alias for {@link #lost}
+ */
+exports.reset = lost;
