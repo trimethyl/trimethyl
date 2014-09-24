@@ -28,12 +28,27 @@ exports.config = config;
 
 exports.Request = require('T/http/request');
 
-var queue = {};
-
 function originalErrorHandler(e) {
 	var message = (e != null && e.message != null) ? e.message : L('Unexpected error');
 	require('T/dialog').alert(L('Error'), message);
 }
+
+/**
+ * @property errorHandler
+ * Global error handler
+ * @type {Function}
+ */
+exports.errorHandler = originalErrorHandler;
+
+
+/**
+ * Get the error handler
+ * @param {Function} fun The new function
+ */
+function getErrorHandler() {
+	return exports.errorHandler;
+}
+exports.getErrorHandler = getErrorHandler;
 
 /**
  * Set a new global handler for the errors
@@ -43,7 +58,6 @@ function setErrorHandler(fun) {
 	exports.errorHandler = fun;
 }
 exports.setErrorHandler = setErrorHandler;
-
 
 /**
  * Reset the original error handler
@@ -65,12 +79,19 @@ exports.isOnline = isOnline;
 
 
 /**
+ * @property headers
+ * Global headers
+ * @type {Array}
+ */
+exports.headers = config.headers;
+
+/**
  * Add a global header for all requests
  * @param {String} key 		The header key
  * @param {String} value 	The header value
  */
 function addHeader(key, value) {
-	config.headers[key] = value;
+	exports.headers[key] = value;
 }
 exports.addHeader = addHeader;
 
@@ -80,7 +101,7 @@ exports.addHeader = addHeader;
  * @param {String} key 		The header key
  */
 function removeHeader(key) {
-	delete config.headers[key];
+	delete exports.headers[key];
 }
 exports.removeHeader = removeHeader;
 
@@ -89,26 +110,34 @@ exports.removeHeader = removeHeader;
  * Reset all globals headers
  */
 function resetHeaders() {
-	config.headers = {};
+	exports.headers = {};
 }
 exports.resetHeaders = resetHeaders;
 
+
+/**
+ * @property queue
+ * Queue for HTTP Requests
+ * @type {Function}
+ */
+exports.queue = [];
 
 /**
  * Check if the requests queue is empty
  * @return {Boolean}
  */
 function isQueueEmpty(){
-	return _.isEmpty(queue);
+	return _.isEmpty(exports.queue);
 }
 exports.isQueueEmpty = isQueueEmpty;
+
 
 /**
  * Get the current requests queue
  * @return {Array}
  */
 function getQueue(){
-	return queue;
+	return exports.queue;
 }
 exports.getQueue = getQueue;
 
@@ -117,7 +146,7 @@ exports.getQueue = getQueue;
  * @param {HTTP.Request} request
  */
 function addToQueue(request) {
-	queue[request.hash] = request;
+	exports.queue[request.hash] = request;
 }
 exports.addToQueue = addToQueue;
 
@@ -125,10 +154,17 @@ exports.addToQueue = addToQueue;
  * Remove a request from queue
  */
 function removeFromQueue(request) {
-	delete queue[request.hash];
+	delete exports.queue[request.hash];
 }
 exports.removeFromQueue = removeFromQueue;
 
+
+/**
+ * @property Cache
+ * Cache driver
+ * @type {Object}
+ */
+exports.Cache = require('T/cache').use(config.cacheDriver);
 
 /**
  * Set a different cache strategy
@@ -139,24 +175,6 @@ function setCacheDriver(driver) {
 }
 exports.setCacheDriver = setCacheDriver;
 
-
-/**
- * Prune all HTTP cache
- */
-exports.pruneCache = function(){
-	if (exports.Cache === null) return;
-	exports.Cache.prune();
-};
-
-/**
- * Delete the cache entry by hash
- *
- * @param  {String|Object} request [description]
- */
-exports.removeCache = function(hash) {
-	if (exports.Cache === null) return;
-	exports.Cache.remove(hash);
-};
 
 /**
  * Reset the cookies for all requests
@@ -268,14 +286,3 @@ exports.postJSON = function(url, data, success, error) {
 		error: error
 	});
 };
-
-
-/*
-Init
-*/
-
-// Set the default error handler
-resetErrorHandler();
-
-// Set the default driver
-setCacheDriver(config.cacheDriver);

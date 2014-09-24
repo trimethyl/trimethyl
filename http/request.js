@@ -62,57 +62,56 @@ function HTTPRequest(opt) {
 		}
 	}
 
-	this.getHash();
+	this.hash = this._calculateHash();
 }
 
-HTTPRequest.prototype.__toString = function() {
-	return this.getHash();
+HTTPRequest.prototype.toString = function() {
+	return this.hash;
 };
 
-HTTPRequest.prototype.cacheResponse = function() {
+HTTPRequest.prototype._cacheResponse = function() {
 	if (HTTP.config.useCache === false) return;
 	if (this.opt.cache === false)
 	if (this.method !== 'GET') return;
 
-	var info = this.getResponseInfo();
-	if (info.ttl <= 0) return;
+	if (this.responseInfo.ttl <= 0) return;
 
 	Ti.API.debug('HTTP: ['+this.hash+'] CACHED',
-	'- Expire on '+Util.timestampForHumans(Util.fromnow(info.ttl)));
+	'- Expire on '+Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl)));
 
-	HTTP.Cache.set(this.hash, this.client.responseData, info.ttl, info);
+	HTTP.Cache.set(this.hash, this.client.responseData, this.responseInfo.ttl, this.responseInfo);
 };
 
-HTTPRequest.prototype.getResponseInfo = function() {
-	if (this.responseInfo != null) {
-		return this.responseInfo;
+HTTPRequest.prototype._getResponseInfo = function() {
+	if (this.client == null || this.client.readyState <= 1) {
+		return { broken: true };
 	}
 
 	var httpExpires = this.client.getResponseHeader('Expires');
 	var httpContentType = this.client.getResponseHeader('Content-Type');
 	var httpTTL = this.client.getResponseHeader('X-Cache-Ttl');
 
-	this.responseInfo = { format: 'blob', ttl: HTTP.config.defaultCacheTTL };
+	var info = { format: 'blob', ttl: HTTP.config.defaultCacheTTL };
 
 	if (this.client.responseText != null) {
-		this.responseInfo.format = 'text';
+		info.format = 'text';
 		if (httpContentType != null) {
 			if (httpContentType.match(/application\/json/)) {
-				this.responseInfo.format = 'json';
+				info.format = 'json';
 			}
 		}
 	}
 
-	if (httpExpires != null) this.responseInfo.ttl = Util.timestamp(httpExpires) - Util.now();
-	if (httpTTL != null) this.responseInfo.ttl = httpTTL;
+	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
+	if (httpTTL != null) info.ttl = httpTTL;
 
-	if (this.opt.format != null) this.responseInfo.format = this.opt.format;
-	if (this.opt.ttl != null) this.responseInfo.ttl = this.opt.ttl;
+	if (this.opt.format != null) info.format = this.opt.format;
+	if (this.opt.ttl != null) info.ttl = this.opt.ttl;
 
-	return this.responseInfo;
+	return info;
 };
 
-HTTPRequest.prototype.__onComplete = function(e) {
+HTTPRequest.prototype._onComplete = function(e) {
 	this.endTime = new Date();
 
 	this.onComplete();
@@ -130,24 +129,25 @@ HTTPRequest.prototype.__onComplete = function(e) {
 		});
 	}
 
+	this.responseInfo = this._getResponseInfo();
+
 	// If the readyState is not DONE, trigger error, because
 	// client.onload is the function to be called upon a SUCCESSFULL response.
-	if (this.client.readyState <= 1) {
+	if (this.responseInfo.broken) {
 		Ti.API.error('HTTP: ['+this.hash+'] IS BROKEN');
 		return this.onError();
 	}
 
 	// Get the response information and override
-	var info = this.getResponseInfo();
 	Ti.API.debug('HTTP: ['+this.hash+'] PARSED',
-	'- Format is '+info.format,
-	'- TTL is '+info.ttl);
+	'- Format is '+this.responseInfo.format,
+	'- TTL is '+this.responseInfo.ttl);
 
-	var httpData = extractHTTPData(this.client.responseData, info);
+	var httpData = extractHTTPData(this.client.responseData, this.responseInfo);
 
 	if (e.success === false || httpData == null) {
 		var errObject = {
-			message: extractHTTPErrorMessage(httpData, info),
+			message: extractHTTPErrorMessage(httpData, this.responseInfo),
 			code: this.client.status
 		};
 
@@ -162,16 +162,10 @@ HTTPRequest.prototype.__onComplete = function(e) {
 	this.onSuccess(httpData);
 };
 
-HTTPRequest.prototype.getHash = function() {
-	if (this.hash != null) {
-		return this.hash;
-	}
-
+HTTPRequest.prototype._calculateHash = function() {
 	var hash = this.url + Util.hashJavascriptObject(this.data) + Util.hashJavascriptObject(this.headers);
-	this.hash = 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 10);
-	return this.hash;
+	return 'net_' + Ti.Utils.md5HexDigest(hash).substr(0, 10);
 };
-
 
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (HTTP.config.useCache === false) return;
@@ -196,7 +190,7 @@ HTTPRequest.prototype.send = function() {
 
 	var self = this;
 	this.client.onload = this.client.onerror = function(e) {
-		self.__onComplete(e);
+		self._onComplete(e);
 	};
 
 	// Add this request to the queue
@@ -230,11 +224,13 @@ HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {
 		this.onComplete();
-		return this.onSuccess(cache);
+		this.onSuccess(cache);
+		return;
 	}
 
 	if (HTTP.isOnline()) {
-		return this.send();
+		this.send();
+		return;
 	}
 
 	Ti.API.error('HTTP: connection is offline');
@@ -249,10 +245,5 @@ HTTPRequest.prototype.resolve = function() {
 
 	Event.trigger('http.offline');
 };
-
-
-/*
-Init
-*/
 
 module.exports = HTTPRequest;
