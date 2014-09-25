@@ -22,42 +22,31 @@ var Dialog = require('T/dialog');
  * @param  {String} [error]    The error to show
  */
 function openURL(url, fallback, error) {
-	if (OS_IOS && Ti.Platform.canOpenURL(url) === true) {
-		Ti.Platform.openURL(url);
-	} else if (fallback != null) {
-		if (_.isFunction(fallback)) {
-			fallback();
-		} else if (_.isString(fallback)) {
-			Ti.Platform.openURL(fallback);
+
+	function doFallback() {
+		if (fallback != null) {
+			if (_.isFunction(fallback)) fallback();
+			else if (_.isString(fallback)) Ti.Platform.openURL(fallback);
+		} else if (error != null) {
+			Dialog.alert(L('Error'), error);
 		}
-	} else if (error != null) {
-		Dialog.alert(L('Error'), error);
+	}
+
+	if (OS_IOS) {
+		if (Ti.Platform.canOpenURL(url) === true) {
+			Ti.Platform.openURL(url);
+		} else {
+			doFallback();
+		}
+	} else if (OS_ANDROID) {
+		try {
+			Ti.Platform.openURL(url);
+		} catch (err) {
+			doFallback();
+		}
 	}
 }
 exports.openURL = openURL;
-exports.openUrl = openURL;
-
-
-/**
- * Try to open a series of URLs, cycling over all while a valid URL is found.
- *
- * On Android, open the last element of the array.
- *
- * @param  {Array} array The array of URLs
- */
-function tryOpenURL(array) {
-	if (OS_IOS) {
-		for (var k in array) {
-			if (Ti.Platform.canOpenURL(array[k])) {
-				Ti.Platform.openURL(array[k]);
-				return;
-			}
-		}
-	} else {
-		Ti.Platform.openURL(_.last(array));
-	}
-}
-exports.tryOpenURL = tryOpenURL;
 
 
 /**
@@ -342,15 +331,13 @@ exports.getAppDataDirectory = function() {
 exports.dial = function(tel) {
 	var telString = tel.match(/[0-9]/g).join('');
 	var errString = String.format(L('util_dial_failed'), tel);
-	if (OS_ANDROID) {
-
+	if (OS_IOS) {
+		openURL('tel:' + telString, null, errString);
+	} else if (OS_ANDROID) {
 		startActivity({
 			action: Ti.Android.ACTION_CALL,
 			data: 'tel:' + telString
 		}, errString);
-
-	} else {
-		openURL('tel:' + telString, null, errString);
 	}
 };
 
