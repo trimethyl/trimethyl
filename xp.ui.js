@@ -261,7 +261,9 @@ exports.createWindow = function(args) {
 
 		$this.setDisplayHomeAsUp = function(value) {
 			displayHomeAsUp = value;
-			$this.setActionBarProperties({ displayHomeAsUp: displayHomeAsUp });
+			$this.setActionBarProperties({
+				displayHomeAsUp: displayHomeAsUp
+			});
 		};
 
 		$this.setActionBarProperties({
@@ -311,6 +313,51 @@ exports.createWindow = function(args) {
 
 		$this.setRightNavButton = $this.setActivityButton;
 
+
+		// BackButtonDisabled
+		// ======================================
+
+		$this.setBackButtonDisabled = function(v) {
+			if (v === true) {
+				$this.backButtonDisabledNoOp = function(){ return false; };
+				$this.addEventListener('androidback', $this.backButtonDisabledNoOp);
+			} else {
+				if (_.isFunction($this.backButtonDisabledNoOp)) {
+					$this.removeEventListener('androidback', $this.backButtonDisabledNoOp);
+				}
+			}
+		};
+
+
+		// Title
+		// =======================================
+
+		$this.processTitles = function () {
+			var bar = {};
+			if ($this.subtitle) {
+				bar.title = $this.title;
+				bar.subtitle = $this.subtitle;
+			} else {
+				if ($this.subtitle === false) {
+					bar.title = $this.title;
+				} else {
+					bar.title =  Ti.App.name;
+					bar.subtitle = $this.title;
+				}
+			}
+			$this.setActionBarProperties(bar);
+		};
+
+		$this.setTitle = function(value) {
+			$this.title = value;
+			$this.processTitles();
+		};
+
+		$this.setSubtitle = function(value) {
+			$this.subtitle = value;
+			$this.processTitles();
+		};
+
 	}
 
 
@@ -323,18 +370,7 @@ exports.createWindow = function(args) {
 
 	if (OS_ANDROID) {
 
-		var bar = {};
-		if (args.subtitle) {
-			bar.title = args.title;
-			bar.subtitle = args.subtitle;
-		} else {
-			if (args.subtitle===false) bar.title = args.title;
-			else {
-				bar.title =  Ti.App.name;
-				bar.subtitle = args.title;
-			}
-		}
-		$this.setActionBarProperties(bar);
+		$this.processTitles();
 
 		if (args.activityProperties) $this.setActivityProperties(args.activityProperties);
 		if (args.actionBarProperties) $this.setActionBarProperties(args.actionBarProperties);
@@ -343,6 +379,7 @@ exports.createWindow = function(args) {
 		if (args.activityButtons) _.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
 		if (args.activityButton) $this.setActivityButton(args.activityButton);
 		if (args.displayHomeAsUp) $this.setDisplayHomeAsUp(args.displayHomeAsUp);
+		if (args.backButtonDisabled) $this.setBackButtonDisabled(args.backButtonDisabled);
 
 	}
 
