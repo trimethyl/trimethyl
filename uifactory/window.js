@@ -263,18 +263,7 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
-		var bar = {};
-		if (args.subtitle != null) {
-			bar.title = args.title;
-			bar.subtitle = args.subtitle;
-		} else {
-			if (args.subtitle === false) bar.title = args.title;
-			else {
-				bar.title =  Ti.App.name;
-				bar.subtitle = args.title;
-			}
-		}
-		$this.setActionBarProperties(bar);
+		$this.processTitles();
 
 		if (args.activityProperties != null) $this.setActivityProperties(args.activityProperties);
 		if (args.actionBarProperties != null) $this.setActionBarProperties(args.actionBarProperties);

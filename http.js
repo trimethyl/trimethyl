@@ -198,7 +198,8 @@ exports.resetCookies = resetCookies;
  * @return {HTTP.Request}
  */
 function send(opt) {
-	var request = new exports.Request(opt);
+	var Request = require('T/http/request');
+	var request = new Request(opt);
 	request.resolve();
 	return request;
 }
@@ -281,6 +282,3 @@ exports.postJSON = function(url, data, success, error) {
 		error: error
 	});
 };
-
-
-exports.Request = require('T/http/request');
