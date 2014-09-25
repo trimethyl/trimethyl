@@ -24,13 +24,13 @@ function parseDict(dict) {
 }
 
 
-function onClickDict(e, dict) {
+function onClickDict(e, dict, dialog) {
 	if (OS_IOS && e.index == e.source.cancel) return;
 	if (OS_ANDROID && e.cancel === true) return;
 
 	var d = dict[+e.index];
 	if (d != null && _.isFunction(d.callback)) {
-		d.callback.apply(this);
+		d.callback.call(dialog, e);
 	}
 }
 
@@ -66,7 +66,7 @@ exports.alert = dialogAlert;
 
 /**
  * @method confirm
- * Create and show a prompt dialog
+ * Create and show a confirm dialog
  *
  * @param  {String}   		title       	The title
  * @param  {String}   		message        The message
@@ -82,7 +82,7 @@ function dialogConfirm(title, message, dict, ext) {
 	}, ext));
 
 	dialog.addEventListener('click', function(e) {
-		onClickDict(e, dict);
+		onClickDict(e, dict, dialog);
 	});
 
 	dialog.show();
@@ -92,7 +92,7 @@ exports.confirm = dialogConfirm;
 
 
 /**
- * @method prompt
+ * @method option
  * Create and show an Option Dialog
  *
  * @param  {Dictonary}    	dict     		Buttons as Dictonary
@@ -105,7 +105,7 @@ function dialogOption(dict, ext) {
 	}, ext));
 
 	dialog.addEventListener('click', function(e) {
-		onClickDict(e, dict);
+		onClickDict(e, dict, dialog);
 	});
 
 	dialog.show();
@@ -115,7 +115,7 @@ exports.option = dialogOption;
 
 
 /**
- * @method confirm
+ * @method confirmYes
  * Create and show a confirm dialog with *Cancel* and *Yes* button.
  *
  * @param  {String}   title 				The title

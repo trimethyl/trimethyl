@@ -47,15 +47,20 @@ module.exports = function(args) {
 
 	var $this = Ti.UI.createWindow(args);
 
-	var opened = false;
-	var onOpenFuncs = [], onOpen = function(fun) {
-		if (opened) { fun(); return; }
-		onOpenFuncs.push(fun);
+	$this.opened = false;
+	var onOpenFuncs = [], onOpen = function(callback) {
+		if ($this.opened === true) {
+			callback();
+			return;
+		}
+		onOpenFuncs.push(callback);
 	};
 
 	$this.addEventListener('open', function() {
-		opened = true;
-		_.each(onOpenFuncs, function(f){ f(); });
+		$this.opened = true;
+		_.each(onOpenFuncs, function(openFunc){
+			openFunc();
+		});
 	});
 
 
@@ -72,7 +77,9 @@ module.exports = function(args) {
 	// BackgroundCoverImage
 	// ===================================
 
-	var bgCoverUI = null, bgCoverUISview = null;
+	var bgCoverUI = null;
+	var bgCoverUISview = null;
+
 	$this.setBackgroundCoverImage = function(val){
 		var SCREEN_RATIO = Alloy.Globals.SCREEN_WIDTH/Alloy.Globals.SCREEN_HEIGHT;
 
@@ -115,7 +122,10 @@ module.exports = function(args) {
 		$this.setActivityProperties = function(props, callback) {
 			onOpen(function(){
 				if ($this.activity == null) return;
-				_.each(props, function(v, k) { $this.activity[k] = v; });
+
+				_.each(props, function(v, k) {
+					$this.activity[k] = v;
+				});
 				if (_.isFunction(callback)) callback($this.activity);
 			});
 		};
@@ -126,7 +136,10 @@ module.exports = function(args) {
 		$this.setActionBarProperties = function(props, callback) {
 			onOpen(function(){
 				if ($this.activity == null || $this.activity.actionBar == null) return;
-				_.each(props, function(v, k) { $this.activity.actionBar[k] = v; });
+
+				_.each(props, function(v, k) {
+					$this.activity.actionBar[k] = v;
+				});
 				if (_.isFunction(callback)) callback($this.activity.actionBar);
 			});
 		};
@@ -138,7 +151,9 @@ module.exports = function(args) {
 
 		$this.setDisplayHomeAsUp = function(value) {
 			displayHomeAsUp = value;
-			$this.setActionBarProperties({ displayHomeAsUp: displayHomeAsUp });
+			$this.setActionBarProperties({
+				displayHomeAsUp: displayHomeAsUp
+			});
 		};
 
 		$this.setActionBarProperties({
@@ -174,7 +189,9 @@ module.exports = function(args) {
 				});
 			}
 		}, function(act) {
-			if (_.isFunction(act.invalidateOptionsMenu)) act.invalidateOptionsMenu();
+			if (_.isFunction(act.invalidateOptionsMenu)) {
+				act.invalidateOptionsMenu();
+			}
 		});
 
 		$this.setActivityButton = function(opt) {
@@ -187,6 +204,52 @@ module.exports = function(args) {
  		// ======================================
 
 		$this.setRightNavButton = $this.setActivityButton;
+
+		// BackButtonDisabled
+		// ======================================
+
+		var backButtonDisabledNoOp = null;
+
+		$this.setBackButtonDisabled = function(v) {
+			if (v === true) {
+				backButtonDisabledNoOp = function(){ return false; };
+				$this.addEventListener('androidback', backButtonDisabledNoOp);
+			} else {
+				if (_.isFunction(backButtonDisabledNoOp)) {
+					$this.removeEventListener('androidback', $this.backButtonDisabledNoOp);
+				}
+			}
+		};
+
+
+		// Title
+		// =======================================
+
+		$this.processTitles = function () {
+			var bar = {};
+			if ($this.subtitle) {
+				bar.title = $this.title;
+				bar.subtitle = $this.subtitle;
+			} else {
+				if ($this.subtitle === false) {
+					bar.title = $this.title;
+				} else {
+					bar.title =  Ti.App.name;
+					bar.subtitle = $this.title;
+				}
+			}
+			$this.setActionBarProperties(bar);
+		};
+
+		$this.setTitle = function(value) {
+			$this.title = value;
+			$this.processTitles();
+		};
+
+		$this.setSubtitle = function(value) {
+			$this.subtitle = value;
+			$this.processTitles();
+		};
 
 	}
 

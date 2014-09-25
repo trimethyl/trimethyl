@@ -93,14 +93,8 @@ HTTPRequest.prototype._getResponseInfo = function() {
 
 	var info = { format: 'blob', ttl: HTTP.config.defaultCacheTTL };
 
-	if (this.client.responseText != null) {
-		info.format = 'text';
-		if (httpContentType != null) {
-			if (httpContentType.match(/application\/json/)) {
-				info.format = 'json';
-			}
-		}
-	}
+	if (this.client.responseText != null) info.format = 'text';
+	if (/application\/json/.test(httpContentType)) info.format = 'json';
 
 	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
 	if (httpTTL != null) info.ttl = httpTTL;
@@ -133,7 +127,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 
 	// If the readyState is not DONE, trigger error, because
 	// client.onload is the function to be called upon a SUCCESSFULL response.
-	if (this.responseInfo.broken) {
+	if (this.responseInfo.broken === true) {
 		Ti.API.error('HTTP: ['+this.hash+'] IS BROKEN');
 		return this.onError();
 	}
