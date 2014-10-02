@@ -218,8 +218,13 @@ module.exports = function(args) {
 		// =======================================
 
 		$this._processTitles = function () {
-			$this.activity.title = $this.title;
-			$this.activity.subtitle = $this.subtitle;
+			var bar = {};
+			if ($this.subtitle != null) {
+				bar = { title: $this.title, subtitle: $this.subtitle };
+			} else {
+				bar = { title: Ti.App.name, subtitle: $this.title || '' };
+			}
+			$this.setActionBarProperties(bar);
 		};
 
 		$this.setTitle = function(value) {

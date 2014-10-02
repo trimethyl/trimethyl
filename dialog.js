@@ -150,8 +150,22 @@ exports.confirmYes = confirmYes;
  * @return {Ti.UI.AlertDialog}
  */
 function dialogPrompt(title, message, dict) {
-	return dialogConfirm(title, message, dict, {
-		style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT
-	});
+	if (OS_IOS) {
+		return dialogConfirm(title, message, dict, {
+			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT
+		});
+	} else if (OS_ANDROID) {
+		_.each(dict, function(d) {
+			if (d.cancel === true || d.callback == null) return;
+			d._origCallback = d.callback;
+			d.callback = function(e) {
+				_.extend(e, { text: this.androidView.value });
+				d._origCallback.call(this, e);
+			};
+		});
+		return dialogConfirm(title, message, dict, {
+			androidView: Ti.UI.createTextField()
+		});
+	}
 }
 exports.prompt = dialogPrompt;
