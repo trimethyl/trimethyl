@@ -9,9 +9,8 @@ var Util = require('T/util');
 var Event = require('T/event');
 
 function extractHTTPData(data, info) {
-	if (info != null && data != null) {
-		if (info.format === 'json') return Util.parseJSON(data.toString());
-		if (info.format === 'text') return data.toString();
+	if (info != null) {
+		if (info.format === 'json') return Util.parseJSON(data);
 	}
 	return data;
 }
@@ -69,17 +68,19 @@ HTTPRequest.prototype.toString = function() {
 	return this.hash;
 };
 
-HTTPRequest.prototype._cacheResponse = function() {
+HTTPRequest.prototype._maybeCacheResponse = function() {
 	if (HTTP.config.useCache === false) return;
 	if (this.opt.cache === false)
 	if (this.method !== 'GET') return;
 
 	if (this.responseInfo.ttl <= 0) return;
+	if (this.client.responseText == null) return;
 
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHED',
-	'- Expire on '+Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl)));
+	Ti.API.debug('HTTP: ['+this.hash+'] CACHED', {
+		expireOn: Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl))
+	});
 
-	HTTP.Cache.set(this.hash, this.client.responseData, this.responseInfo.ttl, this.responseInfo);
+	HTTP.Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
@@ -111,9 +112,10 @@ HTTPRequest.prototype._onComplete = function(e) {
 	this.onComplete();
 	HTTP.removeFromQueue(this);
 
-	Ti.API.debug('HTTP: ['+this.hash+'] COMPLETE',
-	'- Time is '+(this.endTime.getTime()-this.startTime.getTime())+'ms',
-	'- Status is '+this.client.status);
+	Ti.API.debug('HTTP: ['+this.hash+'] COMPLETE', {
+		networkTime: (this.endTime.getTime()-this.startTime.getTime())+'ms',
+		status: this.client.status
+	});
 
 	// Fire the global event
 	if (this.opt.silent !== true) {
@@ -133,12 +135,9 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	// Get the response information and override
-	Ti.API.debug('HTTP: ['+this.hash+'] PARSED',
-	'- Format is '+this.responseInfo.format,
-	'- TTL is '+this.responseInfo.ttl);
+	Ti.API.debug('HTTP: ['+this.hash+'] PARSED', this.responseInfo);
 
-	var httpData = extractHTTPData(this.client.responseData, this.responseInfo);
-
+	var httpData = extractHTTPData(this.client.responseText, this.responseInfo);
 	if (e.success === false || httpData == null) {
 		var errObject = {
 			message: extractHTTPErrorMessage(httpData, this.responseInfo),
@@ -146,11 +145,13 @@ HTTPRequest.prototype._onComplete = function(e) {
 		};
 
 		Ti.API.error('HTTP: ['+this.hash+'] ERROR', errObject);
-		return this.onError(errObject);
+		this.onError(errObject);
+
+		return;
 	}
 
 	// Write the cache (if needed and supported by configuration)
-	this._cacheResponse();
+	this._maybeCacheResponse();
 
 	Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
 	this.onSuccess(httpData);
@@ -174,9 +175,10 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	var cachedData = HTTP.Cache.get(this.hash);
 	if (cachedData == null) return;
 
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHE SUCCESS',
-	'- Expire on '+Util.timestampForHumans(cachedData.expire),
-	'- Remain time is '+(cachedData.expire-Util.now())+'s');
+	Ti.API.debug('HTTP: ['+this.hash+'] CACHE SUCCESS', {
+		expireOn: Util.timestampForHumans(cachedData.expire),
+		remainTime: (cachedData.expire-Util.now())+'s'
+	});
 
 	return extractHTTPData(cachedData.value, cachedData.info);
 };
@@ -220,7 +222,7 @@ HTTPRequest.prototype.send = function() {
 		this.client.send();
 	}
 
-	Ti.API.debug('HTTP: ['+this.hash+'] SENT', this);
+	Ti.API.debug('HTTP: ['+this.hash+'] SENT');
 };
 
 /**

@@ -77,7 +77,6 @@ function parseArgs(args) {
 	return args;
 }
 
-
 /**
  * @method facebook
  * Share on Facebook
@@ -237,6 +236,7 @@ function mail(args) {
 	$dialog.open();
 }
 exports.mail = mail;
+exports.email = mail;
 
 
 /**

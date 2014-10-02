@@ -4,37 +4,37 @@
  *
  * ## New methods
  *
- * #### setDeferredBackgroundImage(String)
+ * #### `setDeferredBackgroundImage(String)`
  *
  * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
  *
- * #### setBackgroundCoverImage(String)
+ * #### `setBackgroundCoverImage(String)`
  *
  * Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
  *
- * #### addActivityButton(Dict) (OS_ANDROID)
+ * #### `addActivityButton(Dict)` (OS_ANDROID)
  *
  * Add an activity right button
  *
- * #### setActivityButton(Dict) (OS_ANDROID)
+ * #### `setActivityButton(Dict)` (OS_ANDROID)
  *
  * Set an activity right button and remove all others
  *
- * #### setRightNavButton(Dict) (OS_ANDROID)
+ * #### `setRightNavButton(Dict)` (OS_ANDROID)
  *
  * Alias for `setActivityButton`
  *
- * #### setActionBarProperties(Dict) (OS_ANDROID)
+ * #### `setActionBarProperties(Dict)` (OS_ANDROID)
  *
  * Set the properties for the actionBar
  *
- * #### setActivityProperties(Dict) (OS_ANDROID)
+ * #### `setActivityProperties(Dict)` (OS_ANDROID)
  *
  * Set the properties for the activity
  *
- * #### setDisplayHomeAsUp(Boolean) (OS_ANDROID)
+ * #### `setDisplayHomeAsUp(Boolean) `(OS_ANDROID)
  *
- * Set the property displayHomeAsUp and the relative close listener
+ * Set the property `displayHomeAsUp` and the relative close listener
  *
  * ## Android improvements
  *
@@ -81,7 +81,7 @@ module.exports = function(args) {
 	var bgCoverUISview = null;
 
 	$this.setBackgroundCoverImage = function(val){
-		var SCREEN_RATIO = Alloy.Globals.SCREEN_WIDTH/Alloy.Globals.SCREEN_HEIGHT;
+		var SCREEN_RATIO = require('device').getScreenWidth() / require('device').getScreenHeight();
 
 		if (bgCoverUI === null) {
 			bgCoverUI = Ti.UI.createImageView();
@@ -119,14 +119,9 @@ module.exports = function(args) {
 		// Activity
 		// ====================================
 
-		$this.setActivityProperties = function(props, callback) {
-			onOpen(function(){
-				if ($this.activity == null) return;
-
-				_.each(props, function(v, k) {
-					$this.activity[k] = v;
-				});
-				if (_.isFunction(callback)) callback($this.activity);
+		$this.setActivityProperties = function(props) {
+			_.each(props, function(v, k) {
+				$this.activity[k] = v;
 			});
 		};
 
@@ -135,7 +130,7 @@ module.exports = function(args) {
 
 		$this.setActionBarProperties = function(props, callback) {
 			onOpen(function(){
-				if ($this.activity == null || $this.activity.actionBar == null) return;
+				if ($this.activity.actionBar == null) return;
 
 				_.each(props, function(v, k) {
 					$this.activity.actionBar[k] = v;
@@ -148,6 +143,12 @@ module.exports = function(args) {
 		// ====================================
 
 		var displayHomeAsUp = false;
+		$this.setActionBarProperties({
+			onHomeIconItemSelected: function() {
+				if (displayHomeAsUp === false) return;
+				$this.close();
+			}
+		});
 
 		$this.setDisplayHomeAsUp = function(value) {
 			displayHomeAsUp = value;
@@ -155,13 +156,6 @@ module.exports = function(args) {
 				displayHomeAsUp: displayHomeAsUp
 			});
 		};
-
-		$this.setActionBarProperties({
-			onHomeIconItemSelected: function() {
-				if (displayHomeAsUp === false) return;
-				$this.close();
-			}
-		});
 
 
 		// ActivityButton
@@ -189,9 +183,7 @@ module.exports = function(args) {
 				});
 			}
 		}, function(act) {
-			if (_.isFunction(act.invalidateOptionsMenu)) {
-				act.invalidateOptionsMenu();
-			}
+			if (_.isFunction(act.invalidateOptionsMenu)) act.invalidateOptionsMenu();
 		});
 
 		$this.setActivityButton = function(opt) {
@@ -225,30 +217,19 @@ module.exports = function(args) {
 		// Title
 		// =======================================
 
-		$this.processTitles = function () {
-			var bar = {};
-			if ($this.subtitle) {
-				bar.title = $this.title;
-				bar.subtitle = $this.subtitle;
-			} else {
-				if ($this.subtitle === false) {
-					bar.title = $this.title;
-				} else {
-					bar.title =  Ti.App.name;
-					bar.subtitle = $this.title;
-				}
-			}
-			$this.setActionBarProperties(bar);
+		$this._processTitles = function () {
+			$this.activity.title = $this.title;
+			$this.activity.subtitle = $this.subtitle;
 		};
 
 		$this.setTitle = function(value) {
 			$this.title = value;
-			$this.processTitles();
+			$this._processTitles();
 		};
 
 		$this.setSubtitle = function(value) {
 			$this.subtitle = value;
-			$this.processTitles();
+			$this._processTitles();
 		};
 
 	}
@@ -263,7 +244,7 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
-		$this.processTitles();
+		$this._processTitles();
 
 		if (args.activityProperties != null) $this.setActivityProperties(args.activityProperties);
 		if (args.actionBarProperties != null) $this.setActionBarProperties(args.actionBarProperties);

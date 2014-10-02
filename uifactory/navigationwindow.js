@@ -15,13 +15,13 @@ function NavigationWindow(args) {
 }
 
 
-NavigationWindow.prototype.__onWindowClose = function(e) {
+function __onWindowClose(nav, e) {
 	var window = e.source;
 	if (_.isNumber(window.navigationIndex)) {
-		this.windows.splice(window.navigationWindow, 1);
-		this.window = _.last(this.windows);
+		nav.windows.splice(window.navigationWindow, 1);
+		nav.window = _.last(nav.windows);
 	}
-};
+}
 
 NavigationWindow.prototype.open = function(opt) {
 	if (this.window == null) {
@@ -42,13 +42,14 @@ NavigationWindow.prototype.close = function(callback) {
 		}
 
 		var w = self.windows.pop();
-		w.removeEventListener('close', self.__onWindowClose);
+		w.removeEventListener('close', w.__onClose);
 		w.addEventListener('close', _close);
 		w.close({ animated: false });
 	})();
 };
 
 NavigationWindow.prototype.openWindow = function(window, opt) {
+	var self = this;
 	opt = opt || {};
 
 	if (OS_ANDROID) {
@@ -68,7 +69,8 @@ NavigationWindow.prototype.openWindow = function(window, opt) {
 	}
 
 	window.navigationIndex = this.windows.length;
-	window.addEventListener('close', this.__onWindowClose);
+	window.__onClose = function(e) { __onWindowClose(self, e); };
+	window.addEventListener('close', window.__onClose);
 
 	this.windows.push(window);
 	this.window = window;

@@ -127,23 +127,6 @@ exports.openInStore = function(appid) {
 
 
 /**
- * @method reviewInStore
- * Open the iTunes Store or Google Play Store to review this app
- *
- * Set the `app.itunes` and `app.id` in the **config.json**
- *
- * @param {String} appid Application ID (default read config.json)
- */
-exports.reviewInStore = function(appid) {
-	if (OS_IOS) {
-		Ti.Platform.openURL('https://itunes.apple.com/app/id' + ( appid || Alloy.CFG.app.itunes ) );
-	} else if (OS_ANDROID) {
-		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=' + ( appid || Alloy.CFG.app.id ) + '&reviewId=0');
-	}
-};
-
-
-/**
  * @method  getDomainFromURL
  * Return the clean domain of an URL
  *
