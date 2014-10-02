@@ -229,8 +229,6 @@ module.exports = function(args) {
 
 		$this._processTitles();
 
-		alert(args);
-
 		if (args.displayHomeAsUp === true) {
 			$this.setActionBarProperties({
 				displayHomeAsUp: true,
