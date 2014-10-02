@@ -2,6 +2,10 @@
  * @class  	UIFactory.Window
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
+ * ## XP Method
+ *
+ * #### `setTitle(String)` for OS_ANDROID
+ *
  * ## New methods
  *
  * #### `setDeferredBackgroundImage(String)`
@@ -32,29 +36,35 @@
  *
  * Set the properties for the activity
  *
- * #### `setDisplayHomeAsUp(Boolean) `(OS_ANDROID)
+ * ## New creation properties
  *
- * Set the property `displayHomeAsUp` and the relative close listener
+ * #### `displayHomeAsUp` (Boolean, default: `false`, OS_ANDROID)
  *
- * ## Android improvements
+ * Set the property `displayHomeAsUp` and the relative close listener.
  *
- * The properties `title` and `subtitle` automatically set the title and subtitle in the ActionBar.
+ * #### `backButtonDisabled` (Boolean, default: `false`, OS_ANDROID)
+ *
+ * Disable the back button (do nothing on click)
+ *
+ * #### `finishOnBack` (Boolean, default: `false`, OS_ANDROID)
+ *
+ * Close the entire app on back button click.
  *
  */
 
 module.exports = function(args) {
 	args = args || {};
-
 	var $this = Ti.UI.createWindow(args);
 
 	$this.opened = false;
-	var onOpenFuncs = [], onOpen = function(callback) {
+	var onOpenFuncs = [];
+	function onOpen(callback) {
 		if ($this.opened === true) {
 			callback();
 			return;
 		}
 		onOpenFuncs.push(callback);
-	};
+	}
 
 	$this.addEventListener('open', function() {
 		$this.opened = true;
@@ -139,24 +149,6 @@ module.exports = function(args) {
 			});
 		};
 
-		// DisplayHomeAsUp
-		// ====================================
-
-		var displayHomeAsUp = false;
-		$this.setActionBarProperties({
-			onHomeIconItemSelected: function() {
-				if (displayHomeAsUp === false) return;
-				$this.close();
-			}
-		});
-
-		$this.setDisplayHomeAsUp = function(value) {
-			displayHomeAsUp = value;
-			$this.setActionBarProperties({
-				displayHomeAsUp: displayHomeAsUp
-			});
-		};
-
 
 		// ActivityButton
 		// ====================================
@@ -197,22 +189,6 @@ module.exports = function(args) {
 
 		$this.setRightNavButton = $this.setActivityButton;
 
-		// BackButtonDisabled
-		// ======================================
-
-		var backButtonDisabledNoOp = null;
-
-		$this.setBackButtonDisabled = function(v) {
-			if (v === true) {
-				backButtonDisabledNoOp = function(){ return false; };
-				$this.addEventListener('androidback', backButtonDisabledNoOp);
-			} else {
-				if (_.isFunction(backButtonDisabledNoOp)) {
-					$this.removeEventListener('androidback', $this.backButtonDisabledNoOp);
-				}
-			}
-		};
-
 
 		// Title
 		// =======================================
@@ -249,17 +225,44 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
+		// Creation properties
+
 		$this._processTitles();
+
+		alert(args);
+
+		if (args.displayHomeAsUp === true) {
+			$this.setActionBarProperties({
+				displayHomeAsUp: true,
+				onHomeIconItemSelected: function() {
+					$this.close();
+				}
+			});
+		} else {
+			$this.setActionBarProperties({
+				displayHomeAsUp: false
+			});
+		}
+
+		if (args.backButtonDisabled === true) {
+			$this.addEventListener('androidback', function() {
+				return false;
+			});
+		}
+
+		if (args.finishOnBack === true) {
+			$this.addEventListener('androidback', function() {
+				Ti.Android.currentActivity.finish();
+			});
+		}
+
+		// Parse
 
 		if (args.activityProperties != null) $this.setActivityProperties(args.activityProperties);
 		if (args.actionBarProperties != null) $this.setActionBarProperties(args.actionBarProperties);
-
 		if (args.rightNavButton != null) $this.setRightNavButton(args.rightNavButton);
-		if (args.activityButtons != null) {
-			_.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
-		}
+		if (args.activityButtons != null) _.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
 		if (args.activityButton != null) $this.setActivityButton(args.activityButton);
-		if (args.displayHomeAsUp != null) $this.setDisplayHomeAsUp(args.displayHomeAsUp);
 
 	}
 
