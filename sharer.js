@@ -90,7 +90,8 @@ function facebook(args) {
 		args.useSDK = true;
 	}
 
-	if (args.useSDK !== true && args.native !== false && dkNappSocial !== null && dkNappSocial.isFacebookSupported() === true) {
+	if (args.useSDK !== true && args.native !== false &&
+		dkNappSocial !== null && dkNappSocial.isFacebookSupported()) {
 
 		/*
 		Native iOS dialog
@@ -102,7 +103,7 @@ function facebook(args) {
 			url: args.url
 		});
 
-	} else if (Facebook) {
+	} else if (Facebook != null) {
 
 		/*
 		Facebook SDK feed dialog
@@ -151,7 +152,8 @@ function twitter(args) {
 	parseArgs(args);
 
 	var WEB_URL = 'http://www.twitter.com/intent';
-	var webIntent;
+	var webIntent = null;
+
 	if (args.retweet != null) {
 		webIntent = WEB_URL + '/retweet?tweet_id=' + args.retweet;
 	} else {
@@ -171,7 +173,8 @@ function twitter(args) {
 
 	} else {
 
-		if (args.native !== false && dkNappSocial !== null && dkNappSocial.isTwitterSupported() === true) {
+		if (args.native !== false &&
+			dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
 
 			/*
 			Native iOS Dialog
@@ -396,7 +399,9 @@ function activity(args) {
 		https://developers.facebook.com/bugs/332619626816423
 		*/
 
-		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
+		var intent = Ti.Android.createIntent({
+			action: Ti.Android.ACTION_SEND
+		});
 
 		if (args.fullText) intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 		if (args.title) intent.putExtra(Ti.Android.EXTRA_TITLE, args.title);
@@ -417,7 +422,16 @@ Init
 
 try {
 	Facebook = require('facebook');
-	if (Facebook == null) throw new Error();
+	if (Facebook == null) throw 'err';
+
+	if (Facebook.appid == null) {
+		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
+			Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+		} else {
+			Ti.API.error('Sharer: Please specify a Facebook AppID');
+		}
+	}
+
 } catch (ex) {
 	Ti.API.warn('Sharer: `facebook` can\'t be loaded');
 }
@@ -426,31 +440,20 @@ if (OS_IOS) {
 
 	try {
 		dkNappSocial = require('dk.napp.social');
-		if (dkNappSocial == null) throw new Error();
+		if (dkNappSocial == null) throw 'err';
 	} catch (ex) {
 		Ti.API.warn('Sharer: `dk.napp.social` can\'t be loaded');
 	}
 
 	try {
 		benCodingSMS = require('bencoding.sms');
-		if (benCodingSMS == null) throw new Error();
+		if (benCodingSMS == null) throw 'err';
+
+		dkNappSocial.addEventListener('complete', onSocialComplete);
+		dkNappSocial.addEventListener('cancelled', onSocialCancel);
+
 	} catch (ex) {
 		Ti.API.warn('Sharer: `bencoding.sms` can\'t be loaded');
 	}
 
-}
-
-// Configure modules
-
-if (Facebook.appid == null) {
-	if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-		Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-	} else {
-		Ti.API.error('Sharer: Please specify a Facebook AppID');
-	}
-}
-
-if (dkNappSocial !== null) {
-	dkNappSocial.addEventListener('complete', onSocialComplete);
-	dkNappSocial.addEventListener('cancelled', onSocialCancel);
 }
