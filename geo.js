@@ -22,7 +22,7 @@ var config = _.extend({
 }, Alloy.CFG.geo);
 exports.config = config;
 
-var Dialog = require('T/Dialog');
+var Dialog = require('T/dialog');
 
 
 /**
