@@ -64,16 +64,19 @@ function parseArgs(args) {
 
 	if (args.removeIcons === 'ALL') args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
 
-	if (args.text != null && args.url != null) args.fullText = args.text + ' (' + args.url + ')';
-	else if (args.text != null) args.fullText = args.text;
-	else if (args.url != null) args.fullText = args.url;
+	if (args.text != null && args.url != null) {
+		args.fullText = args.text + ' (' + args.url + ')';
+	} else if (args.text != null) {
+		args.fullText = args.text;
+	} else if (args.url != null) {
+		args.fullText = args.url;
+	}
 
 	if (_.isFunction(args.callback)) {
 		globalCallback = args.callback;
 		delete args.callback;
 	}
 
-	args.useSDK = args.useSDK || false;
 	return args;
 }
 
@@ -86,12 +89,9 @@ function facebook(args) {
 	args = parseArgs(args);
 
 	// IOS-BUG: iOS Sharer doesn't share Facebook links
-	if (/https?\:\/\/(www\.)?facebook\.com/.test(args.url) === true) {
-		args.useSDK = true;
-	}
+	if (/https?\:\/\/(www\.)?facebook\.com/.test(args.url)) args.useSDK = true;
 
-	if (args.useSDK !== true && args.native !== false &&
-		dkNappSocial !== null && dkNappSocial.isFacebookSupported()) {
+	if (args.useSDK !== true && dkNappSocial !== null && dkNappSocial.isFacebookSupported()) {
 
 		/*
 		Native iOS dialog
@@ -134,10 +134,12 @@ function facebook(args) {
 		/*
 		Browser sharing
 		*/
-
-		if (args.url != null) {
-			Ti.Platform.openURL('https://www.facebook.com/sharer.php?u='+args.url);
-		}
+		Ti.Platform.openURL('https://www.facebook.com/dialog/share' + require('T/util').buildQuery({
+			app_id: Ti.App.Properties.getString('ti.facebook.appid', false),
+			display: 'touch',
+			redirect_uri: Ti.App.url,
+			href: args.url
+		}));
 
 	}
 }
@@ -155,7 +157,9 @@ function twitter(args) {
 	var webIntent = null;
 
 	if (args.retweet != null) {
-		webIntent = WEB_URL + '/retweet?tweet_id=' + args.retweet;
+		webIntent = WEB_URL + '/retweet' + require('T/util').buildQuery({
+			tweet_id: args.retweet
+		});
 	} else {
 		webIntent = WEB_URL + '/tweet' + require('T/util').buildQuery({
 			text: args.text,
@@ -173,15 +177,16 @@ function twitter(args) {
 
 	} else {
 
-		if (args.native !== false &&
-			dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
+		if (args.native !== false && dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
 
 			/*
 			Native iOS Dialog
 			*/
 
 			var text = args.text;
-			if (args.retweetUser) text = 'RT @' + args.retweetUser + ': ' + text;
+			if (args.retweetUser) {
+				text = 'RT @' + args.retweetUser + ': ' + text;
+			}
 
 			dkNappSocial.twitter({
 				text: text,
@@ -421,14 +426,14 @@ Init
 // Load modules
 
 try {
-	Facebook = require('facebook');
+	Facebook = require('facebooka');
 	if (Facebook == null) throw 'err';
 
 	if (Facebook.appid == null) {
 		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
 			Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 		} else {
-			Ti.API.error('Sharer: Please specify a Facebook AppID');
+			Ti.API.warn('Sharer: Please specify a Facebook AppID');
 		}
 	}
 
