@@ -7,6 +7,12 @@
  *
  * On iOS, clicking on the video cause the video to play in native iOS player in fullscreen.
  *
+ * To provide the Video ID, you need to pass to the `videoId` property.
+ *
+ * All property set in the `youtube` property are passed into the Youtube API.
+ *
+ * More info at [https://developers.google.com/youtube/iframe_api_reference](https://developers.google.com/youtube/iframe_api_reference)
+ *
  * @param  {Object} args [description]
  * @return {Ti.UI.WebView}      [description]
  */
@@ -26,17 +32,19 @@ module.exports = function(args) {
 		pluginState : Ti.UI.Android.WEBVIEW_PLUGINS_ON
 	} : {});
 
-	if (args.youtube.width == null) args.youtube.width = args.width;
-	if (args.youtube.height == null) args.youtube.height = args.height;
+
+	var yt = _.extend(_.pick(args, 'videoId'), args.youtube);
+	if (yt.width == null) yt.width = args.width;
+	if (yt.height == null) yt.height = args.height;
 
 	var $this = Ti.UI.createWebView(args);
 
 	var html = '<!doctype html><html><head>';
 	html += '<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />';
-	html += '<style>html,body { padding:0; background:black; margin:0; overflow:hidden; }</style>';
+	html += '<style>html,body{padding:0;background:black;margin:0;overflow:hidden;}</style>';
 	html += '</head><body><div id="player"></div>';
 	html += '<script src="http://www.youtube.com/player_api"></script>';
-	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",' + JSON.stringify(args.youtube) + ');}</script>';
+	html += '<script>function onYouTubePlayerAPIReady(){window.player=new YT.Player("player",'+JSON.stringify(yt)+');}</script>';
 	html += '</body></html>';
 	$this.html = html;
 
