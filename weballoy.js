@@ -15,17 +15,6 @@ exports.config = config;
 var libDir = [];
 var helpers = {};
 
-/**
- * Add an helper for the WebView
- * @param {String} 		name   The name of the helper
- * @param {Function} 	method The callback
- */
-function addHelper(name, method) {
-	helpers[name] = method;
-}
-exports.addHelper = addHelper;
-
-
 function embedText(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if (file.exists() === false) {
@@ -46,39 +35,19 @@ function embedJS(f) {
 	return '<script type="text/javascript">' + embedText(f) + '</script>';
 }
 
-
-/**
- * @method createView
- * @param  {Object} args Arguments for the view.
- * @return {Ti.UI.WebView}
- */
-exports.createView = function(args) {
-	args = args || {};
-	if (_.isEmpty(args.name)) {
-		throw new Error('WebAlloy: you must pass a name');
-	}
-
-	var uniqid = _.uniqueId();
-	var $ui = Ti.UI.createWebView(_.extend({
-		disableBounce: true,
-		uniqid: uniqid,
-		enableZoomControls: false,
-		backgroundColor: 'transparent'
-	}, args));
-
-	$ui.addEventListener('load', function(){
-		if (args.autoHeight === true) {
-			$ui.height = $ui.evalJS('document.body.clientHeight');
-		}
-		if (_.isFunction(args.loaded)) args.loaded();
-	});
-
+function getHTML(args) {
 	// Include head (styles)
 	var html = '<!DOCTYPE html><html><head><meta charset="utf-8" />';
 	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
 
 	// Install the global event handler for this specific WebView
-	html += '<script>WebAlloy={ run: function(e,d){ Ti.App.fireEvent("__weballoy' + uniqid + '",{ name: e, data: d }); } };</script>';
+	html += '\<script>\
+	WebAlloy = {\
+		run: function(name, data) {\
+			Ti.App.fireEvent("__weballoy' + args.uniqid + '", { name: name, data: data });\
+		}\
+	};\
+	</script>';
 
 	// Include global css
 	html += embedCSS('web/app.css');
@@ -102,9 +71,48 @@ exports.createView = function(args) {
 	// Include footer
 	html += embedJS('web/app' + config.jsExt);
 	html += embedJS('web/controllers/' + args.name + config.jsExt);
+
 	html += '</body></html>';
 
-	$ui.html = html;
+	return html;
+}
+
+/**
+ * Add an helper for the WebView
+ * @param {String} 		name   The name of the helper
+ * @param {Function} 	method The callback
+ */
+exports.addHelper = function(name, method) {
+	helpers[name] = method;
+};
+
+/**
+ * @method createView
+ * @param  {Object} args Arguments for the view.
+ * @return {Ti.UI.WebView}
+ */
+exports.createView = function(args) {
+	args = args || {};
+	if (_.isEmpty(args.name)) {
+		throw new Error('WebAlloy: you must pass a name');
+	}
+
+	args.uniqid = _.uniqueId();
+	var $ui = Ti.UI.createWebView(_.extend({
+		disableBounce: true,
+		uniqid: args.uniqid,
+		enableZoomControls: false,
+		backgroundColor: 'transparent'
+	}, args));
+
+	$ui.addEventListener('load', function(){
+		if (args.autoHeight === true) {
+			$ui.height = $ui.evalJS('document.body.clientHeight');
+		}
+		if (_.isFunction(args.loaded)) args.loaded();
+	});
+
+	$ui.html = getHTML(args);
 
 	$ui._ = function(js) {
 		return $ui.evalJS(js);
@@ -143,9 +151,9 @@ exports.createView = function(args) {
 			args.webapi[event.name].call($ui, event.data);
 		};
 
-		Ti.App.addEventListener('__weballoy' + uniqid, webapiListener);
+		Ti.App.addEventListener('__weballoy' + args.uniqid, webapiListener);
 		$ui.webapiUnbind = function() {
-			Ti.App.removeEventListener('weballoy_' + uniqid, webapiListener);
+			Ti.App.removeEventListener('weballoy_' + args.uniqid, webapiListener);
 		};
 	}
 
