@@ -1,7 +1,16 @@
 #!/bin/sh
 
-# ln -svf
-# if [ -d app/assets/iphone/images/T ]; then
-# 	ln -s ../../../lib/T/assets app/assets/iphone/images/T
-# fi
-# ln -s T/alloy app/lib/alloy
+if [ ! -f "tiapp.xml" ]; then
+	echo "Not a valid Titanium project"
+	exit
+fi
+
+if [ ! -d "app" ]; then
+	echo "Not a valid Alloy project"
+	exit
+fi
+
+mkdir -p app/lib
+ln -s ../../node_modules/trimethyl app/lib/T
+
+ln -s T/alloy app/lib/alloy
