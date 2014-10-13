@@ -212,7 +212,7 @@ exports.send = send;
  * @param  {String}   	url The endpoint url
  * @param  {Function} 	success  Success callback
  * @param  {Function} 	error Error callback
- * @return {String}		The hash
+ * @return {HTTP.Request}
  */
 exports.get = function(url, success, error) {
 	return send({
@@ -227,11 +227,11 @@ exports.get = function(url, success, error) {
 /**
  * @method post
  * Make a POST request to that URL
- * @param  {String}   	url The endpoint url
- * @param  {Object}   	data The data
+ * @param  {String}   	url 		The endpoint url
+ * @param  {Object}   	data 		The data
  * @param  {Function} 	success  Success callback
- * @param  {Function} 	error Error callback
- * @return {String}		The hash
+ * @param  {Function} 	error 	Error callback
+ * @return {HTTP.Request}
  */
 exports.post = function(url, data, success, error) {
 	return send({
@@ -246,11 +246,11 @@ exports.post = function(url, data, success, error) {
 /**
  * @method  getJSON
  * Make a GET request to that url with that data and setting the format forced to JSON
- * @param  {String}   	url 	The endpoint url
- * @param  {Object}   	data 	The data
+ * @param  {String}   	url 		The endpoint url
+ * @param  {Object}   	data 		The data
  * @param  {Function} 	success  Success callback
- * @param  {Function} 	error Error callback
- * @return {String}		The hash
+ * @param  {Function} 	error 	Error callback
+ * @return {HTTP.Request}
  */
 exports.getJSON = function(url, data, success, error) {
 	return send({
@@ -266,11 +266,11 @@ exports.getJSON = function(url, data, success, error) {
 /**
  * @method  postJSON
  * Make a POST request to that url with that data and setting the format forced to JSON
- * @param  {String}   	url 	The endpoint url
- * @param  {Object}   	data 	The data
- * @param  {Function} 	success  Success callback
- * @param  {Function} 	error Error callback
- * @return {String}		The hash
+ * @param  {String}   	url 			The endpoint url
+ * @param  {Object}   	data 			The data
+ * @param  {Function} 	success  	Success callback
+ * @param  {Function} 	error 		Error callback
+ * @return {HTTP.Request}
  */
 exports.postJSON = function(url, data, success, error) {
 	return send({
@@ -279,6 +279,34 @@ exports.postJSON = function(url, data, success, error) {
 		method: 'POST',
 		format: 'json',
 		success: success,
+		error: error
+	});
+};
+
+/**
+ * @method download
+ * @param  {String} 		url     			The url
+ * @param  {String} 		filename    	File name to save
+ * @param  {Function} 	success 			Success callback
+ * @param  {Function} 	error 			Error callback
+ * @param  {Function} 	ondatastream 	Progress callback
+ * @return {HTTP.Request}
+ */
+exports.download = function(url, filename, success, error, ondatastream) {
+	return send({
+		url: url,
+		cache: false,
+		refresh: true,
+		format: 'blob',
+		ondatastream: ondatastream,
+		success: function(text, data) {
+			var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationSupportDirectory, filename);
+			if (f.write(data)) {
+				if (_.isFunction(success)) success(f);
+			} else {
+				if (_.isFunction(error)) error({ message: L('http_filewrite_error') });
+			}
+		},
 		error: error
 	});
 };
