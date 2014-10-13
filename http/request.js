@@ -115,10 +115,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	this.onComplete();
 	HTTP.removeFromQueue(this);
 
-	Ti.API.debug('HTTP: ['+this.hash+'] COMPLETE', {
-		networkTime: (this.endTime.getTime()-this.startTime.getTime())+'ms',
-		status: this.client.status
-	});
+	Ti.API.debug('HTTP: ['+this.hash+'] COMPLETE with HTTP code = '+this.client.status);
 
 	// Fire the global event
 	if (this.opt.silent !== true) {
@@ -225,8 +222,6 @@ HTTPRequest.prototype.send = function() {
 	} else {
 		this.client.send();
 	}
-
-	Ti.API.debug('HTTP: ['+this.hash+'] SENT');
 };
 
 /**
