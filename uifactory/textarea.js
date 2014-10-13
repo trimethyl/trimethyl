@@ -8,13 +8,13 @@
  *
  * ### New methods
  *
- * #### getRealValue()
+ * #### `getRealValue()`
  *
  * Get the effective value when using hintText hack
  *
  * ## Android Fixes
  *
- * Removed the annoying autofocus.
+ * * Removed the annoying autofocus.
  *
  */
 

@@ -4,7 +4,7 @@
  *
  * ## New listeners
  *
- * #### itemdblclick
+ * #### `itemdblclick`
  *
  * Similar to itemclick, but for double **item** click
  *

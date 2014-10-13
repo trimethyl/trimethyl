@@ -4,19 +4,19 @@
  *
  * ## Creation properties
  *
- * #### textType
+ * #### `textType`
  *
  * Can be
  *
- * * email
- * * password
- * * passwordEye
+ * * `email`
+ * * `password`
+ * * `passwordEye`
  *
  * to adjust the keyboard or the mask automatically.
  *
  * ## Android Fixes
  *
- * Removed the annoying autofocus on Android.
+ * * Removed the annoying autofocus on Android.
  *
  */
 

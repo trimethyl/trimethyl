@@ -6,12 +6,12 @@
  * You must set this properties in `tiapp.xml`
  *
  * ```
- * <property name='acs-api-key-development' type='string'>...</property>
- * <property name='acs-oauth-key-development' type='string'>...</property>
- * <property name='acs-oauth-secret-development' type='string'>...</property>
- * <property name='acs-api-key-production' type='string'>...</property>
- * <property name='acs-oauth-key-production' type='string'>...</property>
- * <property name='acs-oauth-secret-production' type='string'>...</property>
+ * <property name="acs-api-key-development" type="string">...</property>
+ * <property name="acs-oauth-key-development" type="string">...</property>
+ * <property name="acs-oauth-secret-development" type="string">...</property>
+ * <property name="acs-api-key-production" type="string">...</property>
+ * <property name="acs-oauth-key-production" type="string">...</property>
+ * <property name="acs-oauth-secret-production" type="string">...</property>
  * ```
  *
  */

@@ -1,6 +1,7 @@
 /**
  * @class  Device
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ *
  * Query current device for informations
  */
 
