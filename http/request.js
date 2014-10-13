@@ -15,7 +15,7 @@ function extractHTTPText(data, info) {
 	return data;
 }
 
-function extractHTTPErrorMessage(data, info) {
+function extractHTTPError(data, info) {
 	if (info != null && data != null) {
 		if (info.format === 'json') {
 			if (_.isObject(data.error) && _.isString(data.error.message)) return data.error.message;
@@ -134,32 +134,27 @@ HTTPRequest.prototype._onComplete = function(e) {
 	// client.onload is the function to be called upon a SUCCESSFULL response.
 	if (this.responseInfo.broken === true) {
 		Ti.API.error('HTTP: ['+this.hash+'] IS BROKEN');
-		this.onError({ message: L('http_error') });
-
-		return;
+		return this.onError({ message: L('http_error') });
 	}
 
-	// Get the response information and override
-	Ti.API.debug('HTTP: ['+this.hash+'] PARSED', this.responseInfo);
-	var httpData = extractHTTPText(this.client.responseText, this.responseInfo);
+	var data = this.client.responseData;
+	var text = extractHTTPText(this.client.responseText, this.responseInfo);
 
-	if (e.success === false || this.client.responseData == null) {
-		var errObject = {
-			message: extractHTTPErrorMessage(httpData, this.responseInfo),
-			code: this.client.status
-		};
+	if (e.success === true && data != null) {
 
+		// Write the cache (if needed and supported by configuration)
+		this._maybeCacheResponse();
+
+		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
+		this.onSuccess(text, data);
+
+	} else {
+
+		var errObject = { message: extractHTTPError(text, this.responseInfo), code: this.client.status };
 		Ti.API.error('HTTP: ['+this.hash+'] ERROR', errObject);
 		this.onError(errObject);
 
-		return;
 	}
-
-	// Write the cache (if needed and supported by configuration)
-	this._maybeCacheResponse();
-
-	Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
-	this.onSuccess(httpData, this.client.responseData);
 };
 
 HTTPRequest.prototype._calculateHash = function() {
@@ -243,25 +238,27 @@ HTTPRequest.prototype.send = function() {
 HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {
+
 		this.onComplete();
 		this.onSuccess(cache);
-		return;
+
+	} else {
+
+		if (HTTP.isOnline()) {
+			this.send();
+		} else {
+
+			Ti.API.error('HTTP: connection is offline');
+			if (HTTP.config.autoOfflineMessage === true) {
+				require('T/dialog').alert(L('http_offline_title'), L('http_offline_message'));
+			}
+
+			this.onComplete();
+			this.onError({ message: L('http_offline_message') });
+
+			Event.trigger('http.offline');
+		}
 	}
-
-	if (HTTP.isOnline()) {
-		this.send();
-		return;
-	}
-
-	Ti.API.error('HTTP: connection is offline');
-	if (HTTP.config.autoOfflineMessage === true) {
-		require('T/dialog').alert(L('http_offline_title'), L('http_offline_message'));
-	}
-
-	this.onComplete();
-	this.onError({ message: L('http_offline_message') });
-
-	Event.trigger('http.offline');
 };
 
 module.exports = HTTPRequest;
