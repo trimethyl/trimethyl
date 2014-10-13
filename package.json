@@ -1,7 +1,7 @@
 {
 	"name": "trimethyl",
 	"description": "Alloy+Titanium toolchain with superpowers",
-	"version": "2.0.0-beta3",
+	"version": "2.0.0-beta3.1",
 	"author": "Flavio De Stefano <flavio.destefano@caffeinalab.com>",
 	"repository":{
 		"type": "git",
@@ -11,6 +11,6 @@
 		"url": "https://github.com/CaffeinaLab/Trimethyl/issues"
 	},
 	"scripts":{
-		"install": "install.sh"
+		"install": "_install.js"
 	}
 }
