@@ -15,13 +15,17 @@ Most of these modules are proxies for Titanium API, and some of theese add missi
 
 ## Installation
 
-Open your Terminal, **cd to your Titanium project**, and simply type:
+In your Titanium project, run:
 
 ```
-curl -L https://raw.githubusercontent.com/CaffeinaLab/Trimethyl/master/install.sh | sh
+npm install trimethyl
 ```
 
-This installation script download the toolchain, unzip it in `app/lib/T` (this is the directory where all modules lives), and synlinks some directories.
+## Update
+
+```
+npm update trimethyl
+```
 
 ## Configuration
 
