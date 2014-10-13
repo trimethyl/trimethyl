@@ -1,7 +1,7 @@
 /**
  * @class  Flow
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Manage the app windows flow, tracking optionally with Google Analitycs
+ * Manage the app windows flow, tracking optionally with Google Analytics.
  */
 
 /**
