@@ -59,7 +59,9 @@ function onNotificationReceived(e) {
 		}
 	}
 
-	if (config.autoReset) resetBadge();
+	if (config.autoReset) {
+		resetBadge();
+	}
 
 	Event.trigger('notifications.received', e);
 }
