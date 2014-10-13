@@ -63,8 +63,7 @@ exports.subscribe = subscribe;
 /**
  * Send the API request to the ACS to unsubscribe from that channel
  *
- * @param  {[type]} channel [description]
- * @return {[type]}         [description]
+ * @param  {String} channel
  */
 function unsubscribe(channel) {
 	var token = Ti.App.Properties.getString('notifications.token');

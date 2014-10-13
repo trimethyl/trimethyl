@@ -39,7 +39,7 @@ exports.get = get;
  * Set a new entry
  * @param {String} 	hash
  * @param {Mixed} 	value
- * @param {Integer} 	ttl
+ * @param {Number} 	ttl
  * @param {Object} 	info
  */
 function set(hash, value, ttl, info) {

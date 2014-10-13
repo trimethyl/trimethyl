@@ -244,7 +244,7 @@ exports.fromnow = function(t) {
 /**
  * @method timestampForHumans
  * Return in human readable format a timestamp
- * @param  {Integer} ts The timestamp
+ * @param  {Number} ts The timestamp
  * @return {String}
  */
 exports.timestampForHumans = function(ts) {

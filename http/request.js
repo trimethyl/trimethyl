@@ -165,7 +165,7 @@ HTTPRequest.prototype._calculateHash = function() {
 /**
  * @method getCachedResponse
  * Return (if exists) the cache
- * @return {Binary}
+ * @return {Object}
  */
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (HTTP.config.useCache === false) return;

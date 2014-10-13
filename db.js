@@ -17,7 +17,7 @@ var DB = null;
  * Open the `app` database, or return current database instance
  *
  * @singleton
- * @return {Titanium.Database.DB}
+ * @return {Ti.Database.DB}
  */
 function open() {
 	if (DB === null) DB = Ti.Database.open('app');

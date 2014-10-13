@@ -45,7 +45,7 @@ exports.createTextField = require('T/uifactory/textfield');
 
 
 /**
- * @method createTextField
+ * @method createTextArea
  */
 exports.createTextArea = require('T/uifactory/textarea');
 

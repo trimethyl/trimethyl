@@ -70,7 +70,7 @@ exports.alert = dialogAlert;
  *
  * @param  {String}   		title       	The title
  * @param  {String}   		message        The message
- * @param  {Dictonary}    	dict     		Buttons as Dictonary
+ * @param  {Object}    	dict     		Buttons as Dictonary
  * @param  {Object}			ext 				Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
@@ -95,7 +95,7 @@ exports.confirm = dialogConfirm;
  * @method option
  * Create and show an Option Dialog
  *
- * @param  {Dictonary}    	dict     		Buttons as Dictonary
+ * @param  {Object}    	dict     		Buttons as Dictonary
  * @param  {Object}			ext 				Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
