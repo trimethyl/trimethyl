@@ -140,7 +140,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	var data = this.client.responseData;
 	var text = extractHTTPText(this.client.responseText, this.responseInfo);
 
-	if (e.success === true && data != null) {
+	if (e.success === true) {
 
 		// Write the cache (if needed and supported by configuration)
 		this._maybeCacheResponse();
