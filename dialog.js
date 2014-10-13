@@ -39,10 +39,10 @@ function onClickDict(e, dict, dialog) {
  * @method alert
  * Create and show an Alert Dialog
  *
- * @param  {String}  	title    		The title
- * @param  {String}   	message    		The message
- * @param  {Function} 	[callback] 		The callback to invokie when clicking **OK**
- * @param  {Object}	 	ext 				Extends the `AlertDialog`
+ * @param  {String}		title    		The title
+ * @param  {String}		message    		The message
+ * @param  {Function}	[callback] 		The callback to invokie when clicking **OK**
+ * @param  {Object}	 	[ext] 			Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
 function dialogAlert(title, message, callback, ext) {
@@ -68,10 +68,10 @@ exports.alert = dialogAlert;
  * @method confirm
  * Create and show a confirm dialog
  *
- * @param  {String}   		title       	The title
- * @param  {String}   		message        The message
- * @param  {Object}    	dict     		Buttons as Dictonary
- * @param  {Object}			ext 				Extends the `AlertDialog`
+ * @param  {String}		title       	The title
+ * @param  {String}		message        The message
+ * @param  {Object}		dict     		Buttons as Dictonary
+ * @param  {Object}		ext 				Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
 function dialogConfirm(title, message, dict, ext) {
@@ -95,13 +95,15 @@ exports.confirm = dialogConfirm;
  * @method option
  * Create and show an Option Dialog
  *
- * @param  {Object}    	dict     		Buttons as Dictonary
- * @param  {Object}			ext 				Extends the `AlertDialog`
+ * @param  {String}		title 			The title
+ * @param  {Object}    	dict 				Buttons as Dictonary
+ * @param  {Object}		[ext] 			Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
-function dialogOption(dict, ext) {
+function dialogOption(title, dict, ext) {
 	var dialog = Ti.UI.createOptionDialog(_.extend(parseDict(dict), {
 		options: _.pluck(dict, 'title'),
+		title: title
 	}, ext));
 
 	dialog.addEventListener('click', function(e) {
@@ -118,10 +120,10 @@ exports.option = dialogOption;
  * @method confirmYes
  * Create and show a confirm dialog with *Cancel* and *Yes* button.
  *
- * @param  {String}   title 				The title
- * @param  {String}   message   			The message
- * @param  {Function} [callback]    	The callback to invoke when clicking *Yes*.
- * @param  {String}   [buttonTitle]		Alternative title for *Yes*.
+ * @param  {String}   	title 				The title
+ * @param  {String}   	message   			The message
+ * @param  {Function} 	[callback]    		The callback to invoke when clicking *Yes*.
+ * @param  {String}   	[buttonTitle]		Alternative title for *Yes*.
  * @return {Ti.UI.AlertDialog}
  */
 function confirmYes(title, message, callback, buttonTitle) {
