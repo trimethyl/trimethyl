@@ -13,7 +13,7 @@ Most of these modules are proxies for Titanium API, and some of theese add missi
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
 
-## Installation
+## Installation via NPM
 
 In your Titanium project, run:
 
@@ -21,11 +21,15 @@ In your Titanium project, run:
 npm install trimethyl
 ```
 
-## Update
+## Update via NPM
 
 ```
 npm update trimethyl
 ```
+
+## Installation via GitHub
+
+If you want to install via GitHub, just clone/download this repository and extract it in `app/lib/T`.
 
 ## Configuration
 
