@@ -3,7 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide functions to simplify sharing across platforms and social networks
  *
- * Be more Social on your app! ;)
+ * Be more Social on your app! ;)f
  *
  */
 
@@ -426,7 +426,7 @@ Init
 // Load modules
 
 try {
-	Facebook = require('facebooka');
+	Facebook = require('facebook');
 	if (Facebook == null) throw 'err';
 
 	if (Facebook.appid == null) {
