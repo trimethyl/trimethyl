@@ -11,6 +11,6 @@
 		"url": "https://github.com/CaffeinaLab/Trimethyl/issues"
 	},
 	"scripts":{
-		"install": "_install.js"
+		"install": "node install.js"
 	}
 }
