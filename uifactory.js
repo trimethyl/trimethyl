@@ -78,6 +78,6 @@ exports.createTabbedBar = function(args) {
 exports.createYoutubeVideoWebView = require('T/uifactory/youtubevideowebview');
 
 /**
- * @method createDatePicker
+ * @method createPicker
  */
-exports.createDatePicker = require('T/uifactory/datepicker');
+exports.createPicker = require('T/uifactory/picker');
