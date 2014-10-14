@@ -42,12 +42,15 @@ module.exports = function(args) {
 		type: Ti.UI.PICKER_TYPE_DATE,
 		minDate: new Date(1990,1,1),
 		maxDate: new Date(2020,1,1),
-		value: new Date(),
 		bottom: 0,
+		useSpinner: true,
 		height: 216
 	}, _.pick(args, 'minDate', 'maxDate', 'value')));
-	$view.add($this.$picker);
 
+	$this.$picker.addEventListener('change', function(e){
+		$this.value = e.value;
+	});
+	$view.add($this.$picker);
 
 	/*
 	Build toolbar
@@ -59,7 +62,7 @@ module.exports = function(args) {
 	});
 	$doneBtn.addEventListener('click', function() {
 		if (args.autoClose === true) $this.close();
-		if (_.isFunction(args.callback)) args.callback($this.$picker.value);
+		if (_.isFunction(args.callback)) args.callback($this.value);
 	});
 
 	var $cancelBtn = Ti.UI.createButton({
