@@ -39,9 +39,9 @@ function HTTPRequest(opt) {
 		this.url = HTTP.config.base.replace(/\/$/, '') + '/' + opt.url.replace(/^\//, '');
 	}
 
-	this.method = this.method ? this.method.toUpperCase() : 'GET';
+	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
 	this.headers = _.extend({}, HTTP.config.headers, opt.headers);
-	this.timeout = opt.timeout !== undefined ? opt.timeout : HTTP.config.timeout;
+	this.timeout = opt.timeout != null ? opt.timeout : HTTP.config.timeout;
 
 	this.onSuccess = _.isFunction(opt.success) ? opt.success : function(){};
 	this.onComplete = _.isFunction(opt.complete) ? opt.complete : function(){};
