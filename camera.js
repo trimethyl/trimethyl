@@ -68,7 +68,7 @@ exports.choosePhoto = choosePhoto;
  * @param  {Function} callback  	Success callback
  */
 function selectPhoto(opt, callback){
-	require('T/dialog').option([
+	require('T/dialog').option(L('camera_chooseinput'), [
 	{
 		title: L('camera_takephoto'),
 		callback: function(){

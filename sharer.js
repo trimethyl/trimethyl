@@ -3,7 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide functions to simplify sharing across platforms and social networks
  *
- * Be more Social on your app! ;)
+ * Be more Social on your app! ;)f
  *
  */
 
@@ -18,8 +18,8 @@ exports.config = config;
 var Util = require('T/util');
 var globalCallback = null;// Handle all callbacks
 
+var FB = null;
 var dkNappSocial = null;
-var Facebook = null;
 var benCodingSMS = null;
 
 function onSocialComplete(e) {
@@ -103,13 +103,13 @@ function facebook(args) {
 			url: args.url
 		});
 
-	} else if (Facebook != null) {
+	} else if (FB != null) {
 
 		/*
 		Facebook SDK feed dialog
 		*/
 
-		Facebook.dialog('feed', {
+		FB.dialog('feed', {
 			name: args.title,
 			description: args.text,
 			link: args.url,
@@ -425,39 +425,32 @@ Init
 
 // Load modules
 
-try {
-	Facebook = require('facebooka');
-	if (Facebook == null) throw 'err';
-
-	if (Facebook.appid == null) {
+FB = T('facebook');
+if (FB != null) {
+	if (FB.appid == null) {
 		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
+			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
 		} else {
 			Ti.API.warn('Sharer: Please specify a Facebook AppID');
 		}
 	}
-
-} catch (ex) {
+} else {
 	Ti.API.warn('Sharer: `facebook` can\'t be loaded');
 }
 
 if (OS_IOS) {
 
-	try {
-		dkNappSocial = require('dk.napp.social');
-		if (dkNappSocial == null) throw 'err';
-	} catch (ex) {
+	dkNappSocial = require('dk.napp.social');
+	if (dkNappSocial != null) {
+	} else {
 		Ti.API.warn('Sharer: `dk.napp.social` can\'t be loaded');
 	}
 
-	try {
-		benCodingSMS = require('bencoding.sms');
-		if (benCodingSMS == null) throw 'err';
-
+	benCodingSMS = require('bencoding.sms');
+	if (benCodingSMS != null) {
 		dkNappSocial.addEventListener('complete', onSocialComplete);
 		dkNappSocial.addEventListener('cancelled', onSocialCancel);
-
-	} catch (ex) {
+	} else {
 		Ti.API.warn('Sharer: `bencoding.sms` can\'t be loaded');
 	}
 

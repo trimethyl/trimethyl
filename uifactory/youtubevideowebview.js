@@ -2,14 +2,12 @@
  * @class  UIFactory.YoutubeVideoWebView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * View that contain a Youtube video.
- *
  * Internally use a WebView to provide the content.
  *
- * On iOS, clicking on the video cause the video to play in native iOS player in fullscreen.
- *
  * To provide the Video ID, you need to pass to the `videoId` property.
- *
  * All property set in the `youtube` property are passed into the Youtube API.
+ *
+ * On iOS, clicking on the video cause the video to play in native iOS player in fullscreen.
  *
  * More info at [https://developers.google.com/youtube/iframe_api_reference](https://developers.google.com/youtube/iframe_api_reference)
  *

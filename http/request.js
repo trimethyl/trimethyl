@@ -8,14 +8,14 @@ var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
 
-function extractHTTPData(data, info) {
+function extractHTTPText(data, info) {
 	if (info != null) {
 		if (info.format === 'json') return Util.parseJSON(data);
 	}
 	return data;
 }
 
-function extractHTTPErrorMessage(data, info) {
+function extractHTTPError(data, info) {
 	if (info != null && data != null) {
 		if (info.format === 'json') {
 			if (_.isObject(data.error) && _.isString(data.error.message)) return data.error.message;
@@ -92,7 +92,10 @@ HTTPRequest.prototype._getResponseInfo = function() {
 	var httpContentType = this.client.getResponseHeader('Content-Type');
 	var httpTTL = this.client.getResponseHeader('X-Cache-Ttl');
 
-	var info = { format: 'blob', ttl: HTTP.config.defaultCacheTTL };
+	var info = {
+		format: 'blob',
+		ttl: HTTP.config.defaultCacheTTL
+	};
 
 	if (this.client.responseText != null) info.format = 'text';
 	if (/application\/json/.test(httpContentType)) info.format = 'json';
@@ -112,10 +115,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	this.onComplete();
 	HTTP.removeFromQueue(this);
 
-	Ti.API.debug('HTTP: ['+this.hash+'] COMPLETE', {
-		networkTime: (this.endTime.getTime()-this.startTime.getTime())+'ms',
-		status: this.client.status
-	});
+	Ti.API.debug('HTTP: ['+this.hash+'] COMPLETE with HTTP code = '+this.client.status);
 
 	// Fire the global event
 	if (this.opt.silent !== true) {
@@ -131,30 +131,27 @@ HTTPRequest.prototype._onComplete = function(e) {
 	// client.onload is the function to be called upon a SUCCESSFULL response.
 	if (this.responseInfo.broken === true) {
 		Ti.API.error('HTTP: ['+this.hash+'] IS BROKEN');
-		return this.onError();
+		return this.onError({ message: L('http_error') });
 	}
 
-	// Get the response information and override
-	Ti.API.debug('HTTP: ['+this.hash+'] PARSED', this.responseInfo);
+	var data = this.client.responseData;
+	var text = extractHTTPText(this.client.responseText, this.responseInfo);
 
-	var httpData = extractHTTPData(this.client.responseText, this.responseInfo);
-	if (e.success === false || httpData == null) {
-		var errObject = {
-			message: extractHTTPErrorMessage(httpData, this.responseInfo),
-			code: this.client.status
-		};
+	if (e.success === true) {
 
+		// Write the cache (if needed and supported by configuration)
+		this._maybeCacheResponse();
+
+		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
+		this.onSuccess(text, data);
+
+	} else {
+
+		var errObject = { message: extractHTTPError(text, this.responseInfo), code: this.client.status };
 		Ti.API.error('HTTP: ['+this.hash+'] ERROR', errObject);
 		this.onError(errObject);
 
-		return;
 	}
-
-	// Write the cache (if needed and supported by configuration)
-	this._maybeCacheResponse();
-
-	Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
-	this.onSuccess(httpData);
 };
 
 HTTPRequest.prototype._calculateHash = function() {
@@ -165,7 +162,7 @@ HTTPRequest.prototype._calculateHash = function() {
 /**
  * @method getCachedResponse
  * Return (if exists) the cache
- * @return {Binary}
+ * @return {Object}
  */
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (HTTP.config.useCache === false) return;
@@ -180,7 +177,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 		remainTime: (cachedData.expire-Util.now())+'s'
 	});
 
-	return extractHTTPData(cachedData.value, cachedData.info);
+	return extractHTTPText(cachedData.value, cachedData.info);
 };
 
 /**
@@ -208,6 +205,10 @@ HTTPRequest.prototype.send = function() {
 		});
 	}
 
+	// Progress callbacks
+	if (_.isFunction(this.opt.ondatastream)) this.client.ondatastream = this.opt.ondatastream;
+	if (_.isFunction(this.opt.ondatasend)) this.client.ondatasend = this.opt.ondatasend;
+
 	// Set headers
 	this.client.open(this.method, this.url);
 	_.each(this.headers, function(h, k) {
@@ -221,8 +222,6 @@ HTTPRequest.prototype.send = function() {
 	} else {
 		this.client.send();
 	}
-
-	Ti.API.debug('HTTP: ['+this.hash+'] SENT');
 };
 
 /**
@@ -234,27 +233,27 @@ HTTPRequest.prototype.send = function() {
 HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {
+
 		this.onComplete();
 		this.onSuccess(cache);
-		return;
+
+	} else {
+
+		if (HTTP.isOnline()) {
+			this.send();
+		} else {
+
+			Ti.API.error('HTTP: connection is offline');
+			if (HTTP.config.autoOfflineMessage === true) {
+				require('T/dialog').alert(L('http_offline_title'), L('http_offline_message'));
+			}
+
+			this.onComplete();
+			this.onError({ message: L('http_offline_message') });
+
+			Event.trigger('http.offline');
+		}
 	}
-
-	if (HTTP.isOnline()) {
-		this.send();
-		return;
-	}
-
-	Ti.API.error('HTTP: connection is offline');
-	if (HTTP.config.autoOfflineMessage === true) {
-		require('T/dialog').alert(L('http_offline_title'), L('http_offline_message'));
-	}
-
-	this.onComplete();
-	this.onError({
-		message: L('http_offline_message')
-	});
-
-	Event.trigger('http.offline');
 };
 
 module.exports = HTTPRequest;

@@ -69,7 +69,7 @@ function checkForServices() {
  * A `geo.start` event is triggered at start,
  * and a `geo.end` event is triggered on end
  *
- * @param {Dictionary}	opt
+ * @param {Object}	opt
  */
 function getCurrentPosition(opt) {
 	if (!_.isFunction(opt.complete)) opt.complete = function(){};
@@ -134,7 +134,7 @@ exports.startNavigator = startNavigator;
 
 /**
  * Return the coordinates of an address
- * @param {Dictionary}	request
+ * @param {Object}	request
  */
 function geocode(opt) {
 	if (config.geocodeUseGoogle) {
@@ -183,7 +183,7 @@ exports.geocode = geocode;
 
 /**
  * Return the address with the specified coordinates
- * @param {Dictionary}	request
+ * @param {Object}	request
  */
 function reverseGeocode(opt) {
 	if (config.useGoogleForGeocode) {
@@ -462,7 +462,7 @@ exports.checkForDependencies = checkForDependencies;
  * Get the minimum MapRegion to include all annotations in array
  * @param  {Object} 	array 	An array of annotations
  * @param  {Number}	mulGap	Gap multiplier
- * @return {MapRegionType}
+ * @return {Map.MapRegionType}
  */
 function getRegionBounds(array, mulGap) {
 	mulGap = mulGap || 1.4;

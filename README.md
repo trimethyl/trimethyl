@@ -1,28 +1,35 @@
-# Trimethyl - Titanium toolchain made in Caffeina
+# Trimethyl 2 - Titanium toolchain made in Caffeina
 
 [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
 ### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
-
 Trimethyl is not a framework.
 
-Is a collection of very useful modules to work with Appcelerator Titanium: you can't live without it!
+Trimethyl is a collection of very useful modules to work with Appcelerator Titanium: you can't live without it!
 
 Most of these modules are proxies for Titanium API, and some of theese add missing features or expose usefuls functions for cross platform development.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
 
-## Installation
+## Installation via NPM
 
-Open your Terminal, **cd to your Titanium project**, and simply type:
+In your Titanium project, run:
 
 ```
-curl -L https://raw.githubusercontent.com/CaffeinaLab/Trimethyl/master/install.sh | sh
+npm install trimethyl
 ```
 
-This installation script download the toolchain, unzip it in `app/lib/T` (this is the directory where all modules lives), and synlinks some directories.
+## Update via NPM
+
+```
+npm update trimethyl
+```
+
+## Installation via GitHub
+
+If you want to install via GitHub, just clone/download this repository and extract it in `app/lib/T`.
 
 ## Configuration
 
@@ -68,19 +75,14 @@ To use a module, just require with `T` helper:
 var Auth = T('auth');
 ```
 
-## Alloy-View modules
-
-There are some modules that can be used too in yours Alloy view files, like:
-
-* **XP.UI**: Provide **cross-platforms** UI elements to handle differences between platforms
-* **UI**: Provide **new** UI elements that are missing from some platforms
+## UIFactory module
 
 This is an Alloy functionality: the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
 
 ```xml
 <Alloy>
-	<Window title="Awesome window" module="T/xp.ui">
-		<TextField module="T/xp.ui" />
+	<Window title="Awesome window" module="T/uifactory">
+		<TextField module="T/uifactory" />
 	</Window>
 </Alloy>
 ```
@@ -89,9 +91,9 @@ You can obviously wrap theese elements again with your own modules, creating a f
 
 ```javascript
 exports.createWindow = function(args) {
-	var $el = T('xp.ui').createWindow(args);
+	var $el = T('uifactory').createWindow(args);
 
-	...
+	// ...
 
 	return $el;
 }

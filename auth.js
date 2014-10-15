@@ -12,7 +12,8 @@
  * * `auth.logut`: User want to logout
  * * `auth.login`: The app has no stored credentials
  *
- * then just call `T('auth').handle()` in the `alloy.js` file and wait for one of 4 events.
+ * then just call `T('auth').handle()` in the `alloy.js`
+ * file and wait for one of 4 events.
  *
  */
 

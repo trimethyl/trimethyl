@@ -1,6 +1,9 @@
 /**
  * @class  UIFactory.TabbedBar
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ *
+ * Android Implementation of `Ti.UI.iOS.TabbedBar`
+ *
  */
 
 module.exports = function(args) {

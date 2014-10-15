@@ -45,7 +45,7 @@ exports.createTextField = require('T/uifactory/textfield');
 
 
 /**
- * @method createTextField
+ * @method createTextArea
  */
 exports.createTextArea = require('T/uifactory/textarea');
 
@@ -76,3 +76,8 @@ exports.createTabbedBar = function(args) {
  * @method createYoutubeVideoWebView
  */
 exports.createYoutubeVideoWebView = require('T/uifactory/youtubevideowebview');
+
+/**
+ * @method createPicker
+ */
+exports.createPicker = require('T/uifactory/picker');

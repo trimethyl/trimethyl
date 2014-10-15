@@ -17,7 +17,7 @@ var config = _.extend({
 }, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
-var FB = require('facebook');
+var FB = T('facebook');
 var Auth = require('T/auth');
 
 var authorized = false; // Flag to stop iOS automatic login on app startup

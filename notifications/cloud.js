@@ -6,12 +6,12 @@
  * You must set this properties in `tiapp.xml`
  *
  * ```
- * <property name='acs-api-key-development' type='string'>...</property>
- * <property name='acs-oauth-key-development' type='string'>...</property>
- * <property name='acs-oauth-secret-development' type='string'>...</property>
- * <property name='acs-api-key-production' type='string'>...</property>
- * <property name='acs-oauth-key-production' type='string'>...</property>
- * <property name='acs-oauth-secret-production' type='string'>...</property>
+ * <property name="acs-api-key-development" type="string">...</property>
+ * <property name="acs-oauth-key-development" type="string">...</property>
+ * <property name="acs-oauth-secret-development" type="string">...</property>
+ * <property name="acs-api-key-production" type="string">...</property>
+ * <property name="acs-oauth-key-production" type="string">...</property>
+ * <property name="acs-oauth-secret-production" type="string">...</property>
  * ```
  *
  */
@@ -63,8 +63,7 @@ exports.subscribe = subscribe;
 /**
  * Send the API request to the ACS to unsubscribe from that channel
  *
- * @param  {[type]} channel [description]
- * @return {[type]}         [description]
+ * @param  {String} channel
  */
 function unsubscribe(channel) {
 	var token = Ti.App.Properties.getString('notifications.token');

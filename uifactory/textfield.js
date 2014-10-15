@@ -4,26 +4,48 @@
  *
  * ## Creation properties
  *
- * #### textType
+ * #### `textType` (String)
  *
  * Can be
  *
- * * email
- * * password
- * * passwordEye
+ * * `email`
+ * * `password`
+ * * `passwordEye`
  *
  * to adjust the keyboard or the mask automatically.
  *
+ * #### `useDoneToolbar` (Boolean, default: `false`)
+ *
+ * Add a default toolbar with a *Done* button that simply blur the TextField.
+ *
  * ## Android Fixes
  *
- * Removed the annoying autofocus on Android.
+ * * Removed the annoying autofocus on Android.
  *
  */
+
+function getDoneToolbar(opt) {
+	var $doneBtn = Ti.UI.createButton({
+		title: L('Done'),
+		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+	});
+	$doneBtn.addEventListener('click', opt.done);
+
+	return Ti.UI.iOS.createToolbar({
+		borderTop: true,
+		borderBottom: true,
+		items:[
+			Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+			$doneBtn
+		]
+	});
+}
 
 module.exports = function(args) {
 	args = args || {};
 
 	switch (args.textType) {
+		case 'number': args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD; break;
 		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
 		case 'password': args.passwordMask = true; break;
 		case 'passwordEye': args.passwordMask = true; break;
@@ -51,6 +73,17 @@ module.exports = function(args) {
 			eyeButton.active = !eyeButton.active;
 			eyeButton.opacity = eyeButton.active ? 1 : 0.2;
 			$this.setPasswordMask(!eyeButton.active);
+		});
+	}
+
+	if (OS_IOS && args.useDoneToolbar === true) {
+		$this.keyboardToolbar = getDoneToolbar({
+			done: function() {
+				$this.blur();
+			},
+			cancel: function() {
+				$this.blur();
+			}
 		});
 	}
 
