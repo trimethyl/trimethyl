@@ -10,6 +10,8 @@
  *
  * The callback to invoke when user clicks Done.
  *
+ * Use `this` to access to other properties like `this.selectedRow`
+ *
  * #### `cancel() (Function)`
  *
  * The callback to invoke when user clicks Cancel.
@@ -19,7 +21,7 @@
  * If `true`, close the window when users clicks Done.
  * Otherwise, use `.close()`. in your callback.
  *
- * #### `pickerData (Array)`
+ * #### `values (Array)`
  *
  * An array containing the values.
  *
@@ -28,19 +30,19 @@
  *
  */
 
-module.exports = function(args) {
-	args = args || {};
-	var isDatePicker = (args.type === Ti.UI.PICKER_TYPE_DATE);
+ module.exports = function(args) {
+ 	args = args || {};
+ 	var isDatePicker = (args.type === Ti.UI.PICKER_TYPE_DATE);
 
-	var $this = Ti.UI.createWindow({
-		backgroundColor: 'transparent'
-	});
+ 	var $this = Ti.UI.createWindow({
+ 		backgroundColor: 'transparent'
+ 	});
 
-	var $view = Ti.UI.createView({
-		height: 216+50,
-		bottom: 0,
-		transform: Ti.UI.create2DMatrix().translate(0, 216+50)
-	});
+ 	var $view = Ti.UI.createView({
+ 		height: 216+50,
+ 		bottom: 0,
+ 		transform: Ti.UI.create2DMatrix().translate(0, 216+50)
+ 	});
 
 	/*
 	Build picker
@@ -50,34 +52,45 @@ module.exports = function(args) {
 		bottom: 0,
 		useSpinner: true,
 		height: 216
-	}, _.omit(args, 'pickerData') ));
+	}, _.omit(args, 'values', 'value')));
 
 	// Function to obtain an absolute value
 	$this.getValue = function() {
 		return $this.value;
 	};
 
-	if (isDatePicker === true) {
 
-		$this.$picker.addEventListener('change', function(e){
+	if (isDatePicker === true) {
+		$this.$picker.addEventListener('change', function(e) {
 			$this.value = e.value;
 		});
 		$this.value = $this.$picker.value;
-
 	} else {
 
-		$this.$picker.addEventListener('change', function(e){
-			$this.value = e.row.value || e.row.title;
+		$this.$picker.addEventListener('change', function(e) {
+			$this.selectedRow = e.row;
+			$this.value = e.row.value;
 		});
 
-		if (args.pickerData != null) {
-			$this.$picker.add( _.map(args.pickerData, function(v) {
-				return Ti.UI.createPickerRow(_.isObject(v) ? v : { title: v.toString() });
-			}) );
-		}
-		$this.$picker.setSelectedRow(0, 0, 0);
+		if (args.values != null) {
 
+			var selectedRowIndex = 0;
+			$this.$picker.add(_.map(args.values, function(v, index) {
+				var $pickerRow = null;
+				if (_.isObject(v) && v.value !== undefined) {
+					$pickerRow = Ti.UI.createPickerRow(v);
+					if (args.value == v.value) selectedRowIndex = +index;
+				} else {
+					$pickerRow = Ti.UI.createPickerRow({ title: v.toString(), value: v });
+					if (args.value == v) selectedRowIndex = +index;
+				}
+				return $pickerRow;
+			}));
+
+			$this.$picker.setSelectedRow(0, selectedRowIndex, false);
+		}
 	}
+
 
 	$view.add($this.$picker);
 
@@ -93,7 +106,7 @@ module.exports = function(args) {
 	$doneBtn.addEventListener('click', function() {
 		if (args.autoClose === true) $this.close();
 		if (_.isFunction(args.callback)) {
-			args.callback($this.getValue());
+			args.callback.call($this, $this.getValue());
 		}
 	});
 
@@ -103,15 +116,15 @@ module.exports = function(args) {
 	$cancelBtn.addEventListener('click', function(e){
 		$this.close();
 		if (_.isFunction(args.cancel)) {
-			args.cancel();
+			args.cancel.call($this);
 		}
 	});
 
 	$view.add(Ti.UI.iOS.createToolbar({
 		items: [
-			$cancelBtn,
-			Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
-			$doneBtn
+		$cancelBtn,
+		Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+		$doneBtn
 		],
 		bottom: 216,
 		borderTop: true,

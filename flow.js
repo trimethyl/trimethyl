@@ -125,11 +125,9 @@ exports.win = getCurrentWindow;
  * @param {Boolean} 	[openNow] 	Specify if call instantly the open on the navigation controller
  */
 function setNavigationController(nav, openNow) {
-	Ti.API.debug('Flow: NEW Navigator');
-
 	Navigator = nav;
 
-	if (openNow) {
+	if (openNow === true) {
 		Navigator.open();
 
 		// If is stored navNextRoute object,

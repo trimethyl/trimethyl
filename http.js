@@ -285,14 +285,14 @@ exports.postJSON = function(url, data, success, error) {
 
 /**
  * @method download
- * @param  {String} 		url     			The url
- * @param  {String} 		filename    	File name to save
- * @param  {Function} 	success 			Success callback
- * @param  {Function} 	error 			Error callback
- * @param  {Function} 	ondatastream 	Progress callback
+ * @param  {String}  			url  				The url
+ * @param  {String|Ti.File}  	filename  		File name to save
+ * @param  {Function}  			success  		Success callback
+ * @param  {Function} 			error  			Error callback
+ * @param  {Function}  			ondatastream  	Progress callback
  * @return {HTTP.Request}
  */
-exports.download = function(url, filename, success, error, ondatastream) {
+exports.download = function(url, file, success, error, ondatastream) {
 	return send({
 		url: url,
 		cache: false,
@@ -300,7 +300,7 @@ exports.download = function(url, filename, success, error, ondatastream) {
 		format: 'blob',
 		ondatastream: ondatastream,
 		success: function(text, data) {
-			var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationSupportDirectory, filename);
+			var f = file.nativePath ? file : Ti.Filesystem.getFile(Ti.Filesystem.applicationSupportDirectory, file);
 			if (f.write(data)) {
 				if (_.isFunction(success)) success(f);
 			} else {
