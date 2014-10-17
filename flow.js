@@ -5,8 +5,8 @@
  */
 
 /**
- * * **trackWithGA**: Send the trackScreen directly to GA module. Default: `true`
- * * **trackTimingWithGA**: Track the timing of focus/blur of the window. Default: `true`
+ * * `trackWithGA` Send the trackScreen directly to GA module. Default: `true`
+ * * `trackTimingWithGA` Track the timing of focus/blur of the window. Default: `true`
  * @type {Object}
  */
 var config = _.extend({
@@ -198,7 +198,6 @@ function openWindow($win, opt, key) {
 
 	if (Navigator === null) {
 		Ti.API.warn('Flow: A NavigationController is not defined yet, waiting for next assignment');
-
 		navPreviousRoute = {
 			method: 'openWindow',
 			arg1: $win,
@@ -273,8 +272,12 @@ function open(controller, args, opt, key) {
 
 	if (Navigator === null) {
 		Ti.API.warn('Flow: A NavigationController is not defined yet, waiting for next assignment');
-
-		navPreviousRoute = { method: 'open', arg1: controller, arg2: args, arg3: opt };
+		navPreviousRoute = {
+			method: 'open',
+			arg1: controller,
+			arg2: args,
+			arg3: opt
+		};
 		return;
 	}
 

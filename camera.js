@@ -16,7 +16,7 @@ exports.config = config;
  * Call showCamera or openPhotoGallery using same options
  * @private
  * @param  {String}   method 		Must be one of showCamera or openPhotoGallery
- * @param  {Object}   opt 			Options passed to **Ti.Media.function**
+ * @param  {Object}   opt 			Options passed to `Ti.Media.FUNC`
  * @param  {Function} callback  	Success callback
  */
 function getPhoto(method, opt, callback){
@@ -40,7 +40,7 @@ function getPhoto(method, opt, callback){
 /**
  * Open the Camera to take a photo
  *
- * @param  {Object}   opt 			Options passed to **Ti.Media.showCamera**
+ * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
  * @param  {Function} callback  	Success callback
  */
 function takePhoto(opt, callback) {
@@ -52,7 +52,7 @@ exports.takePhoto = takePhoto;
 /**
  * Open the Gallery to chooose a photo
  *
- * @param  {Object}   opt 			Options passed to **Ti.Media.showCamera**
+ * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
  * @param  {Function} callback  	Success callback
  */
 function choosePhoto(opt, callback) {
@@ -64,7 +64,7 @@ exports.choosePhoto = choosePhoto;
 /**
  * Display an option dialog to prompt the user to take a photo with the camera or select a photo from the gallery
  *
- * @param  {Object}   opt 			Options passed to **Ti.Media.showCamera**
+ * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
  * @param  {Function} callback  	Success callback
  */
 function selectPhoto(opt, callback){

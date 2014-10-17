@@ -32,32 +32,9 @@ exports.config = config;
  * Global error handler
  * @type {Function}
  */
-exports.errorHandler = require('T/util').errorHandler;
-
-/**
- * Get the error handler
- */
-function getErrorHandler() {
-	return exports.errorHandler;
-}
-exports.getErrorHandler = getErrorHandler;
-
-/**
- * Set a new global handler for the errors
- * @param {Function} fun The new function
- */
-function setErrorHandler(fun) {
-	exports.errorHandler = fun;
-}
-exports.setErrorHandler = setErrorHandler;
-
-/**
- * Reset the original error handler
- */
-function resetErrorHandler(){
-	exports.errorHandler = require('T/util').errorHandler;
-}
-exports.resetErrorHandler = resetErrorHandler;
+exports.errorHandler = function(err) {
+	require('T/dialog').alert(L('Error'), require('T/util').getErrorMessage(err));
+};
 
 /**
  * Check the internet connectivity
@@ -296,7 +273,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 		format: 'blob',
 		ondatastream: ondatastream,
 		success: function(text, data) {
-			var f = file.nativePath ? file : Ti.Filesystem.getFile(Ti.Filesystem.applicationSupportDirectory, file);
+			var f = file.nativePath ? file : Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
 			if (f.write(data)) {
 				if (_.isFunction(success)) success(f);
 			} else {

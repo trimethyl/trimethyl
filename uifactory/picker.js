@@ -101,6 +101,7 @@
 
 	var $doneBtn = Ti.UI.createButton({
 		title: L('Done'),
+		color: args.tintColor,
 		style: Ti.UI.iPhone.SystemButtonStyle.DONE
 	});
 	$doneBtn.addEventListener('click', function() {
@@ -111,6 +112,7 @@
 	});
 
 	var $cancelBtn = Ti.UI.createButton({
+		color: args.tintColor,
 		systemButton: Ti.UI.iPhone.SystemButton.CANCEL
 	});
 	$cancelBtn.addEventListener('click', function(e){

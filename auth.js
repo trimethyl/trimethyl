@@ -7,10 +7,10 @@
  *
  * Listen for
  *
- * * `auth.success`: Login success
- * * `auth.fail`: Login failed
- * * `auth.logut`: User want to logout
- * * `auth.login`: The app has no stored credentials
+ * * `auth.success` Login success
+ * * `auth.fail` Login failed
+ * * `auth.logout` User want to logout
+ * * `auth.need` User need login
  *
  * then just call `T('auth').handleLogin()` in the `alloy.js`
  * file and wait for one of 4 events.
@@ -65,61 +65,11 @@ exports.load = load;
  *
  * @return {String}
  */
-function getCurrentDriver(){
-	if (Ti.App.Properties.hasProperty('auth.driver') === false) {
-		return null;
-	}
+function getStoredDriverString(){
+	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
 	return Ti.App.Properties.getString('auth.driver');
 }
-exports.getCurrentDriver = getCurrentDriver;
-
-
-/**
- * Trigger the handleLogin on current-used driver
- *
- */
-function handleOnlineLogin() {
-	var currentDriver = getCurrentDriver();
-
-	if (currentDriver === null) {
-		return Ti.API.warn('Auth: no driver stored to handle authentication');
-	}
-
-	try {
-		return load(currentDriver).handleLogin();
-	} catch (err) {
-		Event.trigger('app.login', { message: err });
-	}
-}
-exports.handleOnlineLogin = handleOnlineLogin;
-
-
-/**
- * Try to login in offline mode,
- * filling the user information from offline data
- *
- * Trigger an `app.login` event in case of no offline data is present;
- * otherwise, an `auth.success` event is triggered
- *
- * @param  {Function} success Success callback
- */
-function handleOfflineLogin(success) {
-	if (Ti.App.Properties.hasProperty('auth.me') === false) {
-		return Event.trigger('app.login');
-	}
-
-	var authData = Ti.App.Properties.getObject('auth.me');
-	if (!_.isObject(authData)) {
-		return Event.trigger('app.login');
-	}
-
-	// Create the User model
-	exports.Me = Alloy.createModel('user', authData);
-
-	Event.trigger('auth.success');
-	if (_.isFunction(success)) success();
-}
-exports.handleOfflineLogin = handleOfflineLogin;
+exports.getStoredDriverString = getStoredDriverString;
 
 
 /**
@@ -139,11 +89,58 @@ function handleLogin() {
 exports.handleLogin = handleLogin;
 
 
+/**
+ * Trigger the handleLogin on current-used driver
+ *
+ */
+function handleOnlineLogin() {
+	var storedDriver = getStoredDriverString();
+	if (storedDriver == null) {
+		Event.trigger('auth.need');
+		return Ti.API.warn('Auth: no driver stored to handle authentication');
+	}
+
+	try {
+		return load(storedDriver).handleLogin();
+	} catch (err) {
+		Event.trigger('auth.need', { message: err });
+	}
+}
+exports.handleOnlineLogin = handleOnlineLogin;
+
+
+/**
+ * Try to login in offline mode,
+ * filling the user information from offline data
+ *
+ * Trigger an `auth.need` event in case of no offline data is present;
+ * otherwise, an `auth.success` event is triggered
+ *
+ * @param  {Function} success Success callback
+ */
+function handleOfflineLogin(success) {
+	if (Ti.App.Properties.hasProperty('auth.me') === false) {
+		return Event.trigger('auth.need');
+	}
+
+	var authData = Ti.App.Properties.getObject('auth.me');
+	if (!_.isObject(authData)) {
+		return Event.trigger('auth.need');
+	}
+
+	// Create the User model
+	exports.Me = Alloy.createModel('user', authData);
+
+	Event.trigger('auth.success');
+	if (_.isFunction(success)) success();
+}
+exports.handleOfflineLogin = handleOfflineLogin;
+
+
 function getUserModel(data, callback) {
 	exports.Me = Alloy.createModel('user', {
-		id: exports.authInfo.id
+		id: exports.authInfo.id || 'me'
 	});
-
 	exports.Me.fetch({
 		http: {
 			refresh: true,
@@ -152,10 +149,7 @@ function getUserModel(data, callback) {
 		},
 		success: callback,
 		error: function(e){
-			Event.trigger('auth.fail', {
-				message: e.message,
-				silent: data.silent
-			});
+			Event.trigger('auth.fail', _.extend({}, e, { silent: data.silent }));
 		}
 	});
 }
@@ -181,31 +175,16 @@ function login(data, driver, callback) {
 		success: function(response){
 			exports.authInfo = response || {};
 
-			if (exports.authInfo.id != null) {
+			getUserModel(data, function() {
+				Ti.App.Properties.setObject('auth.me', exports.Me.toJSON());
+				Ti.App.Properties.setString('auth.driver', driver);
+				Event.trigger('auth.success', exports.authInfo);
 
-				getUserModel(data, function() {
-					Ti.App.Properties.setObject('auth.me', exports.Me.toJSON());
-					Ti.App.Properties.setString('auth.driver', driver);
-					Event.trigger('auth.success', exports.authInfo);
-
-					if (_.isFunction(callback)) callback(exports.authInfo);
-				});
-
-			} else {
-
-				Ti.API.error('Auth: authInfo.id is null');
-				Event.trigger('auth.fail', {
-					message: L('auth_error'),
-					silent: data.silent
-				});
-
-			}
-		},
-		error: function(e){
-			Event.trigger('auth.fail', {
-				message: e.message,
-				silent: data.silent
+				if (_.isFunction(callback)) callback(exports.authInfo);
 			});
+		},
+		error: function(e) {
+			Event.trigger('auth.fail', _.extend({}, e, { silent: data.silent }));
 		},
 	});
 }
@@ -249,10 +228,10 @@ exports.getUserID = getUserID;
  */
 function logout(callback) {
 	var id = getUserID();
-	var currentDriver = getCurrentDriver();
+	var storedDriver = getStoredDriverString();
 
 	try {
-		load(currentDriver).logout();
+		load(storedDriver).logout();
 	} catch (err) {}
 
 	exports.Me = null;

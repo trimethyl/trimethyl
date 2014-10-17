@@ -19,9 +19,8 @@ exports.config = config;
  * @param  {Function} callback The callback
  */
 function onTilt(callback) {
-	if (Alloy.Globals.SIMULATOR){
-		Ti.API.error('Device: accelerometer doesn\'t work on virtual devices');
-		return;
+	if (isSimulator()){
+		return Ti.API.error('Device: accelerometer doesn\'t work on virtual devices');
 	}
 
 	Ti.Accelerometer.addEventListener('update', callback);
@@ -84,3 +83,23 @@ function getScreenHeight(){
 	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
 }
 exports.getScreenHeight = getScreenHeight;
+
+
+/**
+ * @method isSimulator
+ * Check if current device is a Simulator
+ * @return {Boolean}
+ */
+function isSimulator() {
+	return Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
+}
+exports.isSimulator = isSimulator;
+
+/**
+ * @method isIPad
+ * @return {Boolean}
+ */
+exports.isIPad = function() {
+	return Ti.Platform.osname === 'ipad';
+};
+

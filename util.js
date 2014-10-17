@@ -176,23 +176,6 @@ exports.isIOS8 = function() {
 };
 
 /**
- * @method isSimulator
- * Check if current device is a Simulator
- * @return {Boolean}
- */
-exports.isSimulator = function() {
-	return Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
-};
-
-/**
- * @method isIPad
- * @return {Boolean}
- */
-exports.isIPad = function() {
-	return Ti.Platform.osname === 'ipad';
-};
-
-/**
  * Parse the initial arguments URL schema
  *
  * @return {String}
@@ -303,10 +286,8 @@ exports.buildQuery = function(obj) {
  * @return {String}
  */
 exports.getAppDataDirectory = function() {
-	if (Ti.Filesystem.isExternalStoragePresent() === true) {
-		return Ti.Filesystem.externalStorageDirectory;
-	}
-	return Ti.Filesystem.applicationDataDirectory;
+	if (OS_ANDROID && Ti.Filesystem.isExternalStoragePresent()) return Ti.Filesystem.externalStorageDirectory;
+	return Ti.Filesystem.applicationSupportDirectory;
 };
 
 
@@ -434,16 +415,19 @@ exports.hashJavascriptObject = function(obj) {
 };
 
 /**
- * @method errorHandler
- * A generic error handler that parse a String/Object
+ * @method getErrorMessage
+ * An error parser that parse a String/Object
  */
-exports.errorHandler = function(obj) {
-	var message = L('Unexpected error');
-	if (_.isObject(obj) && obj.message) {
-		message = obj.message;
+exports.getErrorMessage = function(obj) {
+	if (_.isObject(obj)) {
+		if (obj.error != null) {
+			if (_.isObject(obj.error) && obj.error.message != null) return obj.error.message;
+			return obj.error.toString();
+		} else if (obj.message != null) {
+			return obj.message;
+		}
 	} else if (_.isString(obj)) {
-		message = obj;
+		return obj.toString();
 	}
-
-	Dialog.alert(L('Error'), message);
+	return L('Unexpected error');
 };

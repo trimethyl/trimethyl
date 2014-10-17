@@ -6,68 +6,80 @@
 
 
 /**
- * * `subscribeEndpoint`
+ * * `subscribeURL` URL for subscription. Type `String`. Default `null`
+ * * `unsubscribeUrl` URL for unsubscription. Type `String`. Default `null`
+ * * `subscribeDataExtend` Additional data to extend for subscribe. Type `Object`. Default `null`
  * @type {Object}
  */
 var config = _.extend({
-	subscribeEndpoint: '',
-
+	subscribeURL: null,
+	unsubscribeURL: null,
+	subscribeDataExtend: null,
 }, Alloy.CFG.T.notifications ? Alloy.CFG.T.notifications.http : {});
 exports.config = config;
 
 var HTTP = require('T/http');
+var Event = require('T/event');
 
 
 /**
  * Send the API request to a Web Server to subscribe
  *
  * @param  {String}   deviceToken 	The device token
- * @param  {String}   [channel]     The channel name
+ * @param  {Number}   [channel]     The channel ID
  * @param  {Function} [callback]    The callback
  */
 function subscribe(deviceToken, channel, callback) {
 	Ti.App.Properties.setString('notifications.token', deviceToken);
 
 	HTTP.send({
-		url: config.endpointSubscribe,
-		device_token: deviceToken,
-		channel: channel || 'none',
-		type: (OS_IOS ? 'ios' : (OS_ANDROID ? 'gcm' : ''))
-	}, function (e) {
-		if (e.success === false) {
-			Ti.API.error('Notifications.Cloud: ', e);
-
-			require('T/event').trigger('notifications.subscription.error', e);
-			return;
+		url: config.subscribeURL,
+		method: 'POST',
+		data: _.extend({
+			device_token: deviceToken,
+			channel_id: channel,
+			app_id: Ti.App.id,
+			app_version: Ti.App.version,
+			app_deploytype: Ti.App.deployType,
+			os: (function() {
+				if (OS_IOS) return 1;
+				if (OS_ANDROID) return 2;
+			})(),
+		}, config.subscribeDataExtend),
+		success: function() {
+			Event.trigger('notifications.subscription.success', { channel: channel });
+			if (_.isFunction(callback)) callback();
+		},
+		error: function(err) {
+			Event.trigger('notifications.subscription.error', err);
 		}
-
-		require('T/event').trigger('notifications.subscription.success', {
-			channel: channel
-		});
-		if (_.isFunction(callback)) callback();
 	});
 }
 exports.subscribe = subscribe;
 
 
 /**
- * Send the API request to the ACS to unsubscribe from that channel
+ * Send the API request to a Web Server
+ * to unsubscribe from that channel
  *
- * @param  {String} channel
+ * @param  {String} [channel]
  */
 function unsubscribe(channel) {
 	var token = Ti.App.Properties.getString('notifications.token');
 	if (_.isEmpty(token)) {
-		Ti.API.error('Notifications.Cloud: Error while getting notification token in subscribing');
+		Ti.API.error('Notifications.HTTP: Error while getting notification token in subscribing');
 		return;
 	}
 
 	Ti.App.Properties.removeProperty('notifications.token');
-	Cloud.PushNotifications.unsubscribeToken({
-		device_token: token,
-		channel: channel || null
-	}, function() {
-		Ti.API.debug('Notifications.Cloud: Unsubscribing success');
+	HTTP.send({
+		url: config.unsubscribeURL,
+		method: 'POST',
+		data: {
+			device_token: token,
+			channel_id: channel,
+			app_id: Ti.App.id,
+		},
 	});
 }
 exports.unsubscribe = unsubscribe;

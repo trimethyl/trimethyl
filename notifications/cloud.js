@@ -27,6 +27,7 @@ exports.config = config;
 
 var Cloud = require('ti.cloud');
 Cloud.debug = !ENV_PRODUCTION;
+var Event = require('T/event');
 
 
 /**
@@ -44,17 +45,13 @@ function subscribe(deviceToken, channel, callback) {
 		channel: channel || 'none',
 		type: (OS_IOS ? 'ios' : (OS_ANDROID ? 'gcm' : ''))
 	}, function (e) {
-		if (e.success === false) {
+		if (e.success === true) {
+			Event.trigger('notifications.subscription.success', { channel: channel });
+			if (_.isFunction(callback)) callback();
+		} else {
 			Ti.API.error('Notifications.Cloud: ', e);
-
-			require('T/event').trigger('notifications.subscription.error', e);
-			return;
+			Event.trigger('notifications.subscription.error', e);
 		}
-
-		require('T/event').trigger('notifications.subscription.success', {
-			channel: channel
-		});
-		if (_.isFunction(callback)) callback();
 	});
 }
 exports.subscribe = subscribe;
@@ -76,8 +73,6 @@ function unsubscribe(channel) {
 	Cloud.PushNotifications.unsubscribeToken({
 		device_token: token,
 		channel: channel || null
-	}, function() {
-		Ti.API.debug('Notifications.Cloud: Unsubscribing success');
-	});
+	}, function(){});
 }
 exports.unsubscribe = unsubscribe;

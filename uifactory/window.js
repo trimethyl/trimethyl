@@ -91,7 +91,9 @@ module.exports = function(args) {
 	var bgCoverUISview = null;
 
 	$this.setBackgroundCoverImage = function(val){
-		var SCREEN_RATIO = require('device').getScreenWidth() / require('device').getScreenHeight();
+		var SCREEN_WIDTH = require('T/device').getScreenWidth();
+		var SCREEN_HEIGHT = require('T/device').getScreenHeight();
+		var SCREEN_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT;
 
 		if (bgCoverUI === null) {
 			bgCoverUI = Ti.UI.createImageView();
@@ -104,15 +106,15 @@ module.exports = function(args) {
 				var R = bgCoverUI.size.width / bgCoverUI.size.height;
 				bgCoverUI.applyProperties(
 					SCREEN_RATIO>R ?
-					{ width: Alloy.Globals.SCREEN_WIDTH, height: Ti.UI.SIZE } :
-					{ width: Ti.UI.SIZE, height: Alloy.Globals.SCREEN_HEIGHT }
+					{ width: SCREEN_WIDTH, height: Ti.UI.SIZE } :
+					{ width: Ti.UI.SIZE, height: SCREEN_HEIGHT }
 				);
 			});
 
 			bgCoverUISview = Ti.UI.createScrollView({
 				touchEnabled: false,
-				width: Alloy.Globals.SCREEN_WIDTH,
-				height: Alloy.Globals.SCREEN_HEIGHT,
+				width: SCREEN_WIDTH,
+				height: SCREEN_HEIGHT,
 				zIndex: -1
 			});
 			bgCoverUISview.add(bgCoverUI);
