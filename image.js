@@ -38,8 +38,7 @@ exports.config = config;
  */
 function process(opt) {
 	if (opt.blob == null) {
-		Ti.API.error('Image: Blob is null');
-		return;
+		return Ti.API.error('Image: Blob is null');
 	}
 
 	var density = opt.retina === true ? Alloy.Globals.SCREEN_DENSITY : 1;
@@ -56,8 +55,7 @@ function process(opt) {
 	}
 
 	if (R == null) {
-		Ti.API.error('Image: Unexeptected error');
-		return;
+		return Ti.API.error('Image: Unexeptected error');
 	}
 
 	if (opt.filename == null) {
@@ -69,8 +67,7 @@ function process(opt) {
 	R = null; // GC
 
 	if (result === false) {
-		Ti.API.error('Image: Unexeptected error while writing file');
-		return;
+		return Ti.API.error('Image: Unexeptected error while writing file');
 	}
 
 	return file;

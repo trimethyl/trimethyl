@@ -16,8 +16,6 @@ function SQLite(name, file) {
 	} else {
 		this.db = Ti.Database.install(file, name);
 	}
-
-	console.log(this.db.name);
 }
 
 /**

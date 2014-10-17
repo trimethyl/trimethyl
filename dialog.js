@@ -1,17 +1,7 @@
 /**
  * @class  	Dialog
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * The `dict` arguments must be in the form:
- *
- * ```javascript
- * [
- * 	{ title: 'Option one', selected: true, callback: function(){ ... } },
- * 	{ title: 'Option two', callback: function(){ ... } },
- * 	{ title: 'Cancel', cancel: true },
- * 	...
- * ]
- * ```
+ * Dialog manager
  */
 
 

@@ -93,7 +93,12 @@ exports.dispatch = dispatch;
  */
 exports.go = dispatch;
 
-
+/**
+ * @method autoMapModel
+ * Create the routes for a model
+ * @param  {String} single The name for the model
+ * @param  {String} [plural] The name for the model, plural.
+ */
 function autoMapModel(single, plural) {
 	plural = plural || single+'s';
 

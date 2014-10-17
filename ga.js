@@ -144,7 +144,6 @@ exports.trackTiming = trackTiming;
 exports.time = trackTiming;
 
 
-
 /**
  * Set the tracker UA.
  * @param {String} ua
