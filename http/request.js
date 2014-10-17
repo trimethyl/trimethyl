@@ -22,7 +22,7 @@ function HTTPRequest(opt) {
 		throw new Error('HTTP.Request: URL not set');
 	}
 
-	this.opt = _.clone(opt);
+	this.opt = opt;
 
 	// if the url is not matching a protocol, assign the base URL
 	if (/\:\/\//.test(opt.url)) {
@@ -219,7 +219,7 @@ HTTPRequest.prototype.send = function() {
 		this.client.send();
 	}
 
-	Ti.API.debug('HTTP: ['+this.hash+'] request sent', this);
+	Ti.API.debug('HTTP: ['+this.hash+'] request sent', _.omit(this.opt, 'complete', 'error', 'success'));
 };
 
 /**

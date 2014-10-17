@@ -5,14 +5,14 @@
  */
 
 /**
- * * **base**: The base URL of the API
- * * **timeout**: Global timeout for the requests. After this value (express in milliseconds) the requests throw an error. Default: `http://localhost`
- * * **useCache**: Check if the requests are automatically cached. Default: `true`
- * * **cacheDriver**: Cache driver to use. Default `database`
- * * **headers**: Global headers for all requests. Default: `{}`
- * * **usePingServer**: Enable the PING-Server support. Default: `true`
- * * **autoOfflineMessage**: Enable the automatic alert if the connection is offline
- * * **defaultCacheTTL**: Force a predef TTL if not found on the headers. Default: `0`
+ * * `base` The base URL of the API
+ * * `timeout` Global timeout for the requests. After this value (express in milliseconds) the requests throw an error. Default: `http://localhost`
+ * * `useCache` Check if the requests are automatically cached. Default: `true`
+ * * `cacheDriver` Cache driver to use. Default `database`
+ * * `headers` Global headers for all requests. Default: `{}`
+ * * `usePingServer` Enable the PING-Server support. Default: `true`
+ * * `autoOfflineMessage` Enable the automatic alert if the connection is offline
+ * * `defaultCacheTTL` Force a predef TTL if not found on the headers. Default: `0`
  * @type {Object}
  */
 var config = _.extend({

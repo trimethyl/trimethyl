@@ -6,14 +6,12 @@
 
 
 /**
- * * `subscribeURL` URL for subscription. Type `String`. Default `null`
- * * `unsubscribeUrl` URL for unsubscription. Type `String`. Default `null`
+ * * `endpoint` URL for subscription. Type `String`. Default `null`
  * * `subscribeDataExtend` Additional data to extend for subscribe. Type `Object`. Default `null`
  * @type {Object}
  */
 var config = _.extend({
-	subscribeURL: null,
-	unsubscribeURL: null,
+	endpoint: null,
 	subscribeDataExtend: null,
 }, Alloy.CFG.T.notifications ? Alloy.CFG.T.notifications.http : {});
 exports.config = config;
@@ -33,7 +31,7 @@ function subscribe(deviceToken, channel, callback) {
 	Ti.App.Properties.setString('notifications.token', deviceToken);
 
 	HTTP.send({
-		url: config.subscribeURL,
+		url: config.endpoint,
 		method: 'POST',
 		data: _.extend({
 			device_token: deviceToken,
@@ -73,8 +71,8 @@ function unsubscribe(channel) {
 
 	Ti.App.Properties.removeProperty('notifications.token');
 	HTTP.send({
-		url: config.unsubscribeURL,
-		method: 'POST',
+		url: config.endpoint,
+		method: 'DELETE',
 		data: {
 			device_token: token,
 			channel_id: channel,

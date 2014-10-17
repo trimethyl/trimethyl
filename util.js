@@ -143,7 +143,7 @@ exports.getDomainFromURL = function(url) {
  * @return {Number}
  */
 function getIOSVersion() {
-	if (!OS_IOS) return false;
+	if (!OS_IOS) return 0;
 	return parseInt(Ti.Platform.version.split('.')[0], 10);
 }
 exports.getIOSVersion = getIOSVersion;

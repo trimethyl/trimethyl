@@ -6,8 +6,8 @@
 
 
 /**
- * * **autoReset**: Check if auto-reset the badge when app is open.
- * * **driver**: The driver to use. Default: `cloud`
+ * * `autoReset` Check if auto-reset the badge when app is open.
+ * * `driver` The driver to use. Default: `cloud`
  * @type {Object}
  */
 var config = _.extend({
@@ -17,7 +17,10 @@ var config = _.extend({
 exports.config = config;
 
 var Event = require('T/event');
+var Util = require('T/util');
+
 var inBackground = false;
+
 
 /**
  * Require the selected driver
@@ -59,7 +62,7 @@ function onNotificationReceived(e) {
 		}
 	}
 
-	if (config.autoReset) {
+	if (config.autoReset === true) {
 		resetBadge();
 	}
 
@@ -73,17 +76,37 @@ var unsubscribeFunction = null;
 if (OS_IOS) {
 
 	subscribeFunction = function(callback) {
-		Ti.Network.registerForPushNotifications({
-			callback: onNotificationReceived,
-			types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
-			success: function(e) {
-				callback(e.deviceToken);
-			},
-			error: function(e){
-				Ti.API.error('Notifications: Retrieve device token failed', e);
-				Event.trigger('notifications.subscription.error', e);
-			},
-		});
+		if (Util.getIOSVersion() >= 8) {
+
+			var tmpSubscribe = function() {
+				Ti.App.iOS.removeEventListener('usernotificationsettings', tmpSubscribe);
+				Ti.Network.registerForPushNotifications({
+					callback: onNotificationReceived,
+					success: function(e) { callback(e.deviceToken) },
+					error: function(err) {
+						Ti.API.error('Notifications: Retrieve device token failed', err);
+						Event.trigger('notifications.subscription.error', err);
+					}
+				});
+			};
+
+			Ti.App.iOS.addEventListener('usernotificationsettings',  tmpSubscribe);
+			Ti.App.iOS.registerUserNotificationSettings({
+				types: [ Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT, Ti.App.iOS.USER_NOTIFICATION_TYPE_SOUND, Ti.App.iOS.USER_NOTIFICATION_TYPE_BADGE ]
+			});
+
+		} else {
+
+			Ti.Network.registerForPushNotifications({
+				callback: onNotificationReceived,
+				types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
+				success: function(e) { callback(e.deviceToken); },
+				error: function(err) {
+					Ti.API.error('Notifications: Retrieve device token failed', err);
+					Event.trigger('notifications.subscription.error', err);
+				},
+			});
+		}
 	};
 
 	unsubscribeFunction = function(){
@@ -134,7 +157,7 @@ if (OS_IOS) {
 function subscribe(channel) {
 	subscribeFunction(function(token) {
 		load(config.driver).subscribe(token, channel, function(){
-			Ti.API.debug('Notifications: Subscribtion OK with driver ' + config.driver);
+			Ti.API.debug('Notifications: Subscription OK with driver ' + config.driver);
 		});
 	});
 }
