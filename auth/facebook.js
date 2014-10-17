@@ -9,36 +9,23 @@
  * @type {Object}
  */
 var config = _.extend({
-	appid: null,
-	permissions: [],
 	authTimeout: 10000
 }, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
-var FB = T('facebook');
+var FB = require('T/facebook');
 var Auth = require('T/auth');
+var Event = require('T/event');
 
-var authorized = false; // Flag to stop iOS automatic login on app startup
-var timeout = null; // Timeout for logging in
+var calledAuthorize = false; // Flag to stop iOS automatic login on app startup
+var loginTimeout = null; // Timeout for logging in
 var successLogin = null; // Callback when login success
 var silent = true; // Flag passed to `Auth.login` and `auth.fail` event
 
 
-function loginToServer(e) {
-	clearTimeout(timeout);
-	if (e.cancelled === true) return;
+function loginToServer() {
+	clearTimeout(loginTimeout);
 
-	if (e.success !== true) {
-		Ti.API.error('Auth.Facebook: ERROR', e);
-
-		require('T/event').trigger('auth.fail', {
-			silent: silent,
-			message: L('auth_facebook_error')
-		});
-		return;
-	}
-
-	Ti.API.debug('Auth.Facebook: SUCCESS', e);
 	Auth.login({
 		access_token: FB.accessToken,
 		silent: silent
@@ -47,9 +34,9 @@ function loginToServer(e) {
 
 function authorize() {
 	if (FB.loggedIn === true && ! _.isEmpty(FB.accessToken)) {
-		loginToServer({ success: true });
+		loginToServer();
 	} else {
-		authorized = true;
+		calledAuthorize = true;
 		FB.authorize();
 	}
 }
@@ -59,11 +46,14 @@ function authorize() {
  */
 function handleLogin() {
 	silent = true;
-	authorized = false;
+	calledAuthorize = false;
 
 	// Prevent app freezing
-	timeout = setTimeout(function(){
-		loginToServer({ success: false });
+	loginTimeout = setTimeout(function(){
+		Event.trigger('auth.fail', {
+			silent: silent,
+			message: L('auth_facebook_error')
+		});
 	}, config.authTimeout);
 
 	authorize();
@@ -99,24 +89,26 @@ Init
 */
 
 FB.forceDialogAuth = false;
-
-FB.addEventListener('login', function(e){
-	// by checking the `authorized` flag,
-	// we are sure that loginToServer is NOT called automatically on startup.
-	// This is a security hack caused by iOS SDK that
-	// automatically trigger the login event
-	if (authorized === false) {
-		Ti.API.debug('Auth.Facebook: login prevented due authorized flag');
-		return;
+FB.addEventListener('login', function(e) {
+	// by checking the `calledAuthorize` flag, we are sure that loginToServer is NOT called automatically on startup.
+	// This is a security hack caused by iOS SDK that automatically trigger the login event
+	if (calledAuthorize === false) {
+		return Ti.API.debug('Auth.Facebook: login prevented due falsity of calledAuthorize flag');
 	}
 
-	// If there's an error, and the user hasn't cancelled login,
-	// try the legacy mode of Facebook login on next Login,
-	// that we are SURE that works.
-	if (e.error === true && e.cancelled === false) {
-		Ti.API.warn('Auth.Facebook: enabling the legacy mode of Facebook login due error');
-		FB.forceDialogAuth = true;
+	if (e.success === true) {
+
+		Ti.API.debug('Auth.Facebook: SUCCESS', e);
+		loginToServer();
+
+	} else {
+
+		Ti.API.error('Auth.Facebook: ERROR', e);
+		Event.trigger('auth.fail', {
+			silent: silent,
+			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('auth_facebook_error')
+		});
+
 	}
 
-	loginToServer(e);
 });
