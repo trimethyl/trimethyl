@@ -2,7 +2,6 @@
  * @class  	Geo
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  * Provide useful method for geolocation events
- *
  */
 
 /**
@@ -413,11 +412,13 @@ exports.markerCluster = markerCluster;
 
 
 /**
- * Check if the Google Play Services are installed and updated, otherwise Maps doesn't work and the app crashes.
+ * Check if the Google Play Services are installed and updated,
+ * otherwise Maps doesn't work and the app crashes.
  *
- * It the check fail, an error is displayed that redirect to the Play Store, and the app is terminated.
+ * It the check fail, an error is displayed that redirect to the Play Store,
+ * and the app is terminated.
  *
- * On iOS, this check simply return true
+ * On iOS, simply return `true`
  *
  */
 function checkForDependencies() {

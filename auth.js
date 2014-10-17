@@ -18,12 +18,13 @@
  */
 
 /**
- * * `endpointLogin` URL to login-in
+ * * `loginUrl` URL to login-in
+ * * `logoutUrl` URL to logout
  * @type {Object
  */
 var config = _.extend({
-	endpointLogin: '/login',
-	endpointLogout: '/logout'
+	loginUrl: '/login',
+	logoutUrl: '/logout'
 }, Alloy.CFG.T.auth);
 exports.config = config;
 
@@ -173,7 +174,7 @@ function getUserModel(data, callback) {
  */
 function login(data, driver, callback) {
 	HTTP.send({
-		url: config.endpointLogin,
+		url: config.loginUrl,
 		method: 'POST',
 		data: _.extend(data, { method: driver }),
 		silent: data.silent,
@@ -273,7 +274,7 @@ function logout(callback) {
 	if (HTTP.isOnline()) {
 
 		HTTP.send({
-			url: config.endpointLogout,
+			url: config.logoutUrl,
 			method: 'POST',
 			silent: true,
 			success: function(){},
