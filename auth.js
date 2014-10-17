@@ -12,17 +12,25 @@
  * * `auth.logut`: User want to logout
  * * `auth.login`: The app has no stored credentials
  *
- * then just call `T('auth').handle()` in the `alloy.js`
+ * then just call `T('auth').handleLogin()` in the `alloy.js`
  * file and wait for one of 4 events.
  *
  */
 
+/**
+ * * `endpointLogin` URL to login-in
+ * @type {Object
+ */
 var config = _.extend({
+	endpointLogin: '/login',
+	endpointLogout: '/logout'
 }, Alloy.CFG.T.auth);
 exports.config = config;
 
+
 var HTTP = require('T/http');
 var Event = require('T/event');
+
 
 /**
  * @property Me
@@ -67,7 +75,7 @@ exports.getCurrentDriver = getCurrentDriver;
  * Trigger the handleLogin on current-used driver
  *
  */
-function handleLogin() {
+function handleOnlineLogin() {
 	var currentDriver = getCurrentDriver();
 
 	if (currentDriver === null) {
@@ -83,7 +91,7 @@ function handleLogin() {
 		});
 	}
 }
-exports.handleLogin = handleLogin;
+exports.handleOnlineLogin = handleOnlineLogin;
 
 
 /**
@@ -101,8 +109,14 @@ function handleOfflineLogin(success){
 		return;
 	}
 
+	var authData = Ti.App.Properties.getObject('auth.me');
+	if (!_.isObject(authData)) {
+		Event.trigger('app.login');
+		return;
+	}
+
 	// Create the User model
-	exports.Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+	exports.Me = Alloy.createModel('user', authData);
 
 	Event.trigger('auth.success');
 	if (_.isFunction(success)) success();
@@ -117,14 +131,14 @@ exports.handleOfflineLogin = handleOfflineLogin;
  * If fail, it fails silently
  *
  */
-function handle() {
+function handleLogin() {
 	if (HTTP.isOnline()) {
-		handleLogin();
+		handleOnlineLogin();
 	} else {
 		handleOfflineLogin();
 	}
 }
-exports.handle = handle;
+exports.handleLogin = handleLogin;
 
 
 function getUserModel(data, callback) {
@@ -162,12 +176,12 @@ function getUserModel(data, callback) {
  */
 function login(data, driver, callback) {
 	HTTP.send({
-		url: '/auth',
+		url: config.endpointLogin,
 		method: 'POST',
 		data: _.extend(data, { method: driver }),
 		silent: data.silent,
 		success: function(response){
-			exports.authInfo = response;
+			exports.authInfo = response || {};
 
 			if (exports.authInfo.id != null) {
 
@@ -223,7 +237,7 @@ exports.user = exports.getUser;
  * @return {Number}
  */
 function getUserID(){
-	if (exports.Me == null) return 0;
+	if (exports.Me == null) return null;
 	return exports.Me.id;
 }
 exports.getUserID = getUserID;
@@ -263,7 +277,7 @@ function logout(callback) {
 	if (HTTP.isOnline()) {
 
 		HTTP.send({
-			url: '/logout',
+			url: config.endpointLogout,
 			method: 'POST',
 			silent: true,
 			success: function(){},
@@ -284,6 +298,6 @@ exports.logout = logout;
  *
  * @return {Boolean}
  */
-exports.isLogged = function() {
+exports.isLoggedIn = function() {
 	return exports.Me !== null;
 };

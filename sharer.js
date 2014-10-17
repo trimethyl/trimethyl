@@ -383,7 +383,7 @@ function activity(args) {
 			return;
 		}
 
-		dkNappSocial[ Ti.Platform.osname==='ipad' ? 'activityPopover' : 'activityView' ]({
+		dkNappSocial[ Util.isIPad() ? 'activityPopover' : 'activityView' ]({
 			text: args.text,
 			title: args.title,
 			image: args.image,
@@ -426,15 +426,7 @@ Init
 // Load modules
 
 FB = T('facebook');
-if (FB != null) {
-	if (FB.appid == null) {
-		if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-			FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-		} else {
-			Ti.API.warn('Sharer: Please specify a Facebook AppID');
-		}
-	}
-} else {
+if (FB == null) {
 	Ti.API.warn('Sharer: `facebook` can\'t be loaded');
 }
 

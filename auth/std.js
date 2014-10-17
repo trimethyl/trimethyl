@@ -4,6 +4,13 @@
  * Auth driver to handle Standard authentication
  */
 
+/**
+ * @type {Object}
+ */
+var config = _.extend({
+}, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.std : {});
+exports.config = config;
+
 var HTTP = require('T/http');
 var Auth = require('T/auth');
 
@@ -14,7 +21,6 @@ var Auth = require('T/auth');
 function handleLogin(){
 	var data = Ti.App.Properties.getObject('auth.std.data') || {};
 	data.silent = true;
-
 	Auth.login(data, 'std');
 }
 exports.handleLogin = handleLogin;
@@ -59,27 +65,3 @@ function signup(data, callback) {
 	});
 }
 exports.signup = signup;
-
-
-/**
- * Send the *password lost* request to the API server
- *
- * @param  {Object}   data Data passed to API
- * @param  {Function} cb   Success callback
- */
-function lost(data, callback){
-	HTTP.send({
-		url: '/lost',
-		method: 'POST',
-		data: data,
-		success: callback
-	});
-}
-exports.lost = lost;
-
-/**
- * @method reset
- * @inheritDoc #lost
- * Alias for {@link #lost}
- */
-exports.reset = lost;

@@ -22,7 +22,6 @@ var Dialog = require('T/dialog');
  * @param  {String} [error]    The error to show
  */
 function openURL(url, fallback, error) {
-
 	function doFallback() {
 		if (fallback != null) {
 			if (_.isFunction(fallback)) fallback();
@@ -125,7 +124,6 @@ exports.openInStore = function(appid) {
 	}
 };
 
-
 /**
  * @method  getDomainFromURL
  * Return the clean domain of an URL
@@ -151,41 +149,48 @@ function getIOSVersion() {
 exports.getIOSVersion = getIOSVersion;
 
 /**
+ * @method isIOS6
  * Check if is iOS 6
  * @return {Boolean}
  */
-function isIOS6() {
+exports.isIOS6 = function() {
 	return getIOSVersion() === 6;
-}
-exports.isIOS6 = isIOS6;
-
+};
 
 /**
- * Check if is iOS
+ * @method isIOS7
+ * Check if is iOS 7
  * @return {Boolean}
  */
-function isIOS7() {
+exports.isIOS7 = function() {
 	return getIOSVersion() === 7;
-}
-exports.isIOS7 = isIOS7;
+};
 
 /**
+ * @method isIOS8
  * Check if is iOS 8
  * @return {Boolean}
  */
-function isIOS8() {
+exports.isIOS8 = function() {
 	return getIOSVersion() === 8;
-}
-exports.isIOS8 = isIOS8;
+};
 
 /**
+ * @method isSimulator
  * Check if current device is a Simulator
  * @return {Boolean}
  */
-function isSimulator() {
+exports.isSimulator = function() {
 	return Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
-}
-exports.isSimulator = isSimulator;
+};
+
+/**
+ * @method isIPad
+ * @return {Boolean}
+ */
+exports.isIPad = function() {
+	return Ti.Platform.osname === 'ipad';
+};
 
 /**
  * Parse the initial arguments URL schema
@@ -380,11 +385,6 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 	});
 };
 
-/**
- * @method parseAsXCallbackURL
- * @param  {String} 	url  The URL to parse
- * @return {XCallbackURL}
- */
 
 var XCU = {
 	key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
@@ -398,6 +398,11 @@ var XCU = {
 	}
 };
 
+/**
+ * @method parseAsXCallbackURL
+ * @param  {String} 	url  The URL to parse
+ * @return {XCallbackURL}
+ */
 exports.parseAsXCallbackURL = function(str) {
 	var m = XCU.parser.strict.exec(str);
 	var i = XCU.key.length;
@@ -412,6 +417,12 @@ exports.parseAsXCallbackURL = function(str) {
 	return uri;
 };
 
+/**
+ * @method hashJavascriptObject
+ * Return the seralized representation of any JS object.
+ * @param  {Object} obj
+ * @return {String) The hash
+ */
 exports.hashJavascriptObject = function(obj) {
 	if (obj == null) return 'null';
 	if (_.isArray(obj)) return JSON.stringify(obj);

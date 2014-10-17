@@ -5,9 +5,7 @@
  */
 
 /**
- * * **appid**: Application ID. Default: `null`
- * * **permissions**: Array of permissions. Default: `[]`
- * * **authTimeout**: Timeout for logging in
+ * * `authTimeout`: Timeout for logging in
  * @type {Object}
  */
 var config = _.extend({
@@ -101,20 +99,6 @@ Init
 */
 
 FB.forceDialogAuth = false;
-
-if (FB.appid == null) {
-	if (config.appid != null) {
-		FB.appid = config.appid;
-	} else if (Ti.App.Properties.hasProperty('ti.facebook.appid')) {
-		FB.appid = Ti.App.Properties.getString('ti.facebook.appid', false);
-	} else {
-		Ti.API.warn('Auth.Facebook: Please specify a Facebook AppID');
-	}
-}
-
-if (config.permissions != null) {
-	FB.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
-}
 
 FB.addEventListener('login', function(e){
 	// by checking the `authorized` flag,
