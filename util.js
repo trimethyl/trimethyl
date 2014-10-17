@@ -432,3 +432,18 @@ exports.hashJavascriptObject = function(obj) {
 	}
 	return obj.toString();
 };
+
+/**
+ * @method errorHandler
+ * A generic error handler that parse a String/Object
+ */
+exports.errorHandler = function(obj) {
+	var message = L('Unexpected error');
+	if (_.isObject(obj) && obj.message) {
+		message = obj.message;
+	} else if (_.isString(obj)) {
+		message = obj;
+	}
+
+	Dialog.alert(L('Error'), message);
+};

@@ -65,7 +65,9 @@ exports.load = load;
  * @return {String}
  */
 function getCurrentDriver(){
-	if (Ti.App.Properties.hasProperty('auth.driver') === false) return null;
+	if (Ti.App.Properties.hasProperty('auth.driver') === false) {
+		return null;
+	}
 	return Ti.App.Properties.getString('auth.driver');
 }
 exports.getCurrentDriver = getCurrentDriver;
@@ -79,40 +81,35 @@ function handleOnlineLogin() {
 	var currentDriver = getCurrentDriver();
 
 	if (currentDriver === null) {
-		Ti.API.warn('Auth: no driver stored to handle authentication');
-		return;
+		return Ti.API.warn('Auth: no driver stored to handle authentication');
 	}
 
 	try {
 		return load(currentDriver).handleLogin();
 	} catch (err) {
-		Event.trigger('app.login', {
-			message: err
-		});
+		Event.trigger('app.login', { message: err });
 	}
 }
 exports.handleOnlineLogin = handleOnlineLogin;
 
 
 /**
- * Try to login in offline mode, filling the user information from offline data
+ * Try to login in offline mode,
+ * filling the user information from offline data
  *
- * Trigger an **app.login** event in case of no offline data is present
- *
- * Otherwise, an **auth.success** event is triggered
+ * Trigger an `app.login` event in case of no offline data is present;
+ * otherwise, an `auth.success` event is triggered
  *
  * @param  {Function} success Success callback
  */
-function handleOfflineLogin(success){
+function handleOfflineLogin(success) {
 	if (Ti.App.Properties.hasProperty('auth.me') === false) {
-		Event.trigger('app.login');
-		return;
+		return Event.trigger('app.login');
 	}
 
 	var authData = Ti.App.Properties.getObject('auth.me');
 	if (!_.isObject(authData)) {
-		Event.trigger('app.login');
-		return;
+		return Event.trigger('app.login');
 	}
 
 	// Create the User model
@@ -128,7 +125,7 @@ exports.handleOfflineLogin = handleOfflineLogin;
  * Try to login, switching automatically to offline mode
  * if an internet connection is not detected
  *
- * If fail, it fails silently
+ * If it fails, it fails silently.
  *
  */
 function handleLogin() {
@@ -229,7 +226,6 @@ exports.getUser = function(){
  * Alias for {@link #getUser}
  */
 exports.user = exports.getUser;
-
 
 /**
  * @method getUserID

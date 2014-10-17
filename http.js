@@ -27,21 +27,15 @@ var config = _.extend({
 exports.config = config;
 
 
-function originalErrorHandler(e) {
-	var message = (e != null && e.message != null) ? e.message : L('Unexpected error');
-	require('T/dialog').alert(L('Error'), message);
-}
-
 /**
  * @property errorHandler
  * Global error handler
  * @type {Function}
  */
-exports.errorHandler = originalErrorHandler;
+exports.errorHandler = require('T/util').errorHandler;
 
 /**
  * Get the error handler
- * @param {Function} fun The new function
  */
 function getErrorHandler() {
 	return exports.errorHandler;
@@ -61,10 +55,9 @@ exports.setErrorHandler = setErrorHandler;
  * Reset the original error handler
  */
 function resetErrorHandler(){
-	exports.errorHandler = originalErrorHandler;
+	exports.errorHandler = require('T/util').errorHandler;
 }
 exports.resetErrorHandler = resetErrorHandler;
-
 
 /**
  * Check the internet connectivity
@@ -243,6 +236,7 @@ exports.post = function(url, data, success, error) {
 	});
 };
 
+
 /**
  * @method  getJSON
  * Make a GET request to that url with that data and setting the format forced to JSON
@@ -263,6 +257,7 @@ exports.getJSON = function(url, data, success, error) {
 	});
 };
 
+
 /**
  * @method  postJSON
  * Make a POST request to that url with that data and setting the format forced to JSON
@@ -282,6 +277,7 @@ exports.postJSON = function(url, data, success, error) {
 		error: error
 	});
 };
+
 
 /**
  * @method download

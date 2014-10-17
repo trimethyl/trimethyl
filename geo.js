@@ -25,7 +25,17 @@ exports.config = config;
 var Dialog = require('T/dialog');
 
 
+function originalErrorHandler(e) {
+	if (e != null && e.servicesDisabled === true) {
+		enableServicesAlert();
+	} else {
+		Dialog.alert(null, L('geo_error_title'));
+	}
+}
+
+
 /**
+ * @method enableServicesAlert
  * Alert the user that Location is off
  */
 function enableServicesAlert(){
@@ -38,22 +48,12 @@ function enableServicesAlert(){
 exports.enableServicesAlert = enableServicesAlert;
 
 
-function originalErrorHandler(e) {
-	if (e != null) {
-		if (e.servicesDisabled === true) {
-			enableServicesAlert();
-		}
-	}
-
-	Dialog.alert(null, L('geo_error_title'));
-}
-
 /**
  * @method originalErrorHandler
  * The original error handler
  * @param  {Object} e
  */
-exports.originalErrorHandler = function() {
+exports.getOriginalErrorHandler = function() {
 	return originalErrorHandler;
 };
 
