@@ -38,6 +38,7 @@ exports.on = on;
 
 
 /**
+ * @method dispatch
  * Dispatch the router
  *
  * This function call the defined function with `Router.on`
@@ -50,7 +51,7 @@ exports.on = on;
  *
  * @param  {String} 	url 		The route
  */
-function dispatch(url) {
+exports.dispatch = function(url) {
 	var run = false;
 	var matches = null;
 
@@ -83,15 +84,15 @@ function dispatch(url) {
 	}
 
 	Ti.API.warn('Router: no matches for the selected route', url);
-}
-exports.dispatch = dispatch;
+};
 
 /**
  * @method go
  * @inheritDoc #dispatch
  * Alias for {@link #dispatch}
  */
-exports.go = dispatch;
+exports.go = exports.dispatch;
+
 
 /**
  * @method autoMapModel
@@ -99,7 +100,7 @@ exports.go = dispatch;
  * @param  {String} single The name for the model
  * @param  {String} [plural] The name for the model, plural.
  */
-function autoMapModel(single, plural) {
+exports.autoMapModel = function(single, plural) {
 	plural = plural || single+'s';
 
 	on('/' + plural, function() {
@@ -111,5 +112,4 @@ function autoMapModel(single, plural) {
 			id: id
 		});
 	});
-}
-exports.autoMapModel = autoMapModel;
+};

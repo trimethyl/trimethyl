@@ -27,52 +27,26 @@ exports.config = config;
 
 var Cloud = require('ti.cloud');
 Cloud.debug = !ENV_PRODUCTION;
-var Event = require('T/event');
 
 
-/**
- * Send the API request to the ACS to subscribe
- *
- * @param  {String}   deviceToken 	The device token
- * @param  {String}   [channel]     The channel name
- * @param  {Function} [callback]    The callback
- */
-function subscribe(deviceToken, channel, callback) {
-	Ti.App.Properties.setString('notifications.token', deviceToken);
-
+exports.subscribe = function(opt) {
 	Cloud.PushNotifications.subscribeToken({
-		device_token: deviceToken,
-		channel: channel || 'none',
-		type: (OS_IOS ? 'ios' : (OS_ANDROID ? 'gcm' : ''))
+		device_token: opt.deviceToken,
+		channel: opt.channel || 'none',
+		type: (function(){
+			if (OS_IOS) return 'ios';
+			if (OS_ANDROID) return 'gcm';
+		})()
 	}, function (e) {
-		if (e.success === true) {
-			Event.trigger('notifications.subscription.success', { channel: channel });
-			if (_.isFunction(callback)) callback();
-		} else {
-			Ti.API.error('Notifications.Cloud: ', e);
-			Event.trigger('notifications.subscription.error', e);
-		}
+		opt[ e.success === true ? 'success' : 'error' ](e);
 	});
-}
-exports.subscribe = subscribe;
+};
 
-
-/**
- * Send the API request to the ACS to unsubscribe from that channel
- *
- * @param  {String} channel
- */
-function unsubscribe(channel) {
-	var token = Ti.App.Properties.getString('notifications.token');
-	if (_.isEmpty(token)) {
-		Ti.API.error('Notifications.Cloud: Error while getting notification token in subscribing');
-		return;
-	}
-
-	Ti.App.Properties.removeProperty('notifications.token');
+exports.unsubscribe = function(opt) {
 	Cloud.PushNotifications.unsubscribeToken({
-		device_token: token,
-		channel: channel || null
-	}, function(){});
-}
-exports.unsubscribe = unsubscribe;
+		device_token: opt.deviceToken,
+		channel: opt.channel || 'none'
+	}, function(e){
+		opt[ e.success === true ? 'success' : 'error' ](e);
+	});
+};

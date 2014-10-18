@@ -36,51 +36,44 @@ function getPhoto(method, opt, callback){
 	));
 }
 
-
 /**
+ * @method takePhoto
  * Open the Camera to take a photo
  *
  * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
  * @param  {Function} callback  	Success callback
  */
-function takePhoto(opt, callback) {
+exports.takePhoto = function(opt, callback) {
 	getPhoto('showCamera', opt, callback);
-}
-exports.takePhoto = takePhoto;
-
+};
 
 /**
+ * @method choosePhoto
  * Open the Gallery to chooose a photo
  *
  * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
  * @param  {Function} callback  	Success callback
  */
-function choosePhoto(opt, callback) {
+exports.choosePhoto = function(opt, callback) {
 	getPhoto('openPhotoGallery', opt, callback);
-}
-exports.choosePhoto = choosePhoto;
-
+};
 
 /**
+ * @method selectPhoto
  * Display an option dialog to prompt the user to take a photo with the camera or select a photo from the gallery
  *
  * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
  * @param  {Function} callback  	Success callback
  */
-function selectPhoto(opt, callback){
+exports.selectPhoto = function(opt, callback){
 	require('T/dialog').option(L('camera_chooseinput'), [
 	{
 		title: L('camera_takephoto'),
-		callback: function(){
-			takePhoto(opt, callback);
-		}
+		callback: function(){ exports.takePhoto(opt, callback); }
 	},
 	{
 		title: L('camera_choosephoto'),
-		callback: function(){
-			choosePhoto(opt, callback);
-		}
+		callback: function(){ exports.choosePhoto(opt, callback); }
 	}
 	]);
-}
-exports.selectPhoto = selectPhoto;
+};

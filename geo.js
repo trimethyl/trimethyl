@@ -24,13 +24,13 @@ exports.config = config;
 var Dialog = require('T/dialog');
 
 
-function originalErrorHandler(e) {
-	if (e != null && e.servicesDisabled === true) {
+var originalErrorHandler = function(e) {
+	if (_.isObject(e) && e.servicesDisabled === true) {
 		enableServicesAlert();
 	} else {
 		Dialog.alert(null, L('geo_error_title'));
 	}
-}
+};
 
 
 /**

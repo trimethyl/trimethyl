@@ -5,36 +5,33 @@
  */
 
 /**
- * * `base` The base URL of the API
- * * `timeout` Global timeout for the requests. After this value (express in milliseconds) the requests throw an error. Default: `http://localhost`
- * * `useCache` Check if the requests are automatically cached. Default: `true`
- * * `cacheDriver` Cache driver to use. Default `database`
+ * * `base` The base URL of the API. Default: `http://localhost`
+ * * `timeout` Global timeout for the requests; after this value (express in milliseconds) the requests throw an error. Default `10000`
  * * `headers` Global headers for all requests. Default: `{}`
- * * `usePingServer` Enable the PING-Server support. Default: `true`
- * * `autoOfflineMessage` Enable the automatic alert if the connection is offline
- * * `defaultCacheTTL` Force a predef TTL if not found on the headers. Default: `0`
+ * * `autoOfflineMessage` Enable the automatic alert if the connection is offline. Default `true`
  * @type {Object}
  */
 var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
-	useCache: true,
-	cacheDriver: 'database',
 	headers: {},
 	autoOfflineMessage: true,
-	defaultCacheTTL: 0,
 }, Alloy.CFG.T.http);
 exports.config = config;
 
 
-/**
- * @property errorHandler
- * Global error handler
- * @type {Function}
- */
-exports.errorHandler = function(err) {
+var errorHandler = function(err) {
 	require('T/dialog').alert(L('Error'), require('T/util').getErrorMessage(err));
 };
+
+/**
+ * @method getErrorHandler
+ * @return {Function}
+ */
+exports.getErrorHandler = function() {
+	return errorHandler;
+};
+
 
 /**
  * Check the internet connectivity
@@ -46,39 +43,34 @@ function isOnline() {
 exports.isOnline = isOnline;
 
 
-/**
- * @property headers
- * Global headers
- * @type {Array}
- */
-exports.headers = config.headers;
+var headers = _.clone(config.headers);
 
 /**
+ * @method addHeader
  * Add a global header for all requests
  * @param {String} key 		The header key
  * @param {String} value 	The header value
  */
-function addHeader(key, value) {
-	exports.headers[key] = value;
-}
-exports.addHeader = addHeader;
+exports.addHeader = function(key, value) {
+	headers[key] = value;
+};
 
 /**
+ * @method removeHeader
  * Remove a global header
  * @param {String} key 		The header key
  */
-function removeHeader(key) {
-	delete exports.headers[key];
-}
-exports.removeHeader = removeHeader;
+exports.removeHeader = function(key) {
+	delete headers[key];
+};
 
 /**
+ * @method resetHeaders
  * Reset all globals headers
  */
-function resetHeaders() {
-	exports.headers = {};
-}
-exports.resetHeaders = resetHeaders;
+exports.resetHeaders = function() {
+	headers = {};
+};
 
 
 /**
@@ -86,68 +78,51 @@ exports.resetHeaders = resetHeaders;
  * Queue for HTTP Requests
  * @type {Function}
  */
-exports.queue = [];
+var queue = [];
 
 /**
+ * @method isQueueEmpty
  * Check if the requests queue is empty
  * @return {Boolean}
  */
-function isQueueEmpty(){
-	return _.isEmpty(exports.queue);
-}
-exports.isQueueEmpty = isQueueEmpty;
+exports.isQueueEmpty = function(){
+	return _.isEmpty(queue);
+};
 
 /**
+ * @method getQueue
  * Get the current requests queue
  * @return {Array}
  */
-function getQueue(){
-	return exports.queue;
-}
-exports.getQueue = getQueue;
+exports.getQueue = function(){
+	return queue;
+};
 
 /**
+ * @method addToQueue
  * Add a request to queue
  * @param {HTTP.Request} request
  */
-function addToQueue(request) {
-	exports.queue[request.hash] = request;
-}
-exports.addToQueue = addToQueue;
+exports.addToQueue = function(request) {
+	queue[request.hash] = request;
+};
 
 /**
+ * @method removeFromQueue
  * Remove a request from queue
  */
-function removeFromQueue(request) {
-	delete exports.queue[request.hash];
-}
-exports.removeFromQueue = removeFromQueue;
+exports.removeFromQueue = function(request) {
+	delete queue[request.hash];
+};
 
 
 /**
- * @property Cache
- * Cache driver
- * @type {Object}
- */
-exports.Cache = require('T/cache').use(config.cacheDriver);
-
-/**
- * Set a different cache strategy
- * @param {String} driver
- */
-function setCacheDriver(driver) {
-	exports.Cache = require('T/cache').use(driver);
-}
-exports.setCacheDriver = setCacheDriver;
-
-
-/**
+ * @method resetCookies
  * Reset the cookies for all requests
  */
-function resetCookies() {
+exports.resetCookies = function() {
 	Ti.Network.createHTTPClient().clearCookies(config.base);
-}
-exports.resetCookies = resetCookies;
+};
 
 
 /**
@@ -168,8 +143,7 @@ exports.resetCookies = resetCookies;
  * @return {HTTP.Request}
  */
 function send(opt) {
-	var Request = require('T/http/request');
-	var request = new Request(opt);
+	var request = new (require('T/http/request'))(opt);
 	request.resolve();
 	return request;
 }

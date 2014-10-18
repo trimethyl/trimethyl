@@ -20,4 +20,4 @@ exports.config = config;
 Init
 */
 
-module.exports = _.clone(Backbone.Events);
+module.exports = Backbone.Events;

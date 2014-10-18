@@ -7,6 +7,7 @@
 var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
+var Cache = require('T/cache');
 
 function extractHTTPText(data, info) {
 	if (info != null && data != null) {
@@ -32,7 +33,7 @@ function HTTPRequest(opt) {
 	}
 
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
-	this.headers = _.extend({}, HTTP.config.headers, opt.headers);
+	this.headers = _.extend({}, HTTP.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : HTTP.config.timeout;
 
 	this.onSuccess = _.isFunction(opt.success) ? opt.success : function(){};
@@ -41,7 +42,7 @@ function HTTPRequest(opt) {
 	if (opt.error !== undefined) {
 		this.onError = _.isFunction(opt.error) ? opt.error : function(){};
 	} else {
-		this.onError = HTTP.errorHandler;
+		this.onError = HTTP.getErrorHandler();
 	}
 
 	// Rebuild the URL if is a GET and there's data
@@ -72,7 +73,7 @@ HTTPRequest.prototype._maybeCacheResponse = function() {
 		expireOn: Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl))
 	});
 
-	HTTP.Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
+	Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
@@ -86,7 +87,7 @@ HTTPRequest.prototype._getResponseInfo = function() {
 
 	var info = {
 		format: 'blob',
-		ttl: HTTP.config.defaultCacheTTL
+		ttl: 0
 	};
 
 	if (this.client.responseText != null) info.format = 'text';
@@ -165,7 +166,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	if (this.opt.cache === false || this.opt.refresh === true) return;
 	if (this.method !== 'GET') return;
 
-	var cachedData = HTTP.Cache.get(this.hash);
+	var cachedData = Cache.get(this.hash);
 	if (cachedData == null) return;
 
 	Ti.API.debug('HTTP: ['+this.hash+'] CACHE SUCCESS', {

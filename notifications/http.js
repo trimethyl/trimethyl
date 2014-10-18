@@ -17,25 +17,15 @@ var config = _.extend({
 exports.config = config;
 
 var HTTP = require('T/http');
-var Event = require('T/event');
 
 
-/**
- * Send the API request to a Web Server to subscribe
- *
- * @param  {String}   deviceToken 	The device token
- * @param  {Number}   [channel]     The channel ID
- * @param  {Function} [callback]    The callback
- */
-function subscribe(deviceToken, channel, callback) {
-	Ti.App.Properties.setString('notifications.token', deviceToken);
-
+exports.subscribe = function(opt) {
 	HTTP.send({
 		url: config.endpoint,
 		method: 'POST',
 		data: _.extend({
-			device_token: deviceToken,
-			channel_id: channel,
+			device_token: opt.deviceToken,
+			channel_id: opt.channel,
 			app_id: Ti.App.id,
 			app_version: Ti.App.version,
 			app_deploytype: Ti.App.deployType,
@@ -44,40 +34,21 @@ function subscribe(deviceToken, channel, callback) {
 				if (OS_ANDROID) return 2;
 			})(),
 		}, config.subscribeDataExtend),
-		success: function() {
-			Event.trigger('notifications.subscription.success', { channel: channel });
-			if (_.isFunction(callback)) callback();
-		},
-		error: function(err) {
-			Event.trigger('notifications.subscription.error', err);
-		}
+		success: opt.success,
+		error: opt.error
 	});
-}
-exports.subscribe = subscribe;
+};
 
-
-/**
- * Send the API request to a Web Server
- * to unsubscribe from that channel
- *
- * @param  {String} [channel]
- */
-function unsubscribe(channel) {
-	var token = Ti.App.Properties.getString('notifications.token');
-	if (_.isEmpty(token)) {
-		Ti.API.error('Notifications.HTTP: Error while getting notification token in subscribing');
-		return;
-	}
-
-	Ti.App.Properties.removeProperty('notifications.token');
+exports.unsubscribe = function(opt) {
 	HTTP.send({
 		url: config.endpoint,
 		method: 'DELETE',
 		data: {
-			device_token: token,
-			channel_id: channel,
+			device_token: opt.deviceToken,
+			channel_id: opt.channel,
 			app_id: Ti.App.id,
 		},
+		success: opt.success,
+		error: opt.error
 	});
-}
-exports.unsubscribe = unsubscribe;
+};

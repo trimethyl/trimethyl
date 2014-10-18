@@ -85,7 +85,7 @@ function parseArgs(args) {
  * Share on Facebook
  * @param {Object} args
  */
-function facebook(args) {
+exports.facebook = function(args) {
 	args = parseArgs(args);
 
 	// IOS-BUG: iOS Sharer doesn't share Facebook links
@@ -142,15 +142,14 @@ function facebook(args) {
 		}));
 
 	}
-}
-exports.facebook = facebook;
+};
 
 /**
  * @method twitter
  * Share on Twitter
  * @param {Object} args
  */
-function twitter(args) {
+exports.twitter = function(args) {
 	parseArgs(args);
 
 	var WEB_URL = 'http://www.twitter.com/intent';
@@ -205,16 +204,14 @@ function twitter(args) {
 
 		}
 	}
-
-}
-exports.twitter = twitter;
+};
 
 /**
- * @method mail
+ * @method email
  * Share via Mail
  * @param {Object} args
  */
-function mail(args) {
+exports.email = function(args) {
 	args = parseArgs(args);
 
 	var $dialog = Ti.UI.createEmailDialog({
@@ -242,17 +239,14 @@ function mail(args) {
 	});
 
 	$dialog.open();
-}
-exports.mail = mail;
-exports.email = mail;
-
+};
 
 /**
  * @method googleplus
  * Share on Google Plus
  * @param {Object} args
  */
-function googleplus(args) {
+exports.googleplus = function(args) {
 	args = parseArgs(args);
 	if (_.isEmpty(args.url)) {
 		Ti.API.error('Sharer: sharing on G+ require a URL');
@@ -263,16 +257,14 @@ function googleplus(args) {
 	Browser unique implementation
 	*/
 	Ti.Platform.openURL('https://plus.google.com/share?url=' + encodeURIComponent(args.url));
-}
-exports.googleplus = googleplus;
-
+};
 
 /**
  * @method whatsapp
  * Share via Whatsapp
  * @param {Object} args
  */
-function whatsapp(args) {
+exports.whatsapp = function(args) {
 	args = parseArgs(args);
 
 	if (OS_IOS) {
@@ -307,16 +299,14 @@ function whatsapp(args) {
 		}
 
 	}
-}
-exports.whatsapp = whatsapp;
-
+};
 
 /**
- * @method sms
+ * @method message
  * Share via Messages
  * @param {Object} args
  */
-function sms(args) {
+exports.message = function(args) {
 	args = parseArgs(args);
 
 	if (OS_IOS) {
@@ -360,16 +350,13 @@ function sms(args) {
 		Ti.Android.currentActivity.startActivity(intent, L('Share'));
 
 	}
-
-}
-exports.sms = sms;
-
+};
 
 /**
  * Share using iOS ActivityPopover or Android Intents
  * @param {Object} args
  */
-function activity(args) {
+exports.activity = function(args) {
 	args = parseArgs(args);
 
 	if (OS_IOS) {
@@ -379,8 +366,7 @@ function activity(args) {
 		*/
 
 		if (dkNappSocial == null) {
-			Ti.API.error('Sharer: module `dk.napp.social` is required for `activity` method');
-			return;
+			return Ti.API.error('Sharer: module `dk.napp.social` is required for `activity` method');
 		}
 
 		dkNappSocial[ Util.isIPad() ? 'activityPopover' : 'activityView' ]({
@@ -415,9 +401,8 @@ function activity(args) {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('Share')));
 
 	}
-}
-exports.activity = activity;
-exports.multi = activity;
+};
+
 
 /*
 Init
@@ -426,7 +411,8 @@ Init
 // Load modules
 
 FB = T('facebook');
-if (FB == null) {
+if (FB != null) {
+} else {
 	Ti.API.warn('Sharer: `facebook` can\'t be loaded');
 }
 

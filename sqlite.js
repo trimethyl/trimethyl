@@ -3,7 +3,6 @@
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * SQLite abstraction layer
- *
  */
 
 function SQLite(name, file) {
@@ -25,17 +24,17 @@ function SQLite(name, file) {
  * @param {Vararg} values
  * @return {Ti.DB.ResultSet}
  */
-SQLite.prototype.execute = function() {
+SQLite.prototype.execute = SQLite.prototype.exec = function() {
 	return Function.prototype.apply.call(this.db.execute, this.db, arguments);
 };
 
 /**
- * @method get
+ * @method value
  * Return a single value
  * @param {String} query
  * @param {Vararg} values
  */
-SQLite.prototype.value = function() {
+SQLite.prototype.value = SQLite.prototype.val = function() {
 	var row = this.execute.apply(this, arguments);
 	if (row.validRow === false) return null;
 	return row.field(0);
@@ -47,7 +46,7 @@ SQLite.prototype.value = function() {
  * @param {String} query
  * @param {Vararg} values
  */
-SQLite.prototype.single = function() {
+SQLite.prototype.single = SQLite.prototype.row = function() {
 	var row = this.execute.apply(this, arguments);
 	if (row.validRow === false) return {};
 	var obj = {};
@@ -63,7 +62,7 @@ SQLite.prototype.single = function() {
  * @param {String} query
  * @param {Vararg} values
  */
-SQLite.prototype.list = function() {
+SQLite.prototype.list = SQLite.prototype.array = function() {
 	var row = this.execute.apply(this, arguments);
 	var list = [];
 	while (row.validRow === true) {
@@ -79,7 +78,7 @@ SQLite.prototype.list = function() {
  * @param {String} query
  * @param {Vararg} values
  */
-SQLite.prototype.all = function() {
+SQLite.prototype.all = SQLite.prototype.rows = function() {
 	var row = this.execute.apply(this, arguments);
 	var list = [];
 	while (row.validRow === true) {

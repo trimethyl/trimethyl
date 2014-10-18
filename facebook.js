@@ -5,17 +5,15 @@
 
 
 /**
- * * `appid` Application ID. Default: `null`
  * * `permissions` Array of permissions. Default: `[]`
  * @type {Object}
  */
 var config = _.extend({
-	appid: null,
 	permissions: [],
 }, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
-var Facebook = require('com.facebook') || require('facebook');
+var Facebook = require('com.facebook');
 
 if (Facebook != null) {
 	if (config.permissions != null) {

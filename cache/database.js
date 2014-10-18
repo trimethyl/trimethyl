@@ -13,63 +13,62 @@ exports.config = config;
 
 
 var Util = require('T/util');
-var DB = null;
 
 /**
+ * @method get
  * Get an entry
  * @param  {String} hash [description]
  * @return {Object}
  */
-function get(hash) {
-	var row = DB.execute('SELECT expire, value, info FROM cache WHERE hash = ? LIMIT 1', hash);
-	if (row.isValidRow() === false) return;
+exports.get = function(hash) {
+	var row = DB.row('SELECT expire, value, info FROM cache WHERE hash = ? LIMIT 1', hash);
+	if (_.isEmpty(row)) return null;
 
-	var expire = parseInt(row.fieldByName('expire'), 10);
-	if (expire !== -1 && Util.now() > expire) return;
+	var expire = parseInt(row.expire, 10);
+	if (expire !== -1 && Util.now() > expire) return null;
 
 	return {
 		expire: expire,
-		value: row.fieldByName('value'),
-		info: Util.parseJSON(row.fieldByName('info'))
+		value: row.value,
+		info: Util.parseJSON(row.info)
 	};
-}
-exports.get = get;
+};
 
 /**
+ * @method set
  * Set a new entry
  * @param {String} 	hash
  * @param {Mixed} 	value
  * @param {Number} 	ttl
  * @param {Object} 	info
  */
-function set(hash, value, ttl, info) {
-	var expire = ttl != null ? Util.fromnow(ttl) : -1;
-	var q = 'INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)';
-	DB.execute(q, hash, expire, value, JSON.stringify(info));
-}
-exports.set = set;
+exports.set = function(hash, value, ttl, info) {
+	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)',
+	hash, ttl != null ? Util.fromnow(ttl) : -1, value, JSON.stringify(info));
+};
+
 
 /**
- * Prune all
- */
-function prune() {
-	return DB.execute('DELETE FROM cache WHERE 1');
-}
-exports.prune = prune;
-
-/**
+ * @method remove
  * Remove an entry
  * @param  {String} 	hash
  */
-function remove(hash) {
+exports.remove = function(hash) {
 	DB.execute('DELETE FROM cache WHERE hash = ?', hash);
-}
-exports.remove = remove;
+};
+
+/**
+ * @method prune
+ * Prune all
+ */
+exports.prune = function() {
+	return DB.execute('DELETE FROM cache WHERE 1');
+};
 
 
 /*
 Init
 */
 
-DB = require('T/db').open();
+var DB = new (require('T/sqlite'))('app');
 DB.execute('CREATE TABLE IF NOT EXISTS cache (hash TEXT PRIMARY KEY, expire INTEGER, value TEXT, info TEXT)');

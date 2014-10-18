@@ -21,18 +21,9 @@ var Util = require('T/util');
 
 var inBackground = false;
 
-
-/**
- * Require the selected driver
- *
- * @param  {String} driver The driver
- * @return {Object}
- */
-function load(driver) {
-	return require('T/notifications/'+driver);
+function load(n) {
+	return require('T/notifications/'+n);
 }
-exports.load = load;
-
 
 function onNotificationReceived(e) {
 	if (OS_ANDROID) {
@@ -63,7 +54,7 @@ function onNotificationReceived(e) {
 	}
 
 	if (config.autoReset === true) {
-		resetBadge();
+		exports.resetBadge();
 	}
 
 	Event.trigger('notifications.received', e);
@@ -82,7 +73,7 @@ if (OS_IOS) {
 				Ti.App.iOS.removeEventListener('usernotificationsettings', tmpSubscribe);
 				Ti.Network.registerForPushNotifications({
 					callback: onNotificationReceived,
-					success: function(e) { callback(e.deviceToken) },
+					success: function(e) { callback(e.deviceToken); },
 					error: function(err) {
 						Ti.API.error('Notifications: Retrieve device token failed', err);
 						Event.trigger('notifications.subscription.error', err);
@@ -131,9 +122,7 @@ if (OS_IOS) {
 		CloudPush.addEventListener('trayClickFocusedApp', onNotificationReceived);
 
 		CloudPush.retrieveDeviceToken({
-			success: function(e) {
-				callback(e.deviceToken);
-			},
+			success: function(e) { callback(e.deviceToken); },
 			error: function(e) {
 				Ti.API.error('Notifications: Retrieve device token failed', e);
 				Event.trigger('notifications.subscription.error', e);
@@ -151,71 +140,100 @@ if (OS_IOS) {
 
 
 /**
- * Subscribe for that channell
+ * @method subscribe
+ * Subscribe for that channel
  * @param  {String} channel Channel name
  */
-function subscribe(channel) {
-	subscribeFunction(function(token) {
-		load(config.driver).subscribe(token, channel, function(){
-			Ti.API.debug('Notifications: Subscription OK with driver ' + config.driver);
+exports.subscribe = function(channel) {
+	subscribeFunction(function(deviceToken) {
+		Ti.App.Properties.setString('notifications.token', deviceToken);
+
+		load(config.driver).subscribe({
+			deviceToken: deviceToken,
+			channel: channel,
+			success: function(){
+				Event.trigger('notifications.subscription.success', { channel: channel });
+				Ti.API.debug('Notifications: Subscription to channel' + channel + ' succeded');
+			},
+			error: function(err) {
+				Event.trigger('notifications.subscription.error', err);
+				Ti.API.error('Notifications: Subscription failed to channel' + channel, err);
+			}
 		});
 	});
-}
-exports.subscribe = subscribe;
+};
 
 
 /**
+ * @method unsubscribe
  * Unsubscribe for that channel
  * @param  {String} channel Channel name
  */
-function unsubscribe(channel) {
-	load(config.driver).unsubscribe(channel);
-}
-exports.unsubscribe = unsubscribe;
+exports.unsubscribe = function(channel) {
+	var deviceToken = Ti.App.Properties.getString('notifications.token');
+	if (_.isEmpty(deviceToken)) {
+		return Ti.API.error('Notifications: Error while getting devideToken');
+	}
+
+	Ti.App.Properties.removeProperty('notifications.token');
+	load(config.driver).unsubscribe({
+		deviceToken: deviceToken,
+		channel: channel,
+		success: function(){
+			Event.trigger('notifications.unsubscription.error', { channel: channel });
+			Ti.API.debug('Notifications: Unsubscription to channel' + channel + ' succeded');
+		},
+		error: function(err) {
+			Event.trigger('notifications.unsubscription.error', err);
+			Ti.API.error('Notifications: Unsubscription failed to channel' + channel, err);
+		}
+	});
+};
 
 
 /**
+ * @method setBadge
  * Set the App badge value
  * @param {Number} x
  */
-function setBadge(x) {
+exports.setBadge = function(x) {
 	if (OS_IOS) {
 		Ti.UI.iPhone.setAppBadge(Math.max(x,0));
 	} else if (OS_ANDROID) {
 		// TODO
 	}
-}
-exports.setBadge = setBadge;
-
+};
 
 /**
+ * @method getBadge
  * Get the App badge value
  * @return {Number}
  */
-function getBadge() {
+exports.getBadge = function() {
 	if (OS_IOS) {
 		return Ti.UI.iPhone.getAppBadge();
 	} else if (OS_ANDROID) {
 		// TODO
 	}
-}
-exports.getBadge = getBadge;
+};
 
-
-function resetBadge() {
-	setBadge(0);
-}
+/**
+ * @method resetBadge
+ * Reset to 0 the badge
+ */
+exports.resetBadge = function() {
+	exports.setBadge(0);
+};
 
 
 /**
+ * @method incBadge
  * Increment the badge app
  * @param  {Number} i The value to increment
  */
-function incBadge(i) {
-	setBadge(getBadge() + i);
-}
-exports.incBadge = incBadge;
-
+exports.incBadge = function(i) {
+	exports.setBadge(exports.getBadge() + i);
+};
 
 
 /*
@@ -223,6 +241,6 @@ Init
 */
 
 if (config.autoReset) {
-	resetBadge();
-	Ti.App.addEventListener('resumed', resetBadge);
+	exports.resetBadge();
+	Ti.App.addEventListener('resumed', exports.resetBadge);
 }

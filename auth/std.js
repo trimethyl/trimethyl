@@ -1,7 +1,6 @@
 /**
  * @class  Auth.Std
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Auth driver to handle Standard authentication
  */
 
 /**
@@ -11,57 +10,21 @@ var config = _.extend({
 }, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.std : {});
 exports.config = config;
 
-var HTTP = require('T/http');
-var Auth = require('T/auth');
 
+exports.login = function(opt) {
+	Ti.App.Properties.setObject('auth.std.data', opt.data);
+	opt.success(opt.data);
+};
 
-/**
- * Login to the API server using stored data
- */
-function handleLogin(){
-	var data = Ti.App.Properties.getObject('auth.std.data') || {};
-	data.silent = true;
-	Auth.login(data, 'std');
-}
-exports.handleLogin = handleLogin;
-
-
-/**
- * Login to the API server
- *
- * @param {Object} 		data 		Data passed to API
- * @param  {Function} 	success 	Callback when login success
- */
-function login(data, success) {
-	Auth.login(data, 'std', function(){
-		Ti.App.Properties.setObject('auth.std.data', data);
-		if (_.isFunction(success)) success();
-	});
-}
-exports.login = login;
-
-
-/**
- * Remove any user data
- */
-function logout(){
+exports.logout = function(callback) {
 	Ti.App.Properties.removeProperty('auth.std.data');
-}
-exports.logout = logout;
+	if (_.isFunction(callback)) callback();
+};
 
-
-/**
- * Signup to the API server
- *
- * @param  {Object}   data Data passed to API
- * @param  {Function} callback   Success callback
- */
-function signup(data, callback) {
-	HTTP.send({
-		url: '/signup',
-		method: 'POST',
-		data: data,
-		success: callback
-	});
-}
-exports.signup = signup;
+exports.storedLogin = function(opt) {
+	if (Ti.App.Properties.hasProperty('auth.std.data')) {
+		opt.success(Ti.App.Properties.getObject('auth.std.data'));
+	} else {
+		opt.error();
+	}
+};

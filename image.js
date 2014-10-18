@@ -36,7 +36,7 @@ exports.config = config;
  * @param  {Object} opt The options, see the description above.
  * @return {Object} {Ti.Blob/Ti.File}
  */
-function process(opt) {
+exports.process = function(opt) {
 	if (opt.blob == null) {
 		return Ti.API.error('Image: Blob is null');
 	}
@@ -71,5 +71,4 @@ function process(opt) {
 	}
 
 	return file;
-}
-exports.process = process;
+};

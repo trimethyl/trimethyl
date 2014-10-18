@@ -1,21 +1,18 @@
 /**
  * @class  Cache
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Cache driver requirer
+ *
+ * Cache Interface
+ *
  */
 
 /**
+ * `strategy` The default strategy. Default `database`
  * @type {Object}
  */
 var config = _.extend({
-	driver: 'database'
+	strategy: 'database'
 }, Alloy.CFG.T.cache);
 exports.config = config;
 
-function use(what) {
-	return require('T/cache/'+what);
-}
-
-module.exports = _.extend(use(config.driver), {
-	use: use
-});
+module.exports = require('T/cache/'+config.strategy);
