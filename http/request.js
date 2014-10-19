@@ -69,9 +69,7 @@ HTTPRequest.prototype._maybeCacheResponse = function() {
 	if (this.responseInfo.ttl <= 0) return;
 	if (this.client.responseText == null) return;
 
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHED', {
-		expireOn: Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl))
-	});
+	Ti.API.debug('HTTP: ['+this.hash+'] CACHED until ' + Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl)));
 
 	Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
 };
@@ -135,7 +133,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 		// Write the cache (if needed and supported by configuration)
 		this._maybeCacheResponse();
 
-		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS', text);
+		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
 		this.onSuccess(text, data);
 
 	} else {

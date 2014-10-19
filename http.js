@@ -46,6 +46,14 @@ exports.isOnline = isOnline;
 var headers = _.clone(config.headers);
 
 /**
+ * @method getHeaders
+ * @return {Object}
+ */
+exports.getHeaders = function() {
+	return headers;
+};
+
+/**
  * @method addHeader
  * Add a global header for all requests
  * @param {String} key 		The header key

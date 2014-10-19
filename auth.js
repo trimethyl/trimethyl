@@ -72,6 +72,18 @@ exports.isStoredLoginAvailable = function() {
 };
 
 
+function driverLogin(opt) {
+	var q = Q.defer();
+
+	load(opt.driver)[ opt.stored === true ? 'storedLogin' : 'login' ]({
+		data: opt.data,
+		success: q.resolve,
+		error: q.reject
+	});
+
+	return q.promise;
+}
+
 function apiLogin(data) {
 	var q = Q.defer();
 
@@ -86,18 +98,6 @@ function apiLogin(data) {
 
 	return q.promise;
 }
-
-function driverLogin(opt) {
-	var q = Q.defer();
-
-	load(opt.driver)[ opt.stored === true ? 'storedLogin' : 'login' ](_.extend({}, opt.data, {
-		success: q.resolve,
-		error: q.reject
-	}));
-
-	return q.promise;
-}
-
 
 function fetchUserModel(info) {
 	var q = Q.defer();
@@ -124,7 +124,6 @@ function fetchUserModel(info) {
  */
 exports.login = function(opt) {
 	if (opt.driver == null) throw new Error('Please set a driver');
-
 	silent = false;
 
 	driverLogin(opt)
@@ -151,13 +150,15 @@ exports.login = function(opt) {
  * @param  {Object} opt
  */
 exports.storedLogin = function(opt) {
+	silent = true;
+
 	if (HTTP.isOnline()) {
-		silent = true;
 		exports.login(_.extend(opt, {
 			stored: true,
 			driver: getStoredDriver()
 		}));
 	} else {
+
 		if (Ti.App.Property.hasObject('auth.me')) {
 			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 			opt.success();
@@ -166,6 +167,7 @@ exports.storedLogin = function(opt) {
 				message: L('auth_error_nostoredinfo')
 			});
 		}
+
 	}
 };
 
