@@ -5,10 +5,10 @@
  */
 
 /**
- * * `base` The base URL of the API. Default: `http://localhost`
- * * `timeout` Global timeout for the requests; after this value (express in milliseconds) the requests throw an error. Default `10000`
- * * `headers` Global headers for all requests. Default: `{}`
- * * `autoOfflineMessage` Enable the automatic alert if the connection is offline. Default `true`
+ * * `base`: The base URL of the API. Default: `http://localhost`
+ * * `timeout`: Global timeout for the requests; after this value (express in milliseconds) the requests throw an error. Default `10000`
+ * * `headers`: Global headers for all requests. Default: `{}`
+ * * `autoOfflineMessage`: Enable the automatic alert if the connection is offline. Default `true`
  * @type {Object}
  */
 var config = _.extend({
@@ -20,7 +20,7 @@ var config = _.extend({
 exports.config = config;
 
 
-var errorHandler = function(err) {
+function errorHandler(err) {
 	require('T/dialog').alert(L('Error'), require('T/util').getErrorMessage(err));
 };
 

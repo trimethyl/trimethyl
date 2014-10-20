@@ -21,8 +21,9 @@ var Util = require('T/util');
 
 var inBackground = false;
 
-function load(n) {
-	return require('T/notifications/'+n);
+// Driver loader
+function load(name) {
+	return require( /\//.test(name) ? name : ('T/notifications/'+name) );
 }
 
 function onNotificationReceived(e) {
