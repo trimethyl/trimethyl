@@ -1,15 +1,14 @@
 /**
  * @class  	Geo
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Provide useful method for geolocation events
  */
 
 /**
- * * **gpsAccuracy**: Accuracy of Geo. Must be one of `'ACCURACY_HIGH'`, `'ACCURACY_LOW'`
- * * **geocodeUseGoogle**: Tell to use Google Services instead of Titanium geocoding services.
- * * **clusterPixelRadius**: The clustering radius expressed in PX. Default: `15`
- * * **clusterRemoveOutofBB**: Tell the clustering to remove pins that are out of the bounding box. Default: `true`
- * * **clusterMaxDelta**: The value before the clustering is off. Default: `0.3`
+ * * `gpsAccuracy`: Accuracy of Geo. Must be one of `'ACCURACY_HIGH'`, `'ACCURACY_LOW'`
+ * * `geocodeUseGoogle`: Tell to use Google Services instead of Titanium geocoding services.
+ * * `clusterPixelRadius`: The clustering radius expressed in PX. Default: `15`
+ * * `clusterRemoveOutofBB`: Tell the clustering to remove pins that are out of the bounding box. Default: `true`
+ * * `clusterMaxDelta`: The value before the clustering is off. Default: `0.3`
  * @type {Object}
  */
 var config = _.extend({
@@ -21,30 +20,33 @@ var config = _.extend({
 }, Alloy.CFG.geo);
 exports.config = config;
 
-var Dialog = require('T/dialog');
+var Event = require('T/event');
 
-
-var originalErrorHandler = function(e) {
+function originalErrorHandler(e) {
 	if (_.isObject(e) && e.servicesDisabled === true) {
-		enableServicesAlert();
+		exports.showEnableServicesAlert();
 	} else {
-		Dialog.alert(null, L('geo_error_title'));
+		require('T/dialog').alert(null, L('geo_error_title'));
 	}
-};
+}
+
+
+function checkForServices() {
+	return !! Ti.Geolocation.locationServicesEnabled;
+}
 
 
 /**
  * @method enableServicesAlert
  * Alert the user that Location is off
  */
-function enableServicesAlert(){
+exports.showEnableServicesAlert = function(){
 	if (OS_IOS) {
-		Dialog.alert(L('geo_error_title'), L('geo_error_msg'));
+		require('T/dialog').alert(L('geo_errortitle'), L('geo_errormsg'));
 	} else {
-		Dialog.alert(null, L('geo_error_title'));
+		require('T/dialog').alert(null, L('geo_errortitle'));
 	}
-}
-exports.enableServicesAlert = enableServicesAlert;
+};
 
 
 /**
@@ -57,86 +59,68 @@ exports.getOriginalErrorHandler = function() {
 };
 
 
-function checkForServices() {
-	return !! Ti.Geolocation.locationServicesEnabled;
-}
-
-
 /**
+ * @method getCurrentPosition
  * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
  *
- * A `geo.start` event is triggered at start,
- * and a `geo.end` event is triggered on end
+ * A `geo.start` event is triggered at start, and a `geo.end` event is triggered on end
  *
  * @param {Object}	opt
  */
-function getCurrentPosition(opt) {
-	if (!_.isFunction(opt.complete)) opt.complete = function(){};
-	if (!_.isFunction(opt.success)) opt.success = function(){};
-	opt.error = opt.error !== undefined ? opt.error : originalErrorHandler;
+exports.getCurrentPosition = function(opt) {
+	if (opt.error == null) opt.error = originalErrorHandler;
 
-	if (checkForServices() === false) {
-		opt.complete();
+	if (checkForServices()) {
+		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
 		return;
 	}
 
-	if (opt.silent !== false) {
-		require('T/event').trigger('geo.start');
-	}
-
+	if (opt.silent !== false) Event.trigger('geo.start');
 	Ti.Geolocation.getCurrentPosition(function(e) {
-		opt.complete();
-		if (opt.silent !== false) {
-			require('T/event').trigger('geo.end');
-		}
-
+		if (_.isFunction(opt.complete)) opt.complete();
+		if (opt.silent !== false) Event.trigger('geo.end');
 		if (e.success === false) {
 			if (_.isFunction(opt.error)) opt.error();
+		} else {
+			if (_.isFunction(opt.success)) opt.success(e.coords);
 		}
-
-		if (!_.isObject(e.coords)) {
-			if (_.isFunction(opt.error)) opt.error();
-			return;
-		}
-
-		opt.success(e.coords);
 	});
-}
-exports.getCurrentPosition = getCurrentPosition;
+};
 
 
 /**
+ * @method startNavigator
  * Open Apple Maps on iOS, Google Maps on Android and route from user location to defined location
- *
- * @param  {Number} lat  	Desination latitude
- * @param  {Number} lng  	Destination longitude
- * @param  {String} [mode] GPS mode used (walking,driving)
+ * @param  {Number} lat  		Desination latitude
+ * @param  {Number} lng  		Destination longitude
+ * @param  {String} [mode] 	GPS mode used (walking,driving)
  */
-function startNavigator(lat, lng, mode) {
-	getCurrentPosition({
+exports.startNavigator = function(lat, lng, mode) {
+	exports.getCurrentPosition({
 		success: function(g) {
 
 			Ti.Platform.openURL(
-			(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
-			require('T/util').buildQuery({
-				directionsmode: mode || 'walking',
-				saddr: g.latitude + ',' + g.longitude,
-				daddr: lat + ',' + lng
-			}));
+				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
+				require('T/util').buildQuery({
+					directionsmode: mode || 'walking',
+					saddr: g.latitude + ',' + g.longitude,
+					daddr: lat + ',' + lng
+				})
+			);
 
 		}
 	});
-}
-exports.startNavigator = startNavigator;
+};
 
 
 /**
+ * @method geocode
  * Return the coordinates of an address
- * @param {Object}	request
+ * @param {Object} opt
  */
-function geocode(opt) {
-	if (config.geocodeUseGoogle) {
+exports.geocode = function(opt) {
+	if (config.geocodeUseGoogle === true) {
 
 		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
@@ -176,15 +160,15 @@ function geocode(opt) {
 			});
 		});
 	}
-}
-exports.geocode = geocode;
+};
 
 
 /**
+ * @method reverseGeocode
  * Return the address with the specified coordinates
- * @param {Object}	request
+ * @param {Object} opt
  */
-function reverseGeocode(opt) {
+exports.reverseGeocode = function(opt) {
 	if (config.useGoogleForGeocode) {
 
 		require('T/http').send({
@@ -225,8 +209,7 @@ function reverseGeocode(opt) {
 			});
 		});
 	}
-}
-exports.reverseGeocode = reverseGeocode;
+};
 
 
 function deg2rad(deg) {
@@ -234,11 +217,11 @@ function deg2rad(deg) {
 }
 
 function dist(a,b) {
-	return Math.sqrt(Math.pow(a,2)+Math.pow(b,2)).toFixed(2);
+	return Math.sqrt(Math.pow(a,2) + Math.pow(b,2)).toFixed(2);
 }
 
-
 /**
+ * @method distanceInKm
  * Return the distance express in km between two points of the earth
  *
  * @param  {Number} lat1 The latitude of first point
@@ -247,16 +230,16 @@ function dist(a,b) {
  * @param  {Number} lon2 The longitude of second point
  * @return {Number} The distance expressed in km
  */
-function distanceInKm(lat1, lon1, lat2, lon2) {
-	var dLat = deg2rad(lat2-lat1)/2;
-	var dLon = deg2rad(lon2-lon1)/2;
+exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
+	var dLat = deg2rad(lat2 - lat1) / 2;
+	var dLon = deg2rad(lon2 - lon1) / 2;
 	var a = Math.sin(dLat) * Math.sin(dLat) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon) * Math.sin(dLon);
-	return 12742 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-exports.distanceInKm = distanceInKm;
+	return 12742 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 
 /**
+ * @method markerCluster
  * Process a set of markers and cluster them
  *
  * Each marker must be in this format:
@@ -270,7 +253,7 @@ exports.distanceInKm = distanceInKm;
  * ```
  * @param  {Object} e       	The arguments retrived from TiMap.addEventListener('regionchanged', **event**)
  * @param  {Object} markers 	The markers **must be** an instance of `Backbone.Collection` or an Object id-indexed
- * @param  {Object} [keys] 		The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
+ * @param  {Object} [keys] 	The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
  * @return {Array}
  * An array of markers in this format:
  *
@@ -319,7 +302,7 @@ exports.distanceInKm = distanceInKm;
  * ```
  *
  */
-function markerCluster(e, markers, keys){
+exports.markerCluster = function(e, markers, keys){
 	_.defaults(keys, { latitude: 'lat', longitude: 'lng', id: 'id' });
 
 	var c = {};
@@ -407,11 +390,11 @@ function markerCluster(e, markers, keys){
 	});
 
 	return data;
-}
-exports.markerCluster = markerCluster;
+};
 
 
 /**
+ * @method checkForDependencies
  * Check if the Google Play Services are installed and updated,
  * otherwise Maps doesn't work and the app crashes.
  *
@@ -420,9 +403,10 @@ exports.markerCluster = markerCluster;
  *
  * On iOS, simply return `true`
  *
+ * @return {Boolean}
  */
-function checkForDependencies() {
-	if (!OS_ANDROID) return false;
+exports.checkForDependencies = function() {
+	if (OS_IOS) return false;
 
 	var TiMap = require('ti.map');
 	var rc = TiMap.isGooglePlayServicesAvailable();
@@ -451,21 +435,21 @@ function checkForDependencies() {
 	}
 
 	// Open Play Store to download
-	Dialog.alert(L('Error'), errorMessage, function(){
+	require('T/dialog').alert(L('Error'), errorMessage, function(){
 		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
 		Ti.Android.currentActivity.finish();
 	});
-}
-exports.checkForDependencies = checkForDependencies;
+};
 
 
 /**
+ * @method getRegionBounds
  * Get the minimum MapRegion to include all annotations in array
  * @param  {Object} 	array 	An array of annotations
  * @param  {Number}	mulGap	Gap multiplier
  * @return {Map.MapRegionType}
  */
-function getRegionBounds(array, mulGap) {
+exports.getRegionBounds = function(array, mulGap) {
 	mulGap = mulGap || 1.4;
 	var lats = _.pluck(array, 'latitude');
 	var lngs = _.pluck(array, 'longitude');
@@ -476,8 +460,7 @@ function getRegionBounds(array, mulGap) {
 		latitudeDelta: mulGap * (bb[2] - bb[0]),
 		longitudeDelta: mulGap * (bb[3] - bb[1])
 	};
-}
-exports.getRegionBounds = getRegionBounds;
+};
 
 
 /*

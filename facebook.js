@@ -5,7 +5,7 @@
 
 
 /**
- * * `permissions` Array of permissions. Default: `[]`
+ * * `permissions`: Array of permissions. Default: `[]`
  * @type {Object}
  */
 var config = _.extend({

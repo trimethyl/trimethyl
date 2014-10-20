@@ -1,7 +1,6 @@
 /**
  * @class  Auth
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Authentication module interfaced with an API server
  */
 
 /**
@@ -18,12 +17,17 @@ exports.config = config;
 var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
+var Prop = require('T/prop');
 
-function load(n) {
-	return require('T/auth/'+n);
+// Driver loader
+function load(name) {
+	return require( /\//.test(name) ? name : ('T/auth/'+name) );
 }
 
+// HTTP requests flag
 var silent = true;
+
+// User model object
 var Me = null;
 
 
@@ -58,8 +62,8 @@ exports.getUserID = function(){
 
 
 function getStoredDriver(){
-	if ( ! Ti.App.Properties.hasProperty('auth.driver')) return null;
-	return Ti.App.Properties.getString('auth.driver');
+	if (!Prop.hasProperty('auth.driver')) return null;
+	return Prop.getString('auth.driver');
 }
 
 function driverLogin(opt) {
@@ -113,15 +117,15 @@ function fetchUserModel(info) {
  * @param  {Object} opt
  */
 exports.login = function(opt) {
-	if (opt.driver == null) throw new Error('Please set a driver');
+	if (_.isEmpty(opt.driver)) throw new Error('Please set a driver');
 	silent = false;
 
 	driverLogin(opt)
 	.then(apiLogin)
 	.then(fetchUserModel)
 	.then(function(){
-		Ti.App.Properties.setObject('auth.me', Me.toJSON());
-		Ti.App.Properties.setString('auth.driver', opt.driver);
+		Prop.setObject('auth.me', Me.toJSON());
+		Prop.setString('auth.driver', opt.driver);
 	})
 
 	.then(function(){
@@ -141,7 +145,8 @@ exports.login = function(opt) {
  * @return {Boolean}
  */
 exports.isStoredLoginAvailable = function() {
-	return getStoredDriver() != null && load(getStoredDriver()).isStoredLoginAvailable();
+	var driver = getStoredDriver();
+	return !_.isEmpty(driver) && load(driver).isStoredLoginAvailable();
 };
 
 
@@ -162,8 +167,8 @@ exports.storedLogin = function(opt) {
 
 	} else {
 
-		if (Ti.App.Property.hasObject('auth.me')) {
-			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+		if (Prop.hasObject('auth.me')) {
+			Me = Alloy.createModel('user', Prop.getObject('auth.me'));
 			opt.success();
 		} else {
 			opt.error({ message: L('auth_error_nostoredinfo') });

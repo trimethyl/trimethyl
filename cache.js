@@ -1,9 +1,6 @@
 /**
  * @class  Cache
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * Cache Interface
- *
  */
 
 /**
@@ -15,4 +12,9 @@ var config = _.extend({
 }, Alloy.CFG.T.cache);
 exports.config = config;
 
-module.exports = require('T/cache/'+config.strategy);
+// Driver loader
+function load(name) {
+	return require( /\//.test(name) ? name : ('T/cache/'+name) );
+}
+
+module.exports = load(config.strategy);

@@ -1,7 +1,6 @@
 /**
  * @class  Camera
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Manage Camera access
  */
 
 /**
@@ -24,16 +23,14 @@ function getPhoto(method, opt, callback){
 		mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
 		saveToPhotoGallery: (method === 'showCamera'),
 		success: callback,
-
 		cancel: function(e) {
 			Ti.API.warn('Camera: Cancelled', e);
 		},
 		error: function(e) {
 			Ti.API.error('Camera: Error', e);
-			require('T/dialog').alert(L('Error'), L('camera_error'));
+			require('T/dialog').alert(L('Error'), L('camera_inputerror'));
 		}
-	}
-	));
+	}));
 }
 
 /**

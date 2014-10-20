@@ -1,7 +1,6 @@
 /**
  * @class  	Dialog
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Dialog manager
  */
 
 
@@ -18,9 +17,8 @@ function onClickDict(e, dict, dialog) {
 	if (OS_IOS && e.index == e.source.cancel) return;
 	if (OS_ANDROID && e.cancel === true) return;
 
-	var d = dict[+e.index];
-	if (d != null && _.isFunction(d.callback)) {
-		d.callback.call(dialog, e);
+	if (_.isObject(dict[+e.index]) && _.isFunction(dict[+e.index].callback)) {
+		dict[+e.index].callback.call(dialog, e);
 	}
 }
 
@@ -36,7 +34,9 @@ function onClickDict(e, dict, dialog) {
  * @return {Ti.UI.AlertDialog}
  */
 function dialogAlert(title, message, callback, ext) {
-	if (OS_ANDROID && title == null) title = Ti.App.name;
+	if (OS_ANDROID && _.isEmpty(title)) {
+		title = Ti.App.name;
+	}
 
 	var dialog = Ti.UI.createAlertDialog(_.extend({
 		title: title,
@@ -118,15 +118,15 @@ exports.option = dialogOption;
  */
 function confirmYes(title, message, callback, buttonTitle) {
 	return dialogConfirm(title, message, [
-	{
-		title: L('Cancel'),
-		cancel: true
-	},
-	{
-		title: buttonTitle || L('Yes'),
-		callback: callback,
-		selected: true
-	}
+		{
+			title: L('Cancel'),
+			cancel: true
+		},
+		{
+			title: buttonTitle || L('Yes'),
+			callback: callback,
+			selected: true
+		}
 	]);
 }
 exports.confirmYes = confirmYes;
@@ -136,17 +136,20 @@ exports.confirmYes = confirmYes;
  * @method prompt
  * Create a prompt dialog.
  *
- * @param  {String}   title 				The title
- * @param  {String}   message   			The message
- * @param  {Function} [callback]    	The callback to invoke when clicking *Yes*.
+ * @param  {String}   	title 				The title
+ * @param  {String}   	message   			The message
+ * @param  {Function} 	[callback]    		The callback to invoke when clicking *Yes*.
  * @return {Ti.UI.AlertDialog}
  */
 function dialogPrompt(title, message, dict) {
 	if (OS_IOS) {
+
 		return dialogConfirm(title, message, dict, {
 			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT
 		});
+
 	} else if (OS_ANDROID) {
+
 		_.each(dict, function(d) {
 			if (d.cancel === true || d.callback == null) return;
 			d._origCallback = d.callback;
@@ -155,9 +158,11 @@ function dialogPrompt(title, message, dict) {
 				d._origCallback.call(this, e);
 			};
 		});
+
 		return dialogConfirm(title, message, dict, {
 			androidView: Ti.UI.createTextField()
 		});
+
 	}
 }
 exports.prompt = dialogPrompt;

@@ -1,8 +1,6 @@
 /**
  * @class  Device
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * Query current device for informations
  */
 
 /**
@@ -16,7 +14,6 @@ exports.config = config;
 /**
  * @method getScreenDensity
  * Get the device screen density
- *
  * @return {Number} The density
  */
 exports.getScreenDensity = function() {
@@ -27,7 +24,6 @@ exports.getScreenDensity = function() {
 /**
  * @method getScreenWidth
  * Get the device screen width
- *
  * @return {Number} The width
  */
 exports.getScreenWidth = function() {
@@ -38,7 +34,6 @@ exports.getScreenWidth = function() {
 /**
  * @method getScreenHeight
  * Get the device screen width
- *
  * @return {Number} The height
  */
 exports.getScreenHeight = function() {
@@ -56,10 +51,17 @@ exports.isSimulator = function() {
 };
 
 /**
+ * @method isIPhone
+ * @return {Boolean}
+ */
+exports.isIPhone = function() {
+	return Ti.Platform.osname === 'iphone';
+};
+
+/**
  * @method isIPad
  * @return {Boolean}
  */
 exports.isIPad = function() {
 	return Ti.Platform.osname === 'ipad';
 };
-
