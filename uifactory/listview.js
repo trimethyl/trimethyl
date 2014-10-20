@@ -1,14 +1,6 @@
 /**
  * @class  UIFactory.ListView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * ## New listeners
- *
- * #### `itemdblclick`
- *
- * Similar to itemclick, but for double **item** click
- *
- * @param  {Object} args
  */
 
 module.exports = function(args) {
@@ -30,6 +22,11 @@ module.exports = function(args) {
 		};
 		if (evtTime - devtTime < DBL_CLICK_TIMEOUT && _.isEqual(devtClick, evtClick)) {
 			evtClick.section = e.section;
+
+			/**
+			 * @event itemdblclick
+			 * Similar to itemclick, but for double **item** click
+			 */
 			$this.fireEvent('itemdblclick', evtClick);
 			evtClick = {}; // prevent non 2n-clicks
 		}

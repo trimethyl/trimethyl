@@ -2,17 +2,11 @@
  * @class  UIFactory.TextArea
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ## iOS Fixes
+ * ### iOS Fixes
  *
- * Add support for `hintText`, that is missing on iOS.
+ * * Add support for `hintText`, that is missing on iOS.
  *
- * ### New methods
- *
- * #### `getRealValue()`
- *
- * Get the effective value when using hintText hack
- *
- * ## Android Fixes
+ * ### Android Fixes
  *
  * * Removed the annoying autofocus.
  *
@@ -20,33 +14,35 @@
 
 module.exports = function(args) {
 	args = args || {};
-
 	var $this = Ti.UI.createTextArea(args);
 
-	var originalColor = $this.color || '#000';
-
-	var onTextAreaFocus = function() {
+	function onTextAreaFocus() {
 		if (_.isEmpty($this.getRealValue())) {
 			$this.applyProperties({
 				value: '',
-				color: originalColor
+				color: $this.color || '#000'
 			});
 		}
-	};
+	}
 
-	var onTextAreaBlur = function() {
+	function onTextAreaBlur() {
 		if (_.isEmpty($this.value)) {
 			$this.applyProperties({
 				value: $this.hintText,
 				color: $this.hintTextColor || '#AAA'
 			});
 		} else {
-			$this.color = originalColor;
+			$this.color = $this.color || '#000';
 		}
-	};
+	}
 
 	if (OS_IOS) {
 
+		/**
+		 * @method getRealValue
+		 * Get the effective value when using hintText hack
+		 * @return {String}
+		 */
 		$this.getRealValue = function(){
 			if ($this.hintText === $this.value) return '';
 			return $this.value;
@@ -59,6 +55,13 @@ module.exports = function(args) {
 		$this.setHintText = function(val) {
 			$this.hintText = val;
 		};
+
+	} else {
+
+		$this.getRealValue = function(){
+			return $this.value;
+		};
+
 	}
 
 

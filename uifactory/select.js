@@ -4,16 +4,20 @@
  *
  * ### Arguments
  *
- * #### `values (Array)`
+ * #### `values`. Type: `Array`
  *
  * An array containing the values.
  *
  * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values,
  * or simply `1` for the sames.
  *
- * #### `selectedValue (Object)`
+ * #### `selectedValue`. Type: `Object`
  *
  * The selected value
+ *
+ * ### Obtain the value
+ *
+ * Use the `getSelectedValue` method or `selectedValue` property.
  *
  */
 

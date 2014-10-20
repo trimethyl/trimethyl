@@ -2,9 +2,9 @@
  * @class  UIFactory.TextField
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ## Creation properties
+ * ### Creation properties
  *
- * #### `textType` (String)
+ * #### `textType`. Type: `String`
  *
  * Can be
  *
@@ -14,11 +14,11 @@
  *
  * to adjust the keyboard or the mask automatically.
  *
- * #### `useDoneToolbar` (Boolean, default: `false`)
+ * #### `useDoneToolbar`. Type: `Boolean`. Default: `false`
  *
  * Add a default toolbar with a *Done* button that simply blur the TextField.
  *
- * ## Android Fixes
+ * ### Android Fixes
  *
  * * Removed the annoying autofocus on Android.
  *

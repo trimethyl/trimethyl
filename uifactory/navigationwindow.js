@@ -7,16 +7,10 @@
  */
 
 function NavigationWindow(args) {
-	if (!(this instanceof NavigationWindow)) {
-		return new NavigationWindow(args);
-	}
-
 	this.args = args || {};
-
 	this.windows = [];
 	this.window = args.window || null;
 }
-
 
 function __onWindowClose(nav, e) {
 	var window = e.source;

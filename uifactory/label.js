@@ -2,7 +2,7 @@
  * @class  UIFactory.Label
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ## iOS Fixes
+ * ### iOS Fixes
  *
  * Add support for **VERY BASIC** HTML.
  *
@@ -36,7 +36,7 @@ function simpleHTMLParser(text) {
 		clean_text.push(partial);
 		last_text_idx += partial.length;
 
-		if (tag[1][0]=='/'){
+		if (tag[1][0] === '/'){
 			temp_style = style_stack.pop();
 			temp_style.length = last_text_idx - temp_style.start;
 			style.push(temp_style);
@@ -72,6 +72,10 @@ module.exports = function(args) {
 			}
 		}, args.fontTransform);
 
+		/**
+		 * @method setHtml
+		 * @param {String} value
+		 */
 		$this.setHtml = function(value) {
 			var htmlToAttrMap = {
 				'u': {

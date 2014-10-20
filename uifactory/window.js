@@ -2,41 +2,7 @@
  * @class  	UIFactory.Window
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ## XP Method
- *
- * #### `setTitle(String)` for OS_ANDROID
- *
- * ## New methods
- *
- * #### `setDeferredBackgroundImage(String)`
- *
- * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
- *
- * #### `setBackgroundCoverImage(String)`
- *
- * Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
- *
- * #### `addActivityButton(Dict)` (OS_ANDROID)
- *
- * Add an activity right button
- *
- * #### `setActivityButton(Dict)` (OS_ANDROID)
- *
- * Set an activity right button and remove all others
- *
- * #### `setRightNavButton(Dict)` (OS_ANDROID)
- *
- * Alias for `setActivityButton`
- *
- * #### `setActionBarProperties(Dict)` (OS_ANDROID)
- *
- * Set the properties for the actionBar
- *
- * #### `setActivityProperties(Dict)` (OS_ANDROID)
- *
- * Set the properties for the activity
- *
- * ## New creation properties
+ * ### New creation properties
  *
  * #### `displayHomeAsUp` (Boolean, default: `false`, OS_ANDROID)
  *
@@ -70,9 +36,13 @@ module.exports = function(args) {
 	});
 
 
-	// DeferredBackgroundImage
-	// ===================================
-
+	/**
+	 * @method setDeferredBackgroundImage
+	 * When large images are requested,
+	 * it's useful to set `deferredBackgroundImage`
+	 * to set the background on window open.
+	 * @param {String} val
+	 */
 	$this.setDeferredBackgroundImage = function(val) {
 		onOpen(function() {
 			$this.backgroundImage = val;
@@ -80,12 +50,15 @@ module.exports = function(args) {
 	};
 
 
-	// BackgroundCoverImage
-	// ===================================
-
 	var bgCoverUI = null;
 	var bgCoverUISview = null;
 
+	/**
+	 * @method setBackgroundCoverImage
+	 * Titanium doesn't have `backgroundSize: cover` property.
+	 * This is a workaround to make it work it!
+	 * @param {String} val
+	 */
 	$this.setBackgroundCoverImage = function(val){
 		var SCREEN_WIDTH = require('T/device').getScreenWidth();
 		var SCREEN_HEIGHT = require('T/device').getScreenHeight();
@@ -124,18 +97,27 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
-		// Activity
-		// ====================================
-
+		/**
+		 * @method setActivityProperties
+		 * **Android**
+		 *
+		 * Set the properties for the Activity
+		 * @param {Object} props
+		 */
 		$this.setActivityProperties = function(props) {
 			_.each(props, function(v, k) {
 				$this.activity[k] = v;
 			});
 		};
 
-		// ActionBar
-		// ====================================
-
+		/**
+		 * @method setActionBarProperties
+		 * **Android**
+		 *
+		 * Set the properties for the ActionBar
+		 * @param {Object}   props
+		 * @param {Function} callback
+		 */
 		$this.setActionBarProperties = function(props, callback) {
 			onOpen(function(){
 				if ($this.activity.actionBar == null) return;
@@ -148,15 +130,7 @@ module.exports = function(args) {
 		};
 
 
-		// ActivityButton
-		// ====================================
-
 		var activityButtons = [];
-
-		$this.addActivityButton = function(opt) {
-			while (opt.children && opt.children[0]) opt = opt.children[0];// hack for Alloy, just ignore it
-			activityButtons.push(opt);
-		};
 
 		$this.setActivityProperties({
 			onCreateOptionsMenu: function(e) {
@@ -176,20 +150,36 @@ module.exports = function(args) {
 			if (_.isFunction(act.invalidateOptionsMenu)) act.invalidateOptionsMenu();
 		});
 
+
+		/**
+		 * @method addActivityButton
+		 * **Android specific**
+		 *
+		 * @param {Object} opt
+		 */
+		$this.addActivityButton = function(opt) {
+			while (opt.children && opt.children[0]) opt = opt.children[0]; // hack for Alloy, just ignore it
+			activityButtons.push(opt);
+		};
+
+		/**
+		 * @method setActivityButton
+		 * **Android specific**
+		 *
+		 * @param {Object} opt
+		 */
 		$this.setActivityButton = function(opt) {
 			activityButtons = [];
 			$this.addActivityButton(opt);
 		};
 
-
- 		// RightNavButton (just an alias)
- 		// ======================================
-
+ 		/**
+ 		 * @method setRightNavButton
+ 		 * @inheritDoc #setActivityButton
+ 		 * Alias for {@link #setActivityButton}
+ 		 */
 		$this.setRightNavButton = $this.setActivityButton;
 
-
-		// Title
-		// =======================================
 
 		$this._processTitles = function () {
 			var bar = {};
@@ -201,11 +191,23 @@ module.exports = function(args) {
 			$this.setActionBarProperties(bar);
 		};
 
+		/**
+		 * @method setTitle
+		 * **Android fix**
+		 *
+		 * @param {String} value
+		 */
 		$this.setTitle = function(value) {
 			$this.title = value;
 			$this._processTitles();
 		};
 
+		/**
+		 * @method setSubtitle
+		 * **Android fix**
+		 *
+		 * @param {String} value
+		 */
 		$this.setSubtitle = function(value) {
 			$this.subtitle = value;
 			$this._processTitles();
