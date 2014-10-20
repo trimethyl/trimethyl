@@ -402,7 +402,7 @@ exports.parseAsXCallbackURL = function(str) {
  * @method hashJavascriptObject
  * Return the seralized representation of any JS object.
  * @param  {Object} obj
- * @return {String) The hash
+ * @return {String} The hash
  */
 exports.hashJavascriptObject = function(obj) {
 	if (obj == null) return 'null';

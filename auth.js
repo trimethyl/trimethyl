@@ -7,7 +7,7 @@
 /**
  * * `loginUrl` URL to login-in
  * * `logoutUrl` URL to logout
- * @type {Object
+ * @type {Object}
  */
 var config = _.extend({
 	loginUrl: '/login',
