@@ -16,7 +16,7 @@ exports.config = config;
 
 
 var Util = require('T/util');
-var globalCallback = null;// Handle all callbacks
+var globalCallback = null; // Handle all callbacks
 
 var FB = null;
 var dkNappSocial = null;

@@ -4,7 +4,7 @@
  */
 
 /**
- * * **jsExt**: The extension to use for Javascript files. Default: `.jslocal`
+ * * `jsExt`: The extension to use for Javascript files. Default: `.jslocal`
  * @type {Object}
  */
 var config = _.extend({

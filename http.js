@@ -1,7 +1,6 @@
 /**
  * @class  HTTP
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * HTTP network module
  */
 
 /**

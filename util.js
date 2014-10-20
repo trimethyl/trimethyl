@@ -1,16 +1,14 @@
 /**
  * @class  	Util
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Util module.
- *
- * All things that I don't know where to put, are here.
- *
  */
 
 var Dialog = require('T/dialog');
+var Prop = reuire('T/prop');
 
 
 /**
+ * @method openURL
  * Try to open the URL with `Ti.Platform.openURL`, catching errors.
  *
  * If can't open the primary argument (url), open the fallback.
@@ -21,7 +19,7 @@ var Dialog = require('T/dialog');
  * @param  {String|Function} [fallback] If is a string, try to open the URL. If is a functions, call it.
  * @param  {String} [error]    The error to show
  */
-function openURL(url, fallback, error) {
+exports.openURL = function(url, fallback, error) {
 	function doFallback() {
 		if (fallback != null) {
 			if (_.isFunction(fallback)) fallback();
@@ -44,11 +42,11 @@ function openURL(url, fallback, error) {
 			doFallback();
 		}
 	}
-}
-exports.openURL = openURL;
+};
 
 
 /**
+ * @method startActivity
  * Valid only on Android, start the activity catching any possible errors.
  *
  * If `error` is provided, show the error dialog with this message.
@@ -56,7 +54,7 @@ exports.openURL = openURL;
  * @param  {Object} opt   Options for `createIntent(...)`
  * @param  {String} [error] Error message
  */
-function startActivity(opt, error) {
+exports.startActivity = function(opt, error) {
 	try {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
@@ -64,8 +62,7 @@ function startActivity(opt, error) {
 			Dialog.alert(L('Error'), error);
 		}
 	}
-}
-exports.startActivity = startActivity;
+};
 
 
 /**
@@ -74,7 +71,7 @@ exports.startActivity = startActivity;
  * @param  {String} fbid Facebook ID
  */
 exports.openFacebookProfile = function(fbid) {
-	openURL('fb://profile/' + fbid, 'https://facebook.com/' + fbid);
+	exports.openURL('fb://profile/' + fbid, 'https://facebook.com/' + fbid);
 };
 
 
@@ -84,7 +81,7 @@ exports.openFacebookProfile = function(fbid) {
  * @param  {String} twid Twitter screen name
  */
 exports.openTwitterProfile = function(twid) {
-	return openURL('twitter://user?screen_name=' + twid, 'http://twitter.com/' + twid);
+	return exports.openURL('twitter://user?screen_name=' + twid, 'http://twitter.com/' + twid);
 };
 
 
@@ -95,7 +92,7 @@ exports.openTwitterProfile = function(twid) {
  * @param  {String} statusid The status id
  */
 exports.openTwitterStatus = function(userid, statusid) {
-	return openURL('twitter://status?id=' + statusid, 'http://twitter.com/' + userid + '/statuses/' + statusid);
+	return exports.openURL('twitter://status?id=' + statusid, 'http://twitter.com/' + userid + '/statuses/' + statusid);
 };
 
 
@@ -142,11 +139,10 @@ exports.getDomainFromURL = function(url) {
  * Return the iOS major version
  * @return {Number}
  */
-function getIOSVersion() {
+exports.getIOSVersion = function() {
 	if (!OS_IOS) return 0;
 	return parseInt(Ti.Platform.version.split('.')[0], 10);
-}
-exports.getIOSVersion = getIOSVersion;
+};
 
 /**
  * @method isIOS6
@@ -154,7 +150,7 @@ exports.getIOSVersion = getIOSVersion;
  * @return {Boolean}
  */
 exports.isIOS6 = function() {
-	return getIOSVersion() === 6;
+	return exports.getIOSVersion() === 6;
 };
 
 /**
@@ -163,7 +159,7 @@ exports.isIOS6 = function() {
  * @return {Boolean}
  */
 exports.isIOS7 = function() {
-	return getIOSVersion() === 7;
+	return exports.getIOSVersion() === 7;
 };
 
 /**
@@ -172,7 +168,7 @@ exports.isIOS7 = function() {
  * @return {Boolean}
  */
 exports.isIOS8 = function() {
-	return getIOSVersion() === 8;
+	return exports.getIOSVersion() === 8;
 };
 
 /**
@@ -199,12 +195,11 @@ exports.parseSchema = function() {
  * @param  {String} [t]  The date to parse. If is not provided, get current timestamp.
  * @return {Number}
  */
-function timestamp(t) {
+exports.timestamp = function(t) {
 	var ts = new Date(t).getTime() / 1000;
 	if (!_.isNumber(ts)) return 0;
 	return parseInt(ts, 10);
-}
-exports.timestamp = timestamp;
+};
 
 
 /**
@@ -212,10 +207,9 @@ exports.timestamp = timestamp;
  * Get the current UNIX timestamp.
  * @return {Number}
  */
-function now() {
-	return timestamp(new Date());
-}
-exports.now = now;
+exports.now = function() {
+	return exports.timestamp(new Date());
+};
 
 
 /**
@@ -226,7 +220,7 @@ exports.now = now;
  * @return {Number}
  */
 exports.fromnow = exports.fromNow = function(t) {
-	return timestamp( new Date().getTime() + t*1000 );
+	return exports.timestamp( new Date().getTime() + t*1000 );
 };
 
 /**
@@ -269,9 +263,7 @@ exports.buildQuery = function(obj) {
 
 	var q = [];
 	_.each(obj, function(v, k) {
-		if (v != null) {
-			q.push(k + '=' + encodeURIComponent(v));
-		}
+		if (v != null) q.push(k + '=' + encodeURIComponent(v));
 	});
 	if (q.length === 0) return '';
 
@@ -301,9 +293,9 @@ exports.dial = function(tel) {
 	var telString = tel.match(/[0-9]/g).join('');
 	var errString = String.format(L('util_dial_failed'), tel);
 	if (OS_IOS) {
-		openURL('tel:' + telString, null, errString);
+		exports.openURL('tel:' + telString, null, errString);
 	} else if (OS_ANDROID) {
-		startActivity({
+		exports.startActivity({
 			action: Ti.Android.ACTION_CALL,
 			data: 'tel:' + telString
 		}, errString);
@@ -320,7 +312,7 @@ exports.dial = function(tel) {
  * @return {Boolean}
  */
 exports.isAppFirstUsage = function() {
-	return ! Ti.App.Properties.hasProperty('app.firstusage');
+	return ! Prop.hasProperty('app.firstusage');
 };
 
 
@@ -329,10 +321,9 @@ exports.isAppFirstUsage = function() {
  * Set the app first usage date.
  *
  * Use in conjunction with {@link #isAppFirstUsage}
- *
  */
 exports.setAppFirstUsage = function() {
-	Ti.App.Properties.setString('app.firstusage', now());
+	Prop.setString('app.firstusage', now());
 };
 
 
@@ -398,6 +389,7 @@ exports.parseAsXCallbackURL = function(str) {
 	return uri;
 };
 
+
 /**
  * @method hashJavascriptObject
  * Return the seralized representation of any JS object.
@@ -413,6 +405,7 @@ exports.hashJavascriptObject = function(obj) {
 	}
 	return obj.toString();
 };
+
 
 /**
  * @method getErrorMessage

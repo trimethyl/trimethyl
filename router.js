@@ -17,6 +17,7 @@ var routes = []; // storage for all routes
 
 
 /**
+ * @method on
  * Register a route with defined callbacks
  *
  * @param  {String|RegExp|Function}   	key 			The route name.
@@ -28,14 +29,12 @@ var routes = []; // storage for all routes
  *
  * @param  {Function}	callback  		The callback
  */
-function on(key, callback) {
+exports.on = function(key, callback) {
 	routes.push({
 		key: key,
 		callback: callback
 	});
-}
-exports.on = on;
-
+};
 
 /**
  * @method dispatch
@@ -103,11 +102,11 @@ exports.go = exports.dispatch;
 exports.autoMapModel = function(single, plural) {
 	plural = plural || single+'s';
 
-	on('/' + plural, function() {
+	exports.on('/' + plural, function() {
 		require('T/flow').open(plural);
 	});
 
-	on(new RegExp('/' + plural + '/([0-9]+)'), function(id) {
+	exports.on(new RegExp('/' + plural + '/([0-9]+)'), function(id) {
 		require('T/flow').open(single, {
 			id: id
 		});

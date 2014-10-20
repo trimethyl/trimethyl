@@ -1,7 +1,6 @@
 /**
  * @class  Notifications
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Handle notifications system for both platform
  */
 
 
