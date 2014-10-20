@@ -15,8 +15,6 @@ var config = _.extend({
 }, Alloy.CFG.T.flow);
 exports.config = config;
 
-var GA = require('T/ga');
-
 var Navigator = null; // represents current navigator
 var navPreviousRoute = null; // route to handle on startup
 
@@ -42,7 +40,7 @@ function autoTrackWindow($win, key) {
 
 	// Track screen with GA
 	if (config.trackWithGA) {
-		GA.trackScreen(key);
+		require('T/ga').trackScreen(key);
 	}
 
 	// Track timing with GA
@@ -57,7 +55,7 @@ function autoTrackWindow($win, key) {
 
 		$win.addEventListener('blur', function(){
 			if (!startFocusTime) return;
-			GA.time(key, +(new Date())-startFocusTime);
+			require('T/ga').time(key, +(new Date())-startFocusTime);
 		});
 	}
 }
@@ -236,8 +234,10 @@ function openDirect(controller, args, opt, key) {
 	var $c = Alloy.createController(controller, args);
 	key = key || $c.analyticsKey || (controller + (args.id?'/'+args.id:''));
 
-	if (!_.isEmpty(key)) {
-		GA.trackScreen(key);
+	if (config.trackWithGA) {
+		if (!_.isEmpty(key)) {
+			require('T/ga').trackScreen(key);
+		}
 	}
 
 	return $c;

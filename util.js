@@ -225,7 +225,7 @@ exports.now = now;
  * @param  {Number} [t]  Seconds from now.
  * @return {Number}
  */
-exports.fromnow = function(t) {
+exports.fromnow = exports.fromNow = function(t) {
 	return timestamp( new Date().getTime() + t*1000 );
 };
 

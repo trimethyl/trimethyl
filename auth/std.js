@@ -21,8 +21,12 @@ exports.logout = function(callback) {
 	if (_.isFunction(callback)) callback();
 };
 
+exports.isStoredLoginAvailable = function() {
+	return Ti.App.Properties.hasProperty('auth.std.data');
+};
+
 exports.storedLogin = function(opt) {
-	if (Ti.App.Properties.hasProperty('auth.std.data')) {
+	if (exports.isStoredLoginAvailable()) {
 		opt.success(Ti.App.Properties.getObject('auth.std.data'));
 	} else {
 		opt.error();

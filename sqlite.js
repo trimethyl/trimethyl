@@ -6,10 +6,6 @@
  */
 
 function SQLite(name, file) {
-	if (!(this instanceof SQLite)) {
-		return new SQLite(name, file);
-	}
-
 	if (file == null) {
 		this.db = Ti.Database.open(name);
 	} else {

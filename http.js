@@ -33,16 +33,6 @@ exports.getErrorHandler = function() {
 };
 
 
-/**
- * Check the internet connectivity
- * @return {Boolean} The status
- */
-function isOnline() {
-	return Ti.Network.online;
-}
-exports.isOnline = isOnline;
-
-
 var headers = _.clone(config.headers);
 
 /**

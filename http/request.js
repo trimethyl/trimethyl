@@ -236,7 +236,7 @@ HTTPRequest.prototype.resolve = function() {
 
 	} else {
 
-		if (HTTP.isOnline()) {
+		if (Ti.Network.online) {
 
 			this.send();
 

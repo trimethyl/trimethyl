@@ -46,10 +46,6 @@
  *
  * Disable the back button (do nothing on click)
  *
- * #### `finishOnBack` (Boolean, default: `false`, OS_ANDROID)
- *
- * Close the entire app on back button click.
- *
  */
 
 module.exports = function(args) {
@@ -238,21 +234,11 @@ module.exports = function(args) {
 					$this.close();
 				}
 			});
-		} else {
-			$this.setActionBarProperties({
-				displayHomeAsUp: false
-			});
 		}
 
 		if (args.backButtonDisabled === true) {
 			$this.addEventListener('androidback', function() {
 				return false;
-			});
-		}
-
-		if (args.finishOnBack === true) {
-			$this.addEventListener('androidback', function() {
-				Ti.Android.currentActivity.finish();
 			});
 		}
 

@@ -58,19 +58,9 @@ exports.getUserID = function(){
 
 
 function getStoredDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver')) return null;
+	if ( ! Ti.App.Properties.hasProperty('auth.driver')) return null;
 	return Ti.App.Properties.getString('auth.driver');
 }
-
-/**
- * @method isStoredLoginAvailable
- * Check if the AL feature is available
- * @return {Boolean}
- */
-exports.isStoredLoginAvailable = function() {
-	return getStoredDriver() != null;
-};
-
 
 function driverLogin(opt) {
 	var q = Q.defer();
@@ -144,6 +134,17 @@ exports.login = function(opt) {
 	});
 };
 
+
+/**
+ * @method isStoredLoginAvailable
+ * Check if the Stored Login feature is available
+ * @return {Boolean}
+ */
+exports.isStoredLoginAvailable = function() {
+	return getStoredDriver() != null && load(getStoredDriver()).isStoredLoginAvailable();
+};
+
+
 /**
  * @method storedLogin
  * Login using stored driver
@@ -152,20 +153,20 @@ exports.login = function(opt) {
 exports.storedLogin = function(opt) {
 	silent = true;
 
-	if (HTTP.isOnline()) {
+	if (Ti.Network.online) {
+
 		exports.login(_.extend(opt, {
 			stored: true,
 			driver: getStoredDriver()
 		}));
+
 	} else {
 
 		if (Ti.App.Property.hasObject('auth.me')) {
 			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 			opt.success();
 		} else {
-			opt.error({
-				message: L('auth_error_nostoredinfo')
-			});
+			opt.error({ message: L('auth_error_nostoredinfo') });
 		}
 
 	}
@@ -176,7 +177,7 @@ exports.storedLogin = function(opt) {
  * @param  {Object} opt
  */
 exports.logout = function(callback) {
-	var id = getUserID();
+	var userID = getUserID();
 	var storedDriver = getStoredDriver();
 
 	// Remove stored infos
@@ -185,12 +186,12 @@ exports.logout = function(callback) {
 	Ti.App.Properties.removeProperty('auth.driver');
 
 	// Remove cache because can contain sensibile data
-	Cache.prune();
+	if (Cache != null) Cache.prune();
 	HTTP.resetCookies();
 
 	// Logout on used driver
 	load(storedDriver).logout(function(){
-		Event.trigger('auth.logout', { id: id });
+		Event.trigger('auth.logout', { id: userID });
 		if (_.isFunction(callback)) callback();
 	});
 };

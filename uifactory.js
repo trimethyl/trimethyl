@@ -79,7 +79,8 @@ exports.createTabbedBar = function(args) {
  */
 exports.createYoutubeVideoWebView = require('T/uifactory/youtubevideowebview');
 
+
 /**
- * @method createPicker
+ * @method createSelect
  */
-exports.createPicker = require('T/uifactory/picker');
+exports.createSelect = require('T/uifactory/select');

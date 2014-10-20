@@ -22,8 +22,12 @@ exports.logout = function(callback) {
 	if (_.isFunction(callback)) callback();
 };
 
+exports.isStoredLoginAvailable = function() {
+	return FB.loggedIn || !_.isEmpty(FB.accessToken);
+};
+
 exports.storedLogin = function(opt) {
-	if (FB.loggedIn || !_.isEmpty(FB.accessToken)) {
+	if (exports.isStoredLoginAvailable()) {
 		opt.success({ access_token: FB.accessToken });
 	} else {
 		opt.error();
