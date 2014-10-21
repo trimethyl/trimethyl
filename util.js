@@ -4,7 +4,7 @@
  */
 
 var Dialog = require('T/dialog');
-var Prop = reuire('T/prop');
+var Prop = require('T/prop');
 
 
 /**
