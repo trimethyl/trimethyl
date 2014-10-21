@@ -23,12 +23,10 @@ function getPhoto(method, opt, callback){
 		mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
 		saveToPhotoGallery: (method === 'showCamera'),
 		success: callback,
-		cancel: function(e) {
-			Ti.API.warn('Camera: Cancelled', e);
-		},
-		error: function(e) {
-			Ti.API.error('Camera: Error', e);
-			require('T/util').errorAlert(L('camera_inputerror'));
+		cancel: function(e) { Ti.API.warn('Camera: Cancelled', e); },
+		error: function(err) {
+			Ti.API.error('Camera: Error', err);
+			require('T/util').errorAlert(L('unexpected_error', 'Unexpected error'));
 		}
 	}));
 }
@@ -63,13 +61,13 @@ exports.choosePhoto = function(opt, callback) {
  * @param  {Function} callback  	Success callback
  */
 exports.selectPhoto = function(opt, callback){
-	require('T/dialog').option(L('camera_chooseinput'), [
+	require('T/dialog').option('', [
 	{
-		title: L('camera_takephoto'),
+		title: L('take_photo', 'Take photo'),
 		callback: function(){ exports.takePhoto(opt, callback); }
 	},
 	{
-		title: L('camera_choosephoto'),
+		title: L('choose_existing_photo', 'Choose existing photo'),
 		callback: function(){ exports.choosePhoto(opt, callback); }
 	}
 	]);

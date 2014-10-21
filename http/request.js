@@ -117,8 +117,8 @@ HTTPRequest.prototype._onComplete = function(e) {
 	// client.onload is the function to be called upon a SUCCESSFULL response.
 	if (this.responseInfo.broken === true) {
 		Ti.API.error('HTTP: ['+this.hash+'] IS BROKEN');
-		if (this.onError !== null) this.onError({ message: L('http_error') });
-		if (this.errorAlert === true) Util.errorAlert(L('http_error'));
+		if (this.onError !== null) this.onError({ message: L('unexpected_error', 'Unexpected error') });
+		if (this.errorAlert === true) Util.errorAlert(L('unexpected_error', 'Unexpected error'));
 
 		return;
 	}
@@ -238,8 +238,8 @@ HTTPRequest.prototype.resolve = function() {
 			Ti.API.error('HTTP: connection is offline');
 
 			if (this.onComplete !== null) this.onComplete();
-			if (this.onError !== null) this.onError({ message: L('http_offline_message') });
-			if (this.errorAlert === true) Util.errorAlert(L('http_offlinemessage'));
+			if (this.onError !== null) this.onError({ offline: true });
+			if (this.errorAlert === true) Util.errorAlert(L('network_offline', 'Check your connectivity.'));
 
 			Event.trigger('http.offline');
 		}

@@ -234,7 +234,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 			if (f.write(data)) {
 				if (_.isFunction(success)) success(f);
 			} else {
-				if (_.isFunction(error)) error({ message: L('http_filewrite_error') });
+				if (_.isFunction(error)) error({ message: L('unexpected_error', 'Unexpected error') });
 			}
 		},
 		error: error

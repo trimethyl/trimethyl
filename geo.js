@@ -26,20 +26,6 @@ function checkForServices() {
 	return !! Ti.Geolocation.locationServicesEnabled;
 }
 
-
-/**
- * @method enableServicesAlert
- * Alert the user that Location is off
- */
-exports.showEnableServicesAlert = function(){
-	if (OS_IOS) {
-		require('T/dialog').alert(L('geo_errtitle'), L('geo_errmsg'));
-	} else {
-		require('T/dialog').alert(null, L('geo_errtitle'));
-	}
-};
-
-
 /**
  * @method getCurrentPosition
  * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
@@ -397,19 +383,19 @@ exports.checkForDependencies = function() {
 	var errorMessage = null;
 	switch (rc) {
 		case TiMap.SERVICE_MISSING:
-		errorMessage = L('geo_googleplayservices_missing', 'Google Play services is missing. Please install Google Play services from the Google Play store in order to use the application.');
+		errorMessage = L('googleplayservices_missing', 'Google Play services is missing. Please install Google Play services from the Google Play store in order to use the application.');
 		break;
 		case TiMap.SERVICE_VERSION_UPDATE_REQUIRED:
-		errorMessage = L('geo_googleplayservices_outdated', 'Google Play services is out of date. Please update Google Play services in order to use the application.');
+		errorMessage = L('googleplayservices_outofdate', 'Google Play services is out of date. Please update Google Play services in order to use the application.');
 		break;
 		case TiMap.SERVICE_DISABLED:
-		errorMessage = L('geo_googleplayservices_disabled', 'Google Play services is disabled. Please enable Google Play services in order to use the application.');
+		errorMessage = L('googleplayservices_disabled', 'Google Play services is disabled. Please enable Google Play services in order to use the application.');
 		break;
 		case TiMap.SERVICE_INVALID:
-		errorMessage = L('geo_googleplayservices_auth', 'Google Play services cannot be authenticated. Reinstall Google Play services in order to use the application.');
+		errorMessage = L('googleplayservices_invalid', 'Google Play services cannot be authenticated. Reinstall Google Play services in order to use the application.');
 		break;
 		default:
-		errorMessage = L('geo_googleplayservices_error', 'Google Play services generated an uknown error. Reinstall Google Play services in order to use the application.');
+		errorMessage = L('googleplayservices_error', 'Google Play services generated an unknown error. Reinstall Google Play services in order to use the application.');
 		break;
 	}
 
@@ -446,5 +432,4 @@ exports.getRegionBounds = function(array, mulGap) {
 Init
 */
 
-Ti.Geolocation.purpose = L('geo_purpose');
 Ti.Geolocation.accuracy = Ti.Geolocation[config.gpsAccuracy];

@@ -31,7 +31,8 @@
 exports.createNavigationWindow = function(args) {
 	args = args || {};
 	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args);
-	return new require('T/uifactory/navigationwindow')(args);
+	var NavigationWindow = require('T/uifactory/navigationwindow');
+	return new NavigationWindow(args);
 };
 
 /**

@@ -49,7 +49,7 @@ FB.addEventListener('login', function(e){
 		_opt.success({ access_token: FB.accessToken });
 	} else {
 		_opt.error({
-			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('auth_facebook_error')
+			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')
 		});
 	}
 

@@ -273,9 +273,9 @@ exports.whatsapp = function(args) {
 		Native protocol binding
 		 */
 		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
-			require('T/dialog').confirmYes(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
 				Util.openInStore('310633997');
-			});
+			}, L('install_app', 'Install app'));
 		});
 
 	} else if (OS_ANDROID) {
@@ -293,9 +293,9 @@ exports.whatsapp = function(args) {
 			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 			Ti.Android.currentActivity.startActivity(intent, L('Share'));
 		} catch (err) {
-			require('T/dialog').confirmYes(null, String.format(L('sharer_app_not_installed'), 'Whatsapp'), function() {
+			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
 				Util.openInStore('com.whatsapp');
-			});
+			}, L('install_app', 'Install app'));
 		}
 
 	}

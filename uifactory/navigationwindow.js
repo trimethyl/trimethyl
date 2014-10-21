@@ -56,8 +56,8 @@ NavigationWindow.prototype.openWindow = function(window, opt) {
 				opt.activityEnterAnimation = Ti.Android.R.anim.fade_in;
 				opt.activityExitAnimation = Ti.Android.R.anim.fade_out;
 			} else {
-				opt.activityEnterAnimation = Ti.Android.R.anim.slide_in_left;
-				opt.activityExitAnimation = Ti.Android.R.anim.slide_out_right;
+				opt.activityEnterAnimation = Ti.Android.R.anim.slide_out_right;
+				opt.activityExitAnimation = Ti.Android.R.anim.slide_in_left;
 			}
 			opt.modal = false; // set anyway to false to prevent heavyweight windows
 		} else {

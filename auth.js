@@ -63,7 +63,7 @@ exports.getUserID = function(){
 
 
 function getStoredDriver(){
-	if (!Prop.hasProperty('auth.driver')) return null;
+	if (!Prop.hasProperty('auth.driver') || !Prop.hasProperty('auth.me')) return null;
 	return Prop.getString('auth.driver');
 }
 
@@ -172,7 +172,7 @@ exports.storedLogin = function(opt) {
 			Me = Alloy.createModel('user', Prop.getObject('auth.me'));
 			opt.success();
 		} else {
-			opt.error({ message: L('auth_error_nostoredinfo') });
+			opt.error();
 		}
 
 	}

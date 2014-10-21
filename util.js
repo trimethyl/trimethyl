@@ -291,7 +291,7 @@ exports.getAppDataDirectory = function() {
  */
 exports.dial = function(tel) {
 	var telString = tel.match(/[0-9]/g).join('');
-	var errString = String.format(L('util_dial_failed'), tel);
+	var errString = String.format(L('unable_to_call', 'Unable to call %s'), tel);
 	if (OS_IOS) {
 		exports.openURL('tel:' + telString, null, errString);
 	} else if (OS_ANDROID) {
@@ -422,7 +422,7 @@ exports.getErrorMessage = function(obj) {
 	} else if (_.isString(obj)) {
 		return obj.toString();
 	}
-	return L('Unexpected error');
+	return L('unexpected_error', 'Unexpected error');
 };
 
 
