@@ -11,13 +11,13 @@
  * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values,
  * or simply `1` for the sames.
  *
- * #### `selectedValue`. Type: `Object`
+ * #### `theValue`. Type: `Object`
  *
  * The selected value
  *
  * ### Obtain the value
  *
- * Use the `getSelectedValue` method or `selectedValue` property.
+ * Use the `getValue` function.
  *
  */
 
@@ -31,10 +31,9 @@ function createTiUIPicker(args) {
 	})();
 
 	if (OS_IOS) {
-		pickerArgs = _.extend(_.pick(args, 'selectedValue', 'minDate', 'maxDate'), {
+		pickerArgs = _.extend(_.pick(args, 'minDate', 'maxDate'), {
 			height: 216,
 			bottom: 0,
-			value: args.selectedValue,
 			type: pickerType
 		});
 	} else if (OS_ANDROID) {
@@ -45,29 +44,29 @@ function createTiUIPicker(args) {
 
 	if (args.type === 'date') {
 
+		pickerArgs.theValue = args.theValue || new Date();
+		pickerArgs.value = pickerArgs.theValue;
+
 		if (OS_IOS) {
 
 			$picker = Ti.UI.createPicker(pickerArgs);
-
-			$picker.selectedValue = $picker.value = args.selectedValue;
 			$picker.addEventListener('change', function(e) {
-				$picker.selectedValue = e.value;
+				$picker.theValue = e.value;
 			});
 
 		} else if (OS_ANDROID) {
 
-			console.log(args.selectedValue);
 			$picker = Ti.UI.createLabel(_.extend(pickerArgs, {
-				text: Moment(args.selectedValue).format('D MMMM YYYY')
+				text: Moment($picker.theValue).format('D MMMM YYYY')
 			}));
 
 			$picker.addEventListener('click', function(){
 				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
-					value: $picker.selectedValue || new Date(),
+					value: $picker.theValue,
 					callback: function(e) {
 						if (e.value != null && e.cancel === false) {
-							$picker.selectedValue = e.value;
-							$picker.text = Moment(e.value).format('D MMMM YYYY');
+							$picker.theValue = e.value;
+							$picker.text = Moment($picker.theValue).format('D MMMM YYYY');
 						}
 					}
 				});
@@ -84,18 +83,19 @@ function createTiUIPicker(args) {
 			var $pickerRow = null;
 			if (_.isObject(v) && v.value !== undefined) {
 				$pickerRow = Ti.UI.createPickerRow(v);
-				if (args.selectedValue === v.value) selectedRowIndex = +index;
+				if (args.theValue === v.value) selectedRowIndex = +index;
 			} else {
 				$pickerRow = Ti.UI.createPickerRow({ title: v.toString(), value: v });
-				if (args.selectedValue === v) selectedRowIndex = +index;
+				if (args.theValue === v) selectedRowIndex = +index;
 			}
 			return $pickerRow;
 		}));
 
 		$picker.setSelectedRow(0, selectedRowIndex, false);
 		$picker.addEventListener('change', function(e) {
-			$picker.selectedRow = e.row;
-			$picker.selectedValue = e.row.value;
+			console.log(e.row);
+			$picker.theRow = e.row;
+			$picker.theValue = e.row.value;
 		});
 
 	}
@@ -124,13 +124,12 @@ module.exports = function(args) {
 
 			var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
 			$doneBtn.addEventListener('click', function() {
-				$this.selectedValue = $picker.selectedValue;
 				if (args.type === 'date') {
-					$this.text = Moment($picker.value).format('D MMMM YYYY');
+					$this.text = Moment($picker.theValue).format('D MMMM YYYY');
 				} else {
-					$this.text = $picker.selectedRow.title;
+					$this.text = $picker.theRow.title;
 				}
-
+				$this.theValue = $picker.theValue;
 				$pickerModal.close();
 			});
 
@@ -163,11 +162,7 @@ module.exports = function(args) {
 	}
 
 	$this.getValue = function() {
-		return $this.selectedValue;
-	};
-
-	$this.getSelectedValue = function() {
-		return $this.selectedValue;
+		return $this.theValue;
 	};
 
 	return $this;

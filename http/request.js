@@ -40,7 +40,7 @@ function HTTPRequest(opt) {
 	this.onComplete = _.isFunction(opt.complete) ? opt.complete : null;
 	this.onError = _.isFunction(opt.error) ? opt.error : null;
 
-	this.errorAlert = !(this.opt.silent === true || this.opt.disableErrorAlert === true);
+	this.errorAlert = this.opt.errorAlert === undefined ? true : !!this.opt.errorAlert;
 
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
@@ -97,6 +97,17 @@ HTTPRequest.prototype._getResponseInfo = function() {
 	return info;
 };
 
+HTTPRequest.prototype._onError = function(err) {
+	Ti.API.error('HTTP: ['+this.hash+'] ERROR', err);
+
+	var self = this;
+	if (self.errorAlert === true) {
+		Util.errorAlert(err, function(){
+			if (self.onError !== null) self.onError(err);
+		});
+	} else if (self.onError !== null) self.onError(err);
+};
+
 HTTPRequest.prototype._onComplete = function(e) {
 	this.endTime = new Date();
 
@@ -116,10 +127,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	// If the readyState is not DONE, trigger error, because
 	// client.onload is the function to be called upon a SUCCESSFULL response.
 	if (this.responseInfo.broken === true) {
-		Ti.API.error('HTTP: ['+this.hash+'] IS BROKEN');
-		if (this.onError !== null) this.onError({ message: L('unexpected_error', 'Unexpected error') });
-		if (this.errorAlert === true) Util.errorAlert(L('unexpected_error', 'Unexpected error'));
-
+		this._onError({ broken: true });
 		return;
 	}
 
@@ -136,15 +144,11 @@ HTTPRequest.prototype._onComplete = function(e) {
 
 	} else {
 
-		var err = {
+		this._onError({
 			message: Util.getErrorMessage(text),
 			code: this.client.status,
 			response: text
-		};
-		Ti.API.error('HTTP: ['+this.hash+'] ERROR', err);
-		if (this.onError !== null) this.onError(err);
-		if (this.errorAlert === true) Util.errorAlert(err.message);
-
+		});
 	}
 };
 
@@ -236,12 +240,14 @@ HTTPRequest.prototype.resolve = function() {
 			this.send();
 		} else {
 			Ti.API.error('HTTP: connection is offline');
+			Event.trigger('http.offline');
 
 			if (this.onComplete !== null) this.onComplete();
-			if (this.onError !== null) this.onError({ offline: true });
-			if (this.errorAlert === true) Util.errorAlert(L('network_offline', 'Check your connectivity.'));
+			this._onError({
+				offline: true,
+				message: L('network_offline', 'Check your connectivity.')
+			});
 
-			Event.trigger('http.offline');
 		}
 	}
 };
