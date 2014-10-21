@@ -13,7 +13,7 @@ var config = _.extend({
 }, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
-var Facebook = require('com.facebook');
+var Facebook = require('facebook');
 
 if (Facebook != null) {
 	if (config.permissions != null) {
