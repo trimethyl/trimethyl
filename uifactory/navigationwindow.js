@@ -49,22 +49,6 @@ NavigationWindow.prototype.openWindow = function(window, opt) {
 	var self = this;
 	opt = opt || {};
 
-	if (OS_ANDROID) {
-		if (opt.animated !== false && window.animated !== false) {
-			opt.animated = true;
-			if (opt.modal === true) {
-				opt.activityEnterAnimation = Ti.Android.R.anim.fade_in;
-				opt.activityExitAnimation = Ti.Android.R.anim.fade_out;
-			} else {
-				opt.activityEnterAnimation = Ti.Android.R.anim.slide_out_right;
-				opt.activityExitAnimation = Ti.Android.R.anim.slide_in_left;
-			}
-			opt.modal = false; // set anyway to false to prevent heavyweight windows
-		} else {
-			opt.animated = true;
-		}
-	}
-
 	window.navigationIndex = this.windows.length;
 	window.__onClose = function(e) { __onWindowClose(self, e); };
 	window.addEventListener('close', window.__onClose);
@@ -72,6 +56,7 @@ NavigationWindow.prototype.openWindow = function(window, opt) {
 	this.windows.push(window);
 	this.window = window;
 
+	opt.modal = false; // set anyway to false to prevent heavyweight windows
 	this.window.open(opt);
 };
 
