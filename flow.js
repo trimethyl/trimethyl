@@ -64,6 +64,174 @@ exports.autoTrackWindow = function($win, key) {
 
 
 /**
+ * Set, in a single way,
+ * the global Navigator (and open it),
+ * the Index-Controller
+ * and the Index-Window
+ *
+ * This method, is typically called on startup, on the index.js, like this:
+ *
+ * ```
+ * Flow.startup($, $.nav, $.win);
+ * ```
+ *
+ * @param  {Alloy.Controller} 				controller
+ * @param  {Ti.UI.iOS.NavigationWindow} 	nav
+ * @param  {Ti.UI.Window} 						win
+ */
+exports.startup = function(controller, nav, win) {
+	exports.setCurrentWindow(win);
+	exports.setCurrentController(controller);
+	exports.setNavigationController(nav, true);
+};
+
+
+/**
+ * @method openWindow
+ * Open a Window in the current navigation controller.
+ *
+ * @param  {Ti.UI.Window}  $window 	The window object
+ * @param  {Object} 			[opt]    The arguments passed to the `NavigationWindow.openWindow`
+ */
+exports.openWindow = function($win, opt, key) {
+	opt = opt || {};
+	if (Navigator === null) {
+		return Ti.API.warn('Flow: A NavigationController is not defined yet');
+	}
+
+	if (!_.isEmpty(key)) exports.autoTrackWindow($win, key);
+	Navigator.openWindow($win, opt);
+};
+
+
+/**
+ * @method openDirect
+ * Require an Alloy.Controller without passing it to the Navigator
+ *
+ * This is anyway tracked with Google Analitycs
+ *
+ * @param  {String} 	name 				The name of the controller
+ * @param  {Object} 	[args]     		The args passed to the controller
+ * @param  {Object} 	[opt]        	Additional arguments
+ * @param  {String} 	[key]				Optional key that identify this controller
+ * @return {Alloy.Controller} 		The controller instance
+ */
+exports.openDirect = function(name, args, opt, key) {
+	args = args || {};
+	opt = opt || {};
+
+	var controller = Alloy.createController(name, args);
+	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
+
+	if (config.trackWithGA) {
+		if (!_.isEmpty(key)) {
+			require('T/ga').trackScreen(key);
+		}
+	}
+
+	return controller;
+};
+
+
+/**
+ * @method open
+ * Require an Alloy.Controller and open its main `View` in the Navigator.
+ *
+ * A `close` event is automatically attached to the main window to call sequentially
+ * `Controller.cleanup` (if defined) and `Controller.destroy`
+ *
+ * This is tracked with Google Analitycs
+ *
+ * @param  {String} 	name 				The name of the controller
+ * @param  {Object} 	[args]       	The arguments passed to the controller
+ * @param  {Object} 	[openArgs]     The arguments passed to the `Navigator.openWindow`
+ * @param  {String} 	[key]				Optional key that identify this controller
+ * @return {Alloy.Controller}    	The controller instance
+ */
+exports.open = function(name, args, openArgs, key) {
+	args = args || {};
+	openArgs = openArgs || {};
+
+	var controller = Alloy.createController(name, args);
+	var $window = controller.getView();
+
+	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
+
+	if (Navigator === null) {
+		return Ti.API.warn('Flow: A NavigationController is not defined yet');
+	}
+
+	// Open the window
+	Navigator.openWindow($window, openArgs);
+
+	// Attach events
+	exports.setCurrentWindow($window);
+	exports.autoTrackWindow($window, key);
+
+	// Clean up controller on window close
+	$window.addEventListener('close', function() {
+		controller.destroy();
+		controller.off();
+		if (_.isFunction(controller.cleanup)) controller.cleanup();
+
+		controller = null;
+		$window = null;
+	});
+
+	currentControllerName = name;
+	currentControllerArgs = args;
+	currentController = controller;
+
+	return controller;
+};
+
+
+/**
+ * Close current Navigatgor and all windows associated with it
+ */
+exports.close = function() {
+	if (Navigator === null) return;
+
+	windows = {};
+	windowsId = [];
+	Navigator.close();
+
+	Navigator = null;
+};
+
+
+/**
+ * @method setCurrentController
+ * Set current controller
+ * @param {Alloy.Controller} 	controller
+ * @param {String} 				[name]
+ * @param {Object}				[args]
+ */
+exports.setCurrentController = function(controller, name, args) {
+	currentController = controller;
+	currentControllerName = name;
+	currentControllerArgs = args;
+};
+
+/**
+ * @method getCurrentController
+ * Return current controller
+ * @return {Alloy.Controller}
+ */
+exports.getCurrentController = function() {
+	return currentController;
+};
+
+/**
+ * @method controller
+ * @inheritDoc #getCurrentController
+ * Alias for {@link #getCurrentController}
+ */
+exports.controller = exports.getCurrentController;
+
+
+
+/**
  * @method setCurrentWindow
  * Set current Window and push in the windows stack
  * @param {Ti.UI.Window} $win
@@ -134,190 +302,6 @@ exports.getNavigationController = function() {
  * Alias for {@link #getNavigationController}
  */
 exports.navigator = exports.getNavigationController;
-
-
-/**
- * Set, in a single way,
- * the global Navigator (and open it),
- * the Index-Controller
- * and the Index-Window
- *
- * This method, is typically called on startup, on the index.js, like this:
- *
- * ```
- * Flow.startup($, $.nav, $.win);
- * ```
- *
- * @param  {Alloy.Controller} 				controller
- * @param  {Ti.UI.iOS.NavigationWindow} 	nav
- * @param  {Ti.UI.Window} 						win
- */
-exports.startup = function(controller, nav, win) {
-	setCurrentWindow(win);
-	setCurrentController(controller);
-	setNavigationController(nav, true);
-};
-
-
-/**
- * @method openWindow
- * Open a Window in the current navigation controller.
- *
- * @param  {Ti.UI.Window}  $window 	The window object
- * @param  {Object} 			[opt]    The arguments passed to the `NavigationWindow.openWindow`
- */
-exports.openWindow = function($win, opt, key) {
-	opt = opt || {};
-	if (Navigator === null) {
-		return Ti.API.warn('Flow: A NavigationController is not defined yet');
-	}
-
-	if (!_.isEmpty(key)) exports.autoTrackWindow($win, key);
-	Navigator.openWindow($win, opt);
-};
-
-
-/**
- * @method openDirect
- * Require an Alloy.Controller without passing it to the Navigator
- *
- * This is anyway tracked with Google Analitycs
- *
- * @param  {String} 	name 				The name of the controller
- * @param  {Object} 	[args]     		The args passed to the controller
- * @param  {Object} 	[opt]        	Additional arguments
- * @param  {String} 	[key]				Optional key that identify this controller
- * @return {Alloy.Controller} 		The controller instance
- */
-exports.openDirect = function(name, args, opt, key) {
-	args = args || {};
-	opt = opt || {};
-
-	var controller = Alloy.createController(name, args);
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
-
-	if (config.trackWithGA) {
-		if (!_.isEmpty(key)) {
-			require('T/ga').trackScreen(key);
-		}
-	}
-
-	return controller;
-};
-
-
-/**
- * @method open
- * Require an Alloy.Controller and open its main `View` in the Navigator.
- *
- * A `close` event is automatically attached to the main window to call sequentially
- * `Controller.cleanup` (if defined) and `Controller.destroy`
- *
- * This is tracked with Google Analitycs
- *
- * @param  {String} 	name 				The name of the controller
- * @param  {Object} 	[args]       	The arguments passed to the controller
- * @param  {Object} 	[openArgs]     The arguments passed to the `Navigator.openWindow`
- * @param  {String} 	[key]				Optional key that identify this controller
- * @return {Alloy.Controller}    	The controller instance
- */
-exports.open = function(controller, args, openArgs, key) {
-	args = args || {};
-	opt = opt || {};
-	openArgs = openArgs || {};
-
-	var controller = Alloy.createController(name, args);
-	var $window = controller.getView();
-
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
-
-	if (Navigator === null) {
-		return Ti.API.warn('Flow: A NavigationController is not defined yet');
-	}
-
-	// Open the window
-	Navigator.openWindow($window, openArgs);
-
-	// Attach events
-	exports.setCurrentWindow($window);
-	exports.autoTrackWindow($window, key);
-
-	// Clean up controller on window close
-	$window.addEventListener('close', function() {
-		controller.destroy();
-		controller.off();
-		if (_.isFunction(controller.cleanup)) controller.cleanup();
-
-		controller = null;
-		$window = null;
-	});
-
-	currentControllerName = name;
-	currentControllerArgs = args;
-	currentController = controller;
-
-	return controller;
-};
-
-
-/**
- * Close current Navigatgor and all windows associated with it
- */
-exports.close = function() {
-	if (Navigator === null) return;
-
-	windows = {};
-	windowsId = [];
-	Navigator.close();
-
-	Navigator = null;
-};
-
-
-/**
- * @method getCurrent
- * Get an object with currents UI.
- * @return {Object} [description]
- */
-exports.getCurrent = function() {
-	return {
-		navigator: Navigator,
-		window: exports.getCurrentWindow(),
-		controller: currentController,
-		controllerName: currentControllerName,
-		args: currentControllerArgs,
-	};
-};
-
-
-/**
- * @method setCurrentController
- * Set current controller
- * @param {Alloy.Controller} 	controller
- * @param {String} 				[name]
- * @param {Object}				[args]
- */
-exports.setCurrentController = function(controller, name, args) {
-	currentController = controller;
-	currentControllerName = name;
-	currentControllerArgs = args;
-};
-
-/**
- * @method getCurrentController
- * Return current controller
- * @return {Alloy.Controller}
- */
-exports.getCurrentController = function() {
-	return currentController;
-};
-
-/**
- * @method controller
- * @inheritDoc #getCurrentController
- * Alias for {@link #getCurrentController}
- */
-exports.controller = exports.getCurrentController;
 
 
 /**

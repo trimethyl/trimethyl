@@ -25,7 +25,7 @@ exports.openURL = function(url, fallback, error) {
 			if (_.isFunction(fallback)) fallback();
 			else if (_.isString(fallback)) Ti.Platform.openURL(fallback);
 		} else if (error != null) {
-			Dialog.alert(L('Error'), error);
+			exports.errorAlert(error);
 		}
 	}
 
@@ -59,7 +59,7 @@ exports.startActivity = function(opt, error) {
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntent(opt));
 	} catch (ex) {
 		if (error != null) {
-			Dialog.alert(L('Error'), error);
+			exports.errorAlert(error);
 		}
 	}
 };
@@ -423,4 +423,14 @@ exports.getErrorMessage = function(obj) {
 		return obj.toString();
 	}
 	return L('Unexpected error');
+};
+
+
+/**
+ * @method errorAlert
+ * @param  {Object}   err      		The object error
+ * @param  {Function} [callback] 	The callback
+ */
+exports.errorAlert = exports.alertError = function(err, callback) {
+	Dialog.alert(L('Error'), exports.getErrorMessage(err), callback);
 };

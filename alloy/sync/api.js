@@ -25,17 +25,17 @@ exports.sync = function(method, model, opt) {
 
 	if (opt.patch) method = 'patch';
 
-	var data = _.extend({}, opt.http, {
+	var httpOptions = _.extend({}, opt.http, {
 		url: url,
 		method: CRUD_to_REST[method],
 		format: 'json'
 	});
 
 	if (Alloy.Backbone.emulateHTTP) {
-		if (['DELETE','PUT','PATCH'].indexOf(data.method)!==-1) {
-			data.method = 'POST';
-			data.headers = _.extend({}, data.headers, {
-				'X-HTTP-Method-Override': data.method
+		if (['DELETE','PUT','PATCH'].indexOf(httpOptions.method)!==-1) {
+			httpOptions.method = 'POST';
+			httpOptions.headers = _.extend({}, httpOptions.headers, {
+				'X-HTTP-Method-Override': httpOptions.method
 			});
 		}
 	}
@@ -43,7 +43,7 @@ exports.sync = function(method, model, opt) {
 	switch (method) {
 
 		case 'create':
-		HTTP.send(_.extend({}, data, {
+		HTTP.send(_.extend({}, httpOptions, {
 			data: model.toJSON(),
 			success: function(resp) {
 
@@ -60,7 +60,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'read':
-		HTTP.send(_.extend({}, data, {
+		HTTP.send(_.extend({}, httpOptions, {
 			data: opt.args || {},
 			success: function(resp) {
 
@@ -83,7 +83,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'update':
-		HTTP.send(_.extend({}, data, {
+		HTTP.send(_.extend({}, httpOptions, {
 			data: _.pick(model.attributes, _.keys(opt.changes)),
 			success: function(resp) {
 
@@ -100,7 +100,7 @@ exports.sync = function(method, model, opt) {
 		break;
 
 		case 'delete':
-		HTTP.send(_.extend({}, data, {
+		HTTP.send(_.extend({}, httpOptions, {
 			data: opt.args || {},
 			success: function(resp) {
 

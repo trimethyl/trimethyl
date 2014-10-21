@@ -28,7 +28,7 @@ function getPhoto(method, opt, callback){
 		},
 		error: function(e) {
 			Ti.API.error('Camera: Error', e);
-			require('T/dialog').alert(L('Error'), L('camera_inputerror'));
+			require('T/util').errorAlert(L('camera_inputerror'));
 		}
 	}));
 }

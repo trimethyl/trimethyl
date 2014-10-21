@@ -22,15 +22,6 @@ exports.config = config;
 
 var Event = require('T/event');
 
-function originalErrorHandler(e) {
-	if (_.isObject(e) && e.servicesDisabled === true) {
-		exports.showEnableServicesAlert();
-	} else {
-		require('T/dialog').alert(null, L('geo_error_title'));
-	}
-}
-
-
 function checkForServices() {
 	return !! Ti.Geolocation.locationServicesEnabled;
 }
@@ -42,20 +33,10 @@ function checkForServices() {
  */
 exports.showEnableServicesAlert = function(){
 	if (OS_IOS) {
-		require('T/dialog').alert(L('geo_errortitle'), L('geo_errormsg'));
+		require('T/dialog').alert(L('geo_errtitle'), L('geo_errmsg'));
 	} else {
-		require('T/dialog').alert(null, L('geo_errortitle'));
+		require('T/dialog').alert(null, L('geo_errtitle'));
 	}
-};
-
-
-/**
- * @method originalErrorHandler
- * The original error handler
- * @param  {Object} e
- */
-exports.getOriginalErrorHandler = function() {
-	return originalErrorHandler;
 };
 
 
@@ -68,8 +49,6 @@ exports.getOriginalErrorHandler = function() {
  * @param {Object}	opt
  */
 exports.getCurrentPosition = function(opt) {
-	if (opt.error == null) opt.error = originalErrorHandler;
-
 	if (checkForServices()) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
@@ -435,7 +414,7 @@ exports.checkForDependencies = function() {
 	}
 
 	// Open Play Store to download
-	require('T/dialog').alert(L('Error'), errorMessage, function(){
+	require('T/dialog').errorAlert(errorMessage, function(){
 		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
 		Ti.Android.currentActivity.finish();
 	});

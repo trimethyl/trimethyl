@@ -14,22 +14,8 @@ var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	headers: {},
-	autoOfflineMessage: true,
 }, Alloy.CFG.T.http);
 exports.config = config;
-
-
-function errorHandler(err) {
-	require('T/dialog').alert(L('Error'), require('T/util').getErrorMessage(err));
-};
-
-/**
- * @method getErrorHandler
- * @return {Function}
- */
-exports.getErrorHandler = function() {
-	return errorHandler;
-};
 
 
 var headers = _.clone(config.headers);
