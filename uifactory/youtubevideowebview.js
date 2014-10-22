@@ -1,6 +1,7 @@
 /**
  * @class  UIFactory.YoutubeVideoWebView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ *
  * View that contain a Youtube video.
  * Internally use a WebView to provide the content.
  *
@@ -11,8 +12,6 @@
  *
  * More info at [https://developers.google.com/youtube/iframe_api_reference](https://developers.google.com/youtube/iframe_api_reference)
  *
- * @param  {Object} args [description]
- * @return {Ti.UI.WebView}      [description]
  */
 
 module.exports = function(args) {
