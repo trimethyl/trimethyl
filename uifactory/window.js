@@ -75,8 +75,8 @@ module.exports = function(args) {
 				var R = bgCoverUI.size.width / bgCoverUI.size.height;
 				bgCoverUI.applyProperties(
 					SCREEN_RATIO>R ?
-					{ width: SCREEN_WIDTH, height: Ti.UI.SIZE } :
-					{ width: Ti.UI.SIZE, height: SCREEN_HEIGHT }
+					{ width: SCREEN_WIDTH, height: SCREEN_WIDTH / R } :
+					{ width: SCREEN_HEIGHT * R, height: SCREEN_HEIGHT }
 				);
 			});
 
@@ -229,7 +229,7 @@ module.exports = function(args) {
 
 		$this._processTitles();
 
-		if (args.displayHomeAsUp === true) {
+		if (args.displayHomeAsUp === true && args.exitOnClose !== true) {
 			$this.setActionBarProperties({
 				displayHomeAsUp: true,
 				onHomeIconItemSelected: function() {

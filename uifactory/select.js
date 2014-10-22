@@ -57,7 +57,7 @@ function createTiUIPicker(args) {
 		} else if (OS_ANDROID) {
 
 			$picker = Ti.UI.createLabel(_.extend(pickerArgs, {
-				text: Moment($picker.theValue).format('D MMMM YYYY')
+				text: Moment(pickerArgs.theValue).format('D MMMM YYYY')
 			}));
 
 			$picker.addEventListener('click', function(){
