@@ -2,13 +2,8 @@
  * @class  UIFactory.TextArea
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ### iOS Fixes
- *
  * * Add support for `hintText`, that is missing on iOS.
- *
- * ### Android Fixes
- *
- * * Removed the annoying autofocus.
+ * * Removed the annoying autofocus on Android
  *
  */
 

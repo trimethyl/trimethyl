@@ -1,17 +1,6 @@
 /**
  * @class  	UIFactory.Window
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * ### New creation properties
- *
- * #### `displayHomeAsUp` (Boolean, default: `false`, OS_ANDROID)
- *
- * Set the property `displayHomeAsUp` and the relative close listener.
- *
- * #### `backButtonDisabled` (Boolean, default: `false`, OS_ANDROID)
- *
- * Disable the back button (do nothing on click)
- *
  */
 
 module.exports = function(args) {
@@ -74,7 +63,7 @@ module.exports = function(args) {
 
 				var R = bgCoverUI.size.width / bgCoverUI.size.height;
 				bgCoverUI.applyProperties(
-					SCREEN_RATIO>R ?
+					SCREEN_RATIO > R ?
 					{ width: SCREEN_WIDTH, height: SCREEN_WIDTH / R } :
 					{ width: SCREEN_HEIGHT * R, height: SCREEN_HEIGHT }
 				);
@@ -154,7 +143,6 @@ module.exports = function(args) {
 		/**
 		 * @method addActivityButton
 		 * **Android specific**
-		 *
 		 * @param {Object} opt
 		 */
 		$this.addActivityButton = function(opt) {
@@ -165,7 +153,6 @@ module.exports = function(args) {
 		/**
 		 * @method setActivityButton
 		 * **Android specific**
-		 *
 		 * @param {Object} opt
 		 */
 		$this.setActivityButton = function(opt) {
@@ -194,7 +181,6 @@ module.exports = function(args) {
 		/**
 		 * @method setTitle
 		 * **Android fix**
-		 *
 		 * @param {String} value
 		 */
 		$this.setTitle = function(value) {
@@ -205,7 +191,6 @@ module.exports = function(args) {
 		/**
 		 * @method setSubtitle
 		 * **Android fix**
-		 *
 		 * @param {String} value
 		 */
 		$this.setSubtitle = function(value) {
@@ -216,19 +201,22 @@ module.exports = function(args) {
 	}
 
 
-	// ==================================
-	// PARSE ARGUMENTS AND INITIALIZATION
-	// ==================================
+	// Parse arguments and init
 
 	if (args.deferredBackgroundImage != null) $this.setDeferredBackgroundImage(args.deferredBackgroundImage);
 	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);
 
 	if (OS_ANDROID) {
 
-		// Creation properties
-
 		$this._processTitles();
 
+		/**
+		 * @property displayHomeAsUp
+		 * **Android**
+
+		 * Set the property `displayHomeAsUp` and the relative close listener.
+		 * @type {Boolean}
+		 */
 		if (args.displayHomeAsUp === true && args.exitOnClose !== true) {
 			$this.setActionBarProperties({
 				displayHomeAsUp: true,
@@ -238,6 +226,13 @@ module.exports = function(args) {
 			});
 		}
 
+		/**
+		 * @property backButtonDisabled
+		 * **Android**
+		 *
+		 * Disable the back button (do nothing on click)
+		 * @type {Boolean}
+		 */
 		if (args.backButtonDisabled === true) {
 			$this.addEventListener('androidback', function() {
 				return false;
