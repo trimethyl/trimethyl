@@ -91,7 +91,13 @@ exports.confirm = dialogConfirm;
  * @return {Ti.UI.AlertDialog}
  */
 function dialogOption(title, dict, ext) {
-	var dialog = Ti.UI.createOptionDialog(_.extend(parseDict(dict), {
+	var pdict = parseDict(dict);
+	if (OS_ANDROID && pdict.cancel !== -1) {
+		// Android doesn't need a Cancel button, just hit "Back"
+		dict.splice(pdict.cancel, 1);
+	}
+
+	var dialog = Ti.UI.createOptionDialog(_.extend(pdict, {
 		options: _.pluck(dict, 'title'),
 		title: title
 	}, ext));
