@@ -93,7 +93,6 @@ function createTiUIPicker(args) {
 
 		$picker.setSelectedRow(0, selectedRowIndex, false);
 		$picker.addEventListener('change', function(e) {
-			console.log(e.row);
 			$picker.theRow = e.row;
 			$picker.theValue = e.row.value;
 		});
