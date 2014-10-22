@@ -18,10 +18,6 @@ exports.config = config;
 var Util = require('T/util');
 var globalCallback = null; // Handle all callbacks
 
-var FB = null;
-var dkNappSocial = null;
-var benCodingSMS = null;
-
 function onSocialComplete(e) {
 	if (!_.isFunction(globalCallback)) return;
 
@@ -40,6 +36,7 @@ function onSocialCancel(e) {
 
 function parseArgs(args) {
 	if (!_.isObject(args)) return {};
+	args = _.clone(args);
 
 	if (args.image != null) {
 		if (_.isObject(args.image)) {
@@ -80,6 +77,7 @@ function parseArgs(args) {
 	return args;
 }
 
+
 /**
  * @method facebook
  * Share on Facebook
@@ -88,61 +86,25 @@ function parseArgs(args) {
 exports.facebook = function(args) {
 	args = parseArgs(args);
 
-	// IOS-BUG: iOS Sharer doesn't share Facebook links
-	if (/https?\:\/\/(www\.)?facebook\.com/.test(args.url)) args.useSDK = true;
-
-	if (args.useSDK !== true && dkNappSocial !== null && dkNappSocial.isFacebookSupported()) {
-
-		/*
-		Native iOS dialog
-		*/
-
+	// Native iOS dialog
+	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isFacebookSupported() && /https?\:\/\/(www\.)?facebook\.com/.test(args.url)) {
 		dkNappSocial.facebook({
 			text: args.text,
 			image: args.image,
 			url: args.url
 		});
-
-	} else if (FB != null) {
-
-		/*
-		Facebook SDK feed dialog
-		*/
-
-		FB.dialog('feed', {
-			name: args.title,
-			description: args.text,
-			link: args.url,
-			picture: args.imageUrl
-		}, function(e) {
-			if (e.cancelled === true) {
-				onSocialCancel({
-					success: false,
-					platform: 'facebook'
-				});
-				return;
-			}
-
-			onSocialComplete({
-				success: e.success,
-				platform: 'facebook'
-			});
-		});
-
-	} else {
-
-		/*
-		Browser sharing
-		*/
-		Ti.Platform.openURL('https://www.facebook.com/dialog/share' + require('T/util').buildQuery({
-			app_id: Ti.App.Properties.getString('ti.facebook.appid', false),
-			display: 'touch',
-			redirect_uri: Ti.App.url,
-			href: args.url
-		}));
-
+		return true;
 	}
+
+	// Fallback
+	Ti.Platform.openURL('https://www.facebook.com/dialog/share' + Util.buildQuery({
+		app_id: require('T/prop').getString('ti.facebook.appid'),
+		display: 'touch',
+		redirect_uri: Ti.App.url,
+		href: args.url
+	}));
 };
+
 
 /**
  * @method twitter
@@ -150,61 +112,24 @@ exports.facebook = function(args) {
  * @param {Object} args
  */
 exports.twitter = function(args) {
-	parseArgs(args);
+	args = parseArgs(args);
 
-	var WEB_URL = 'http://www.twitter.com/intent';
-	var webIntent = null;
-
-	if (args.retweet != null) {
-		webIntent = WEB_URL + '/retweet' + require('T/util').buildQuery({
-			tweet_id: args.retweet
-		});
-	} else {
-		webIntent = WEB_URL + '/tweet' + require('T/util').buildQuery({
+	// Native iOS Dialog
+	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
+		dkNappSocial.twitter({
 			text: args.text,
+			image: args.image,
 			url: args.url
 		});
+		return true;
 	}
 
-	if (OS_ANDROID) {
-
-		/*
-		Android Intent automatic handle
-		*/
-
-		Ti.Platform.openURL(webIntent);
-
-	} else {
-
-		if (args.native !== false && dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
-
-			/*
-			Native iOS Dialog
-			*/
-
-			var text = args.text;
-			if (args.retweetUser) {
-				text = 'RT @' + args.retweetUser + ': ' + text;
-			}
-
-			dkNappSocial.twitter({
-				text: text,
-				image: args.image,
-				url: args.url
-			});
-
-		} else  {
-
-			/*
-			Twitter app native sharing
-			Browser fallback
-			*/
-
-			Util.openURL('twitter://post?message=' + encodeURIComponent(args.fullText), webIntent);
-
-		}
-	}
+	Ti.Platform.openURL('http://www.twitter.com/intent' + Util.buildQuery({
+		 text: args.text,
+		 url: args.url
+	}));
 };
+
 
 /**
  * @method email
@@ -219,27 +144,25 @@ exports.email = function(args) {
 		messageBody: args.fullText,
 	});
 
-	if (args.imageBlob != null) {
-		$dialog.addAttachment(args.imageBlob);
-	}
+	if (args.imageBlob != null) $dialog.addAttachment(args.imageBlob);
 
 	$dialog.addEventListener('complete', function(e) {
-		if (e.result === this.CANCELLED) {
+		if (e.result !== this.CANCELLED) {
+			onSocialComplete({
+				success: (e.result === this.SENT),
+				platform: 'mail'
+			});
+		} else {
 			onSocialCancel({
 				success: false,
 				platform: 'mail'
 			});
-			return;
 		}
-
-		onSocialComplete({
-			success: (e.result === this.SENT),
-			platform: 'mail'
-		});
 	});
 
 	$dialog.open();
 };
+
 
 /**
  * @method googleplus
@@ -248,16 +171,12 @@ exports.email = function(args) {
  */
 exports.googleplus = function(args) {
 	args = parseArgs(args);
-	if (_.isEmpty(args.url)) {
-		Ti.API.error('Sharer: sharing on G+ require a URL');
-		return;
-	}
 
-	/*
-	Browser unique implementation
-	*/
-	Ti.Platform.openURL('https://plus.google.com/share?url=' + encodeURIComponent(args.url));
+	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
+		url: args.url
+	}));
 };
+
 
 /**
  * @method whatsapp
@@ -267,29 +186,25 @@ exports.googleplus = function(args) {
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
 
+	// Native protocol binding
 	if (OS_IOS) {
-
-		/*
-		Native protocol binding
-		 */
 		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
 			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
 				Util.openInStore('310633997');
 			}, L('install_app', 'Install app'));
 		});
 
-	} else if (OS_ANDROID) {
+		return true;
+	}
 
-		/*
-		Android Intent using package
-		*/
+	// Android Intent using package
+	if (OS_ANDROID) {
 		try {
 			var intent = Ti.Android.createIntent({
 				action: Ti.Android.ACTION_SEND,
 				type: 'text/plain',
 				packageName: 'com.whatsapp'
 			});
-			if (intent == null) throw new Error();
 			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 			Ti.Android.currentActivity.startActivity(intent, L('Share'));
 		} catch (err) {
@@ -298,8 +213,10 @@ exports.whatsapp = function(args) {
 			}, L('install_app', 'Install app'));
 		}
 
+		return true;
 	}
 };
+
 
 /**
  * @method message
@@ -309,39 +226,19 @@ exports.whatsapp = function(args) {
 exports.message = function(args) {
 	args = parseArgs(args);
 
-	if (OS_IOS) {
-
-		if (benCodingSMS == null) {
-			Ti.API.error('Sharer: `bencoding.sms` module is required to send SMS');
-			return;
-		}
-
-		/*
-		iOS Native modal
-		*/
-
-		var $dialog = benCodingSMS.createSMSDialog({
-			messageBody: args.fullText
-		});
-
-		$dialog.addEventListener('completed', function(){
-			onSocialComplete({ success: true, platform: 'messages' });
-		});
-		$dialog.addEventListener('cancelled', function(){
-			onSocialCancel({ success: false, platform: 'messages' });
-		});
-		$dialog.addEventListener('errored', function(){
-			onSocialComplete({ success: false, platform: 'messages' });
-		});
-
+	// iOS Native modal
+	if (OS_IOS && benCodingSMS !== null) {
+		var $dialog = benCodingSMS.createSMSDialog({ messageBody: args.fullText });
+		$dialog.addEventListener('completed', function(){ onSocialComplete({ success: true, platform: 'messages' }); });
+		$dialog.addEventListener('cancelled', function(){ onSocialCancel({ success: false, platform: 'messages' }); });
+		$dialog.addEventListener('errored', function(){ onSocialComplete({ success: false, platform: 'messages' }); });
 		$dialog.open({ animated: true });
 
-	} else if (OS_ANDROID) {
+		return true;
+	}
 
-		/*
-		Android Native
-		*/
-
+	// Android Native
+	if (OS_ANDROID) {
 		var intent = Ti.Android.createIntent({
 			action: Ti.Android.ACTION_VIEW,
 			type: 'vnd.android-dir/mms-sms',
@@ -349,26 +246,22 @@ exports.message = function(args) {
 		intent.putExtra('sms_body', args.fullText);
 		Ti.Android.currentActivity.startActivity(intent, L('Share'));
 
+		return true;
 	}
 };
+exports.sms = exports.message;
+
 
 /**
+ * @method activity
  * Share using iOS ActivityPopover or Android Intents
  * @param {Object} args
  */
 exports.activity = function(args) {
 	args = parseArgs(args);
 
-	if (OS_IOS) {
-
-		/*
-		iOS Activity native
-		*/
-
-		if (dkNappSocial == null) {
-			return Ti.API.error('Sharer: module `dk.napp.social` is required for `activity` method');
-		}
-
+	// iOS Activity native
+	if (OS_IOS && dkNappSocial !== null) {
 		dkNappSocial[ Util.isIPad() ? 'activityPopover' : 'activityView' ]({
 			text: args.text,
 			title: args.title,
@@ -378,28 +271,19 @@ exports.activity = function(args) {
 			url: args.url
 		}, args.customIcons || []);
 
-	} else if (OS_ANDROID) {
+		return true;
+	}
 
-		/*
-		Android intents
-		*/
-
-		/*
-		FACEBOOK-BUG
-		EXTRA_TEXT
-		https://developers.facebook.com/bugs/332619626816423
-		*/
-
-		var intent = Ti.Android.createIntent({
-			action: Ti.Android.ACTION_SEND
-		});
-
+	// Android intents
+	if (OS_ANDROID) {
+		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
 		if (args.fullText) intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 		if (args.title) intent.putExtra(Ti.Android.EXTRA_TITLE, args.title);
 		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
 
 		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('Share')));
 
+		return true;
 	}
 };
 
@@ -410,26 +294,25 @@ Init
 
 // Load modules
 
-FB = T('facebook');
-if (FB != null) {
-} else {
-	Ti.API.warn('Sharer: `facebook` can\'t be loaded');
+var FB = T('facebook');
+if (FB == null) {
+	Ti.API.warn('Sharer: `facebook` not loaded');
 }
 
 if (OS_IOS) {
 
-	dkNappSocial = require('dk.napp.social');
-	if (dkNappSocial != null) {
-	} else {
-		Ti.API.warn('Sharer: `dk.napp.social` can\'t be loaded');
+	var dkNappSocial = require('dk.napp.social');
+	if (dkNappSocial == null) {
+		Ti.API.warn('Sharer: `dk.napp.social` not loaded');
 	}
 
-	benCodingSMS = require('bencoding.sms');
-	if (benCodingSMS != null) {
+	var benCodingSMS = require('bencoding.sms');
+
+	if (benCodingSMS == null) {
+		Ti.API.warn('Sharer: `bencoding.sms` not loaded');
+	} else {
 		dkNappSocial.addEventListener('complete', onSocialComplete);
 		dkNappSocial.addEventListener('cancelled', onSocialCancel);
-	} else {
-		Ti.API.warn('Sharer: `bencoding.sms` can\'t be loaded');
 	}
 
 }

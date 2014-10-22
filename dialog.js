@@ -92,9 +92,9 @@ exports.confirm = dialogConfirm;
  */
 function dialogOption(title, dict, ext) {
 	var pdict = parseDict(dict);
-
 	if (OS_ANDROID && pdict.cancel !== -1) {
-		delete dict[pdict.cancel];
+		// Android doesn't need a Cancel button, just hit "Back"
+		dict.splice(pdict.cancel, 1);
 	}
 
 	var dialog = Ti.UI.createOptionDialog(_.extend(pdict, {
