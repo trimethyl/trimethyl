@@ -2,9 +2,7 @@
  * @class  UIFactory.Label
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ### iOS Fixes
- *
- * Add support for **VERY BASIC** HTML.
+ * Add support for very basic HTML in iOS.
  *
  * For now, supports `<b><i><u><br><p>` tags.
  *
@@ -21,7 +19,7 @@
  *	}
  *	```
  *
- * It's useful if you don't have a regular font syntax.
+ * It's useful if you haven't a regular font syntax.
  *
  */
 
@@ -114,11 +112,7 @@ module.exports = function(args) {
 
 	}
 
-	/*
- 	==================================
- 	PARSE ARGUMENTS AND INITIALIZATION
- 	==================================
- 	*/
+	// Parse arguments and init
 
 	if (OS_IOS) {
 		if (args.html != null) $this.setHtml(args.html);

@@ -2,25 +2,7 @@
  * @class  UIFactory.TextField
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * ### Creation properties
- *
- * #### `textType`. Type: `String`
- *
- * Can be
- *
- * * `email`
- * * `password`
- * * `passwordEye`
- *
- * to adjust the keyboard or the mask automatically.
- *
- * #### `useDoneToolbar`. Type: `Boolean`. Default: `false`
- *
- * Add a default toolbar with a *Done* button that simply blur the TextField.
- *
- * ### Android Fixes
- *
- * * Removed the annoying autofocus on Android.
+ * * Removed the annoying autofocus on Android
  *
  */
 
@@ -44,6 +26,17 @@ function getDoneToolbar(opt) {
 module.exports = function(args) {
 	args = args || {};
 
+	/**
+	 * @property textType
+	 * Can be
+	 *
+	 * * `email`
+	 * * `password`
+	 * * `passwordEye`
+	 *
+	 * to adjust the keyboard or the mask automatically.
+	 * @type {String}
+	 */
 	switch (args.textType) {
 		case 'number': args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD; break;
 		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
@@ -53,13 +46,10 @@ module.exports = function(args) {
 
 	var $this = Ti.UI.createTextField(args);
 
-
-	// PasswordEye
-	// ===============================
-
+	// Password Eye
 	if (OS_IOS && args.textType === 'passwordEye') {
 		var eyeButton = Ti.UI.createButton({
-			image: '/images/T/eye.png',
+			image: args.passwordEyeImage,
 			height: 40, width: 40,
 			opacity: 0.2,
 			active: false,
@@ -76,6 +66,11 @@ module.exports = function(args) {
 		});
 	}
 
+	/**
+	 * @property useDoneToolbar
+	 * Add a default toolbar with a *Done* button that simply blur the TextField.
+	 * @type {Boolean}
+	 */
 	if (OS_IOS && args.useDoneToolbar === true) {
 		$this.keyboardToolbar = getDoneToolbar({
 			done: function() {
