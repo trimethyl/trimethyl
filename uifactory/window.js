@@ -168,7 +168,11 @@ module.exports = function(args) {
 		$this.setRightNavButton = $this.setActivityButton;
 
 
-		$this._processTitles = function () {
+		/**
+		 * @method processTitles
+		 * Auto-process the titles
+		 */
+		$this.processTitles = function () {
 			var bar = {};
 			if ($this.subtitle != null) {
 				bar = { title: $this.title, subtitle: $this.subtitle };
@@ -185,7 +189,7 @@ module.exports = function(args) {
 		 */
 		$this.setTitle = function(value) {
 			$this.title = value;
-			$this._processTitles();
+			$this.processTitles();
 		};
 
 		/**
@@ -195,7 +199,7 @@ module.exports = function(args) {
 		 */
 		$this.setSubtitle = function(value) {
 			$this.subtitle = value;
-			$this._processTitles();
+			$this.processTitles();
 		};
 
 	}
@@ -208,7 +212,7 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
-		$this._processTitles();
+		$this.processTitles();
 
 		/**
 		 * @property displayHomeAsUp
