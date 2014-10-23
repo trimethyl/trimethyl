@@ -1,7 +1,6 @@
 /**
  * @class  Sounds
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * UI Sounds interface
  */
 
 /**

@@ -87,7 +87,7 @@ exports.facebook = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS dialog
-	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isFacebookSupported() && /https?\:\/\/(www\.)?facebook\.com/.test(args.url)) {
+	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isFacebookSupported() && false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url)) {
 		dkNappSocial.facebook({
 			text: args.text,
 			image: args.image,
@@ -150,12 +150,12 @@ exports.email = function(args) {
 		if (e.result !== this.CANCELLED) {
 			onSocialComplete({
 				success: (e.result === this.SENT),
-				platform: 'mail'
+				platform: 'email'
 			});
 		} else {
 			onSocialCancel({
 				success: false,
-				platform: 'mail'
+				platform: 'email'
 			});
 		}
 	});

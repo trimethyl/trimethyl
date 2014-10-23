@@ -434,3 +434,16 @@ exports.getErrorMessage = function(obj) {
 exports.errorAlert = exports.alertError = function(err, callback) {
 	Dialog.alert(L('Error'), exports.getErrorMessage(err), callback);
 };
+
+/**
+ * @method bytesForHumans
+ * Get a human representation of bytes
+ * @param  {Number} bytes
+ * @return {String}
+ */
+exports.bytesForHumans = function(bytes) {
+	var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+	if (bytes === 0) return 'n/a';
+	var i = parseInt(Math.floor(Math.log(bytes)/Math.log(1024)));
+	return Math.round(bytes/Math.pow(1024,i),2) + ' ' + sizes[i];
+};
