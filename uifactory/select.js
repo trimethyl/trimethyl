@@ -1,24 +1,6 @@
 /**
  * @class  UIFactory.Select
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * ### Arguments
- *
- * #### `values`. Type: `Array`
- *
- * An array containing the values.
- *
- * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values,
- * or simply `1` for the sames.
- *
- * #### `theValue`. Type: `Object`
- *
- * The selected value
- *
- * ### Obtain the value
- *
- * Use the `getValue` function.
- *
  */
 
 var Moment = require('T/ext/moment');
@@ -57,7 +39,7 @@ function createTiUIPicker(args) {
 		} else if (OS_ANDROID) {
 
 			$picker = Ti.UI.createLabel(_.extend(pickerArgs, {
-				text: Moment($picker.theValue).format('D MMMM YYYY')
+				text: Moment(pickerArgs.theValue).format('D MMMM YYYY')
 			}));
 
 			$picker.addEventListener('click', function(){
@@ -79,6 +61,14 @@ function createTiUIPicker(args) {
 		$picker = Ti.UI.createPicker(pickerArgs);
 		var selectedRowIndex = 0;
 
+		/**
+		 * @property values
+		 * An array containing the values.
+		 *
+		 * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values,
+		 * or simply `1` for the sames.
+		 * @type {Array}
+		 */
 		$picker.add(_.map(args.values, function(v, index) {
 			var $pickerRow = null;
 			if (_.isObject(v) && v.value !== undefined) {
@@ -94,6 +84,12 @@ function createTiUIPicker(args) {
 		$picker.setSelectedRow(0, selectedRowIndex, false);
 		$picker.addEventListener('change', function(e) {
 			$picker.theRow = e.row;
+
+			/**
+			 * @property theValue
+			 * Value of the picker
+			 * @type {Object}
+			 */
 			$picker.theValue = e.row.value;
 		});
 
@@ -160,6 +156,11 @@ module.exports = function(args) {
 
 	}
 
+	/**
+	 * @method getValue
+	 * Get the value
+	 * @return {Object}
+	 */
 	$this.getValue = function() {
 		return $this.theValue;
 	};
