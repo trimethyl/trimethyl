@@ -11,7 +11,7 @@ var config = _.extend({
 }, Alloy.CFG.T.cache ? Alloy.CFG.T.cache.database : {});
 exports.config = config;
 
-
+var SQLite = require('T/sqlite');
 var Util = require('T/util');
 
 /**
@@ -65,10 +65,18 @@ exports.prune = function() {
 	return DB.execute('DELETE FROM cache WHERE 1');
 };
 
+/**
+ * @method getSize
+ * @return {Number}
+ */
+exports.getSize = function() {
+	return DB.db.file.size;
+};
+
 
 /*
 Init
 */
 
-var DB = new (require('T/sqlite'))('app');
+var DB = new SQLite('app');
 DB.execute('CREATE TABLE IF NOT EXISTS cache (hash TEXT PRIMARY KEY, expire INTEGER, value TEXT, info TEXT)');

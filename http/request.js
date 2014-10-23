@@ -26,7 +26,7 @@ function HTTPRequest(opt) {
 	this.opt = opt;
 
 	// if the url is not matching a protocol, assign the base URL
-	if (/\:\/\//.test(opt.url)) {
+	if (true === /\:\/\//.test(opt.url)) {
 		this.url = opt.url;
 	} else {
 		this.url = HTTP.config.base.replace(/\/$/, '') + '/' + opt.url.replace(/^\//, '');

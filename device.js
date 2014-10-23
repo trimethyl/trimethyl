@@ -65,3 +65,11 @@ exports.isIPhone = function() {
 exports.isIPad = function() {
 	return Ti.Platform.osname === 'ipad';
 };
+
+/**
+ * @method getInfo
+ * @return {Object}
+ */
+exports.getInfo = function() {
+	return _.pick(Ti.Platform, 'architecture', 'batteryLevel', 'locale', 'manufacturer', 'model', 'osname', 'runtime', 'username', 'version');
+};
