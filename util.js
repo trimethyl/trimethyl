@@ -8,6 +8,21 @@ var Prop = require('T/prop');
 
 
 /**
+ * @method requireOrNull
+ * Require a module, or return a null object
+ * @param  {String} name
+ * @return {Object}
+ */
+exports.requireOrNull = function(name) {
+	try {
+		return require(name) || null;
+	} catch (ex) {
+		return null;
+	}
+};
+
+
+/**
  * @method openURL
  * Try to open the URL with `Ti.Platform.openURL`, catching errors.
  *

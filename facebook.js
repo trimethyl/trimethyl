@@ -15,11 +15,9 @@ exports.config = config;
 
 var Facebook = require('facebook');
 
-if (Facebook != null) {
-	Facebook.appid = require('T/prop').getString('ti.facebook.appid');
-	if (config.permissions != null) {
-		Facebook.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
-	}
+Facebook.appid = require('T/prop').getString('ti.facebook.appid');
+if (config.permissions != null) {
+	Facebook.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
 }
 
 module.exports = Facebook;

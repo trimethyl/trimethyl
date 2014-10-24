@@ -35,7 +35,7 @@ function checkForServices() {
  * @param {Object}	opt
  */
 exports.getCurrentPosition = function(opt) {
-	if (checkForServices()) {
+	if ( ! checkForServices()) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
 		return;

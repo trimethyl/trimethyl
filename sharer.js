@@ -294,19 +294,19 @@ Init
 
 // Load modules
 
-var FB = T('facebook');
+var FB = Util.requireOrNull('facebook');
 if (FB == null) {
 	Ti.API.warn('Sharer: `facebook` not loaded');
 }
 
 if (OS_IOS) {
 
-	var dkNappSocial = require('dk.napp.social');
+	var dkNappSocial = Util.requireOrNull('dk.napp.social');
 	if (dkNappSocial == null) {
 		Ti.API.warn('Sharer: `dk.napp.social` not loaded');
 	}
 
-	var benCodingSMS = require('bencoding.sms');
+	var benCodingSMS = Util.requireOrNull('bencoding.sms');
 
 	if (benCodingSMS == null) {
 		Ti.API.warn('Sharer: `bencoding.sms` not loaded');
