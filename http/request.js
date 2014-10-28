@@ -33,7 +33,7 @@ function HTTPRequest(opt) {
 	}
 
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
-	this.headers = _.extend({}, HTTP.getHeaders(), opt.headers);
+	this.headers = _.extend(HTTP.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : HTTP.config.timeout;
 
 	this.onSuccess = _.isFunction(opt.success) ? opt.success : null;
@@ -59,16 +59,14 @@ HTTPRequest.prototype.toString = function() {
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function() {
-	if (HTTP.config.useCache === false) return;
-	if (this.opt.cache === false)
-	if (this.method !== 'GET') return;
-
-	if (this.responseInfo.ttl <= 0) return;
-	if (this.client.responseText == null) return;
-
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHED until ' + Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl)));
+	if (HTTP.config.useCache === false || this.opt.cache === false || this.method !== 'GET' || this.client.responseText == null) return;
+	if (this.responseInfo.ttl <= 0) {
+		Ti.API.debug('HTTP: ['+this.hash+'] CAN\'T CACHE due ttl <= 0');
+		return;
+	}
 
 	Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
+	Ti.API.debug('HTTP: ['+this.hash+'] CACHED until ' + Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl)));
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
@@ -86,11 +84,13 @@ HTTPRequest.prototype._getResponseInfo = function() {
 	};
 
 	if (this.client.responseText != null) info.format = 'text';
+
 	if (/application\/json/.test(httpContentType)) info.format = 'json';
 
-	if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
 	if (httpTTL != null) info.ttl = httpTTL;
+	else if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
 
+	// Override
 	if (this.opt.format != null) info.format = this.opt.format;
 	if (this.opt.ttl != null) info.ttl = this.opt.ttl;
 
@@ -127,7 +127,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	// If the readyState is not DONE, trigger error, because
 	// client.onload is the function to be called upon a SUCCESSFULL response.
 	if (this.responseInfo.broken === true) {
-		this._onError({ broken: true });
+		this._onError({});
 		return;
 	}
 
@@ -139,7 +139,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 		// Write the cache (if needed and supported by configuration)
 		this._maybeCacheResponse();
 
-		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS');
+		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS ON '+(this.endTime-this.startTime)+'ms');
 		if (this.onSuccess !== null) this.onSuccess(text, data);
 
 	} else {
