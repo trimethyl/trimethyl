@@ -5,7 +5,7 @@
 
 [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
-## [API Documentation](http://caffeinalab.github.io/Trimethyl/)
+### [View the API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
 Trimethyl is not a framework.
 
