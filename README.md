@@ -1,9 +1,11 @@
-# Trimethyl 2 - Titanium toolchain made in Caffeina
+# Trimethyl 2
+### Titanium toolchain made in Caffeina
+
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
-### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
+## [API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
 Trimethyl is not a framework.
 
