@@ -1,7 +1,6 @@
 /**
  * @class  Auth.Facebook
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Auth driver to handle Facebook authentication
  */
 
 var config = _.extend({

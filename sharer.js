@@ -1,10 +1,6 @@
 /**
  * @class  Sharer
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Provide functions to simplify sharing across platforms and social networks
- *
- * Be more Social on your app! ;)f
- *
  */
 
 /**

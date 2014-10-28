@@ -1,7 +1,6 @@
 /**
  * @class  Cache.Database
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Fast cache module using SQLite
  */
 
 /**

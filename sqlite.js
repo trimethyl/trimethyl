@@ -1,8 +1,6 @@
 /**
  * @class  SQLite
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
- *
- * SQLite abstraction layer
  */
 
 function SQLite(name, file) {

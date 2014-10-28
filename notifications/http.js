@@ -1,9 +1,7 @@
 /**
  * @class  Notifications.HTTP
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * HTTP API Driver for Notifications
  */
-
 
 /**
  * * `endpoint` URL for subscription. Type `String`. Default `null`

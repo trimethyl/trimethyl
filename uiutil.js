@@ -3,7 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 /**
  * @type {Object}
  */

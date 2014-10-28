@@ -19,6 +19,10 @@ if (config.hockeyApp === true) {
 	HA.start(T('prop').getString('hockeyapp.id'));
 }
 
+/**
+ * @method show
+ * Show the menu
+ */
 exports.show = function() {
 	var opts = [];
 	opts.push({

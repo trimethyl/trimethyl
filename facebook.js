@@ -3,7 +3,6 @@
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 /**
  * * `permissions`: Array of permissions. Default: `[]`
  * @type {Object}

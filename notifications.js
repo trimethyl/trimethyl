@@ -3,7 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 /**
  * * `autoReset` Check if auto-reset the badge when app is open.
  * * `driver` The driver to use. Default: `cloud`
