@@ -61,12 +61,12 @@ HTTPRequest.prototype.toString = function() {
 HTTPRequest.prototype._maybeCacheResponse = function() {
 	if (HTTP.config.useCache === false || this.opt.cache === false || this.method !== 'GET' || this.client.responseText == null) return;
 	if (this.responseInfo.ttl <= 0) {
-		Ti.API.debug('HTTP: ['+this.hash+'] CAN\'T CACHE due ttl <= 0');
+		Ti.API.debug('HTTP: ['+this.hash+'] TTL <= 0');
 		return;
 	}
 
 	Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHED until ' + Util.timestampForHumans(Util.fromnow(this.responseInfo.ttl)));
+	Ti.API.debug('HTTP: ['+this.hash+'] CACHED for '+this.responseInfo.ttl+'s');
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
@@ -74,21 +74,25 @@ HTTPRequest.prototype._getResponseInfo = function() {
 		return { broken: true };
 	}
 
-	var httpExpires = this.client.getResponseHeader('Expires');
-	var httpContentType = this.client.getResponseHeader('Content-Type');
-	var httpTTL = this.client.getResponseHeader('X-Cache-Ttl');
+	var headers = {
+		Expires: this.client.getResponseHeader('Expires'),
+		ContentType: this.client.getResponseHeader('Content-Type'),
+		TTL: this.client.getResponseHeader('X-Cache-Ttl')
+	};
 
 	var info = {
 		format: 'blob',
 		ttl: 0
 	};
 
-	if (this.client.responseText != null) info.format = 'text';
+	if (this.client.responseText != null) {
+		info.format = 'text';
+		if (/application\/json/.test(headers.ContentType)) info.format = 'json';
+	}
 
-	if (/application\/json/.test(httpContentType)) info.format = 'json';
-
-	if (httpTTL != null) info.ttl = httpTTL;
-	else if (httpExpires != null) info.ttl = Util.timestamp(httpExpires) - Util.now();
+	// Always prefer X-Cache-Ttl over Expires
+	if (headers.TTL != null) info.ttl = headers.TTL;
+	else if (headers.Expires != null) info.ttl = Util.timestamp(headers.Expires) - Util.now();
 
 	// Override
 	if (this.opt.format != null) info.format = this.opt.format;
@@ -139,7 +143,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 		// Write the cache (if needed and supported by configuration)
 		this._maybeCacheResponse();
 
-		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS ON '+(this.endTime-this.startTime)+'ms');
+		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS in '+(this.endTime-this.startTime)+'ms');
 		if (this.onSuccess !== null) this.onSuccess(text, data);
 
 	} else {
@@ -170,7 +174,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	var cachedData = Cache.get(this.hash);
 	if (cachedData == null) return;
 
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHE SUCCESS for ' + (cachedData.expire - Util.now()) + 's');
+	Ti.API.debug('HTTP: ['+this.hash+'] CACHE SUCCESS for '+(cachedData.expire-Util.now())+'s');
 
 	return extractHTTPText(cachedData.value, cachedData.info);
 };

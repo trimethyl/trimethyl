@@ -75,7 +75,7 @@ exports.dispatch = function(url) {
 		}
 
 		if (run === true) {
-			Ti.API.debug('Router: Match found', routeDefinition.key, matches);
+			Ti.API.debug('Router: Matched with key ['+routeDefinition.key+'] and matches ['+JSON.stringify(matches)+']');
 
 			routeDefinition.callback.apply(X, matches);
 			return; // break the f***g cycle
