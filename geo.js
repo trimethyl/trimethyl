@@ -23,7 +23,7 @@ exports.config = config;
 var Event = require('T/event');
 
 function checkForServices() {
-	return !! Ti.Geolocation.locationServicesEnabled;
+	return Ti.Geolocation.locationServicesEnabled;
 }
 
 /**
@@ -35,7 +35,7 @@ function checkForServices() {
  * @param {Object}	opt
  */
 exports.getCurrentPosition = function(opt) {
-	if ( ! checkForServices()) {
+	if (false === checkForServices()) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
 		return;
