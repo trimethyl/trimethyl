@@ -206,66 +206,10 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
 /**
  * @method markerCluster
  * Process a set of markers and cluster them
- *
- * Each marker must be in this format:
- *
- * ```javascript
- * {
- * 	lat: 	{Number},
- * 	lng: 	{Number},
- * 	id: 	{Number (unique)}
- * }
- * ```
  * @param  {Object} e       	The arguments retrived from TiMap.addEventListener('regionchanged', **event**)
  * @param  {Object} markers 	The markers **must be** an instance of `Backbone.Collection` or an Object id-indexed
  * @param  {Object} [keys] 	The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
  * @return {Array}
- * An array of markers in this format:
- *
- * If the marker is a cluster, an object like
- * `{ latitude: {Number}, longitude: {Number}, count: {Number} }` is passed,
- * otherwise, the ID of the marker in your marker collections.
- *
- * This is a sample code:
- *
- * ```
- * var Geo = T('geo');
- * var TiMap = require('ti.map');
- *
- * var Me = Alloy.createCollection('whatever');
- * Me.fetch({
- * 	success: function() {
- *			updateMap(_.extend($.mapView.region, { source: $.mapView }));
- *		 	$.mapView.addEventListener('regionchanged', updateMap);
- *	   }
- * });
- *
- * function updateMap(e) {
- * 	var data = Geo.markerCluster(e, Me);
- * 	var annotations = [];
- *
- * 	_.each(data, function(c){
- * 		if (_.isNumber(c)) {
- * 			var marker = Me.get(c);
- * 			annotations.push(TiMap.createAnnotation({
- * 				id: c,
- * 				latitude: marker.get('lat'),
- * 				longitude: marker.get('lng'),
- * 				title: marker.get('title'),
- * 			}));
- * 		} else {
- * 			annotations.push(TiMap.createAnnotation({
- * 				latitude: c.latitude,
- * 				longitude: c.longitude
- * 			}));
- * 		}
- * 	});
- *
- * 	$.mapView.annotations = annotations;
- * }
- *
- * ```
- *
  */
 exports.markerCluster = function(e, markers, keys){
 	_.defaults(keys, { latitude: 'lat', longitude: 'lng', id: 'id' });
@@ -277,8 +221,8 @@ exports.markerCluster = function(e, markers, keys){
 	var latR = (e.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / e.latitudeDelta;
 	var lngR = (e.source.size.width || Alloy.Globals.SCREEN_WIDTH) / e.longitudeDelta;
 
-	var degreeLat = 2 * config.pixelRadius/latR;
-	var degreeLng = 2 * config.pixelRadius/lngR;
+	var degreeLat = 2 * config.clusterPixelRadius / latR;
+	var degreeLng = 2 * config.clusterPixelRadius / lngR;
 
 	var boundingBox = [
 	e.latitude - e.latitudeDelta/2 - degreeLat,
