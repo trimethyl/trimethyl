@@ -42,7 +42,7 @@ SQLite.prototype.value = SQLite.prototype.val = function() {
  */
 SQLite.prototype.single = SQLite.prototype.row = function() {
 	var row = this.execute.apply(this, arguments);
-	if (row.validRow === false) return {};
+	if (row.validRow === false) return null;
 	var obj = {};
 	for (var i = 0; i < row.fieldCount; i++) {
 		obj[row.fieldName(i)] = row.field(i);
