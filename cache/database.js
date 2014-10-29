@@ -57,10 +57,10 @@ exports.remove = function(hash) {
 };
 
 /**
- * @method prune
+ * @method purge
  * Prune all
  */
-exports.prune = function() {
+exports.purge = function() {
 	return DB.execute('DELETE FROM cache WHERE 1');
 };
 
