@@ -63,6 +63,7 @@ SQLite.prototype.list = SQLite.prototype.array = function() {
 		list.push(row.field(0));
 		row.next();
 	}
+	if (list.length === 0) return null;
 	return list;
 };
 
@@ -83,6 +84,7 @@ SQLite.prototype.all = SQLite.prototype.rows = function() {
 		list.push(obj);
 		row.next();
 	}
+	if (list.length === 0) return null;
 	return list;
 };
 
