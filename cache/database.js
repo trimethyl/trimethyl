@@ -21,7 +21,7 @@ var Util = require('T/util');
  */
 exports.get = function(hash) {
 	var row = DB.row('SELECT expire, value, info FROM cache WHERE hash = ? LIMIT 1', hash);
-	if (_.isEmpty(row)) return null;
+	if (row === null) return null;
 
 	var expire = parseInt(row.expire, 10);
 	if (expire !== -1 && Util.now() > expire) return null;
