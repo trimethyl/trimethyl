@@ -1,5 +1,5 @@
 /**
- * @class 	Util.Image
+ * @class 	Image
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
