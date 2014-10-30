@@ -71,7 +71,7 @@ exports.show = function() {
 	opts.push({
 		title: 'Delete DB cache (~' + T('util').bytesForHumans(T('cache').getSize()) + ')',
 		callback: function() {
-			T('cache').prune();
+			T('cache').purge();
 			d.hide();
 		}
 	});

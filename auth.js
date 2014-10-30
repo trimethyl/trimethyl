@@ -192,7 +192,7 @@ exports.logout = function(callback) {
 	Ti.App.Properties.removeProperty('auth.driver');
 
 	// Remove cache because can contain sensibile data
-	if (Cache != null) Cache.prune();
+	if (Cache != null) Cache.purge();
 	HTTP.resetCookies();
 
 	// Logout on used driver
