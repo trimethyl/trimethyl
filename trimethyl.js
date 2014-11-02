@@ -6,7 +6,7 @@
 
 Ti.Trimethyl = '2.0.0';
 
-if (Alloy.CFG.T == null) {
+if (!_.isObject(Alloy.CFG.T)) {
 	throw new Error('Please create almost a "T" empty object in your "config.json"');
 }
 
