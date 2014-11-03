@@ -6,8 +6,12 @@
 
 Ti.Trimethyl = '2.0.0';
 
+if (!_.isObject(Alloy.CFG.T)) {
+	throw new Error('Please create almost a "T" empty object in your "config.json"');
+}
+
 var Util = require('T/util');
-var Device 	= require('T/device');
+var Device = require('T/device');
 var Event = require('T/event');
 
 var launchURL = Util.parseSchema();
