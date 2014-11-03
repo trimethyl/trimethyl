@@ -41,6 +41,7 @@ module.exports = function(args) {
 
 	var bgCoverUI = null;
 	var bgCoverUISview = null;
+	var bgCoverPostLayouted = false;
 
 	/**
 	 * @method setBackgroundCoverImage
@@ -48,40 +49,37 @@ module.exports = function(args) {
 	 * This is a workaround to make it work it!
 	 * @param {String} val
 	 */
-	$this.setBackgroundCoverImage = function(val){
-		var SCREEN_WIDTH = require('T/device').getScreenWidth();
-		var SCREEN_HEIGHT = require('T/device').getScreenHeight();
-		var SCREEN_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT;
-
+	$this.setBackgroundCoverImage = function(val) {
 		if (bgCoverUI === null) {
-			bgCoverUI = Ti.UI.createImageView();
-
-			// Wait for postlayout to determine where to stretch
-			bgCoverUI.addEventListener('postlayout', function(){
-				if (bgCoverUI.postlayouted === true) return;
-				bgCoverUI.postlayouted = true;
-
-				var R = bgCoverUI.size.width / bgCoverUI.size.height;
-				bgCoverUI.applyProperties(
-					SCREEN_RATIO > R ?
-					{ width: SCREEN_WIDTH, height: SCREEN_WIDTH / R } :
-					{ width: SCREEN_HEIGHT * R, height: SCREEN_HEIGHT }
-				);
-			});
-
 			bgCoverUISview = Ti.UI.createScrollView({
 				touchEnabled: false,
-				width: SCREEN_WIDTH,
-				height: SCREEN_HEIGHT,
+				width: Ti.UI.FILL,
+				height: Ti.UI.FILL,
 				zIndex: -1
 			});
+			bgCoverUI = Ti.UI.createImageView({
+				image: val,
+				opacity: 0
+			});
 			bgCoverUISview.add(bgCoverUI);
-
 			$this.add(bgCoverUISview);
-		}
 
-		bgCoverUI.postlayouted = false;
- 		bgCoverUI.setImage(val);
+			// Wait for postlayout to determine where to stretch
+			bgCoverUI.addEventListener('postlayout', function() {
+				if (bgCoverPostLayouted === true) return;
+				bgCoverPostLayouted = true;
+				var imgSize = bgCoverUI.getSize(), winSize = bgCoverUISview.getSize();
+				var imgRatio = imgSize.width / imgSize.height, winRatio = winSize.width / winSize.height;
+				bgCoverUI.applyProperties(
+					winRatio > imgRatio ?
+					{ opacity: 1, width: winSize.width, height: winSize.width / imgRatio } :
+					{ opacity: 1, width: winSize.height * imgRatio, height: winSize.height }
+				);
+			});
+		} else {
+			bgCoverPostLayouted = false;
+			bgCoverUI.setImage(val);
+		}
 	};
 
 	if (OS_ANDROID) {
