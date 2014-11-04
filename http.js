@@ -236,7 +236,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 			} else {
 				var appDataDir = Util.getAppDataDirectory();
 				var appDataDirStream = Ti.Filesystem.getFile(appDataDir);
-				if (!appDataDirStream.exists()) appDataDirStream.createDirectory();
+				if ( ! appDataDirStream.exists()) appDataDirStream.createDirectory();
 				fileStream = Ti.Filesystem.getFile(appDataDir, file);
 			}
 

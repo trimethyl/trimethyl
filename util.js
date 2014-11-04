@@ -207,13 +207,12 @@ exports.parseSchema = function() {
  * @method timestamp
  * Get the UNIX timestamp.
  *
- * @param  {String} [t]  The date to parse. If is not provided, get current timestamp.
+ * @param  {Object} [arg]  The date to parse.
  * @return {Number}
  */
-exports.timestamp = function(t) {
-	var ts = new Date(t).getTime() / 1000;
-	if (!_.isNumber(ts)) return 0;
-	return parseInt(ts, 10);
+exports.timestamp = function(arg) {
+	if (arg == null) return exports.now();
+	return (new Date(arg).getTime() / 1000) >> 0;
 };
 
 
@@ -223,19 +222,19 @@ exports.timestamp = function(t) {
  * @return {Number}
  */
 exports.now = function() {
-	return exports.timestamp(new Date());
+	return (Date.now() / 1000) >> 0;
 };
 
 
 /**
- * @method fromnow
+ * @method fromNow
  * Get the UNIX timestamp from now with delay expressed in seconds.
  *
  * @param  {Number} [t]  Seconds from now.
  * @return {Number}
  */
-exports.fromnow = exports.fromNow = function(t) {
-	return exports.timestamp( new Date().getTime() + t*1000 );
+exports.fromNow = function(t) {
+	return exports.timestamp(Date.now() + t*1000);
 };
 
 /**

@@ -42,6 +42,10 @@ module.exports = function(args) {
 	var bgCoverUI = null;
 	var bgCoverUISview = null;
 	var bgCoverPostLayouted = false;
+	var bgCoverGesture = function() {
+		bgCoverPostLayouted = false;
+		bgCoverUI.fireEvent('postlayout');
+	};
 
 	/**
 	 * @method setBackgroundCoverImage
@@ -68,17 +72,26 @@ module.exports = function(args) {
 			bgCoverUI.addEventListener('postlayout', function() {
 				if (bgCoverPostLayouted === true) return;
 				bgCoverPostLayouted = true;
+
 				var imgSize = bgCoverUI.getSize(), winSize = bgCoverUISview.getSize();
 				var imgRatio = imgSize.width / imgSize.height, winRatio = winSize.width / winSize.height;
+
 				bgCoverUI.applyProperties(
 					winRatio > imgRatio ?
 					{ opacity: 1, width: winSize.width, height: winSize.width / imgRatio } :
 					{ opacity: 1, width: winSize.height * imgRatio, height: winSize.height }
 				);
 			});
+
+			// Add a listener that relayout the background image
+			Ti.Gesture.addEventListener('orientationchange', bgCoverGesture);
+			$this.addEventListener('close', function() {
+				Ti.Gesture.removeEventListener('orientationchange', bgCoverGesture);
+			});
+
 		} else {
-			bgCoverPostLayouted = false;
 			bgCoverUI.setImage(val);
+			bgCoverGesture();
 		}
 	};
 
