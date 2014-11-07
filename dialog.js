@@ -7,7 +7,7 @@
 function parseDict(dict) {
 	return {
 		cancel: _.indexOf(dict, _.findWhere(dict, { cancel: true })),
-		selectIndex: _.indexOf(dict, _.findWhere(dict, { selected: true })),
+		selectedIndex: _.indexOf(dict, _.findWhere(dict, { selected: true })),
 		destructive: _.indexOf(dict, _.findWhere(dict, { destructive: true })),
 	};
 }
@@ -70,6 +70,8 @@ function dialogConfirm(title, message, dict, ext) {
 		title: title,
 		message: message
 	}, ext));
+
+	Ti.API.debug(dialog);
 
 	dialog.addEventListener('click', function(e) {
 		onClickDict(e, dict, dialog);
