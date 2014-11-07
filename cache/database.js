@@ -43,7 +43,7 @@ exports.get = function(hash) {
  */
 exports.set = function(hash, value, ttl, info) {
 	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)',
-	hash, ttl != null ? Util.fromnow(ttl) : -1, value, JSON.stringify(info));
+	hash, ttl != null ? Util.fromNow(ttl) : -1, value, JSON.stringify(info));
 };
 
 

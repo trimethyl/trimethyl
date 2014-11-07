@@ -144,7 +144,7 @@ exports.confirmYes = confirmYes;
  *
  * @param  {String}   	title 				The title
  * @param  {String}   	message   			The message
- * @param  {Function} 	[callback]    		The callback to invoke when clicking *Yes*.
+ * @param  {Object}    	dict 					Buttons as Dictonary
  * @return {Ti.UI.AlertDialog}
  */
 function dialogPrompt(title, message, dict) {
