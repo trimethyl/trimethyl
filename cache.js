@@ -9,7 +9,7 @@
  */
 var config = _.extend({
 	strategy: 'database'
-}, Alloy.CFG.T.cache);
+}, Alloy.CFG.T ? Alloy.CFG.T.cache : {});
 exports.config = config;
 
 // Driver loader

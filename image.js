@@ -4,14 +4,6 @@
  */
 
 /**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.T.image);
-exports.config = config;
-
-
-/**
  * Process the image and output in memory/filesystem
  *
  * `blob` is required to process the image, or an error is thrown

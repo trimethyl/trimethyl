@@ -3,13 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.T.sharer);
-exports.config = config;
-
 
 var Util = require('T/util');
 var globalCallback = null; // Handle all callbacks

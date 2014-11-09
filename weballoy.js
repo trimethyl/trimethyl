@@ -9,7 +9,7 @@
  */
 var config = _.extend({
 	jsExt: '.jslocal'
-}, Alloy.CFG.T.weballoy);
+}, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
 exports.config = config;
 
 var libDir = [];

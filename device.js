@@ -3,13 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.T.device);
-exports.config = config;
-
 
 /**
  * @method getScreenDensity

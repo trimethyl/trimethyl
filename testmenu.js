@@ -11,7 +11,7 @@
 var config = _.extend({
 	showOnShake: true,
 	hockeyApp: true
-}, Alloy.CFG.T.testmenu);
+}, Alloy.CFG.T ? Alloy.CFG.T.testmenu : {});
 exports.config = config;
 
 if (config.hockeyApp === true) {

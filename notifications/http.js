@@ -11,7 +11,7 @@
 var config = _.extend({
 	endpoint: null,
 	subscribeDataExtend: null,
-}, Alloy.CFG.T.notifications ? Alloy.CFG.T.notifications.http : {});
+}, (Alloy.CFG.T && Alloy.CFG.T.notifications) ? Alloy.CFG.T.notifications.http : {});
 exports.config = config;
 
 var HTTP = require('T/http');

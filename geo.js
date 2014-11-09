@@ -17,7 +17,7 @@ var config = _.extend({
 	clusterPixelRadius: 15,
 	clusterRemoveOutofBB: true,
 	clusterMaxDelta: 0.3
-}, Alloy.CFG.geo);
+}, Alloy.CFG.T ? Alloy.CFG.geo : {});
 exports.config = config;
 
 var Event = require('T/event');

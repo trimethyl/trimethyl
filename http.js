@@ -14,7 +14,7 @@ var config = _.extend({
 	base: 'http://localhost',
 	timeout: 10000,
 	headers: {},
-}, Alloy.CFG.T.http);
+}, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 exports.config = config;
 
 

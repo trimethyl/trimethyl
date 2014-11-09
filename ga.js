@@ -9,7 +9,7 @@
  */
 var config = _.extend({
 	ua: null
-}, Alloy.CFG.T.ga);
+}, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 exports.config = config;
 
 var AnalyticsGoogle = require('analytics.google');

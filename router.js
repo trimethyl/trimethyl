@@ -4,13 +4,6 @@
  * Routing system for the apps, used to manage flow from notifications, startups, direct routing.
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.T.router);
-exports.config = config;
-
 var Util = require('T/util');
 
 var routes = []; // storage for all routes

@@ -11,7 +11,7 @@
 var config = _.extend({
 	autoReset: true,
 	driver: 'cloud',
-}, Alloy.CFG.T.notifications);
+}, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
 exports.config = config;
 
 var Event = require('T/event');

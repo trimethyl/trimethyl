@@ -7,7 +7,7 @@
  * @type {Object}
  */
 var config = _.extend({
-}, Alloy.CFG.T.notifications ? Alloy.CFG.T.notifications.cloud : {});
+}, (Alloy.CFG.T && Alloy.CFG.T.notifications) ? Alloy.CFG.T.notifications.cloud : {});
 exports.config = config;
 
 

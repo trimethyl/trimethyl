@@ -3,13 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.T.sounds);
-exports.config = config;
-
 var players = {};
 
 /**

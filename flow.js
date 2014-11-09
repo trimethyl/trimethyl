@@ -11,7 +11,7 @@
 var config = _.extend({
 	trackWithGA: true,
 	trackTimingWithGA: true
-}, Alloy.CFG.T.flow);
+}, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 exports.config = config;
 
 var Navigator = null; // Current navigator

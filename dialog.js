@@ -3,7 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 function parseDict(dict) {
 	return {
 		cancel: _.indexOf(dict, _.findWhere(dict, { cancel: true })),

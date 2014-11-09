@@ -11,7 +11,7 @@
 var config = _.extend({
 	loginUrl: '/login',
 	logoutUrl: '/logout'
-}, Alloy.CFG.T.auth);
+}, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 exports.config = config;
 
 var Q = require('T/ext/q');

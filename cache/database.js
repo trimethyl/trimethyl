@@ -7,7 +7,7 @@
  * @type {Object}
  */
 var config = _.extend({
-}, Alloy.CFG.T.cache ? Alloy.CFG.T.cache.database : {});
+}, (Alloy.CFG.T && Alloy.CFG.T.cache) ? Alloy.CFG.T.cache.database : {});
 exports.config = config;
 
 var SQLite = require('T/sqlite');

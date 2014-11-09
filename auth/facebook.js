@@ -3,9 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-var config = _.extend({
-}, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
-exports.config = config;
 
 var FB = require('T/facebook');
 

@@ -9,7 +9,7 @@
  */
 var config = _.extend({
 	permissions: [],
-}, Alloy.CFG.T.auth ? Alloy.CFG.T.auth.facebook : {});
+}, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
 exports.config = config;
 
 var Facebook = require('facebook');

@@ -3,13 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, Alloy.CFG.T.camera);
-exports.config = config;
-
 
 /**
  * Call showCamera or openPhotoGallery using same options
