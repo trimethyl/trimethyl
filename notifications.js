@@ -152,11 +152,11 @@ exports.subscribe = function(channel) {
 			channel: channel,
 			success: function(){
 				Event.trigger('notifications.subscription.success', { channel: channel });
-				Ti.API.debug('Notifications: Subscription to channel' + channel + ' succeded');
+				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded');
 			},
 			error: function(err) {
 				Event.trigger('notifications.subscription.error', err);
-				Ti.API.error('Notifications: Subscription failed to channel' + channel, err);
+				Ti.API.error('Notifications: Subscription failed to channel <' + channel + '>', err);
 			}
 		});
 	});
@@ -171,7 +171,7 @@ exports.subscribe = function(channel) {
 exports.unsubscribe = function(channel) {
 	var deviceToken = Ti.App.Properties.getString('notifications.token');
 	if (_.isEmpty(deviceToken)) {
-		return Ti.API.error('Notifications: Error while getting devideToken');
+		return Ti.API.error('Notifications: Error while getting deviceToken');
 	}
 
 	Ti.App.Properties.removeProperty('notifications.token');
@@ -180,11 +180,11 @@ exports.unsubscribe = function(channel) {
 		channel: channel,
 		success: function(){
 			Event.trigger('notifications.unsubscription.error', { channel: channel });
-			Ti.API.debug('Notifications: Unsubscription to channel' + channel + ' succeded');
+			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded');
 		},
 		error: function(err) {
 			Event.trigger('notifications.unsubscription.error', err);
-			Ti.API.error('Notifications: Unsubscription failed to channel' + channel, err);
+			Ti.API.error('Notifications: Unsubscription failed to channel <' + channel + '>', err);
 		}
 	});
 };

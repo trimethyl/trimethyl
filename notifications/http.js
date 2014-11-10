@@ -9,7 +9,6 @@
  */
 exports.config = _.extend({
 	endpoint: null,
-	subscribeDataExtend: null,
 }, (Alloy.CFG.T && Alloy.CFG.T.notifications) ? Alloy.CFG.T.notifications.http : {});
 
 var HTTP = require('T/http');
@@ -20,7 +19,7 @@ exports.subscribe = function(opt) {
 		method: 'POST',
 		data: {
 			device_token: opt.deviceToken,
-			channel_id: opt.channel,
+			channel: opt.channel,
 			app_version: Ti.App.version,
 			app_deploytype: Ti.App.deployType,
 			os: (function() {
@@ -40,7 +39,7 @@ exports.unsubscribe = function(opt) {
 		method: 'DELETE',
 		data: {
 			device_token: opt.deviceToken,
-			channel_id: opt.channel,
+			channel: opt.channel,
 		},
 		success: opt.success,
 		error: opt.error,

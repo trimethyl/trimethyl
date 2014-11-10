@@ -53,7 +53,7 @@ exports.isLoggedIn = function() {
  * @return {Number}
  */
 exports.getUserID = function(){
-	if (Me === null) return null;
+	if (Me === null) return 0;
 	return Me.id;
 };
 
