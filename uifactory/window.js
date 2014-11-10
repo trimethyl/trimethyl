@@ -41,11 +41,20 @@ module.exports = function(args) {
 
 	var bgCoverUI = null;
 	var bgCoverUISview = null;
-	var bgCoverPostLayouted = false;
-	var bgCoverGesture = function() {
-		bgCoverPostLayouted = false;
-		bgCoverUI.fireEvent('postlayout');
-	};
+	var bgCoverUIRelayouted = false;
+
+	function bgCoverRelayout() {
+		var imgSize = bgCoverUI.size;
+		var winSize = bgCoverUISview.size;
+		var imgRatio = imgSize.width / imgSize.height;
+		var winRatio = winSize.width / winSize.height;
+
+		bgCoverUI.applyProperties(
+			winRatio > imgRatio ?
+			{ opacity: 1, width: winSize.width, height: winSize.width / imgRatio } :
+			{ opacity: 1, width: winSize.height * imgRatio, height: winSize.height }
+		);
+	}
 
 	/**
 	 * @method setBackgroundCoverImage
@@ -54,7 +63,11 @@ module.exports = function(args) {
 	 * @param {String} val
 	 */
 	$this.setBackgroundCoverImage = function(val) {
-		if (bgCoverUI === null) {
+		if (bgCoverUI !== null) {
+			bgCoverUI.image = val;
+			bgCoverUIRelayouted = false;
+		} else {
+
 			bgCoverUISview = Ti.UI.createScrollView({
 				touchEnabled: false,
 				width: Ti.UI.FILL,
@@ -68,30 +81,16 @@ module.exports = function(args) {
 			bgCoverUISview.add(bgCoverUI);
 			$this.add(bgCoverUISview);
 
-			// Wait for postlayout to determine where to stretch
 			bgCoverUI.addEventListener('postlayout', function() {
-				if (bgCoverPostLayouted === true) return;
-				bgCoverPostLayouted = true;
-
-				var imgSize = bgCoverUI.getSize(), winSize = bgCoverUISview.getSize();
-				var imgRatio = imgSize.width / imgSize.height, winRatio = winSize.width / winSize.height;
-
-				bgCoverUI.applyProperties(
-					winRatio > imgRatio ?
-					{ opacity: 1, width: winSize.width, height: winSize.width / imgRatio } :
-					{ opacity: 1, width: winSize.height * imgRatio, height: winSize.height }
-				);
+				if (bgCoverUIRelayouted === true) return;
+				bgCoverUIRelayouted = true;
+				bgCoverRelayout();
 			});
 
-			// Add a listener that relayout the background image
-			Ti.Gesture.addEventListener('orientationchange', bgCoverGesture);
+			Ti.Gesture.addEventListener('orientationchange', bgCoverRelayout);
 			$this.addEventListener('close', function() {
-				Ti.Gesture.removeEventListener('orientationchange', bgCoverGesture);
+				Ti.Gesture.removeEventListener('orientationchange', bgCoverRelayout);
 			});
-
-		} else {
-			bgCoverUI.setImage(val);
-			bgCoverGesture();
 		}
 	};
 

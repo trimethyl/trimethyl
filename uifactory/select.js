@@ -98,62 +98,97 @@ function createTiUIPicker(args) {
 	return $picker;
 }
 
+var pickers = {
+
+	// Show the picker in a Window that slide in from the bottom
+	iphone: function($this, args) {
+		var $picker = createTiUIPicker($this);
+
+		var $pickerModalView = Ti.UI.createView({
+			height: 216 + 50,
+			width: Ti.UI.FILL,
+			bottom: 0,
+			transform: Ti.UI.create2DMatrix().translate(0, 216+50)
+		});
+		$pickerModalView.add($picker);
+
+		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
+		$doneBtn.addEventListener('click', function() {
+			if (args.type === 'date') {
+				$this.text = Moment($picker.theValue).format('D MMMM YYYY');
+			} else {
+				$this.text = $picker.theRow.title;
+			}
+			$this.theValue = $picker.theValue;
+			$pickerModal.close();
+		});
+
+		var $cancelBtn = Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.CANCEL });
+		$cancelBtn.addEventListener('click', function() { $pickerModal.close(); });
+
+		$pickerModalView.add(Ti.UI.iOS.createToolbar({
+			items: [ $cancelBtn, Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }), $doneBtn ],
+			bottom: 216,
+			borderTop: true,
+			borderBottom: false
+		}));
+
+		var $pickerModal = Ti.UI.createWindow({ backgroundColor: 'transparent' });
+		$pickerModal.add($pickerModalView);
+
+		$pickerModal.open();
+		$pickerModalView.animate({ transform: Ti.UI.create2DMatrix() });
+	},
+
+	// Show the picker in a Popover Window attached to the Label
+	ipad: function($this, args) {
+		var $picker = createTiUIPicker($this);
+
+		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
+		$doneBtn.addEventListener('click', function() {
+			if (args.type === 'date') {
+				$this.text = Moment($picker.theValue).format('D MMMM YYYY');
+			} else {
+				$this.text = $picker.theRow.title;
+			}
+			$this.theValue = $picker.theValue;
+			$popover.hide();
+		});
+
+		var $cancelBtn = Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.CANCEL });
+		$cancelBtn.addEventListener('click', function() { $popover.hide(); });
+
+		var $popoverContentWindow = Ti.UI.createWindow({
+			leftNavButton: $cancelBtn,
+			rightNavButton: $doneBtn
+		});
+		$popoverContentWindow.add($picker);
+
+		var $popoverNavigationWindow = Ti.UI.iOS.createNavigationWindow({
+			window: $popoverContentWindow
+		});
+
+		var $popover = Ti.UI.iPad.createPopover({
+			width: 320,
+			height: 216 + 40,
+			contentView: $popoverNavigationWindow
+		});
+
+		$popover.show({ view: $this });
+	}
+};
+
 module.exports = function(args) {
 	args = args || {};
 	var $this = null;
 
 	if (OS_IOS) {
-
 		$this = Ti.UI.createLabel(args);
-
-		// Function that open the Picker modal window
-		$this.showPicker = function() {
-			var $pickerModal = Ti.UI.createWindow({ backgroundColor: 'transparent' });
-			var $pickerModalView = Ti.UI.createView({
-				height: 216 + 50,
-				width: Ti.UI.FILL,
-				bottom: 0,
-				transform: Ti.UI.create2DMatrix().translate(0, 216+50)
-			});
-			var $picker = createTiUIPicker($this);
-
-			var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
-			$doneBtn.addEventListener('click', function() {
-				if (args.type === 'date') {
-					$this.text = Moment($picker.theValue).format('D MMMM YYYY');
-				} else {
-					$this.text = $picker.theRow.title;
-				}
-				$this.theValue = $picker.theValue;
-				$pickerModal.close();
-			});
-
-			var $cancelBtn = Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.CANCEL });
-			$cancelBtn.addEventListener('click', function() {
-				$pickerModal.close();
-			});
-
-			$pickerModalView.add(Ti.UI.iOS.createToolbar({
-				items: [ $cancelBtn, Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }), $doneBtn ],
-				bottom: 216,
-				borderTop: true,
-				borderBottom: false
-			}));
-
-			$pickerModalView.add($picker);
-			$pickerModal.add($pickerModalView);
-
-			$pickerModal.open();
-			$pickerModalView.animate({ transform: Ti.UI.create2DMatrix() });
-		};
-
-		// Trigger modal on click
-		$this.addEventListener('click', $this.showPicker);
-
+		$this.addEventListener('click', function(){
+			pickers[Ti.Platform.osname]($this, args);
+		});
 	} else if (OS_ANDROID) {
-
 		$this = createTiUIPicker(args);
-
 	}
 
 	/**
