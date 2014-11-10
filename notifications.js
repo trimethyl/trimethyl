@@ -5,8 +5,8 @@
 
 /**
  * @property config
- * @property {Boolean} [config.autoReset=true] Check if auto-reset the badge when app is open.
- * @property {String} [config.driver="http"] The driver to use.
+ * @property {Boolean} 	[config.autoReset=true] 	Check if auto-reset the badge when app is open.
+ * @property {String} 	[config.driver="http"] 		The driver to use.
  * @type {Object}
  */
 exports.config = _.extend({
