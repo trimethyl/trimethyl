@@ -4,8 +4,6 @@
  * The framework initializator
  */
 
-Ti.Trimethyl = '2.0.0';
-
 var Util = require('T/util');
 var Device = require('T/device');
 var Event = require('T/event');
