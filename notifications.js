@@ -4,15 +4,15 @@
  */
 
 /**
- * * `autoReset` Check if auto-reset the badge when app is open.
- * * `driver` The driver to use. Default: `cloud`
+ * @property config
+ * @property {Boolean} [config.autoReset=true] Check if auto-reset the badge when app is open.
+ * @property {String} [config.driver="http"] The driver to use.
  * @type {Object}
  */
-var config = _.extend({
+exports.config = _.extend({
 	autoReset: true,
 	driver: 'cloud',
 }, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
-exports.config = config;
 
 var Event = require('T/event');
 var Util = require('T/util');
@@ -52,7 +52,7 @@ function onNotificationReceived(e) {
 		}
 	}
 
-	if (config.autoReset === true) {
+	if (exports.config.autoReset === true) {
 		exports.resetBadge();
 	}
 
@@ -147,7 +147,7 @@ exports.subscribe = function(channel) {
 	subscribeFunction(function(deviceToken) {
 		Ti.App.Properties.setString('notifications.token', deviceToken);
 
-		load(config.driver).subscribe({
+		load(exports.config.driver).subscribe({
 			deviceToken: deviceToken,
 			channel: channel,
 			success: function(){
@@ -175,7 +175,7 @@ exports.unsubscribe = function(channel) {
 	}
 
 	Ti.App.Properties.removeProperty('notifications.token');
-	load(config.driver).unsubscribe({
+	load(exports.config.driver).unsubscribe({
 		deviceToken: deviceToken,
 		channel: channel,
 		success: function(){
@@ -239,7 +239,7 @@ exports.incBadge = function(i) {
 Init
 */
 
-if (config.autoReset) {
+if (exports.config.autoReset) {
 	exports.resetBadge();
 	Ti.App.addEventListener('resumed', exports.resetBadge);
 }

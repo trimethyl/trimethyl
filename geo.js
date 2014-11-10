@@ -4,21 +4,20 @@
  */
 
 /**
- * * `gpsAccuracy`: Accuracy of Geo. Must be one of `'ACCURACY_HIGH'`, `'ACCURACY_LOW'`
- * * `geocodeUseGoogle`: Tell to use Google Services instead of Titanium geocoding services.
- * * `clusterPixelRadius`: The clustering radius expressed in PX. Default: `15`
- * * `clusterRemoveOutofBB`: Tell the clustering to remove pins that are out of the bounding box. Default: `true`
- * * `clusterMaxDelta`: The value before the clustering is off. Default: `0.3`
- * @type {Object}
+ * @property config
+ * @property {String} [config.gpsAccuracy="ACCURACY_HIGH"] Accuracy of localization. Must be one of `'ACCURACY_HIGH'` and `'ACCURACY_LOW'`
+ * @property {Boolean} [config.geocodeUseGoogle=true] Tell to use Google Services instead of Titanium geocoding services.
+ * @property {Number} [config.clusterPixelRadius=15] The clustering radius expressed in px.
+ * @property {Boolean} [config.clusterRemoveOutofBB=true] Tell the clustering to remove pins that are out of the bounding box.
+ * @property {Number} [config.clusterMaxDelta=0.3] The value before the clustering is off.
  */
-var config = _.extend({
+exports.config = _.extend({
 	gpsAccuracy: 'ACCURACY_HIGH',
 	geocodeUseGoogle: true,
 	clusterPixelRadius: 15,
 	clusterRemoveOutofBB: true,
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
-exports.config = config;
 
 var Event = require('T/event');
 
@@ -85,7 +84,7 @@ exports.startNavigator = function(lat, lng, mode) {
  * @param {Object} opt
  */
 exports.geocode = function(opt) {
-	if (config.geocodeUseGoogle === true) {
+	if (exports.config.geocodeUseGoogle === true) {
 
 		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
@@ -134,7 +133,7 @@ exports.geocode = function(opt) {
  * @param {Object} opt
  */
 exports.reverseGeocode = function(opt) {
-	if (config.useGoogleForGeocode) {
+	if (exports.config.useGoogleForGeocode) {
 
 		require('T/http').send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
@@ -221,8 +220,8 @@ exports.markerCluster = function(e, markers, keys){
 	var latR = (e.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / e.latitudeDelta;
 	var lngR = (e.source.size.width || Alloy.Globals.SCREEN_WIDTH) / e.longitudeDelta;
 
-	var degreeLat = 2 * config.clusterPixelRadius / latR;
-	var degreeLng = 2 * config.clusterPixelRadius / lngR;
+	var degreeLat = 2 * exports.config.clusterPixelRadius / latR;
+	var degreeLng = 2 * exports.config.clusterPixelRadius / lngR;
 
 	var boundingBox = [
 	e.latitude - e.latitudeDelta/2 - degreeLat,
@@ -251,18 +250,18 @@ exports.markerCluster = function(e, markers, keys){
 	// Start clustering
 
 	if (isBackbone === true) {
-		markers.map(config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
+		markers.map(exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	} else {
-		_.each(markers, config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
+		_.each(markers, exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
-	var zoomToCluster = e.longitudeDelta > config.clusterMaxDelta;
+	var zoomToCluster = e.longitudeDelta > exports.config.clusterMaxDelta;
 	_.each(c, function(a, id){
 		_.each(c, function(b, jd){
 			if (id == jd || zoomToCluster === false) return;
 			var dst = dist(lngR * Math.abs(a.latitude - b.latitude), lngR * Math.abs(a.longitude - b.longitude));
-			if (dst < config.pixelRadius) {
+			if (dst < exports.config.pixelRadius) {
 				if (!(id in g)) g[id] = [id];
 				g[id].push(jd);
 				delete c[jd];
@@ -376,4 +375,4 @@ exports.getRegionBounds = function(array, mulGap) {
 Init
 */
 
-Ti.Geolocation.accuracy = Ti.Geolocation[config.gpsAccuracy];
+Ti.Geolocation.accuracy = Ti.Geolocation[exports.config.gpsAccuracy];

@@ -3,6 +3,7 @@
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+
 function SQLite(name, file) {
 	if (file == null) {
 		this.db = Ti.Database.open(name);

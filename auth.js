@@ -4,21 +4,17 @@
  */
 
 /**
- * * `loginUrl` URL to login-in
- * * `logoutUrl` URL to logout
- * @type {Object}
+ * @property config
+ * @property {String} [config.loginUrl="/login"] 	URL to login-in
  */
-var config = _.extend({
+exports.config = _.extend({
 	loginUrl: '/login',
-	logoutUrl: '/logout'
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
-exports.config = config;
 
 var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
 var Prop = require('T/prop');
-
 
 // Driver loader
 function load(name) {
@@ -61,7 +57,6 @@ exports.getUserID = function(){
 	return Me.id;
 };
 
-
 function getStoredDriver(){
 	if (!Prop.hasProperty('auth.driver') || !Prop.hasProperty('auth.me')) return null;
 	return Prop.getString('auth.driver');
@@ -83,7 +78,7 @@ function apiLogin(data) {
 	var q = Q.defer();
 
 	HTTP.send({
-		url: config.loginUrl,
+		url: exports.config.loginUrl,
 		method: 'POST',
 		data: data,
 		silent: silent,
@@ -110,7 +105,6 @@ function fetchUserModel(info) {
 
 	return q.promise;
 }
-
 
 /**
  * @method login
@@ -139,7 +133,6 @@ exports.login = function(opt) {
 	});
 };
 
-
 /**
  * @method isStoredLoginAvailable
  * Check if the Stored Login feature is available
@@ -149,7 +142,6 @@ exports.isStoredLoginAvailable = function() {
 	var driver = getStoredDriver();
 	return !_.isEmpty(driver) && load(driver).isStoredLoginAvailable();
 };
-
 
 /**
  * @method storedLogin

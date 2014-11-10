@@ -3,6 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+
 var Dialog = require('T/dialog');
 var Prop = require('T/prop');
 
@@ -20,7 +21,6 @@ exports.requireOrNull = function(name) {
 		return null;
 	}
 };
-
 
 /**
  * @method openURL
@@ -59,7 +59,6 @@ exports.openURL = function(url, fallback, error) {
 	}
 };
 
-
 /**
  * @method startActivity
  * Valid only on Android, start the activity catching any possible errors.
@@ -79,7 +78,6 @@ exports.startActivity = function(opt, error) {
 	}
 };
 
-
 /**
  * @method  openFacebookProfile
  * Open a Facebook profile in the Facebook application
@@ -88,7 +86,6 @@ exports.startActivity = function(opt, error) {
 exports.openFacebookProfile = function(fbid) {
 	exports.openURL('fb://profile/' + fbid, 'https://facebook.com/' + fbid);
 };
-
 
 /**
  * @method  openTwitterProfile
@@ -99,7 +96,6 @@ exports.openTwitterProfile = function(twid) {
 	return exports.openURL('twitter://user?screen_name=' + twid, 'http://twitter.com/' + twid);
 };
 
-
 /**
  * @method  openTwitterStatus
  * Open a Twitter status in the Twitter application
@@ -109,7 +105,6 @@ exports.openTwitterProfile = function(twid) {
 exports.openTwitterStatus = function(userid, statusid) {
 	return exports.openURL('twitter://status?id=' + statusid, 'http://twitter.com/' + userid + '/statuses/' + statusid);
 };
-
 
 /**
  * Get the Facebook avatar from the graph
@@ -202,7 +197,6 @@ exports.parseSchema = function() {
 	return '';
 };
 
-
 /**
  * @method timestamp
  * Get the UNIX timestamp.
@@ -215,7 +209,6 @@ exports.timestamp = function(arg) {
 	return (new Date(arg).getTime() / 1000) >> 0;
 };
 
-
 /**
  * @method now
  * Get the current UNIX timestamp.
@@ -224,7 +217,6 @@ exports.timestamp = function(arg) {
 exports.now = function() {
 	return (Date.now() / 1000) >> 0;
 };
-
 
 /**
  * @method fromNow
@@ -248,7 +240,6 @@ exports.timestampForHumans = function(ts) {
 	return moment(ts*1000).format();
 };
 
-
 /**
  * @method parseJSON
  * Try to parse a JSON, and silently fail on error, returning a `null` in this case.
@@ -263,7 +254,6 @@ exports.parseJSON = function(json) {
 		return null;
 	}
 };
-
 
 /**
  * @method buildQuery
@@ -284,7 +274,6 @@ exports.buildQuery = function(obj) {
 	return '?' + q.join('&');
 };
 
-
 /**
  * @method  getAppDataDirectory
  * Return the app-data directory.
@@ -295,7 +284,6 @@ exports.getAppDataDirectory = function() {
 	if (OS_ANDROID && Ti.Filesystem.isExternalStoragePresent()) return Ti.Filesystem.externalStorageDirectory;
 	return Ti.Filesystem.applicationSupportDirectory;
 };
-
 
 /**
  * @method  dialog
@@ -316,7 +304,6 @@ exports.dial = function(tel) {
 	}
 };
 
-
 /**
  * @method isAppFirstUsage
  * Check if the first open of the app.
@@ -329,7 +316,6 @@ exports.isAppFirstUsage = function() {
 	return ! Prop.hasProperty('app.firstusage');
 };
 
-
 /**
  * @method setAppFirstUsage
  * Set the app first usage date.
@@ -339,7 +325,6 @@ exports.isAppFirstUsage = function() {
 exports.setAppFirstUsage = function() {
 	Prop.setString('app.firstusage', now());
 };
-
 
 /**
  * @method facebookGraphWithAppToken
@@ -370,7 +355,6 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 		success: callback
 	});
 };
-
 
 var XCU = {
 	key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
@@ -403,7 +387,6 @@ exports.parseAsXCallbackURL = function(str) {
 	return uri;
 };
 
-
 /**
  * @method hashJavascriptObject
  * Return the seralized representation of any JS object.
@@ -419,7 +402,6 @@ exports.hashJavascriptObject = function(obj) {
 	}
 	return obj.toString();
 };
-
 
 /**
  * @method getErrorMessage
@@ -438,7 +420,6 @@ exports.getErrorMessage = function(obj) {
 	}
 	return L('unexpected_error', 'Unexpected error');
 };
-
 
 /**
  * @method errorAlert

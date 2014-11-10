@@ -4,17 +4,16 @@
  */
 
 /**
- * * `ua`: UA of Google Analitycs. Default: `null`
+ * @property config
+ * @property {String} config.ua UA of Google Analitycs
  * @type {Object}
  */
-var config = _.extend({
+exports.config = _.extend({
 	ua: null
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
-exports.config = config;
 
 var AnalyticsGoogle = require('analytics.google');
 var tracker = null;
-
 
 function track(method, what) {
 	tracker['track' + method](what);
@@ -159,6 +158,6 @@ Init
 AnalyticsGoogle.trackUncaughtExceptions = true;
 AnalyticsGoogle.debug = false;
 
-if (config.ua != null) {
-	exports.setTrackerUA(config.ua);
+if (exports.config.ua != null) {
+	exports.setTrackerUA(exports.config.ua);
 }

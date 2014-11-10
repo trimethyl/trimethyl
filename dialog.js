@@ -3,6 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+
 function parseDict(dict) {
 	return {
 		cancel: _.indexOf(dict, _.findWhere(dict, { cancel: true })),
@@ -10,7 +11,6 @@ function parseDict(dict) {
 		destructive: _.indexOf(dict, _.findWhere(dict, { destructive: true })),
 	};
 }
-
 
 function onClickDict(e, dict, dialog) {
 	if (OS_IOS && e.index == e.source.cancel) return;
@@ -20,7 +20,6 @@ function onClickDict(e, dict, dialog) {
 		dict[+e.index].callback.call(dialog, e);
 	}
 }
-
 
 /**
  * @method alert

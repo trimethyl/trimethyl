@@ -1,13 +1,12 @@
 /**
  * @class  Router
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * Routing system for the apps, used to manage flow from notifications, startups, direct routing.
  */
+
 
 var Util = require('T/util');
 
 var routes = []; // storage for all routes
-
 
 /**
  * @method on

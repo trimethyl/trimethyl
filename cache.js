@@ -4,17 +4,16 @@
  */
 
 /**
- * `strategy` The default strategy. Default `database`
- * @type {Object}
+ * @property config
+ * @property {String} [config.strategy="database"] The default strategy
  */
-var config = _.extend({
+exports.config = _.extend({
 	strategy: 'database'
 }, Alloy.CFG.T ? Alloy.CFG.T.cache : {});
-exports.config = config;
 
 // Driver loader
 function load(name) {
 	return require( /\//.test(name) ? name : ('T/cache/'+name) );
 }
 
-module.exports = load(config.strategy);
+module.exports = load(exports.config.strategy);

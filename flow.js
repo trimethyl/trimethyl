@@ -4,15 +4,14 @@
  */
 
 /**
- * * `trackWithGA`: Send the trackScreen to GA. Default: `true`
- * * `trackTimingWithGA`: Track the timing of focus/blur of the window to GA. Default: `true`
- * @type {Object}
+ * @property config
+ * @property {Boolean} [config.trackWithGA=true] Send the trackScreen to GA
+ * @property {Boolean} [config.trackTimingWithGA=true] Track the timing of focus/blur of the window to GA
  */
-var config = _.extend({
+exports.config = _.extend({
 	trackWithGA: true,
 	trackTimingWithGA: true
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
-exports.config = config;
 
 var Navigator = null; // Current navigator
 
@@ -43,12 +42,12 @@ exports.autoTrackWindow = function($win, key) {
 	}
 
 	// Track screen with GA
-	if (config.trackWithGA) {
+	if (exports.config.trackWithGA) {
 		require('T/ga').trackScreen(key);
 	}
 
 	// Track timing with GA
-	if (config.trackTimingWithGA) {
+	if (exports.config.trackTimingWithGA) {
 		if ($win == null) return;
 
 		var startFocusTime = null;
@@ -123,7 +122,7 @@ exports.openDirect = function(name, args, opt, key) {
 	var controller = Alloy.createController(name, args);
 	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
 
-	if (config.trackWithGA) {
+	if (exports.config.trackWithGA) {
 		if (!_.isEmpty(key)) {
 			require('T/ga').trackScreen(key);
 		}

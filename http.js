@@ -3,22 +3,21 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+
 /**
- * * `base`: The base URL of the API. Default: `http://localhost`
- * * `timeout`: Global timeout for the requests; after this value (express in milliseconds) the requests throw an error. Default `10000`
- * * `headers`: Global headers for all requests. Default: `{}`
- * * `autoOfflineMessage`: Enable the automatic alert if the connection is offline. Default `true`
- * @type {Object}
+ * @property config
+ * @property {String} config.base The base URL of the API
+ * @property {Number} [config.timeout=10000] Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
+ * @property {Object} [config.headers={}] Global headers for all requests.
  */
-var config = _.extend({
-	base: 'http://localhost',
+exports.config = _.extend({
+	base: '',
 	timeout: 10000,
 	headers: {},
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
-exports.config = config;
 
 
-var headers = _.clone(config.headers);
+var headers = _.clone(exports.config.headers);
 
 /**
  * @method getHeaders
@@ -56,11 +55,6 @@ exports.resetHeaders = function() {
 };
 
 
-/**
- * @property queue
- * Queue for HTTP Requests
- * @type {Function}
- */
 var queue = [];
 
 /**
@@ -104,7 +98,7 @@ exports.removeFromQueue = function(request) {
  * Reset the cookies for all requests
  */
 exports.resetCookies = function() {
-	Ti.Network.createHTTPClient().clearCookies(config.base);
+	Ti.Network.createHTTPClient().clearCookies(exports.config.base);
 };
 
 
@@ -216,7 +210,7 @@ exports.postJSON = function(url, data, success, error) {
 /**
  * @method download
  * @param  {String}  			url  				The url
- * @param  {String|Ti.File}  	filename  		File name to save
+ * @param  {Object}  			filename  		File name or `Ti.File`
  * @param  {Function}  			success  		Success callback
  * @param  {Function} 			error  			Error callback
  * @param  {Function}  			ondatastream  	Progress callback

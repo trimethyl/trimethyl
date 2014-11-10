@@ -4,13 +4,12 @@
  */
 
 /**
- * * `jsExt`: The extension to use for Javascript files. Default: `.jslocal`
- * @type {Object}
+ * @property config
+ * @property {String} [config.jsExt=".jslocal"] The extension to use for Javascript files
  */
-var config = _.extend({
+exports.config = _.extend({
 	jsExt: '.jslocal'
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
-exports.config = config;
 
 var libDir = [];
 var helpers = {};
@@ -69,8 +68,8 @@ function getHTML(args) {
 	});
 
 	// Include footer
-	html += embedJS('web/app' + config.jsExt);
-	html += embedJS('web/controllers/' + args.name + config.jsExt);
+	html += embedJS('web/app' + exports.config.jsExt);
+	html += embedJS('web/controllers/' + args.name + exports.config.jsExt);
 
 	html += '</body></html>';
 

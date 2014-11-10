@@ -4,19 +4,18 @@
  */
 
 /**
- * * `permissions`: Array of permissions. Default: `[]`
- * @type {Object}
+ * @property config
+ * @property {Array} [config.permissions=[]] Array of permissions
  */
-var config = _.extend({
+exports.config = _.extend({
 	permissions: [],
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
-exports.config = config;
 
 var Facebook = require('facebook');
 
-Facebook.appid = require('T/prop').getString('ti.facebook.appid');
+Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid');
 if (config.permissions != null) {
-	Facebook.permissions = _.isArray(config.permissions) ? config.permissions : config.permissions.split(',');
+	Facebook.permissions = exports.config.permissions;
 }
 
 module.exports = Facebook;

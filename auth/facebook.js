@@ -3,9 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 var FB = require('T/facebook');
-
 var _opt = null;
 
 exports.login = function(opt) {

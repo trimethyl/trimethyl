@@ -3,6 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+
 /**
  * @method  createNavigationWindow
  */
@@ -18,30 +19,25 @@ exports.createNavigationWindow = function(args) {
  */
 exports.createWindow = require('T/uifactory/window');
 
-
 /**
  * @method createTextField
  */
 exports.createTextField = require('T/uifactory/textfield');
-
 
 /**
  * @method createTextArea
  */
 exports.createTextArea = require('T/uifactory/textarea');
 
-
 /**
  * @method createLabel
  */
 exports.createLabel = require('T/uifactory/label');
 
-
 /**
  * @method createListView
  */
 exports.createListView = require('T/uifactory/listview');
-
 
 /**
  * @method createTabbedBar
@@ -52,12 +48,10 @@ exports.createTabbedBar = function(args) {
 	return require('T/uifactory/tabbedbar')(args);
 };
 
-
 /**
  * @method createYoutubeVideoWebView
  */
 exports.createYoutubeVideoWebView = require('T/uifactory/youtubevideowebview');
-
 
 /**
  * @method createSelect

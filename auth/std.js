@@ -3,7 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 exports.login = function(opt) {
 	Ti.App.Properties.setObject('auth.std.data', opt.data);
 	opt.success(opt.data);

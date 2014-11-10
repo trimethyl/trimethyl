@@ -3,17 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/**
- * @type {Object}
- */
-var config = _.extend({
-}, (Alloy.CFG.T && Alloy.CFG.T.notifications) ? Alloy.CFG.T.notifications.cloud : {});
-exports.config = config;
-
 
 var Cloud = require('ti.cloud');
 Cloud.debug = !ENV_PRODUCTION;
-
 
 exports.subscribe = function(opt) {
 	Cloud.PushNotifications.subscribeToken({
