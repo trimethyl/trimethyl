@@ -114,7 +114,7 @@ exports.twitter = function(args) {
 		return true;
 	}
 
-	Ti.Platform.openURL('http://www.twitter.com/intent' + Util.buildQuery({
+	Ti.Platform.openURL('http://www.twitter.com/intent/tweet' + Util.buildQuery({
 		 text: args.text,
 		 url: args.url
 	}));
