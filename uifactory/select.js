@@ -7,10 +7,8 @@ var Moment = require('T/ext/moment');
 
 function createTiUIPicker(args) {
 	var pickerArgs = {};
-	var pickerType = (function(){
-		if (args.type === 'date') return Ti.UI.PICKER_TYPE_DATE;
-		return Ti.UI.PICKER_TYPE_PLAIN;
-	})();
+	var pickerType = Ti.UI.PICKER_TYPE_PLAIN;
+	if (args.type === 'date') pickerType = Ti.UI.PICKER_TYPE_DATE;
 
 	if (OS_IOS) {
 		pickerArgs = _.extend(_.pick(args, 'minDate', 'maxDate'), {
