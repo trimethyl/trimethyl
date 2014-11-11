@@ -1,5 +1,5 @@
 /**
- * @class  Notifications
+ * @class  	Notifications
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -7,15 +7,18 @@
  * @property config
  * @property {Boolean} 	[config.autoReset=true] 	Check if auto-reset the badge when app is open.
  * @property {String} 	[config.driver="http"] 		The driver to use.
+ * @property {Boolean} 	[config.useRouter=true]		When a notification with a `{url:""}` parameter is received, auto-route using the Router class.
  * @type {Object}
  */
 exports.config = _.extend({
 	autoReset: true,
+	useRouter: true,
 	driver: 'cloud',
 }, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
 
 var Event = require('T/event');
 var Util = require('T/util');
+var Router = require('T/router');
 
 var inBackground = false;
 
@@ -39,7 +42,7 @@ function onNotificationReceived(e) {
 		if (e.payload != null) {
 
 			// Do this to balance the difference in APIs (convert Android to IOS, in substance)
-			e.data = require('T/util').parseJSON(e.payload);
+			e.data = Util.parseJSON(e.payload);
 			if (e.data.android != null) {
 				_.extend(e.data, e.data.android);
 				delete e.data.android;
@@ -52,11 +55,21 @@ function onNotificationReceived(e) {
 		}
 	}
 
-	if (exports.config.autoReset === true) {
+	// Auto-reset the badge
+	if (exports.config.autoReset) {
 		exports.resetBadge();
 	}
 
-	Event.trigger('notifications.received', e);
+	// Router
+	if (exports.config.useRouter) {
+		if (e.inBackground) {
+			if (e.data.url != null) {
+				Router.go(e.data.url);
+			}
+		}
+	}
+
+	Event.trigger('notification.received', e);
 }
 
 

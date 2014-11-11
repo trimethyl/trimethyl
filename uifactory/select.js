@@ -1,5 +1,5 @@
 /**
- * @class  UIFactory.Select
+ * @class  	UIFactory.Select
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

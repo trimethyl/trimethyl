@@ -1,5 +1,5 @@
 /**
- * @class  Auth
+ * @class  	Auth
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

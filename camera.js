@@ -1,5 +1,5 @@
 /**
- * @class  Camera
+ * @class  	Camera
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

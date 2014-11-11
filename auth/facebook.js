@@ -1,5 +1,5 @@
 /**
- * @class  Auth.Facebook
+ * @class  	Auth.Facebook
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

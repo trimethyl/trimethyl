@@ -1,5 +1,5 @@
 /**
- * @class  UIFactory.ListView
+ * @class  	UIFactory.ListView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

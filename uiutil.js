@@ -1,5 +1,5 @@
 /**
- * @class  	Uiutil
+ * @class  	UIUtil
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

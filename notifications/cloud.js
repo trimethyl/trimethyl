@@ -1,5 +1,5 @@
 /**
- * @class  Notifications.Cloud
+ * @class  	Notifications.Cloud
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

@@ -1,5 +1,5 @@
 /**
- * @class  Cache.Database
+ * @class  	Cache.Database
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

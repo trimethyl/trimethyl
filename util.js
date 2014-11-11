@@ -194,7 +194,7 @@ exports.parseSchema = function() {
 		var url = Ti.Android.currentActivity.intent.data;
 		if (url != null) return url;
 	}
-	return '';
+	return null;
 };
 
 /**
@@ -302,28 +302,6 @@ exports.dial = function(tel) {
 			data: 'tel:' + telString
 		}, errString);
 	}
-};
-
-/**
- * @method isAppFirstUsage
- * Check if the first open of the app.
- *
- * Call @{@link #setAppFirstUsage} to set the first usage of the app.
- *
- * @return {Boolean}
- */
-exports.isAppFirstUsage = function() {
-	return ! Prop.hasProperty('app.firstusage');
-};
-
-/**
- * @method setAppFirstUsage
- * Set the app first usage date.
- *
- * Use in conjunction with {@link #isAppFirstUsage}
- */
-exports.setAppFirstUsage = function() {
-	Prop.setString('app.firstusage', now());
 };
 
 /**

@@ -1,5 +1,5 @@
 /**
- * @class  HTTP.Request
+ * @class  	HTTP.Request
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

@@ -1,5 +1,5 @@
 /**
- * @class  UIFactory.Label
+ * @class  	UIFactory.Label
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * Add support for very basic HTML in iOS.

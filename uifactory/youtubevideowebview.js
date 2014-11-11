@@ -1,5 +1,5 @@
 /**
- * @class  UIFactory.YoutubeVideoWebView
+ * @class  	UIFactory.YoutubeVideoWebView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * View that contain a Youtube video.

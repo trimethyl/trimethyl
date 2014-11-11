@@ -1,6 +1,6 @@
 /**
- * @class Facebook
- * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @class 	Facebook
+ * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
 /**

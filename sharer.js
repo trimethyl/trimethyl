@@ -1,5 +1,5 @@
 /**
- * @class  Sharer
+ * @class  	Sharer
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

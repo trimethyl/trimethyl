@@ -1,5 +1,5 @@
 /**
- * @class  GA
+ * @class  	GA
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

@@ -1,5 +1,5 @@
 /**
- * @class  UIFactory.TextField
+ * @class  	UIFactory.TextField
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * * Removed the annoying autofocus on Android

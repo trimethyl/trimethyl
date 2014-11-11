@@ -1,5 +1,5 @@
 /**
- * @class  UIFactory.TextArea
+ * @class  	UIFactory.TextArea
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * * Add support for `hintText`, that is missing on iOS.

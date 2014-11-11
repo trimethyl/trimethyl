@@ -1,5 +1,5 @@
 /**
- * @class  Sounds
+ * @class  	Sounds
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
