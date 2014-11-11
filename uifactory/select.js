@@ -14,8 +14,7 @@ function createTiUIPicker(args) {
 
 	if (OS_IOS) {
 		pickerArgs = _.extend(_.pick(args, 'minDate', 'maxDate'), {
-			height: 216,
-			bottom: 0,
+			width: Ti.UI.FILL,
 			type: pickerType
 		});
 	} else if (OS_ANDROID) {
@@ -105,12 +104,12 @@ var pickers = {
 		var $picker = createTiUIPicker($this);
 
 		var $pickerModalView = Ti.UI.createView({
-			height: 216 + 50,
+			height: Ti.UI.SIZE,
 			width: Ti.UI.FILL,
+			layout: 'vertical',
 			bottom: 0,
-			transform: Ti.UI.create2DMatrix().translate(0, 216+50)
+			transform: Ti.UI.create2DMatrix().translate(0, 300)
 		});
-		$pickerModalView.add($picker);
 
 		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
 		$doneBtn.addEventListener('click', function() {
@@ -128,10 +127,10 @@ var pickers = {
 
 		$pickerModalView.add(Ti.UI.iOS.createToolbar({
 			items: [ $cancelBtn, Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }), $doneBtn ],
-			bottom: 216,
 			borderTop: true,
 			borderBottom: false
 		}));
+		$pickerModalView.add($picker);
 
 		var $pickerModal = Ti.UI.createWindow({ backgroundColor: 'transparent' });
 		$pickerModal.add($pickerModalView);
