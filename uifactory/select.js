@@ -36,7 +36,7 @@ function createTiUIPicker(args) {
 		} else if (OS_ANDROID) {
 
 			$picker = Ti.UI.createLabel(_.extend(pickerArgs, {
-				text: Moment(pickerArgs.theValue).format('D MMMM YYYY')
+				text: Moment(pickerArgs.theValue).format(args.dateFormat)
 			}));
 
 			$picker.addEventListener('click', function(){
@@ -45,7 +45,7 @@ function createTiUIPicker(args) {
 					callback: function(e) {
 						if (e.value != null && e.cancel === false) {
 							$picker.theValue = e.value;
-							$picker.text = Moment($picker.theValue).format('D MMMM YYYY');
+							$picker.text = Moment($picker.theValue).format(args.dateFormat);
 						}
 					}
 				});
@@ -58,14 +58,6 @@ function createTiUIPicker(args) {
 		$picker = Ti.UI.createPicker(pickerArgs);
 		var selectedRowIndex = 0;
 
-		/**
-		 * @property values
-		 * An array containing the values.
-		 *
-		 * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values,
-		 * or simply `1` for the sames.
-		 * @type {Array}
-		 */
 		$picker.add(_.map(args.values, function(v, index) {
 			var $pickerRow = null;
 			if (_.isObject(v) && v.value !== undefined) {
@@ -81,12 +73,6 @@ function createTiUIPicker(args) {
 		$picker.setSelectedRow(0, selectedRowIndex, false);
 		$picker.addEventListener('change', function(e) {
 			$picker.theRow = e.row;
-
-			/**
-			 * @property theValue
-			 * Value of the picker
-			 * @type {Object}
-			 */
 			$picker.theValue = e.row.value;
 		});
 
@@ -112,7 +98,7 @@ var pickers = {
 		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
 		$doneBtn.addEventListener('click', function() {
 			if (args.type === 'date') {
-				$this.text = Moment($picker.theValue).format('D MMMM YYYY');
+				$this.text = Moment($picker.theValue).format(args.dateFormat);
 			} else {
 				$this.text = $picker.theRow.title;
 			}
@@ -144,7 +130,7 @@ var pickers = {
 		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
 		$doneBtn.addEventListener('click', function() {
 			if (args.type === 'date') {
-				$this.text = Moment($picker.theValue).format('D MMMM YYYY');
+				$this.text = Moment($picker.theValue).format(args.dateFormat);
 			} else {
 				$this.text = $picker.theRow.title;
 			}
@@ -176,7 +162,27 @@ var pickers = {
 };
 
 module.exports = function(args) {
-	args = args || {};
+	args = _.extend({
+
+		/**
+		 * @property {String} [dateFormat='D MMMM YYYY']
+		 */
+		dateFormat: 'D MMMM YYYY',
+
+		/**
+		 * @property {Array} values
+		 * An array containing the values.
+		 * You can specify an entry like `{ value: '1', title: 'One' }`
+		 * to define different title/values, or simply `1` for the sames.
+		 */
+		values: [],
+
+		/**
+		 * @property {Object} theValue Value of the picker
+		*/
+		theValue: null
+
+	}, args);
 	var $this = null;
 
 	if (OS_IOS) {
