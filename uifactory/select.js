@@ -8,7 +8,6 @@ var Moment = require('T/ext/moment');
 function parseValues(values, current) {
 	return _.map(values, function(v) {
 		if (_.isObject(v) && v.value !== void(0)) {
-			v.selected = true;
 			if (current === v.value) v.selected = true;
 			return v;
 		} else {
@@ -181,6 +180,7 @@ module.exports = function(args) {
 	} else if (args.type === 'plain') {
 		args.values = parseValues(args.values, args.theValue);
 		var parsedSelectedValue = _.findWhere(args.values, { selected: true });
+		Ti.API.error(parsedSelectedValue);
 		if (parsedSelectedValue != null) {
 			args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
 			args.text = parsedSelectedValue.title;
