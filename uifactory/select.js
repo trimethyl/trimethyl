@@ -5,158 +5,144 @@
 
 var Moment = require('T/ext/moment');
 
-function createTiUIPicker(args) {
-	var pickerArgs = {};
-	var pickerType = Ti.UI.PICKER_TYPE_PLAIN;
-	if (args.type === 'date') pickerType = Ti.UI.PICKER_TYPE_DATE;
+function parseValues(values, current) {
+	return _.map(values, function(v) {
+		if (_.isObject(v) && v.value !== void(0)) {
+			v.selected = true;
+			if (current === v.value) v.selected = true;
+			return v;
+		} else {
+			var _v = { title: v.toString(), value: v };
+			if (current === v) _v.selected = true;
+			return _v;
+		}
+	});
+}
 
-	if (OS_IOS) {
-		pickerArgs = _.extend(_.pick(args, 'minDate', 'maxDate'), {
-			width: Ti.UI.FILL,
-			type: pickerType
-		});
-	} else if (OS_ANDROID) {
-		pickerArgs = _.extend(_.omit(args, 'values', 'type'));
-	}
-
+function createTiUIPicker(proxyArgs) {
 	var $picker = null;
 
-	if (args.type === 'date') {
+	if (proxyArgs.type === 'date') {
 
-		pickerArgs.theValue = args.theValue || new Date();
-		pickerArgs.value = pickerArgs.theValue;
+		$picker = Ti.UI.createPicker(_.extend({}, _.pick(proxyArgs, 'theValue', 'minDate', 'maxDate'), {
+			value: proxyArgs.theValue,
+			width: Ti.UI.FILL,
+			type: Ti.UI.PICKER_TYPE_DATE
+		}));
+		$picker.addEventListener('change', function(e) {
+			$picker.theValue = e.value;
+		});
 
+	} else if (proxyArgs.type === 'plain') {
+
+		var pickeArgs = {};
 		if (OS_IOS) {
-
-			$picker = Ti.UI.createPicker(pickerArgs);
-			$picker.addEventListener('change', function(e) {
-				$picker.theValue = e.value;
+			pickeArgs.width = Ti.UI.FILL;
+		} else {
+			pickeArgs = _.extend({}, proxyArgs, {
+				type: Ti.UI.PICKER_TYPE_PLAIN,
+				value: proxyArgs
 			});
-
-		} else if (OS_ANDROID) {
-
-			$picker = Ti.UI.createLabel(_.extend(pickerArgs, {
-				text: Moment(pickerArgs.theValue).format(args.dateFormat)
-			}));
-
-			$picker.addEventListener('click', function(){
-				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
-					value: $picker.theValue,
-					callback: function(e) {
-						if (e.value != null && e.cancel === false) {
-							$picker.theValue = e.value;
-							$picker.text = Moment($picker.theValue).format(args.dateFormat);
-						}
-					}
-				});
-			});
-
 		}
 
-	} else {
-
-		$picker = Ti.UI.createPicker(pickerArgs);
-		var selectedRowIndex = 0;
-
-		$picker.add(_.map(args.values, function(v, index) {
-			var $pickerRow = null;
-			if (_.isObject(v) && v.value !== undefined) {
-				$pickerRow = Ti.UI.createPickerRow(v);
-				if (args.theValue === v.value) selectedRowIndex = +index;
-			} else {
-				$pickerRow = Ti.UI.createPickerRow({ title: v.toString(), value: v });
-				if (args.theValue === v) selectedRowIndex = +index;
-			}
-			return $pickerRow;
+		$picker = Ti.UI.createPicker(pickeArgs);
+		$picker.add(_.map(proxyArgs.values, function(o) {
+			return Ti.UI.createPickerRow(o);
 		}));
 
-		$picker.setSelectedRow(0, selectedRowIndex, false);
+		$picker.setSelectedRow(0, proxyArgs.selectedIndexValue || 0, false);
 		$picker.addEventListener('change', function(e) {
+			$picker.selectedIndexValue = e.rowIndex;
 			$picker.theRow = e.row;
 			$picker.theValue = e.row.value;
 		});
-
 	}
 
 	return $picker;
 }
 
+function getPickerButtons($this, $picker, closeCallback) {
+	var $doneBtn = Ti.UI.createButton({
+		title: L('Done'),
+		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+	});
+	$doneBtn.addEventListener('click', function() {
+		$this.theValue = $picker.theValue;
+		$this.selectedIndexValue = $picker.selectedIndexValue;
+		if ($this.type === 'date') {
+			$this.text = Moment($this.theValue).format($this.dateFormat);
+		} else if ($this.type === 'plain') {
+			$this.text = $picker.theRow.title;
+		}
+
+		closeCallback();
+	});
+
+	var $cancelBtn = Ti.UI.createButton({
+		systemButton: Ti.UI.iPhone.SystemButton.CANCEL
+	});
+	$cancelBtn.addEventListener('click', closeCallback);
+
+	return {
+		done: $doneBtn,
+		cancel: $cancelBtn
+	};
+}
+
 var pickers = {
 
 	// Show the picker in a Window that slide in from the bottom
-	iphone: function($this, args) {
+	iphone: function($this) {
 		var $picker = createTiUIPicker($this);
+		var buttons = getPickerButtons($this, $picker, function() { $pickerModal.close(); });
+		var $toolbar = Ti.UI.iOS.createToolbar({
+			items: [
+			buttons.cancel,
+			Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+			buttons.done
+			],
+			borderTop: true,
+			borderBottom: false
+		});
 
-		var $pickerModalView = Ti.UI.createView({
+		var $cview = Ti.UI.createView({
 			height: Ti.UI.SIZE,
 			width: Ti.UI.FILL,
 			layout: 'vertical',
 			bottom: 0,
 			transform: Ti.UI.create2DMatrix().translate(0, 300)
 		});
+		$cview.add($toolbar);
+		$cview.add($picker);
 
-		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
-		$doneBtn.addEventListener('click', function() {
-			if (args.type === 'date') {
-				$this.text = Moment($picker.theValue).format(args.dateFormat);
-			} else {
-				$this.text = $picker.theRow.title;
-			}
-			$this.theValue = $picker.theValue;
-			$pickerModal.close();
+		var $pickerModal = Ti.UI.createWindow({
+			backgroundColor: '#4000'
 		});
-
-		var $cancelBtn = Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.CANCEL });
-		$cancelBtn.addEventListener('click', function() { $pickerModal.close(); });
-
-		$pickerModalView.add(Ti.UI.iOS.createToolbar({
-			items: [ $cancelBtn, Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }), $doneBtn ],
-			borderTop: true,
-			borderBottom: false
-		}));
-		$pickerModalView.add($picker);
-
-		var $pickerModal = Ti.UI.createWindow({ backgroundColor: 'transparent' });
-		$pickerModal.add($pickerModalView);
-
+		$pickerModal.add($cview);
 		$pickerModal.open();
-		$pickerModalView.animate({ transform: Ti.UI.create2DMatrix() });
+		$cview.animate({ transform: Ti.UI.create2DMatrix() });
 	},
 
 	// Show the picker in a Popover Window attached to the Label
-	ipad: function($this, args) {
+	ipad: function($this) {
 		var $picker = createTiUIPicker($this);
+		var buttons = getPickerButtons($this, $picker, function() { $popover.close(); });
 
-		var $doneBtn = Ti.UI.createButton({ title: L('Done'), style: Ti.UI.iPhone.SystemButtonStyle.DONE });
-		$doneBtn.addEventListener('click', function() {
-			if (args.type === 'date') {
-				$this.text = Moment($picker.theValue).format(args.dateFormat);
-			} else {
-				$this.text = $picker.theRow.title;
-			}
-			$this.theValue = $picker.theValue;
-			$popover.hide();
+		var $cwindow = Ti.UI.createWindow({
+			leftNavButton: buttons.cancel,
+			rightNavButton: buttons.done
 		});
+		$cwindow.add($picker);
 
-		var $cancelBtn = Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.CANCEL });
-		$cancelBtn.addEventListener('click', function() { $popover.hide(); });
-
-		var $popoverContentWindow = Ti.UI.createWindow({
-			leftNavButton: $cancelBtn,
-			rightNavButton: $doneBtn
-		});
-		$popoverContentWindow.add($picker);
-
-		var $popoverNavigationWindow = Ti.UI.iOS.createNavigationWindow({
-			window: $popoverContentWindow
+		var $navigator = Ti.UI.iOS.createNavigationWindow({
+			window: $cwindow
 		});
 
 		var $popover = Ti.UI.iPad.createPopover({
 			width: 320,
 			height: 216 + 40,
-			contentView: $popoverNavigationWindow
+			contentView: $navigator
 		});
-
 		$popover.show({ view: $this });
 	}
 };
@@ -179,19 +165,59 @@ module.exports = function(args) {
 
 		/**
 		 * @property {Object} theValue Value of the picker
-		*/
-		theValue: null
+		 */
+		theValue: null,
+
+		/**
+		 * @property {String} type Type of the picker. Could be `plain`, `date`.
+		 */
+		type: 'plain'
 
 	}, args);
+
+	if (args.type === 'date') {
+		args.theValue = args.theValue || new Date();
+		args.text = Moment(args.theValue).format(args.dateFormat);
+	}
+
 	var $this = null;
 
 	if (OS_IOS) {
+
+		if (args.type === 'plain') {
+			args.values = parseValues(args.values, args.theValue);
+			var parsedSelectedValue = _.findWhere(args.values, { selected: true });
+			if (parsedSelectedValue != null) {
+				args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
+				args.text = parsedSelectedValue.title;
+			}
+		}
+
 		$this = Ti.UI.createLabel(args);
 		$this.addEventListener('click', function(){
-			pickers[Ti.Platform.osname]($this, args);
+			pickers[Ti.Platform.osname]($this);
 		});
+
 	} else if (OS_ANDROID) {
-		$this = createTiUIPicker(args);
+
+		if (args.type === 'plain') {
+			args.values = parseValues(args.values, args.theValue);
+			$this = createTiUIPicker(args);
+		} else if (args.type === 'date') {
+			$this = Ti.UI.createLabel(args);
+			$this.addEventListener('click', function(){
+				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
+					value: $this.theValue,
+					callback: function(e) {
+						if (e.value != null && e.cancel === false) {
+							$this.theValue = e.value;
+							$this.text = Moment($this.theValue).format($this.dateFormat);
+						}
+					}
+				});
+			});
+		}
+
 	}
 
 	/**
