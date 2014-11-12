@@ -35,17 +35,17 @@ function createTiUIPicker(proxyArgs) {
 
 	} else if (proxyArgs.type === 'plain') {
 
-		var pickeArgs = {};
+		var pickerArgs = {};
 		if (OS_IOS) {
-			pickeArgs.width = Ti.UI.FILL;
-		} else {
-			pickeArgs = _.extend({}, proxyArgs, {
+			pickerArgs.width = Ti.UI.FILL;
+		} else if (OS_ANDROID) {
+			pickerArgs = _.extend({}, proxyArgs, {
 				type: Ti.UI.PICKER_TYPE_PLAIN,
-				value: proxyArgs
+				value: proxyArgs.theValue
 			});
 		}
 
-		$picker = Ti.UI.createPicker(pickeArgs);
+		$picker = Ti.UI.createPicker(pickerArgs);
 		$picker.add(_.map(proxyArgs.values, function(o) {
 			return Ti.UI.createPickerRow(o);
 		}));
@@ -178,20 +178,18 @@ module.exports = function(args) {
 	if (args.type === 'date') {
 		args.theValue = args.theValue || new Date();
 		args.text = Moment(args.theValue).format(args.dateFormat);
+	} else if (args.type === 'plain') {
+		args.values = parseValues(args.values, args.theValue);
+		var parsedSelectedValue = _.findWhere(args.values, { selected: true });
+		if (parsedSelectedValue != null) {
+			args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
+			args.text = parsedSelectedValue.title;
+		}
 	}
 
 	var $this = null;
 
 	if (OS_IOS) {
-
-		if (args.type === 'plain') {
-			args.values = parseValues(args.values, args.theValue);
-			var parsedSelectedValue = _.findWhere(args.values, { selected: true });
-			if (parsedSelectedValue != null) {
-				args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
-				args.text = parsedSelectedValue.title;
-			}
-		}
 
 		$this = Ti.UI.createLabel(args);
 		$this.addEventListener('click', function(){
@@ -201,9 +199,11 @@ module.exports = function(args) {
 	} else if (OS_ANDROID) {
 
 		if (args.type === 'plain') {
-			args.values = parseValues(args.values, args.theValue);
+
 			$this = createTiUIPicker(args);
+
 		} else if (args.type === 'date') {
+
 			$this = Ti.UI.createLabel(args);
 			$this.addEventListener('click', function(){
 				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
@@ -216,6 +216,7 @@ module.exports = function(args) {
 					}
 				});
 			});
+
 		}
 
 	}
