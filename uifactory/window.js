@@ -4,7 +4,7 @@
  */
 
 module.exports = function(args) {
-	args = _.extend({
+	_.defaults(args, {
 
 		/**
 		 * @property {Boolean} [displayHomeAsUp=false] **(Android only)** Set the property `displayHomeAsUp` and the relative close listener.
@@ -51,7 +51,7 @@ module.exports = function(args) {
 		 */
 		activityButton: null
 
-	}, args);
+	});
 	var $this = Ti.UI.createWindow(args);
 
 	$this.opened = false;

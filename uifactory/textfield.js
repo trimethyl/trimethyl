@@ -24,7 +24,7 @@ function getDoneToolbar(opt) {
 }
 
 module.exports = function(args) {
-	args = _.extend({
+	_.defaults(args, {
 
 		/**
 		 * @property {String} textType
@@ -43,7 +43,7 @@ module.exports = function(args) {
 		 */
 		useDoneToolbar: false,
 
-	}, args);
+	});
 
 
 	switch (args.textType) {

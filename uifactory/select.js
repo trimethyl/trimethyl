@@ -148,7 +148,7 @@ var pickers = {
 };
 
 module.exports = function(args) {
-	args = _.extend({
+	_.defaults(args, {
 
 		/**
 		 * @property {String} [dateFormat='D MMMM YYYY']
@@ -173,7 +173,7 @@ module.exports = function(args) {
 		 */
 		type: 'plain'
 
-	}, args);
+	});
 
 	if (args.type === 'date') {
 		args.theValue = args.theValue || new Date();

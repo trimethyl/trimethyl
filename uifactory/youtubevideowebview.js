@@ -14,7 +14,7 @@
  */
 
 module.exports = function(args) {
-	args = _.extend({
+	_.defaults(args, {
 
 		/**
 		 * @property {String} videoId ID of Youtube video.
@@ -26,7 +26,8 @@ module.exports = function(args) {
 		 */
 		youtube: {}
 
-	}, args, {
+	});
+	_.extend(args, {
 		disableBounce : true,
 		willHandleTouches : true,
 		showScrollbars : false,
@@ -34,7 +35,10 @@ module.exports = function(args) {
 		hideLoadIndicator : true,
 		enableZoomControls : false,
 	},
-	OS_ANDROID ? { overScrollMode : Ti.UI.Android.OVER_SCROLL_NEVER, pluginState : Ti.UI.Android.WEBVIEW_PLUGINS_ON } : {}
+	OS_ANDROID ? {
+		overScrollMode : Ti.UI.Android.OVER_SCROLL_NEVER,
+		pluginState : Ti.UI.Android.WEBVIEW_PLUGINS_ON
+	} : {}
 	);
 
 	var yt = _.extend(_.pick(args, 'videoId'), args.youtube);

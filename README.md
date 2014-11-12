@@ -1,15 +1,10 @@
 # Trimethyl 2
-### Titanium toolchain made in Caffeina
-
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-[![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
 ### [View the API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
-Trimethyl is not a framework.
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
-Trimethyl is a collection of very useful modules to work with Appcelerator Titanium: you can't live without it!
+Trimethyl is not a framework, is a collection of very useful modules to work with **Titanium**.
 
 Most of these modules are proxies for Titanium API, and some of theese add missing features or expose usefuls functions for cross platform development.
 
@@ -34,53 +29,57 @@ npm update trimethyl
 
 If you want to install via GitHub, just clone/download this repository and extract it in `app/lib/T`.
 
+```
+git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
+```
+
 ## Configuration
 
 Each module reads from the **config.json** your personal configuration, extending its default.
 
-For example, the module `Auth`, will read the `Alloy.CFG.T.auth` object.
+For example, the module named `{Module}`, will read the `Alloy.CFG.T.{module}` object; the submodule `{Sub}` of `{Module}`, will read `Alloy.CFG.T.{module}.{submodule}`; etc..
 
 You can customize the options, editing your **config.json** file:
 
 ```javascript
-{ ...
+{ 
 	"T":{
-		"auth": {
+		"module": {
 			...
+			"sub": {
+				...
+			}
 		},
-		"http": {
-			...
-		}
-		...
 	}
-... }
+}
 ```
 
 ## Initialization
 
-In your *app/alloy.js* file, on the first line:
+In your *app/alloy.js* file:
 
 ```javascript
-T = function(name) { return require('T/'+name); }
+T = function (name) { return require('T/'+name); }
 T('trimethyl');
 ```
 
-The `T` helper function, it's an easier method to load Trimethyl tools.
+`T` it's an easier method to load Trimethyl modules.
 
-Requiring **trimethyl** module on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` vars.
-
+Requiring **trimethyl** by `T('trimethyl')` module on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` variables.
 
 ## Modules
 
 To use a module, just require with `T` helper:
 
 ```javascript
-var Auth = T('auth');
+var Util = T('util'); /* same of require('T/util') */
 ```
+
+It's useful to declare global modules that you'll use in the entire app in the `alloy.js` file to make them availables through the variable name.
 
 ## UIFactory module
 
-This is an Alloy functionality: the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
+This is an Alloy feature: the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
 
 ```xml
 <Alloy>
@@ -92,7 +91,7 @@ This is an Alloy functionality: the ability to create UI objects directly from A
 
 You can obviously wrap theese elements again with your own modules, creating a further module, for example creating a `ui.js` file in your `app/lib` directory:
 
-```javascript
+```js
 exports.createWindow = function(args) {
 	var $el = T('uifactory').createWindow(args);
 
