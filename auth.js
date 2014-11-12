@@ -175,16 +175,16 @@ exports.storedLogin = function(opt) {
  * @param  {Object} opt
  */
 exports.logout = function(callback) {
-	var userID = getUserID();
+	var userID = exports.getUserID();
 	var storedDriver = getStoredDriver();
 
 	// Remove stored infos
 	Me = null;
-	Ti.App.Properties.removeProperty('auth.me');
-	Ti.App.Properties.removeProperty('auth.driver');
+	Prop.removeProperty('auth.me');
+	Prop.removeProperty('auth.driver');
 
 	// Remove cache because can contain sensibile data
-	if (Cache != null) Cache.prune();
+	if (T('cache') != null) T('cache').purge();
 	HTTP.resetCookies();
 
 	// Logout on used driver
