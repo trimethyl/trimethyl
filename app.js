@@ -12,8 +12,8 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.app : {});
 
 var Util = require('T/util');
-var Prop = require('T/prop');
 var Router = require('T/router');
+
 
 /**
  * @property {String} launchURL

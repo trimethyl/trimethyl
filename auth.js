@@ -14,7 +14,6 @@ exports.config = _.extend({
 var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
-var Prop = require('T/prop');
 
 // Driver loader
 function load(name) {
