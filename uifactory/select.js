@@ -177,16 +177,16 @@ module.exports = function(args) {
 
 	});
 
-	if (args.type === 'date') {
-		args.theValue = args.theValue || new Date();
-		args.text = Moment(args.theValue).format(args.dateFormat);
-	} else if (args.type === 'plain') {
+	if (args.type === 'plain') {
 		args.values = parseValues(args.values, args.theValue);
 		var parsedSelectedValue = _.findWhere(args.values, { selected: true });
 		if (parsedSelectedValue != null) {
 			args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
 			args.text = parsedSelectedValue.title;
 		}
+	} else if (args.type === 'date') {
+		args.theValue = args.theValue || new Date();
+		args.text = Moment(args.theValue).format(args.dateFormat);
 	}
 
 	var $this = null;
