@@ -49,7 +49,10 @@ function createTiUIPicker(proxyArgs) {
 			return Ti.UI.createPickerRow(o);
 		}));
 
-		$picker.setSelectedRow(0, proxyArgs.selectedIndexValue || 0, false);
+		if (proxyArgs.selectedIndexValue != null) {
+			$picker.setSelectedRow(0, proxyArgs.selectedIndexValue || 0, false);
+		}
+
 		$picker.addEventListener('change', function(e) {
 			$picker.selectedIndexValue = e.rowIndex;
 			$picker.theRow = e.row;
@@ -180,7 +183,6 @@ module.exports = function(args) {
 	} else if (args.type === 'plain') {
 		args.values = parseValues(args.values, args.theValue);
 		var parsedSelectedValue = _.findWhere(args.values, { selected: true });
-		Ti.API.error(parsedSelectedValue);
 		if (parsedSelectedValue != null) {
 			args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
 			args.text = parsedSelectedValue.title;
