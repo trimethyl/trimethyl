@@ -34,7 +34,7 @@ exports.pauseURL = null;
  * @return {Boolean}
  */
 exports.isFirstUse = function() {
-	return !Prop.hasProperty('app.firstuse');
+	return !Ti.App.Properties.hasProperty('app.firstuse');
 };
 
 /**
@@ -44,7 +44,7 @@ exports.isFirstUse = function() {
  * Use in conjunction with {@link #isFirstUse}
  */
 exports.setFirstUse = function() {
-	Prop.setString('app.firstuse', Util.now());
+	Ti.App.Properties.setString('app.firstuse', Util.now());
 };
 
 /*
