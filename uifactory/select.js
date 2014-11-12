@@ -8,13 +8,13 @@ var Moment = require('T/ext/moment');
 function parseValues(values, current) {
 	return _.map(values, function(v) {
 		if (_.isObject(v) && v.value !== void(0)) {
-			if (current === v.value) v.selected = true;
-			return v;
+			var _v = _.clone(v);
+			if (_.isEqual(current, _v.value)) _v.selected = true;
 		} else {
 			var _v = { title: v.toString(), value: v };
 			if (current === v) _v.selected = true;
-			return _v;
 		}
+		return _v;
 	});
 }
 
