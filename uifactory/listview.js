@@ -20,6 +20,7 @@ module.exports = function(args) {
 			sectionIndex: e.sectionIndex,
 			itemIndex: e.itemIndex
 		};
+
 		if (evtTime - devtTime < DBL_CLICK_TIMEOUT && _.isEqual(devtClick, evtClick)) {
 			evtClick.section = e.section;
 

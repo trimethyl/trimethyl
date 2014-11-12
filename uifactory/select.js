@@ -170,7 +170,7 @@ module.exports = function(args) {
 		dateFormat: 'D MMMM YYYY',
 
 		/**
-		 * @property {Array} values
+		 * @property {Array} [values=[]]
 		 * An array containing the values.
 		 * You can specify an entry like `{ value: '1', title: 'One' }`
 		 * to define different title/values, or simply `1` for the sames.

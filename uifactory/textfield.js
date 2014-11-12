@@ -24,19 +24,28 @@ function getDoneToolbar(opt) {
 }
 
 module.exports = function(args) {
-	args = args || {};
+	args = _.extend({
 
-	/**
-	 * @property textType
-	 * Can be
-	 *
-	 * * `email`
-	 * * `password`
-	 * * `passwordEye`
-	 *
-	 * to adjust the keyboard or the mask automatically.
-	 * @type {String}
-	 */
+		/**
+		 * @property {String} textType
+		 * Can be
+		 *
+		 * * `email`
+		 * * `password`
+		 * * `passwordEye`
+		 *
+		 * to adjust the keyboard or the mask automatically.
+		 */
+		textType: 'text',
+
+		/**
+		 * @property {Boolean} [useDoneToolbar=false] Add a default toolbar with a *Done* button that simply blur the TextField.
+		 */
+		useDoneToolbar: false,
+
+	}, args);
+
+
 	switch (args.textType) {
 		case 'number': args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD; break;
 		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
@@ -66,11 +75,7 @@ module.exports = function(args) {
 		});
 	}
 
-	/**
-	 * @property useDoneToolbar
-	 * Add a default toolbar with a *Done* button that simply blur the TextField.
-	 * @type {Boolean}
-	 */
+
 	if (OS_IOS && args.useDoneToolbar === true) {
 		$this.keyboardToolbar = getDoneToolbar({
 			done: function() {

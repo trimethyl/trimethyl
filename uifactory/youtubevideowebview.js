@@ -2,8 +2,7 @@
  * @class  	UIFactory.YoutubeVideoWebView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * View that contain a Youtube video.
- * Internally use a WebView to provide the content.
+ * View that contain a Youtube video. Internally use a WebView to provide the content.
  *
  * To provide the Video ID, you need to pass to the `videoId` property.
  * All property set in the `youtube` property are passed into the Youtube API.
@@ -15,20 +14,28 @@
  */
 
 module.exports = function(args) {
-	args = _.extend(args, {
+	args = _.extend({
+
+		/**
+		 * @property {String} videoId ID of Youtube video.
+		 */
+		videoId: null,
+
+		/**
+		 * @property {Object} [youtube={}] Properties for YT Web Player API.
+		 */
+		youtube: {}
+
+	}, args, {
 		disableBounce : true,
 		willHandleTouches : true,
 		showScrollbars : false,
 		scalesPageToFit : false,
 		hideLoadIndicator : true,
 		enableZoomControls : false,
-		youtube: {}
 	},
-	OS_ANDROID ? {
-		overScrollMode : Ti.UI.Android.OVER_SCROLL_NEVER,
-		pluginState : Ti.UI.Android.WEBVIEW_PLUGINS_ON
-	} : {});
-
+	OS_ANDROID ? { overScrollMode : Ti.UI.Android.OVER_SCROLL_NEVER, pluginState : Ti.UI.Android.WEBVIEW_PLUGINS_ON } : {}
+	);
 
 	var yt = _.extend(_.pick(args, 'videoId'), args.youtube);
 	if (yt.width == null) yt.width = args.width;

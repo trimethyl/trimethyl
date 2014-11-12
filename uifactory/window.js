@@ -4,7 +4,54 @@
  */
 
 module.exports = function(args) {
-	args = args || {};
+	args = _.extend({
+
+		/**
+		 * @property {Boolean} [displayHomeAsUp=false] **(Android only)** Set the property `displayHomeAsUp` and the relative close listener.
+		 */
+		displayHomeAsUp: false,
+
+		/**
+		 * @property {Boolean} [backButtonDisabled=false] **(Android only)** Disable the hardware back button (do nothing on click)
+		 */
+		backButtonDisabled: false,
+
+		/**
+		 * @property {String} [deferredBackgroundImage=null] View {@link setDeferredBackgroundImage}
+		 */
+		deferredBackgroundImage: null,
+
+		/**
+		 * @property {String} [backgroundCoverImage=null] View {@link setBackgroundCoverImage}
+		 */
+		backgroundCoverImage: null,
+
+		/**
+		 * @property {Object} [activityProperties=null] View {@link setActivityProperties}
+		 */
+		activityProperties: null,
+
+		/**
+		 * @property {Object} [actionBarProperties=null] View {@link setActionBarProperties}
+		 */
+		actionBarProperties: null,
+
+		/**
+		 * @property {Object} [rightNavButton=null] View {@link setRightNavButton}
+		 */
+		rightNavButton: null,
+
+		/**
+		 * @property {Array} [activityButtons=null] View {@link addActivityButton}
+		 */
+		activityButtons: null,
+
+		/**
+		 * @property {Object} [activityButton=null] View {@link setActivityButton}
+		 */
+		activityButton: null
+
+	}, args);
 	var $this = Ti.UI.createWindow(args);
 
 	$this.opened = false;
@@ -27,9 +74,7 @@ module.exports = function(args) {
 
 	/**
 	 * @method setDeferredBackgroundImage
-	 * When large images are requested,
-	 * it's useful to set `deferredBackgroundImage`
-	 * to set the background on window open.
+	 * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
 	 * @param {String} val
 	 */
 	$this.setDeferredBackgroundImage = function(val) {
@@ -37,7 +82,6 @@ module.exports = function(args) {
 			$this.backgroundImage = val;
 		});
 	};
-
 
 	var bgCoverUI = null;
 	var bgCoverUISview = null;
@@ -58,8 +102,7 @@ module.exports = function(args) {
 
 	/**
 	 * @method setBackgroundCoverImage
-	 * Titanium doesn't have `backgroundSize: cover` property.
-	 * This is a workaround to make it work it!
+	 * Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
 	 * @param {String} val
 	 */
 	$this.setBackgroundCoverImage = function(val) {
@@ -98,8 +141,6 @@ module.exports = function(args) {
 
 		/**
 		 * @method setActivityProperties
-		 * **Android**
-		 *
 		 * Set the properties for the Activity
 		 * @param {Object} props
 		 */
@@ -111,8 +152,6 @@ module.exports = function(args) {
 
 		/**
 		 * @method setActionBarProperties
-		 * **Android**
-		 *
 		 * Set the properties for the ActionBar
 		 * @param {Object}   props
 		 * @param {Function} callback
@@ -148,7 +187,6 @@ module.exports = function(args) {
 		}, function(act) {
 			if (_.isFunction(act.invalidateOptionsMenu)) act.invalidateOptionsMenu();
 		});
-
 
 		/**
 		 * @method addActivityButton
@@ -215,7 +253,9 @@ module.exports = function(args) {
 	}
 
 
-	// Parse arguments and init
+	// ==================================
+	// PARSE ARGUMENTS AND INITIALIZATION
+	// ==================================
 
 	if (args.deferredBackgroundImage != null) $this.setDeferredBackgroundImage(args.deferredBackgroundImage);
 	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);
@@ -224,13 +264,6 @@ module.exports = function(args) {
 
 		$this.processTitles();
 
-		/**
-		 * @property displayHomeAsUp
-		 * **Android**
-
-		 * Set the property `displayHomeAsUp` and the relative close listener.
-		 * @type {Boolean}
-		 */
 		if (args.displayHomeAsUp === true && args.exitOnClose !== true) {
 			$this.setActionBarProperties({
 				displayHomeAsUp: true,
@@ -240,27 +273,17 @@ module.exports = function(args) {
 			});
 		}
 
-		/**
-		 * @property backButtonDisabled
-		 * **Android**
-		 *
-		 * Disable the back button (do nothing on click)
-		 * @type {Boolean}
-		 */
 		if (args.backButtonDisabled === true) {
 			$this.addEventListener('androidback', function() {
 				return false;
 			});
 		}
 
-		// Parse
-
 		if (args.activityProperties != null) $this.setActivityProperties(args.activityProperties);
 		if (args.actionBarProperties != null) $this.setActionBarProperties(args.actionBarProperties);
 		if (args.rightNavButton != null) $this.setRightNavButton(args.rightNavButton);
 		if (args.activityButtons != null) _.each(args.activityButtons, function(val) { $this.addActivityButton(val); });
 		if (args.activityButton != null) $this.setActivityButton(args.activityButton);
-
 	}
 
 	return $this;
