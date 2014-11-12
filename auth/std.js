@@ -8,9 +8,8 @@ exports.login = function(opt) {
 	opt.success(opt.data);
 };
 
-exports.logout = function(callback) {
+exports.logout = function() {
 	Ti.App.Properties.removeProperty('auth.std.data');
-	if (_.isFunction(callback)) callback();
 };
 
 exports.isStoredLoginAvailable = function() {

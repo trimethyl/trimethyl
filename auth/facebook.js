@@ -11,9 +11,8 @@ exports.login = function(opt) {
 	FB.authorize();
 };
 
-exports.logout = function(callback) {
+exports.logout = function() {
 	FB.logout();
-	if (_.isFunction(callback)) callback();
 };
 
 exports.isStoredLoginAvailable = function() {

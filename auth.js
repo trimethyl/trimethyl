@@ -175,8 +175,11 @@ exports.storedLogin = function(opt) {
  * @param  {Object} opt
  */
 exports.logout = function(callback) {
-	var userID = exports.getUserID();
-	var storedDriver = getStoredDriver();
+	Event.trigger('auth.logout');
+
+	try {
+		load(getStoredDriver()).logout();
+	} catch (err) {}
 
 	// Remove stored infos
 	Me = null;
@@ -184,12 +187,9 @@ exports.logout = function(callback) {
 	Prop.removeProperty('auth.driver');
 
 	// Remove cache because can contain sensibile data
-	if (T('cache') != null) T('cache').purge();
+	var Cache = T('cache');
+	if (Cache != null) Cache.purge();
 	HTTP.resetCookies();
 
-	// Logout on used driver
-	load(storedDriver).logout(function(){
-		Event.trigger('auth.logout', { id: userID });
-		if (_.isFunction(callback)) callback();
-	});
+	if (_.isFunction(callback)) callback();
 };
