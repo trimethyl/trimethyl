@@ -9,12 +9,13 @@
  */
 exports.config = _.extend({
 	permissions: [],
-}, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
+}, Alloy.CFG.T ? Alloy.CFG.T.facebook : {});
 
-var Facebook = require('facebook');
+var Util = require('T/util');
+var Facebook = Util.requireOrNull('com.facebook') || Util.requireOrNull('facebook');
 
-Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid');
-if (config.permissions != null) {
+Facebook.appid = Facebook.appid || Ti.App.Properties.getString('ti.facebook.appid');
+if (!_.isEmpty(exports.config.permissions)) {
 	Facebook.permissions = exports.config.permissions;
 }
 

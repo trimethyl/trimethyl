@@ -6,7 +6,6 @@
 
 var Dialog = require('T/dialog');
 
-
 /**
  * @method requireOrNull
  * Require a module, or return a null object

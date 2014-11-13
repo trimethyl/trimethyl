@@ -77,7 +77,10 @@ exports.facebook = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS dialog
-	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isFacebookSupported() && false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url)) {
+	if (args.useApp !== true
+		&& false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
+	 	&& dkNappSocial !== null && dkNappSocial.isFacebookSupported()
+	) {
 		dkNappSocial.facebook({
 			text: args.text,
 			image: args.image,
@@ -86,9 +89,14 @@ exports.facebook = function(args) {
 		return true;
 	}
 
+	if (FB != null && _.isFunction(FB.share) /*&& _.isFunction(FB.getCanPresentShareDialog()) && FB.getCanPresentShareDialog() === true*/) {
+		FB.share({ url: args.url });
+		return true;
+	}
+
 	// Fallback
 	Ti.Platform.openURL('https://www.facebook.com/dialog/share' + Util.buildQuery({
-		app_id: require('T/prop').getString('ti.facebook.appid'),
+		app_id: Ti.App.Properties.getString('ti.facebook.appid'),
 		display: 'touch',
 		redirect_uri: Ti.App.url,
 		href: args.url
@@ -105,12 +113,26 @@ exports.twitter = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS Dialog
-	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
+	if (args.useApp !== true
+		&& dkNappSocial !== null && dkNappSocial.isTwitterSupported()
+	) {
 		dkNappSocial.twitter({
 			text: args.text,
 			image: args.image,
 			url: args.url
 		});
+		return true;
+	}
+
+	// var tweetbotIOSURL = 'tweetbot://post' + Util.buildQuery({ text: args.fullText });
+	// if (OS_IOS && Ti.Platform.canOpenURL(tweetbotIOSURL)) {
+	// 	Ti.Platform.openURL(tweetbotIOSURL);
+	// 	return true;
+	// }
+
+	var nativeIOSURL = 'twitter://post' + Util.buildQuery({ message: args.fullText });
+	if (OS_IOS && Ti.Platform.canOpenURL(nativeIOSURL)) {
+		Ti.Platform.openURL(nativeIOSURL);
 		return true;
 	}
 
@@ -284,23 +306,14 @@ Init
 
 // Load modules
 
-var FB = Util.requireOrNull('facebook');
-if (FB == null) {
-	Ti.API.warn('Sharer: `facebook` not loaded');
-}
+var FB = Util.requireOrNull('T/facebook');
 
 if (OS_IOS) {
 
 	var dkNappSocial = Util.requireOrNull('dk.napp.social');
-	if (dkNappSocial == null) {
-		Ti.API.warn('Sharer: `dk.napp.social` not loaded');
-	}
-
 	var benCodingSMS = Util.requireOrNull('bencoding.sms');
 
-	if (benCodingSMS == null) {
-		Ti.API.warn('Sharer: `bencoding.sms` not loaded');
-	} else {
+	if (benCodingSMS != null) {
 		dkNappSocial.addEventListener('complete', onSocialComplete);
 		dkNappSocial.addEventListener('cancelled', onSocialCancel);
 	}
