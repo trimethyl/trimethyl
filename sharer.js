@@ -79,7 +79,7 @@ exports.facebook = function(args) {
 	// Native iOS dialog
 	if (args.useApp !== true
 		&& false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
-	 	&& dkNappSocial !== null && dkNappSocial.isFacebookSupported()
+	 	&& dkNappSocial != null && dkNappSocial.isFacebookSupported()
 	) {
 		dkNappSocial.facebook({
 			text: args.text,
@@ -114,7 +114,7 @@ exports.twitter = function(args) {
 
 	// Native iOS Dialog
 	if (args.useApp !== true
-		&& dkNappSocial !== null && dkNappSocial.isTwitterSupported()
+		&& dkNappSocial != null && dkNappSocial.isTwitterSupported()
 	) {
 		dkNappSocial.twitter({
 			text: args.text,
@@ -273,7 +273,7 @@ exports.activity = function(args) {
 	args = parseArgs(args);
 
 	// iOS Activity native
-	if (OS_IOS && dkNappSocial !== null) {
+	if (OS_IOS && dkNappSocial != null) {
 		dkNappSocial[ Util.isIPad() ? 'activityPopover' : 'activityView' ]({
 			text: args.text,
 			title: args.title,
