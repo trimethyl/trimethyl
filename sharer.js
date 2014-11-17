@@ -77,9 +77,10 @@ exports.facebook = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS dialog
-	if (args.useApp !== true
-		&& false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
-	 	&& dkNappSocial != null && dkNappSocial.isFacebookSupported()
+	if (
+		OS_IOS && args.useApp !== true
+	 	&& (dkNappSocial != null && dkNappSocial.isFacebookSupported())
+	 	&& false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
 	) {
 		dkNappSocial.facebook({
 			text: args.text,
@@ -89,13 +90,18 @@ exports.facebook = function(args) {
 		return true;
 	}
 
-	if (FB != null && _.isFunction(FB.share) /*&& _.isFunction(FB.getCanPresentShareDialog()) && FB.getCanPresentShareDialog() === true*/) {
-		FB.share({ url: args.url });
+	// SDK
+	if (FB != null && _.isFunction(FB.share)) {
+		FB.share({
+			url: args.url,
+			title: args.title,
+			description: args.description
+		});
 		return true;
 	}
 
 	// Fallback
-	Ti.Platform.openURL('https://www.facebook.com/dialog/share' + Util.buildQuery({
+	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
 		app_id: Ti.App.Properties.getString('ti.facebook.appid'),
 		display: 'touch',
 		redirect_uri: Ti.App.url,
@@ -113,8 +119,9 @@ exports.twitter = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS Dialog
-	if (args.useApp !== true
-		&& dkNappSocial != null && dkNappSocial.isTwitterSupported()
+	if (
+		OS_IOS && args.useApp !== true
+		&& (dkNappSocial != null && dkNappSocial.isTwitterSupported())
 	) {
 		dkNappSocial.twitter({
 			text: args.text,
@@ -124,18 +131,14 @@ exports.twitter = function(args) {
 		return true;
 	}
 
-	// var tweetbotIOSURL = 'tweetbot://post' + Util.buildQuery({ text: args.fullText });
-	// if (OS_IOS && Ti.Platform.canOpenURL(tweetbotIOSURL)) {
-	// 	Ti.Platform.openURL(tweetbotIOSURL);
-	// 	return true;
-	// }
-
+	// iOS Native
 	var nativeIOSURL = 'twitter://post' + Util.buildQuery({ message: args.fullText });
 	if (OS_IOS && Ti.Platform.canOpenURL(nativeIOSURL)) {
 		Ti.Platform.openURL(nativeIOSURL);
 		return true;
 	}
 
+	// Fallback
 	Ti.Platform.openURL('http://www.twitter.com/intent/tweet' + Util.buildQuery({
 		 text: args.text,
 		 url: args.url
