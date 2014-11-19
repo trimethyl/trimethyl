@@ -76,10 +76,12 @@ SQLite.prototype.list = SQLite.prototype.array = function() {
 SQLite.prototype.all = SQLite.prototype.rows = function() {
 	var row = this.execute.apply(this, arguments);
 	var list = [];
+	var fieldNames = [];
 	while (row.validRow === true) {
 		var obj = {};
 		for (var i = 0; i < row.fieldCount; i++) {
-			obj[row.fieldName(i)] = row.field(i);
+			fieldNames[i] = fieldNames[i] || row.fieldName(i);
+			obj[fieldNames[i]] = row.field(i);
 		}
 		list.push(obj);
 		row.next();

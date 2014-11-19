@@ -5,8 +5,6 @@
 
 
 var Dialog = require('T/dialog');
-var Prop = require('T/prop');
-
 
 /**
  * @method requireOrNull

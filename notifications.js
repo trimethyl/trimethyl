@@ -154,15 +154,17 @@ if (OS_IOS) {
 /**
  * @method subscribe
  * Subscribe for that channel
- * @param  {String} channel Channel name
+ * @param {String} channel 	Channel name
+ * @param {Object} data 		Additional data
  */
-exports.subscribe = function(channel) {
+exports.subscribe = function(channel, data) {
 	subscribeFunction(function(deviceToken) {
 		Ti.App.Properties.setString('notifications.token', deviceToken);
 
 		load(exports.config.driver).subscribe({
 			deviceToken: deviceToken,
 			channel: channel,
+			data: data,
 			success: function(){
 				Event.trigger('notifications.subscription.success', { channel: channel });
 				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded');
@@ -179,9 +181,10 @@ exports.subscribe = function(channel) {
 /**
  * @method unsubscribe
  * Unsubscribe for that channel
- * @param  {String} channel Channel name
+ * @param {String} channel 	Channel name
+ * @param {Object} data 		Additional data
  */
-exports.unsubscribe = function(channel) {
+exports.unsubscribe = function(channel, data) {
 	var deviceToken = Ti.App.Properties.getString('notifications.token');
 	if (_.isEmpty(deviceToken)) {
 		return Ti.API.error('Notifications: Error while getting deviceToken');
@@ -191,6 +194,7 @@ exports.unsubscribe = function(channel) {
 	load(exports.config.driver).unsubscribe({
 		deviceToken: deviceToken,
 		channel: channel,
+		data: data,
 		success: function(){
 			Event.trigger('notifications.unsubscription.error', { channel: channel });
 			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded');

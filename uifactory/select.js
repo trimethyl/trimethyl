@@ -129,18 +129,14 @@ var pickers = {
 	// Show the picker in a Popover Window attached to the Label
 	ipad: function($this) {
 		var $picker = createTiUIPicker($this);
-		var buttons = getPickerButtons($this, $picker, function() { $popover.close(); });
+		var buttons = getPickerButtons($this, $picker, function() { $popover.hide(); });
 
 		var $cwindow = Ti.UI.createWindow({
 			leftNavButton: buttons.cancel,
 			rightNavButton: buttons.done
 		});
 		$cwindow.add($picker);
-
-		var $navigator = Ti.UI.iOS.createNavigationWindow({
-			window: $cwindow
-		});
-
+		var $navigator = Ti.UI.iOS.createNavigationWindow({ window: $cwindow });
 		var $popover = Ti.UI.iPad.createPopover({
 			width: 320,
 			height: 216 + 40,

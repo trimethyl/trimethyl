@@ -77,7 +77,11 @@ exports.facebook = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS dialog
-	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isFacebookSupported() && false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url)) {
+	if (
+		OS_IOS && args.useApp !== true
+	 	&& (dkNappSocial != null && dkNappSocial.isFacebookSupported())
+	 	&& false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
+	) {
 		dkNappSocial.facebook({
 			text: args.text,
 			image: args.image,
@@ -86,9 +90,19 @@ exports.facebook = function(args) {
 		return true;
 	}
 
+	// SDK
+	if (FB != null && _.isFunction(FB.share)) {
+		FB.share({
+			url: args.url,
+			title: args.title,
+			description: args.description
+		});
+		return true;
+	}
+
 	// Fallback
-	Ti.Platform.openURL('https://www.facebook.com/dialog/share' + Util.buildQuery({
-		app_id: require('T/prop').getString('ti.facebook.appid'),
+	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
+		app_id: Ti.App.Properties.getString('ti.facebook.appid'),
 		display: 'touch',
 		redirect_uri: Ti.App.url,
 		href: args.url
@@ -105,7 +119,10 @@ exports.twitter = function(args) {
 	args = parseArgs(args);
 
 	// Native iOS Dialog
-	if (OS_IOS && dkNappSocial !== null && dkNappSocial.isTwitterSupported()) {
+	if (
+		OS_IOS && args.useApp !== true
+		&& (dkNappSocial != null && dkNappSocial.isTwitterSupported())
+	) {
 		dkNappSocial.twitter({
 			text: args.text,
 			image: args.image,
@@ -114,6 +131,14 @@ exports.twitter = function(args) {
 		return true;
 	}
 
+	// iOS Native
+	var nativeIOSURL = 'twitter://post' + Util.buildQuery({ message: args.fullText });
+	if (OS_IOS && Ti.Platform.canOpenURL(nativeIOSURL)) {
+		Ti.Platform.openURL(nativeIOSURL);
+		return true;
+	}
+
+	// Fallback
 	Ti.Platform.openURL('http://www.twitter.com/intent/tweet' + Util.buildQuery({
 		 text: args.text,
 		 url: args.url
@@ -251,7 +276,7 @@ exports.activity = function(args) {
 	args = parseArgs(args);
 
 	// iOS Activity native
-	if (OS_IOS && dkNappSocial !== null) {
+	if (OS_IOS && dkNappSocial != null) {
 		dkNappSocial[ Util.isIPad() ? 'activityPopover' : 'activityView' ]({
 			text: args.text,
 			title: args.title,
@@ -284,23 +309,14 @@ Init
 
 // Load modules
 
-var FB = Util.requireOrNull('facebook');
-if (FB == null) {
-	Ti.API.warn('Sharer: `facebook` not loaded');
-}
+var FB = Util.requireOrNull('T/facebook');
 
 if (OS_IOS) {
 
 	var dkNappSocial = Util.requireOrNull('dk.napp.social');
-	if (dkNappSocial == null) {
-		Ti.API.warn('Sharer: `dk.napp.social` not loaded');
-	}
-
 	var benCodingSMS = Util.requireOrNull('bencoding.sms');
 
-	if (benCodingSMS == null) {
-		Ti.API.warn('Sharer: `bencoding.sms` not loaded');
-	} else {
+	if (benCodingSMS != null) {
 		dkNappSocial.addEventListener('complete', onSocialComplete);
 		dkNappSocial.addEventListener('cancelled', onSocialCancel);
 	}

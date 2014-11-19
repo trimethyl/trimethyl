@@ -14,7 +14,6 @@ exports.config = _.extend({
 var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
-var Prop = require('T/prop');
 
 // Driver loader
 function load(name) {
@@ -58,8 +57,8 @@ exports.getUserID = function(){
 };
 
 function getStoredDriver(){
-	if (!Prop.hasProperty('auth.driver') || !Prop.hasProperty('auth.me')) return null;
-	return Prop.getString('auth.driver');
+	if (!Ti.App.Properties.hasProperty('auth.driver') || !Ti.App.Properties.hasProperty('auth.me')) return null;
+	return Ti.App.Properties.getString('auth.driver');
 }
 
 function driverLogin(opt) {
@@ -119,8 +118,8 @@ exports.login = function(opt) {
 	.then(apiLogin)
 	.then(fetchUserModel)
 	.then(function(){
-		Prop.setObject('auth.me', Me.toJSON());
-		Prop.setString('auth.driver', opt.driver);
+		Ti.App.Properties.setObject('auth.me', Me.toJSON());
+		Ti.App.Properties.setString('auth.driver', opt.driver);
 	})
 
 	.then(function(){
@@ -160,8 +159,8 @@ exports.storedLogin = function(opt) {
 
 	} else {
 
-		if (Prop.hasObject('auth.me')) {
-			Me = Alloy.createModel('user', Prop.getObject('auth.me'));
+		if (Ti.App.Properties.hasObject('auth.me')) {
+			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 			opt.success();
 		} else {
 			opt.error();
@@ -172,23 +171,20 @@ exports.storedLogin = function(opt) {
 
 /**
  * @method logout
- * @param  {Object} opt
+ * @param  {Function} callback
  */
 exports.logout = function(callback) {
-	Event.trigger('auth.logout');
+	Event.trigger('auth.logout', {
+		id: exports.getUserID()
+	});
 
-	try {
-		load(getStoredDriver()).logout();
-	} catch (err) {}
+	load(getStoredDriver()).logout();
 
-	// Remove stored infos
 	Me = null;
-	Prop.removeProperty('auth.me');
-	Prop.removeProperty('auth.driver');
 
-	// Remove cache because can contain sensibile data
-	var Cache = T('cache');
-	if (Cache != null) Cache.purge();
+	Ti.App.Properties.removeProperty('auth.me');
+	Ti.App.Properties.removeProperty('auth.driver');
+	T('cache').purge();
 	HTTP.resetCookies();
 
 	if (_.isFunction(callback)) callback();
