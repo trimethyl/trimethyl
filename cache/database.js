@@ -63,7 +63,7 @@ exports.purge = function() {
  * @return {Number}
  */
 exports.getSize = function() {
-	return DB.db.file.size;
+	return DB.db.file ? DB.db.file.size : 0;
 };
 
 

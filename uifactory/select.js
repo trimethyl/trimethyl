@@ -45,6 +45,7 @@ function createTiUIPicker(proxyArgs) {
 		}
 
 		$picker = Ti.UI.createPicker(pickerArgs);
+		$picker.add(Ti.UI.createPickerRow({ title: '', value: null }));
 		$picker.add(_.map(proxyArgs.values, function(o) {
 			return Ti.UI.createPickerRow(o);
 		}));
@@ -201,11 +202,8 @@ module.exports = function(args) {
 	} else if (OS_ANDROID) {
 
 		if (args.type === 'plain') {
-
 			$this = createTiUIPicker(args);
-
 		} else if (args.type === 'date') {
-
 			$this = Ti.UI.createLabel(args);
 			$this.addEventListener('click', function(){
 				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
@@ -218,7 +216,6 @@ module.exports = function(args) {
 					}
 				});
 			});
-
 		}
 
 	}
