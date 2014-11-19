@@ -1,8 +1,6 @@
 # Trimethyl 2
 
-### [API Documentation](http://caffeinalab.github.io/Trimethyl/)
-
-### [Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
+### [API Documentation](http://caffeinalab.github.io/Trimethyl/)  --  [Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
