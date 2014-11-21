@@ -255,4 +255,12 @@ HTTPRequest.prototype.resolve = function() {
 	}
 };
 
+/**
+ * @method abort
+ * Abort this request
+ */
+HTTPRequest.prototype.abort = function() {
+	this.client.abort();
+};
+
 module.exports = HTTPRequest;

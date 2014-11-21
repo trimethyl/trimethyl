@@ -69,8 +69,6 @@ function dialogConfirm(title, message, dict, ext) {
 		message: message
 	}, ext));
 
-	Ti.API.debug(dialog);
-
 	dialog.addEventListener('click', function(e) {
 		onClickDict(e, dict, dialog);
 	});

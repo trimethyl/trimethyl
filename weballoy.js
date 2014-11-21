@@ -54,12 +54,11 @@ function getHTML(args) {
 
 	html += '</head><body>';
 
-
 	// Include template
-	$ui.tpl = _.template(embedText('web/views/' + args.name + '.tpl'));
+	var tpl = _.template(embedText('web/views/' + args.name + '.tpl'));
 
 	html += '<div id="main">';
-	html += $ui.tpl(_.extend({}, helpers, args.webdata));
+	html += tpl(_.extend({}, helpers, args.webdata));
 	html += '</div>';
 
 	// Include libs
@@ -73,6 +72,7 @@ function getHTML(args) {
 
 	html += '</body></html>';
 
+	tpl = null;
 	return html;
 }
 

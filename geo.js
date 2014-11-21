@@ -41,9 +41,11 @@ exports.getCurrentPosition = function(opt) {
 	}
 
 	if (opt.silent !== false) Event.trigger('geo.start');
+
 	Ti.Geolocation.getCurrentPosition(function(e) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (opt.silent !== false) Event.trigger('geo.end');
+
 		if (e.success === true) {
 			if (_.isFunction(opt.success)) opt.success(e.coords);
 		} else {

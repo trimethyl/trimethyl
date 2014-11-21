@@ -52,7 +52,7 @@ module.exports = function(args) {
 	$this.setIndex = function(i) {
 		i = parseInt(i, 10);
 		if (!_.isNumber(i)) {
-			Ti.API.error('XP.UI: new index value is not a number');
+			Ti.API.error('UIFactory.Tabbedbar: new index value is not a number');
 			return;
 		}
 
