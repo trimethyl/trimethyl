@@ -24,7 +24,7 @@ var wasInBackground = false;
 
 // Driver loader
 function load(name) {
-	return require( /\//.test(name) ? name : ('T/notifications/'+name) );
+	return require('T/notifications/'+name);
 }
 
 function onNotificationReceived(e) {
