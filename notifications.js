@@ -28,7 +28,9 @@ function load(name) {
 }
 
 function onNotificationReceived(e) {
+	e = e || {};
 	Ti.API.debug("Notifications: Received", e);
+
 	if (OS_ANDROID) {
 		// When the app is in background, the type is !== 'callback'
 		// So, we simply save the state wasInBackground and return because the notification.received event must NOT be triggered
