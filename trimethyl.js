@@ -14,3 +14,7 @@ Alloy.Globals.SIMULATOR  = Device.isSimulator();
 Alloy.Globals.SCREEN_RETINA = +Alloy.Globals.SCREEN_DENSITY === 2;
 Alloy.Globals.IOS7 = Util.isIOS7();
 Alloy.Globals.IOS8 = Util.isIOS8();
+
+Ti.App.addEventListener('openURL', function(e){
+	Ti.Platform.openURL(e.url);
+});

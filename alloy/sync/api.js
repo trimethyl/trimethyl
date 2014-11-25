@@ -66,9 +66,15 @@ exports.sync = function(method, model, opt) {
 
 				if (resp != null) {
 					if (isCollection === true) {
-						if (_.isObject(resp) && resp.data != null) opt.success(resp.data);
-						else if (_.isArray(resp)) opt.success(resp);
-						else opt.error();
+
+						if (_.isObject(resp)){
+							opt.success(resp.data || resp.results || resp.result);
+						} else if (_.isArray(resp)) {
+							opt.success(resp);
+						} else {
+							opt.error();
+						}
+
 					} else {
 						opt.success(resp);
 					}
