@@ -221,7 +221,7 @@ exports.whatsapp = function(args) {
 				packageName: 'com.whatsapp'
 			});
 			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
-			Ti.Android.currentActivity.startActivity(intent, L('Share'));
+			Ti.Android.currentActivity.startActivity(intent, L('share', 'Share'));
 		} catch (err) {
 			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
 				Util.openInStore('com.whatsapp');
@@ -259,7 +259,7 @@ exports.message = function(args) {
 			type: 'vnd.android-dir/mms-sms',
 		});
 		intent.putExtra('sms_body', args.fullText);
-		Ti.Android.currentActivity.startActivity(intent, L('Share'));
+		Ti.Android.currentActivity.startActivity(intent, L('share', 'Share'));
 
 		return true;
 	}
@@ -296,7 +296,7 @@ exports.activity = function(args) {
 		if (args.title) intent.putExtra(Ti.Android.EXTRA_TITLE, args.title);
 		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
 
-		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('Share')));
+		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('share', 'Share')));
 
 		return true;
 	}

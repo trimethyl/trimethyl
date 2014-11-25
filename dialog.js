@@ -123,11 +123,11 @@ exports.option = dialogOption;
 function confirmYes(title, message, callback, buttonTitle) {
 	return dialogConfirm(title, message, [
 		{
-			title: L('Cancel'),
+			title: L('cancel', 'Cancel'),
 			cancel: true
 		},
 		{
-			title: buttonTitle || L('Yes'),
+			title: buttonTitle || L('yes', 'Yes'),
 			callback: callback,
 			selected: true
 		}
