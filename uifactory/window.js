@@ -184,9 +184,8 @@ module.exports = function(args) {
 					});
 				});
 			}
-		}, function(act) {
-			if (_.isFunction(act.invalidateOptionsMenu)) act.invalidateOptionsMenu();
 		});
+
 
 		/**
 		 * @method addActivityButton
@@ -194,8 +193,11 @@ module.exports = function(args) {
 		 * @param {Object} opt
 		 */
 		$this.addActivityButton = function(opt) {
-			while (opt.children && opt.children[0]) opt = opt.children[0]; // hack for Alloy, just ignore it
-			activityButtons.push(opt);
+			if (opt != null) {
+				while (opt && opt.children && opt.children[0]) opt = opt.children[0]; // hack for Alloy, just ignore it
+				activityButtons.push(opt);
+			}
+			if (_.isFunction($this.activity.invalidateOptionsMenu)) $this.activity.invalidateOptionsMenu();
 		};
 
 		/**
@@ -221,13 +223,10 @@ module.exports = function(args) {
 		 * Auto-process the titles
 		 */
 		$this.processTitles = function () {
-			var bar = {};
-			if ($this.subtitle != null) {
-				bar = { title: $this.title, subtitle: $this.subtitle };
-			} else {
-				bar = { title: Ti.App.name, subtitle: $this.title || '' };
-			}
-			$this.setActionBarProperties(bar);
+			$this.setActionBarProperties({
+				title: ($this.title && $this.subtitle) ? $this.title : ($this.subtitle === false ? $this.title : Ti.App.name),
+				subtitle: ($this.title && $this.subtitle) ? $this.subtitle : ($this.subtitle === false ? null : $this.title)
+			});
 		};
 
 		/**
@@ -263,6 +262,9 @@ module.exports = function(args) {
 	if (OS_ANDROID) {
 
 		$this.processTitles();
+		if (_.isFunction($this.activity.invalidateOptionsMenu)) {
+			$this.activity.invalidateOptionsMenu();
+		}
 
 		if (args.displayHomeAsUp === true && args.exitOnClose !== true) {
 			$this.setActionBarProperties({
