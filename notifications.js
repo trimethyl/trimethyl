@@ -20,7 +20,7 @@ var Event = require('T/event');
 var Util = require('T/util');
 var Router = require('T/router');
 
-var inBackground = false;
+var wasInBackground = false;
 
 // Driver loader
 function load(name) {
@@ -28,31 +28,24 @@ function load(name) {
 }
 
 function onNotificationReceived(e) {
+	Ti.API.debug("Notifications: Received", e);
 	if (OS_ANDROID) {
-
-		// Android trigger two types of callback
 		// When the app is in background, the type is !== 'callback'
-		// So, we simply save the state inBackground and return
-		// because the notification.received event must NOT be triggered
+		// So, we simply save the state wasInBackground and return because the notification.received event must NOT be triggered
 		if (e.type !== 'callback') {
-			inBackground = true;
+			wasInBackground = true;
 			return;
 		}
 
+		// Reformat in iOS style
 		if (e.payload != null) {
-
-			// Do this to balance the difference in APIs (convert Android to IOS, in substance)
-			e.data = Util.parseJSON(e.payload);
-			if (e.data.android != null) {
-				_.extend(e.data, e.data.android);
-				delete e.data.android;
+			var data = Util.parseJSON(e.payload);
+			if (data != null && data.android != null) {
+				e.data = data.android;
 			}
-
-			// Set the property inBackground from the last state
-			// and reset to false to prevent double events (simple semaphore)
-			e.inBackground = inBackground;
-			inBackground = false;
 		}
+		e.data = e.data || {};
+		e.inBackground = wasInBackground;
 	}
 
 	// Auto-reset the badge
@@ -120,10 +113,7 @@ if (OS_IOS) {
 
 	var CloudPush = require('ti.cloudpush');
 	CloudPush.debug = !ENV_PRODUCTION;
-	CloudPush.singleCallback = true;
 	CloudPush.showAppOnTrayClick = true;
-
-	// iOS Style, allow only background system-wide notifications
 	CloudPush.showTrayNotification = true;
 	CloudPush.showTrayNotificationsWhenFocused = false;
 
