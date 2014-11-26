@@ -41,12 +41,9 @@ function onNotificationReceived(e) {
 
 		// Reformat in iOS style
 		if (e.payload != null) {
-			var data = Util.parseJSON(e.payload);
-			if (data != null && data.android != null) {
-				e.data = data.android;
-			}
+			e.data = Util.parseJSON(e.payload);
+			_.extend(e.data, e.data.android);
 		}
-		e.data = e.data || {};
 		e.inBackground = wasInBackground;
 	}
 
