@@ -14,27 +14,37 @@ exports.config = _.extend({
 var libDir = [];
 var helpers = {};
 
-function embedText(f) {
+function embedFile(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
-	if (file.exists() === false) {
+	if ( ! file.exists()) {
 		Ti.API.warn('Weballoy: File not found (' + f + ')');
-		return '';
+		return null;
 	}
 
-	var read = file.read().text;
-	file = null;
-	return read;
+	return file;
+}
+
+function getFileText(f) {
+	var file = embedFile(f);
+	if (file === null) return '';
+	return file.read().text;
 }
 
 function embedCSS(f) {
-	return '<style type="text/css">' + embedText(f) + '</style>';
+	var file = embedFile(f);
+	if (file === null) return '';
+	return '<link rel="stylesheet" href="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '" />';
 }
 
 function embedJS(f) {
-	return '<script type="text/javascript">' + embedText(f) + '</script>';
+	var file = embedFile(f);
+	if (file === null) return '';
+	return '<script src="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '"></script>';
 }
 
 function getHTML(args) {
+	var tpl_data = _.extend({}, helpers, args.webdata);
+
 	// Include head (styles)
 	var html = '<!DOCTYPE html><html><head><meta charset="utf-8" />';
 	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
@@ -43,7 +53,7 @@ function getHTML(args) {
 	html += '\<script>\
 	WebAlloy = {\
 		run: function(name, data) {\
-			Ti.App.fireEvent("__weballoy' + args.uniqid + '", { name: name, data: data });\
+			Ti.App.fireEvent("__weballoy_' + args.uniqid + '", { name: name, data: data });\
 		}\
 	};\
 	</script>';
@@ -54,11 +64,11 @@ function getHTML(args) {
 
 	html += '</head><body>';
 
-	// Include template
-	var tpl = _.template(embedText('web/views/' + args.name + '.tpl'));
+	html += _.template(getFileText('web/app.tpl'))(tpl_data);
 
-	html += '<div id="main">';
-	html += tpl(_.extend({}, helpers, args.webdata));
+	// Include template
+	html += '<div id="main" class="' + (args.htmlClass || '') + '">';
+	html += _.template(getFileText('web/views/' + args.name + '.tpl'))(tpl_data);
 	html += '</div>';
 
 	// Include libs
@@ -150,9 +160,9 @@ exports.createView = function(args) {
 			args.webapi[event.name].call($ui, event.data);
 		};
 
-		Ti.App.addEventListener('__weballoy' + args.uniqid, webapiListener);
+		Ti.App.addEventListener('__weballoy_' + args.uniqid, webapiListener);
 		$ui.webapiUnbind = function() {
-			Ti.App.removeEventListener('weballoy_' + args.uniqid, webapiListener);
+			Ti.App.removeEventListener('__weballoy_' + args.uniqid, webapiListener);
 		};
 	}
 

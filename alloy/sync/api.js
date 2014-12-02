@@ -1,6 +1,5 @@
 /*
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
- * API-Rest Alloy Adapter
  */
 
 var HTTP = require('T/http');

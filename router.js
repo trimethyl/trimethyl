@@ -47,7 +47,7 @@ exports.dispatch = function(url) {
 	var matches = null;
 
 	var X = Util.parseAsXCallbackURL(url);
-	Ti.API.debug('Router: dispatching', url, X.path);
+	Ti.API.debug('Router: dispatching <' + url + '> with path <' + X.path + '>');
 
 	for (var i in routes) {
 		var routeDefinition = routes[i];
@@ -67,7 +67,7 @@ exports.dispatch = function(url) {
 		}
 
 		if (run === true) {
-			Ti.API.debug('Router: Matched with key ['+routeDefinition.key+'] and matches ['+JSON.stringify(matches)+']');
+			Ti.API.debug('Router: Matched with key <' + routeDefinition.key + '> and matches <' + JSON.stringify(matches) + '>');
 
 			routeDefinition.callback.apply(X, matches);
 			return; // break the f***g cycle

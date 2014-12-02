@@ -3,7 +3,6 @@
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 function SQLite(name, file) {
 	if (file == null) {
 		this.db = Ti.Database.open(name);
@@ -11,6 +10,16 @@ function SQLite(name, file) {
 		this.db = Ti.Database.install(file, name);
 	}
 }
+
+/**
+ * @method close
+ * Close the database
+ */
+SQLite.prototype.close = function() {
+	try {
+		this.db.close();
+	} catch (ex) {}
+};
 
 /**
  * @method execute
