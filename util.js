@@ -403,7 +403,7 @@ exports.getErrorMessage = function(obj) {
  * @param  {Function} [callback] 	The callback
  */
 exports.errorAlert = exports.alertError = function(err, callback) {
-	Dialog.alert(L('Error'), exports.getErrorMessage(err), callback);
+	Dialog.alert(L('error', 'Error'), exports.getErrorMessage(err), callback);
 };
 
 /**

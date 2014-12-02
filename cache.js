@@ -13,7 +13,8 @@ exports.config = _.extend({
 
 // Driver loader
 function load(name) {
-	return require( /\//.test(name) ? name : ('T/cache/'+name) );
+	return require('T/cache/'+name);
 }
+
 
 module.exports = load(exports.config.strategy);

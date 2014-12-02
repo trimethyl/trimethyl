@@ -17,7 +17,7 @@ var Event = require('T/event');
 
 // Driver loader
 function load(name) {
-	return require( /\//.test(name) ? name : ('T/auth/'+name) );
+	return require('T/auth/'+name);
 }
 
 // HTTP requests flag
