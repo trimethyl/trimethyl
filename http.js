@@ -16,6 +16,9 @@ exports.config = _.extend({
 	headers: {},
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
+// Please, stop making stupid things, Titanium.
+Ti.Network.HTTPClient.validatesSecureCertificate = true;
+
 var headers = _.clone(exports.config.headers);
 
 /**
