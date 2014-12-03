@@ -6,52 +6,48 @@
 var Moment = require('T/ext/moment');
 
 function parseValues(values, current) {
-	return _.map(values, function(v) {
-		if (_.isObject(v) && v.value !== void(0)) {
-			var _v = _.clone(v);
+	return _.map(values, function(v, index) {
+		if (_.isObject(v)) {
+			var _v = _.extend({}, v, {
+				index: index
+			});
 			if (_.isEqual(current, _v.value)) _v.selected = true;
 		} else {
-			var _v = { title: v.toString(), value: v };
-			if (current === v) _v.selected = true;
+			var _v = {
+				title: v.toString(),
+				value: v,
+				index: index,
+			};
+			if (current == v) _v.selected = true;
 		}
 		return _v;
 	});
 }
 
-function createTiUIPicker(proxyArgs) {
+function createTiUIPicker($this) {
 	var $picker = null;
 
-	if (proxyArgs.type === 'date') {
-
-		$picker = Ti.UI.createPicker(_.extend({}, _.pick(proxyArgs, 'theValue', 'minDate', 'maxDate'), {
-			value: proxyArgs.theValue,
-			width: Ti.UI.FILL,
-			type: Ti.UI.PICKER_TYPE_DATE
-		}));
-		$picker.addEventListener('change', function(e) {
-			$picker.theValue = e.value;
-		});
-
-	} else if (proxyArgs.type === 'plain') {
+	if ($this.type === 'plain') {
 
 		var pickerArgs = {};
 		if (OS_IOS) {
 			pickerArgs.width = Ti.UI.FILL;
 		} else if (OS_ANDROID) {
-			pickerArgs = _.extend({}, proxyArgs, {
+			pickerArgs = _.extend({}, $this, {
 				type: Ti.UI.PICKER_TYPE_PLAIN,
-				value: proxyArgs.theValue
+				value: $this.theValue
 			});
 		}
-
 		$picker = Ti.UI.createPicker(pickerArgs);
-		$picker.add(Ti.UI.createPickerRow({ title: '', value: null }));
-		$picker.add(_.map(proxyArgs.values, function(o) {
+		pickerArgs = null;
+
+		$picker.add(Ti.UI.createPickerRow({ title: '', value: null })); // add a null value
+		$picker.add(_.map($this.values, function(o) {
 			return Ti.UI.createPickerRow(o);
 		}));
 
-		if (proxyArgs.selectedIndexValue != null) {
-			$picker.setSelectedRow(0, proxyArgs.selectedIndexValue + 1, false);
+		if ($this.selectedIndexValue != null) {
+			$picker.setSelectedRow(0, $this.selectedIndexValue, false);
 		}
 
 		$picker.addEventListener('change', function(e) {
@@ -59,6 +55,18 @@ function createTiUIPicker(proxyArgs) {
 			$picker.theRow = e.row;
 			$picker.theValue = e.row.value;
 		});
+
+	} else if ($this.type === 'date') {
+
+		$picker = Ti.UI.createPicker(_.extend({}, _.pick($this, 'theValue', 'minDate', 'maxDate'), {
+			value: $this.theValue,
+			width: Ti.UI.FILL,
+			type: Ti.UI.PICKER_TYPE_DATE
+		}));
+		$picker.addEventListener('change', function(e) {
+			$picker.theValue = e.value;
+		});
+
 	}
 
 	return $picker;
@@ -158,8 +166,8 @@ module.exports = function(args) {
 		/**
 		 * @property {Array} [values=[]]
 		 * An array containing the values.
-		 * You can specify an entry like `{ value: '1', title: 'One' }`
-		 * to define different title/values, or simply `1` for the sames.
+		 * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values.
+		 * Alternatively, just delcare an entry with a primitive value.
 		 */
 		values: [],
 
@@ -175,23 +183,15 @@ module.exports = function(args) {
 
 	});
 
-	if (args.type === 'plain') {
-		args.values = parseValues(args.values, args.theValue);
-		var parsedSelectedValue = _.findWhere(args.values, { selected: true });
-		if (parsedSelectedValue != null) {
-			args.selectedIndexValue = _.indexOf(args.values, parsedSelectedValue);
-			args.text = parsedSelectedValue.title;
-		}
-	} else if (args.type === 'date') {
-		args.theValue = args.theValue || new Date();
-		args.text = Moment(args.theValue).format(args.dateFormat);
-	}
-
 	var $this = null;
 
 	if (OS_IOS) {
 
-		$this = Ti.UI.createLabel(args);
+		$this = Ti.UI.createLabel(_.extend({
+			height: 48,
+			width: Ti.UI.FILL
+		}, args));
+
 		$this.addEventListener('click', function(){
 			pickers[Ti.Platform.osname]($this);
 		});
@@ -199,8 +199,11 @@ module.exports = function(args) {
 	} else if (OS_ANDROID) {
 
 		if (args.type === 'plain') {
+
 			$this = createTiUIPicker(args);
+
 		} else if (args.type === 'date') {
+
 			$this = Ti.UI.createLabel(args);
 			$this.addEventListener('click', function(){
 				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
@@ -213,6 +216,7 @@ module.exports = function(args) {
 					}
 				});
 			});
+
 		}
 
 	}
@@ -225,6 +229,30 @@ module.exports = function(args) {
 	$this.getValue = function() {
 		return $this.theValue;
 	};
+
+	/**
+	 * @method setValues
+	 * @property {Array} values
+	 */
+	$this.setValues = function(values) {
+		if (args.type === 'plain') {
+			$this.values = parseValues(values, $this.theValue);
+			var pSelValue = _.findWhere($this.values, { selected: true });
+			if (pSelValue != null) {
+				$this.selectedIndexValue = pSelValue.index + 1; // for the null value added
+				$this.text = pSelValue.title;
+			} else {
+				$this.selectedIndexValue = null;
+			}
+		}
+	};
+
+	if (args.type === 'plain') {
+		$this.setValues(args.values);
+	} else if (args.type === 'date') {
+		$this.theValue = args.theValue || new Date();
+		$this.text = Moment($this.theValue).format($this.dateFormat);
+	}
 
 	return $this;
 };
