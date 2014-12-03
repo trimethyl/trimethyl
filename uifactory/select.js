@@ -51,7 +51,7 @@ function createTiUIPicker(proxyArgs) {
 		}));
 
 		if (proxyArgs.selectedIndexValue != null) {
-			$picker.setSelectedRow(0, proxyArgs.selectedIndexValue || 0, false);
+			$picker.setSelectedRow(0, proxyArgs.selectedIndexValue + 1, false);
 		}
 
 		$picker.addEventListener('change', function(e) {
@@ -69,6 +69,7 @@ function getPickerButtons($this, $picker, closeCallback) {
 		title: L('Done'),
 		style: Ti.UI.iPhone.SystemButtonStyle.DONE
 	});
+
 	$doneBtn.addEventListener('click', function() {
 		$this.theValue = $picker.theValue;
 		$this.selectedIndexValue = $picker.selectedIndexValue;
@@ -100,9 +101,9 @@ var pickers = {
 		var buttons = getPickerButtons($this, $picker, function() { $pickerModal.close(); });
 		var $toolbar = Ti.UI.iOS.createToolbar({
 			items: [
-			buttons.cancel,
-			Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
-			buttons.done
+				buttons.cancel,
+				Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+				buttons.done
 			],
 			borderTop: true,
 			borderBottom: false
