@@ -39,8 +39,6 @@ function HTTPRequest(opt) {
 	this.onComplete = _.isFunction(opt.complete) ? opt.complete : null;
 	this.onError = _.isFunction(opt.error) ? opt.error : null;
 
-	this.errorAlert = this.opt.errorAlert === undefined ? true : !!this.opt.errorAlert;
-
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
 		if (this.method === 'GET' && _.isObject(opt.data)) {
@@ -104,11 +102,16 @@ HTTPRequest.prototype._onError = function(err) {
 	Ti.API.error('HTTP: ['+this.hash+'] ERROR', err);
 
 	var self = this;
-	if (self.errorAlert === true) {
+	Ti.API.debug(self);
+	if (HTTP.config.errorAlert === true && self.opt.errorAlert !== false) {
 		Util.errorAlert(err, function(){
-			if (self.onError !== null) self.onError(err);
+			if (self.onError !== null) {
+				self.onError(err);
+			}
 		});
-	} else if (self.onError !== null) self.onError(err);
+	} else if (self.onError !== null) {
+		self.onError(err);
+	}
 };
 
 HTTPRequest.prototype._onComplete = function(e) {
