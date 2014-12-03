@@ -16,6 +16,8 @@ exports.config = _.extend({
 	headers: {},
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
+// Please, stop making stupid things, Android.
+Ti.Network.HTTPClient.validatesSecureCertificate = false;
 
 var headers = _.clone(exports.config.headers);
 
