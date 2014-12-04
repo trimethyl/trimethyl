@@ -19,8 +19,8 @@ var windows = {}; // all windows objects
 var windowsId = []; // all windows id
 
 var currentController = null;
-var currentControllerName = null;
-var currentControllerArgs = null;
+exports.currentControllerName = null;
+exports.currentControllerArgs = null;
 
 
 function onWindowClose(e) {
@@ -77,29 +77,15 @@ exports.autoTrackWindow = function($win, key) {
  * @param  {Alloy.Controller} 				controller
  * @param  {Ti.UI.iOS.NavigationWindow} 	nav
  * @param  {Ti.UI.Window} 						win
+ * @param  {String}								controllerName
+ * @param  {String}								controllerArgs
  */
-exports.startup = function(controller, nav, win) {
+exports.startup = function(controller, nav, win, controllerName, controllerArgs) {
 	exports.setCurrentWindow(win);
-	exports.setCurrentController(controller);
+	exports.setCurrentController(controller, controllerName, controllerArgs);
 	exports.setNavigationController(nav, true);
-};
-
-
-/**
- * @method openWindow
- * Open a Window in the current navigation controller.
- *
- * @param  {Ti.UI.Window}  $window 	The window object
- * @param  {Object} 			[opt]    The arguments passed to the `NavigationWindow.openWindow`
- */
-exports.openWindow = function($win, opt, key) {
-	opt = opt || {};
-	if (Navigator === null) {
-		return Ti.API.warn('Flow: A NavigationController is not defined yet');
-	}
-
-	if (!_.isEmpty(key)) exports.autoTrackWindow($win, key);
-	Navigator.openWindow($win, opt);
+	windows = {};
+	windowsId = [];
 };
 
 
@@ -177,8 +163,8 @@ exports.open = function(name, args, openArgs, key) {
 		$window = null;
 	});
 
-	currentControllerName = name;
-	currentControllerArgs = args;
+	exports.currentControllerName = name;
+	exports.currentControllerArgs = args;
 	currentController = controller;
 
 	return controller;
@@ -208,8 +194,8 @@ exports.close = function() {
  */
 exports.setCurrentController = function(controller, name, args) {
 	currentController = controller;
-	currentControllerName = name;
-	currentControllerArgs = args;
+	exports.currentControllerName = name;
+	exports.currentControllerArgs = args;
 };
 
 /**
@@ -313,4 +299,13 @@ exports.getStack = function() {
 		order: windowsId,
 		windows: windows
 	};
+};
+
+
+exports.refresh = function() {
+	if (currentController != null && exports.currentControllerName != null) {
+		var $previousView = currentController.getView();
+		Flow.open(exports.currentControllerName, exports.currentControllerArgs, { animated: false });
+		$previousView.close({ animated: false });
+	}
 };

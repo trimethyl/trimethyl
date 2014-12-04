@@ -66,7 +66,7 @@ function createTiUIPicker(proxyArgs) {
 
 function getPickerButtons($this, $picker, closeCallback) {
 	var $doneBtn = Ti.UI.createButton({
-		title: L('Done'),
+		title: L('done'),
 		style: Ti.UI.iPhone.SystemButtonStyle.DONE
 	});
 	$doneBtn.addEventListener('click', function() {
