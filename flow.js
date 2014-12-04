@@ -30,13 +30,13 @@ function onWindowClose(e) {
 
 
 /**
- * @method autoTrackWindow
+ * @method track
  * Track the time and the screen of this windows with GA
  *
- * @param  {Ti.UI.Window} 	$win 	The window
  * @param  {String} 			key  	The tracking key
+ * @param  {Ti.UI.Window} 	$win 	The window
  */
-exports.autoTrackWindow = function($win, key) {
+exports.track = function(key, $win) {
 	if (_.isEmpty(key)) {
 		return Ti.API.warn('Flow: empty key for tracking');
 	}
@@ -48,30 +48,27 @@ exports.autoTrackWindow = function($win, key) {
 
 	// Track timing with GA
 	if (exports.config.trackTimingWithGA) {
-		if ($win == null) return;
-
-		var startFocusTime = null;
-		$win.addEventListener('focus', function(){
-			startFocusTime = new Date().getTime();
-		});
-		$win.addEventListener('blur', function(){
-			if (startFocusTime === null) return;
-			require('T/ga').time(key, new Date().getTime() - startFocusTime);
-		});
+		if ($win != null) {
+			var startFocusTime = null;
+			$win.addEventListener('focus', function(){
+				startFocusTime = Date.now();
+			});
+			$win.addEventListener('blur', function(){
+				if (startFocusTime === null) return;
+				require('T/ga').trackTiming(key, Date.now() - startFocusTime);
+			});
+		}
 	}
 };
 
 
 /**
- * Set, in a single way,
- * the global Navigator (and open it),
- * the Index-Controller
- * and the Index-Window
+ * Set, in a single way, the global Navigator (and open it), the Index-Controller and the Index-Window
  *
  * This method, is typically called on startup, on the index.js, like this:
  *
  * ```
- * Flow.startup($, $.nav, $.win);
+ * Flow.startup($, $.nav, $.win, 'index', {});
  * ```
  *
  * @param  {Alloy.Controller} 				controller
@@ -84,6 +81,7 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
 	exports.setCurrentWindow(win);
 	exports.setCurrentController(controller, controllerName, controllerArgs);
 	exports.setNavigationController(nav, true);
+	// Reset variables
 	windows = {};
 	windowsId = [];
 };
@@ -97,22 +95,16 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
  *
  * @param  {String} 	name 				The name of the controller
  * @param  {Object} 	[args]     		The args passed to the controller
- * @param  {Object} 	[opt]        	Additional arguments
  * @param  {String} 	[key]				Optional key that identify this controller
  * @return {Alloy.Controller} 		The controller instance
  */
-exports.openDirect = function(name, args, opt, key) {
+exports.openDirect = function(name, args, key) {
 	args = args || {};
-	opt = opt || {};
 
 	var controller = Alloy.createController(name, args);
 	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
 
-	if (exports.config.trackWithGA) {
-		if (!_.isEmpty(key)) {
-			require('T/ga').trackScreen(key);
-		}
-	}
+	exports.track(key);
 
 	return controller;
 };
@@ -134,30 +126,33 @@ exports.openDirect = function(name, args, opt, key) {
  * @return {Alloy.Controller}    	The controller instance
  */
 exports.open = function(name, args, openArgs, key) {
+	if (Navigator === null) {
+		return Ti.API.warn('Flow: A NavigationController is not defined yet');
+	}
+
 	args = args || {};
 	openArgs = openArgs || {};
 
 	var controller = Alloy.createController(name, args);
+	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''))
+
+	// Get the main window an track focus/blur
 	var $window = controller.getView();
-
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
-
-	if (Navigator === null) {
-		return Ti.API.warn('Flow: A NavigationController is not defined yet');
-	}
+	exports.track(key, $window);
 
 	// Open the window
 	Navigator.openWindow($window, openArgs);
 
 	// Attach events
 	exports.setCurrentWindow($window);
-	exports.autoTrackWindow($window, key);
 
 	// Clean up controller on window close
 	$window.addEventListener('close', function() {
 		controller.destroy();
 		controller.off();
-		if (_.isFunction(controller.cleanup)) controller.cleanup();
+		if (_.isFunction(controller.cleanup)) {
+			controller.cleanup();
+		}
 
 		controller = null;
 		$window = null;
@@ -176,11 +171,9 @@ exports.open = function(name, args, openArgs, key) {
  */
 exports.close = function() {
 	if (Navigator === null) return;
-
 	windows = {};
 	windowsId = [];
 	Navigator.close();
-
 	Navigator = null;
 };
 
@@ -213,7 +206,6 @@ exports.getCurrentController = function() {
  * Alias for {@link #getCurrentController}
  */
 exports.controller = exports.getCurrentController;
-
 
 
 /**
@@ -301,7 +293,9 @@ exports.getStack = function() {
 	};
 };
 
-
+/**
+ * @method refresh
+ */
 exports.refresh = function() {
 	if (currentController != null && exports.currentControllerName != null) {
 		var $previousView = currentController.getView();
