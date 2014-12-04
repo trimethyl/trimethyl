@@ -6,7 +6,7 @@
 
 Trimethyl is not a framework, is a collection of very useful modules to work with **Titanium**.
 
-Most of these modules are proxies for Titanium API, and some of theese add missing features or expose usefuls functions for cross platform development.
+Most of these modules are proxies for Titanium API, and some of these add missing features or expose usefuls functions for cross platform development.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
