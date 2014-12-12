@@ -50,13 +50,7 @@ function getHTML(args) {
 	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
 
 	// Install the global event handler for this specific WebView
-	html += '\<script>\
-	WebAlloy = {\
-		run: function(name, data) {\
-			Ti.App.fireEvent("__weballoy_' + args.uniqid + '", { name: name, data: data });\
-		}\
-	};\
-	</script>';
+	html += '<script>window.WebAlloy={run:function(name,data){Ti.App.fireEvent("__weballoy_'+args.uniqid+'",{name:name,data:data});}};</script>';
 
 	// Include global css
 	html += embedCSS('web/app.css');
@@ -118,7 +112,9 @@ exports.createView = function(args) {
 		if (args.autoHeight === true) {
 			$ui.height = $ui.evalJS('document.body.clientHeight');
 		}
-		if (_.isFunction(args.loaded)) args.loaded();
+		if (_.isFunction(args.onLoad)) {
+			args.onLoad.call($ui);
+		}
 	});
 
 	$ui.html = getHTML(args);

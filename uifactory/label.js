@@ -82,11 +82,11 @@ module.exports = function(args) {
 				},
 				'i': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: _.extend(args.font, fontTransform.italic)
+					value: _.extend({}, args.font, fontTransform.italic)
 				},
 				'b': {
 					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: _.extend(args.font, fontTransform.bold)
+					value: _.extend({}, args.font, fontTransform.bold)
 				}
 			};
 

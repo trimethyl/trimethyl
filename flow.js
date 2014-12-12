@@ -22,19 +22,17 @@ var currentController = null;
 exports.currentControllerName = null;
 exports.currentControllerArgs = null;
 
-
 function onWindowClose(e) {
 	delete windows[e.source._flowid];
 	windowsId = _.without(windowsId, e.source._flowid);
 }
 
-
 /**
  * @method track
  * Track the time and the screen of this windows with GA
  *
- * @param  {String} 			key  	The tracking key
- * @param  {Ti.UI.Window} 	$win 	The window
+ * @param  {String} 			key  		The tracking key
+ * @param  {Ti.UI.Window} 	[$win] 	The window
  */
 exports.track = function(key, $win) {
 	if (_.isEmpty(key)) {
