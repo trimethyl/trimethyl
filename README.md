@@ -4,7 +4,7 @@
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Titanium](http://www-static.appcelerator.com/badges/titanium-git-badge-sq.png)](http://www.appcelerator.com/titanium/) [![Alloy](http://www-static.appcelerator.com/badges/alloy-git-badge-sq.png)](http://www.appcelerator.com/alloy/)
 
-Trimethyl is not a framework, is a collection of very useful modules to work with **Titanium**.
+Trimethyl is a collection of very useful modules to work with **Titanium**.
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
@@ -105,20 +105,20 @@ exports.createWindow = function(args) {
 
 **Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage of all APIs**.
 
-## License
+## Contributing
 
-```
-Copyright 2014 Caffeina
+How to get involved:
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+1. [Star](https://github.com/CaffeinaLab/Trimethyl/stargazers) the project!
+2. Answer questions that come through [GitHub issues](https://github.com/CaffeinaLab/Trimethyl/issues?state=open)
+3. [Report a bug](https://github.com/CaffeinaLab/Trimethyl/issues/new) that you find
 
-   http://www.apache.org/licenses/LICENSE-2.0
+Pull requests are **highly appreciated**.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+Solve a problem. Features are great, but even better is cleaning-up and fixing issues in the code that you discover.
+
+## Copyright and license
+
+Copyright 2014 [Caffeina](http://caffeina.co) srl under the [MIT license](LICENSE.md).
+
+<p align="center"><a href="http://caffeina.co" target="_blank" title="Caffeina - Ideas Never Sleep"><img src="https://github.com/CaffeinaLab/BrandResources/blob/master/caffeina-handmade.png?raw=true" align="center" height="65"></a></p>
