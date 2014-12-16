@@ -6,7 +6,7 @@
 
 Trimethyl is not a framework, is a collection of very useful modules to work with **Titanium**.
 
-Most of these modules are proxies for Titanium API, and some of these add missing features or expose usefuls functions for cross platform development.
+Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
@@ -75,7 +75,7 @@ To use a module, just require with `T` helper:
 var Util = T('util'); /* same of require('T/util') */
 ```
 
-It's useful to declare global modules that you'll use in the entire app in the `alloy.js` file to make them availables through the variable name.
+It's useful to declare global modules that you'll use in the entire app in the `alloy.js` file to make them available through the variable name.
 
 ## UIFactory module
 
@@ -89,7 +89,7 @@ This is an Alloy feature: the ability to create UI objects directly from Alloy V
 </Alloy>
 ```
 
-You can obviously wrap theese elements again with your own modules, creating a further module, for example creating a `ui.js` file in your `app/lib` directory:
+You can obviously wrap these elements again with your own modules, creating a further module, for example creating a `ui.js` file in your `app/lib` directory:
 
 ```js
 exports.createWindow = function(args) {
