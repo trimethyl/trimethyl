@@ -6,9 +6,9 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
-##### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
+#### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
-### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
+#### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
