@@ -15,7 +15,7 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 ## Installation via NPM
 
-[![NPM](https://nodei.co/npm/ti18nxmlcsv.png)](https://npmjs.org/package/ti18nxmlcsv)
+[![NPM](https://nodei.co/npm/trimethyl.png)](https://npmjs.org/package/trimethyl)
 
 In your Titanium project, run:
 
