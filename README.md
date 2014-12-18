@@ -1,8 +1,8 @@
 # Trimethyl 2
 
-##### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
+#### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
-### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
+#### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
 
 [![NPM](https://nodei.co/npm/ti18nxmlcsv.png)](https://npmjs.org/package/ti18nxmlcsv)
 
