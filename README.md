@@ -1,21 +1,21 @@
 # Trimethyl 2
 
-#### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
-
-#### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
-
-[![NPM](https://nodei.co/npm/ti18nxmlcsv.png)](https://npmjs.org/package/ti18nxmlcsv)
-
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 Trimethyl is a collection of very useful modules to work with **Titanium**.
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
 ![image](http://f.cl.ly/items/3l1F2O1E0O1s0V38402p/trimelogo.png)
 
+##### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
+
+### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
+
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 ## Installation via NPM
+
+[![NPM](https://nodei.co/npm/ti18nxmlcsv.png)](https://npmjs.org/package/ti18nxmlcsv)
 
 In your Titanium project, run:
 
