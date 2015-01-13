@@ -176,7 +176,8 @@ exports.subscribe = function(channel, data) {
 exports.unsubscribe = function(channel, data) {
 	var deviceToken = Ti.App.Properties.getString('notifications.token');
 	if (_.isEmpty(deviceToken)) {
-		return Ti.API.error('Notifications: Error while getting deviceToken');
+		Ti.API.error('Notifications: Error while getting deviceToken');
+		return;
 	}
 
 	Ti.App.Properties.removeProperty('notifications.token');

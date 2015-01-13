@@ -105,6 +105,7 @@ exports.createView = function(args) {
 		disableBounce: true,
 		uniqid: args.uniqid,
 		enableZoomControls: false,
+		hideLoadIndicator: true,
 		backgroundColor: 'transparent'
 	}, args));
 

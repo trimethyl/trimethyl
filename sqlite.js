@@ -98,5 +98,30 @@ SQLite.prototype.all = SQLite.prototype.rows = function() {
 	return list;
 };
 
+/**
+ * @method loop
+ * Loop over query
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.loop = function() {
+	var _arguments = _.toArray(arguments);
+	var loopFn = _arguments.pop();
+	if (!_.isFunction(loopFn)) {
+		throw new Error('SQLite: last argument of SQLite.loop must be a Function');
+	}
+
+	var row = this.execute.apply(this, _arguments);
+	var fieldNames = [];
+	while (row.validRow === true) {
+		var obj = {};
+		for (var i = 0; i < row.fieldCount; i++) {
+			fieldNames[i] = fieldNames[i] || row.fieldName(i);
+			obj[fieldNames[i]] = row.field(i);
+		}
+		loopFn(obj);
+		row.next();
+	}
+};
 
 module.exports = SQLite;

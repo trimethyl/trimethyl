@@ -72,28 +72,29 @@ function createTiUIPicker($this) {
 	return $picker;
 }
 
+function onValueSelected($this, $picker) {
+	$this.theValue = $picker.theValue;
+	$this.selectedIndexValue = $picker.selectedIndexValue;
+	if ($this.type === 'date') {
+		$this.text = Moment($this.theValue).format($this.dateFormat);
+	} else if ($this.type === 'plain') {
+		$this.text = $picker.theRow.title;
+	}
+}
+
 function getPickerButtons($this, $picker, closeCallback) {
-	var $doneBtn = Ti.UI.createButton({
-		title: L('done'),
-		style: Ti.UI.iPhone.SystemButtonStyle.DONE
-	});
+	var $doneBtn = Ti.UI.createButton({ title: L('done'), });
 
 	$doneBtn.addEventListener('click', function() {
-		$this.theValue = $picker.theValue;
-		$this.selectedIndexValue = $picker.selectedIndexValue;
-		if ($this.type === 'date') {
-			$this.text = Moment($this.theValue).format($this.dateFormat);
-		} else if ($this.type === 'plain') {
-			$this.text = $picker.theRow.title;
-		}
-
+		onValueSelected($this, $picker);
 		closeCallback();
 	});
 
-	var $cancelBtn = Ti.UI.createButton({
-		systemButton: Ti.UI.iPhone.SystemButton.CANCEL
+	var $cancelBtn = Ti.UI.createButton({ title: L('cancel'), });
+	$cancelBtn.addEventListener('click', function() {
+		$picker.canceled = true;
+		closeCallback();
 	});
-	$cancelBtn.addEventListener('click', closeCallback);
 
 	return {
 		done: $doneBtn,
@@ -145,7 +146,16 @@ var pickers = {
 			rightNavButton: buttons.done
 		});
 		$cwindow.add($picker);
-		var $navigator = Ti.UI.iOS.createNavigationWindow({ window: $cwindow });
+		$cwindow.addEventListener('close', function() {
+			if ($picker.canceled != true) {
+				onValueSelected($this, $picker);
+			}
+		});
+
+		var $navigator = Ti.UI.iOS.createNavigationWindow({
+			window: $cwindow,
+			tintColor: $this.tintColor
+		});
 		var $popover = Ti.UI.iPad.createPopover({
 			width: 320,
 			height: 216 + 40,
@@ -243,6 +253,7 @@ module.exports = function(args) {
 				$this.text = pSelValue.title;
 			} else {
 				$this.selectedIndexValue = null;
+				$this.text = $this.hintText || '';
 			}
 		}
 	};

@@ -9,6 +9,13 @@ var Util = require('T/util');
 var routes = []; // storage for all routes
 
 /**
+ * @properties currentUrl
+ * Latest URL dispatched
+ * @type {String}
+ */
+exports.currentUrl = null;
+
+/**
  * @method on
  * Register a route with defined callbacks
  *
@@ -49,6 +56,8 @@ exports.dispatch = function(url) {
 	var X = Util.parseAsXCallbackURL(url);
 	X.path = X.path.replace(/\/$/g, '');
 	Ti.API.debug('Router: dispatching <' + url + '> with path <' + X.path + '>');
+
+	exports.currentUrl = url;
 
 	for (var i in routes) {
 		var routeDefinition = routes[i];
