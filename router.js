@@ -16,6 +16,13 @@ var routes = []; // storage for all routes
 exports.currentUrl = null;
 
 /**
+ * @properties currentRoute
+ * Latest Route (not URL) dispatched
+ * @type {Object}
+ */
+exports.currentRoute = null;
+
+/**
  * @method on
  * Register a route with defined callbacks
  *
@@ -79,8 +86,10 @@ exports.dispatch = function(url) {
 		if (run === true) {
 			Ti.API.debug('Router: Matched with key <' + routeDefinition.key + '> and matches <' + JSON.stringify(matches) + '>');
 
-			routeDefinition.callback.apply(X, matches);
-			return; // break the f***g cycle
+			exports.currentRoute = routeDefinition;
+			exports.currentRoute.callback.apply(X, matches);
+
+			return; // break the cycle
 		}
 	}
 
@@ -93,6 +102,18 @@ exports.dispatch = function(url) {
  * Alias for {@link #dispatch}
  */
 exports.go = exports.dispatch;
+
+/**
+ * Make an alias route
+ * @param  {String} url
+ * @param  {String} newUrl
+ */
+exports.alias = function(url, newUrl) {
+	exports.on(url, function() {
+		exports.go(newUrl);
+	});
+};
+
 
 
 /**
