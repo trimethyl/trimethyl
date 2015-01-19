@@ -245,25 +245,41 @@ module.exports = function(args) {
 	 * @property {Array} values
 	 */
 	$this.setValues = function(values) {
+		$this._values = values;
+		$this.reparseValues();
+	};
+
+	/**
+	 * @method reparseValues
+	 */
+	$this.reparseValues = function() {
 		if (args.type === 'plain') {
-			$this.values = parseValues(values, $this.theValue);
+			$this.values = parseValues($this._values, $this.theValue);
 			var pSelValue = _.findWhere($this.values, { selected: true });
 			if (pSelValue != null) {
-				$this.selectedIndexValue = pSelValue.index + 1; // for the null value added
+				$this.selectedIndexValue = pSelValue.index + 1;
 				$this.text = pSelValue.title;
 			} else {
 				$this.selectedIndexValue = null;
 				$this.text = $this.hintText || '';
 			}
+		} else if (args.type === 'date') {
+			if ($this.theValue == null) $this.theValue = new Date();
+			$this.text = Moment($this.theValue).format($this.dateFormat);
 		}
 	};
 
-	if (args.type === 'plain') {
-		$this.setValues(args.values);
-	} else if (args.type === 'date') {
-		$this.theValue = args.theValue || new Date();
-		$this.text = Moment($this.theValue).format($this.dateFormat);
-	}
+	/**
+	 * @method  setValue
+	 * @param {Object} value
+	 */
+	$this.setValue = function(value) {
+		$this.theValue = value;
+		$this.reparseValues();
+	};
+
+	// Init
+	$this.setValues(args.values || {});
 
 	return $this;
 };
