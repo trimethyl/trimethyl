@@ -62,7 +62,7 @@ exports.dispatch = function(url) {
 
 	var X = Util.parseAsXCallbackURL(url);
 	X.path = X.path.replace(/\/$/g, '');
-	Ti.API.debug('Router: dispatching <' + url + '> with path <' + X.path + '>');
+	Ti.API.info('Router: dispatching <' + url + '> with path <' + X.path + '>');
 
 	exports.currentUrl = url;
 

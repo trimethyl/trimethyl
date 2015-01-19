@@ -69,7 +69,7 @@ Ti.App.addEventListener('resumed', function() {
  * @method start
  */
 exports.start = function() {
-	Ti.API.debug('App: Started with schema <' + exports.launchURL + '>');
+	Ti.API.info('App: Started with schema <' + exports.launchURL + '>');
 	if (exports.config.useRouter && exports.launchURL != null) {
 		Router.go(exports.launchURL);
 	}

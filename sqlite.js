@@ -3,6 +3,15 @@
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/**
+ * @property config
+ * @property {Boolean} [config.queryLog=false]
+ */
+exports.config = _.extend({
+	queryLog: false
+}, Alloy.CFG.T ? Alloy.CFG.T.sqlite : {});
+
+
 function SQLite(name, file) {
 	if (file == null) {
 		this.db = Ti.Database.open(name);
@@ -29,6 +38,9 @@ SQLite.prototype.close = function() {
  * @return {Ti.DB.ResultSet}
  */
 SQLite.prototype.execute = SQLite.prototype.exec = function() {
+	if (exports.config.queryLog === true) {
+		Ti.API.debug('SQLite:', arguments);
+	}
 	return Function.prototype.apply.call(this.db.execute, this.db, arguments);
 };
 
