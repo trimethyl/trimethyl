@@ -64,6 +64,12 @@ function onNotificationReceived(e) {
 	Event.trigger('notification.received', e);
 }
 
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('notifications.'+name, cb);
+};
 
 var subscribeFunction = null;
 var unsubscribeFunction = null;
@@ -230,7 +236,6 @@ exports.getBadge = function() {
 exports.resetBadge = function() {
 	exports.setBadge(0);
 };
-
 
 /**
  * @method incBadge

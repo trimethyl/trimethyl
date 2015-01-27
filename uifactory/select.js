@@ -5,25 +5,6 @@
 
 var Moment = require('T/ext/moment');
 
-function parseValues(values, current) {
-	return _.map(values, function(v, index) {
-		if (_.isObject(v)) {
-			var _v = _.extend({}, v, {
-				index: index
-			});
-			if (_.isEqual(current, _v.value)) _v.selected = true;
-		} else {
-			var _v = {
-				title: v.toString(),
-				value: v,
-				index: index,
-			};
-			if (current == v) _v.selected = true;
-		}
-		return _v;
-	});
-}
-
 function createTiUIPicker($this) {
 	var $picker = null;
 
@@ -38,22 +19,19 @@ function createTiUIPicker($this) {
 				value: $this.theValue
 			});
 		}
-		$picker = Ti.UI.createPicker(pickerArgs);
-		pickerArgs = null;
 
-		$picker.add(Ti.UI.createPickerRow({ title: '', value: null })); // add a null value
-		$picker.add(_.map($this.values, function(o) {
+		$picker = Ti.UI.createPicker(pickerArgs);
+
+		// Cycle over values and row
+		$picker.add(_.map($this.interface.values, function(o) {
 			return Ti.UI.createPickerRow(o);
 		}));
 
-		if ($this.selectedIndexValue != null) {
-			$picker.setSelectedRow(0, $this.selectedIndexValue, false);
-		}
+		// Set current value
+		$picker.setSelectedRow(0, $this.selectedIndex || 0, false);
 
 		$picker.addEventListener('change', function(e) {
-			$picker.selectedIndexValue = e.rowIndex;
 			$picker.theRow = e.row;
-			$picker.theValue = e.row.value;
 		});
 
 	} else if ($this.type === 'date') {
@@ -63,8 +41,9 @@ function createTiUIPicker($this) {
 			width: Ti.UI.FILL,
 			type: Ti.UI.PICKER_TYPE_DATE
 		}));
+
 		$picker.addEventListener('change', function(e) {
-			$picker.theValue = e.value;
+			$this.theValue = e.value;
 		});
 
 	}
@@ -72,25 +51,30 @@ function createTiUIPicker($this) {
 	return $picker;
 }
 
+// When a value change
 function onValueSelected($this, $picker) {
-	$this.theValue = $picker.theValue;
-	$this.selectedIndexValue = $picker.selectedIndexValue;
-	if ($this.type === 'date') {
+	var row = $picker.theRow;
+
+	$this.theValue = row.value;
+	$this.selectedIndex = row.index;
+
+	if ($this.type === 'plain') {
+		$this.text = row.title;
+	} else if ($this.type === 'date') {
 		$this.text = Moment($this.theValue).format($this.dateFormat);
-	} else if ($this.type === 'plain') {
-		$this.text = $picker.theRow.title;
 	}
 }
 
+// Get the two buttons in the toolbar
 function getPickerButtons($this, $picker, closeCallback) {
-	var $doneBtn = Ti.UI.createButton({ title: L('done'), });
+	var $doneBtn = Ti.UI.createButton({ title: L('done', 'Done'), });
 
 	$doneBtn.addEventListener('click', function() {
 		onValueSelected($this, $picker);
 		closeCallback();
 	});
 
-	var $cancelBtn = Ti.UI.createButton({ title: L('cancel'), });
+	var $cancelBtn = Ti.UI.createButton({ title: L('cancel', 'Cancel'), });
 	$cancelBtn.addEventListener('click', function() {
 		$picker.canceled = true;
 		closeCallback();
@@ -102,12 +86,14 @@ function getPickerButtons($this, $picker, closeCallback) {
 	};
 }
 
-var pickers = {
+var UIPickers = {
 
 	// Show the picker in a Window that slide in from the bottom
 	iphone: function($this) {
 		var $picker = createTiUIPicker($this);
-		var buttons = getPickerButtons($this, $picker, function() { $pickerModal.close(); });
+		var buttons = getPickerButtons($this, $picker, function() {
+			$pickerModal.close();
+		});
 		var $toolbar = Ti.UI.iOS.createToolbar({
 			items: [
 				buttons.cancel,
@@ -133,13 +119,17 @@ var pickers = {
 		});
 		$pickerModal.add($cview);
 		$pickerModal.open();
-		$cview.animate({ transform: Ti.UI.create2DMatrix() });
+		$cview.animate({
+			transform: Ti.UI.create2DMatrix()
+		});
 	},
 
 	// Show the picker in a Popover Window attached to the Label
 	ipad: function($this) {
 		var $picker = createTiUIPicker($this);
-		var buttons = getPickerButtons($this, $picker, function() { $popover.hide(); });
+		var buttons = getPickerButtons($this, $picker, function() {
+			$popover.hide();
+		});
 
 		var $cwindow = Ti.UI.createWindow({
 			leftNavButton: buttons.cancel,
@@ -165,6 +155,38 @@ var pickers = {
 	}
 };
 
+function dataPickerInterface(opt) {
+	var self = {};
+
+	self.values = _.map(opt.values, function(v, index) {
+		var val = null;
+		if (_.isObject(v)) {
+			val = _.extend({}, v, { index: index });
+			if (_.isEqual(opt.current, val.value)) {
+				val.selected = true;
+			}
+		} else {
+			val = {
+				title: v.toString(),
+				value: v,
+				index: index,
+			};
+			if (opt.current == v) {
+				val.selected = true;
+			}
+		}
+		return val;
+	});
+
+	var row = _.findWhere(self.values, { selected: true });
+	if (row != null) {
+		self.index = row.index;
+		self.title = row.title;
+	}
+
+	return self;
+};
+
 module.exports = function(args) {
 	_.defaults(args, {
 
@@ -182,41 +204,65 @@ module.exports = function(args) {
 		values: [],
 
 		/**
-		 * @property {Object} theValue Value of the picker
+		 * @property {Object} [theValue]
+		 * Value of the picker
 		 */
 		theValue: null,
 
 		/**
-		 * @property {String} type Type of the picker. Could be `plain`, `date`.
+		 * @property {String} [type="plain"]
+		 * Type of the picker. Could be `plain`, `date`.
 		 */
 		type: 'plain'
 
 	});
 
+	// Create a unique interface
+	if (args.type === 'plain') {
+		args.interface = dataPickerInterface({
+			values: args.values,
+			current: args.theValue
+		});
+		args.values = null; // free memory
+		args.selectedIndex = args.interface.index;
+	} else if (args.type === 'date') {
+		args.theValue = args.theValue || new Date();
+	}
+
+	// Start UI
+
 	var $this = null;
 
 	if (OS_IOS) {
 
-		$this = Ti.UI.createLabel(_.extend({
+		// in iOS case, $this is a Label
+		_.defaults(args, {
 			height: 48,
 			width: Ti.UI.FILL
-		}, args));
+		});
+
+		$this = Ti.UI.createLabel(args);
 
 		$this.addEventListener('click', function(){
-			pickers[Ti.Platform.osname]($this);
+			UIPickers[ Ti.Platform.osname ]($this);
 		});
 
 	} else if (OS_ANDROID) {
 
 		if (args.type === 'plain') {
 
+			// Android Ti.UI.Picker just work
 			$this = createTiUIPicker(args);
 
 		} else if (args.type === 'date') {
 
+			// While Ti.UI.Picker Date is only modal
 			$this = Ti.UI.createLabel(args);
+
 			$this.addEventListener('click', function(){
-				Ti.UI.createPicker({ type: Ti.UI.PICKER_TYPE_DATE }).showDatePickerDialog({
+				Ti.UI.createPicker({
+					type: Ti.UI.PICKER_TYPE_DATE
+				}).showDatePickerDialog({
 					value: $this.theValue,
 					callback: function(e) {
 						if (e.value != null && e.cancel === false) {
@@ -228,7 +274,6 @@ module.exports = function(args) {
 			});
 
 		}
-
 	}
 
 	/**
@@ -240,46 +285,38 @@ module.exports = function(args) {
 		return $this.theValue;
 	};
 
-	/**
-	 * @method setValues
-	 * @property {Array} values
-	 */
-	$this.setValues = function(values) {
-		$this._values = values;
-		$this.reparseValues();
-	};
 
 	/**
-	 * @method reparseValues
-	 */
-	$this.reparseValues = function() {
-		if (args.type === 'plain') {
-			$this.values = parseValues($this._values, $this.theValue);
-			var pSelValue = _.findWhere($this.values, { selected: true });
-			if (pSelValue != null) {
-				$this.selectedIndexValue = pSelValue.index + 1;
-				$this.text = pSelValue.title;
-			} else {
-				$this.selectedIndexValue = null;
-				$this.text = $this.hintText || '';
-			}
-		} else if (args.type === 'date') {
-			if ($this.theValue == null) $this.theValue = new Date();
-			$this.text = Moment($this.theValue).format($this.dateFormat);
-		}
-	};
-
-	/**
-	 * @method  setValue
-	 * @param {Object} value
+	 * @method  setValues
+	 * Set the values
 	 */
 	$this.setValue = function(value) {
 		$this.theValue = value;
-		$this.reparseValues();
+
+		if ($this.type === 'date') {
+			$this.theValue = value;
+			$this.text = Moment($this.theValue).format($this.dateFormat);
+
+		} else if ($this.type === 'plain') {
+			var row = _.findWhere($this.interface.values, { value: value });
+			if (row != null) {
+				$this.selectedIndex = row.index;
+				if (OS_IOS) {
+					$this.text = row.title;
+				} else if (OS_ANDROID) {
+					$this.setSelectedRow(0, $this.selectedIndex || 0, false);
+				}
+			}
+		}
 	};
 
-	// Init
-	$this.setValues(args.values || {});
+	// Update the UI
+
+	if ($this.type === 'plain') {
+		$this.text = $this.interface.title;
+	} else if ($this.type === 'date') {
+		$this.text = Moment($this.theValue).format($this.dateFormat);
+	}
 
 	return $this;
 };

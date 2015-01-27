@@ -20,12 +20,15 @@ function load(name) {
 	return require('T/auth/'+name);
 }
 
-// HTTP requests flag
-var silent = true;
+var silent = true; // HTTP requests flag
+var Me = null; // User model object
 
-// User model object
-var Me = null;
-
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('auth.'+name, cb);
+};
 
 /**
  * @method getUser
