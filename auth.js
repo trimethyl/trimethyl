@@ -60,7 +60,9 @@ exports.getUserID = function(){
 };
 
 function getStoredDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver') || !Ti.App.Properties.hasProperty('auth.me')) return null;
+	if ( ! Ti.App.Properties.hasProperty('auth.driver') || ! Ti.App.Properties.hasProperty('auth.me')) {
+		return null;
+	}
 	return Ti.App.Properties.getString('auth.driver');
 }
 
@@ -181,12 +183,16 @@ exports.logout = function(callback) {
 		id: exports.getUserID()
 	});
 
-	load(getStoredDriver()).logout();
+	var driver = getStoredDriver();
+	if (driver != null) {
+		load(driver).logout();
+	}
 
 	Me = null;
 
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
+
 	T('cache').purge();
 	HTTP.resetCookies();
 
