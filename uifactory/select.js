@@ -8,7 +8,6 @@ var Moment = require('T/ext/moment');
 function createTiUIPicker($this) {
 	var $picker = null;
 
-
 	if ($this.typeString === 'plain') {
 		if (OS_IOS) {
 			$picker = Ti.UI.createPicker({
@@ -329,10 +328,9 @@ module.exports = function(args) {
 		return $this.interfaceValue;
 	};
 
-
 	/**
-	 * @method  setValues
-	 * Set the values
+	 * @method  setValue
+	 * Set the current value
 	 */
 	$this.setValue = function(value) {
 		$this.interfaceValue = value;
@@ -345,6 +343,20 @@ module.exports = function(args) {
 			}
 		}
 
+		$this.updateUI();
+	};
+
+	/**
+	 * @method setValues
+	 * @param {Array} values The values
+	 * Set the values for the picker
+	 */
+	$this.setValues = function(values) {
+		_.extend($this, dataPickerInterface({
+			values: values,
+			current: $this.interfaceValue,
+			type: $this.typeString
+		}));
 		$this.updateUI();
 	};
 

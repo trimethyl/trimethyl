@@ -8,6 +8,7 @@ var Util = require('T/util');
 
 var routes = []; // storage for all routes
 
+
 /**
  * @properties currentUrl
  * Latest URL dispatched
@@ -21,6 +22,13 @@ exports.currentUrl = null;
  * @type {Object}
  */
 exports.currentRoute = null;
+
+/**
+ * @properties stack
+ * All routes in a stack
+ * @type {Array}
+ */
+exports.stack = [];
 
 /**
  * @method on
@@ -62,25 +70,36 @@ exports.dispatch = function(url) {
 
 	var X = Util.parseAsXCallbackURL(url);
 	X.path = X.path.replace(/\/$/g, '');
-	Ti.API.info('Router: dispatching <' + url + '> with path <' + X.path + '>');
+	Ti.API.debug('Router: dispatching <' + url + '> with path <' + X.path + '>');
 
+	// Set current URL
 	exports.currentUrl = url;
 
+	// append the URL to stack
+	exports.stack.push( _.toArray(arguments) );
+
+	// Check the route to dispatch
 	for (var i in routes) {
 		var routeDefinition = routes[i];
 
 		if (_.isString(routeDefinition.key)) {
+
 			// Regular string equals
 			run = (routeDefinition.key === X.path);
+
 		} else if (_.isRegExp(routeDefinition.key)) {
+
 			// Regular expression complex match
 			matches = X.path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
+
 		} else if (_.isFunction(routeDefinition.key)) {
+
 			// Function match
 			matches = routeDefinition.key(X.path);
 			run = (matches !== undefined);
+
 		}
 
 		if (run === true) {
@@ -113,8 +132,6 @@ exports.alias = function(url, newUrl) {
 		exports.go(newUrl);
 	});
 };
-
-
 
 /**
  * @method autoMapModel

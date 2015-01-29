@@ -13,6 +13,8 @@ exports.config = _.extend({
 	trackTimingWithGA: true
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 
+var Event = require('T/event');
+
 var Navigator = null; // Current navigator
 
 var windows = {}; // all windows objects
@@ -22,9 +24,20 @@ var currentController = null;
 exports.currentControllerName = null;
 exports.currentControllerArgs = null;
 
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('flow.'+name, cb);
+};
+
 function onWindowClose(e) {
 	delete windows[e.source._flowid];
 	windowsId = _.without(windowsId, e.source._flowid);
+
+	Event.trigger('flow.close', {
+		flowId: e.source._flowid,
+	});
 }
 
 /**
@@ -48,9 +61,11 @@ exports.track = function(key, $win) {
 	if (exports.config.trackTimingWithGA) {
 		if ($win != null) {
 			var startFocusTime = null;
+
 			$win.addEventListener('focus', function(){
 				startFocusTime = Date.now();
 			});
+
 			$win.addEventListener('blur', function(){
 				if (startFocusTime === null) return;
 				require('T/ga').trackTiming(key, Date.now() - startFocusTime);
@@ -79,10 +94,50 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
 	exports.setCurrentWindow(win);
 	exports.setCurrentController(controller, controllerName, controllerArgs);
 	exports.setNavigationController(nav, true);
+
 	// Reset variables
 	windows = {};
 	windowsId = [];
 };
+
+
+function open(name, args, openArgs, key, useNav) {
+	args = args || {};
+	openArgs = openArgs || {};
+
+	var controller = Alloy.createController(name, args);
+	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
+
+	// Get the main window an track focus/blur
+	var $window = controller.getView();
+	if ($window != null) {
+		exports.track(key, $window);
+		exports.setCurrentWindow($window);
+	}
+
+	// Open the window
+	if (useNav === true) {
+		Navigator.openWindow($window, openArgs);
+	}
+
+	// Clean up controller on window close
+	if ($window != null) {
+		$window.addEventListener('close', function() {
+			controller.destroy(); // Destroy by KrolllBridge
+			controller.off(); // Turn off Backbone Events
+			if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
+
+			controller = null;
+			$window = null;
+		});
+	}
+
+	exports.currentControllerName = name;
+	exports.currentControllerArgs = args;
+	currentController = controller;
+
+	return controller;
+}
 
 
 /**
@@ -97,16 +152,8 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
  * @return {Alloy.Controller} 		The controller instance
  */
 exports.openDirect = function(name, args, key) {
-	args = args || {};
-
-	var controller = Alloy.createController(name, args);
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
-
-	exports.track(key);
-
-	return controller;
+	return open(name, args, null, key, false);
 };
-
 
 /**
  * @method open
@@ -128,39 +175,7 @@ exports.open = function(name, args, openArgs, key) {
 		return Ti.API.warn('Flow: A NavigationController is not defined yet');
 	}
 
-	args = args || {};
-	openArgs = openArgs || {};
-
-	var controller = Alloy.createController(name, args);
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''))
-
-	// Get the main window an track focus/blur
-	var $window = controller.getView();
-	exports.track(key, $window);
-
-	// Open the window
-	Navigator.openWindow($window, openArgs);
-
-	// Attach events
-	exports.setCurrentWindow($window);
-
-	// Clean up controller on window close
-	$window.addEventListener('close', function() {
-		controller.destroy();
-		controller.off();
-		if (_.isFunction(controller.cleanup)) {
-			controller.cleanup();
-		}
-
-		controller = null;
-		$window = null;
-	});
-
-	exports.currentControllerName = name;
-	exports.currentControllerArgs = args;
-	currentController = controller;
-
-	return controller;
+	return open(name, args, openArgs, key, true);
 };
 
 
@@ -169,6 +184,7 @@ exports.open = function(name, args, openArgs, key) {
  */
 exports.close = function() {
 	if (Navigator === null) return;
+
 	windows = {};
 	windowsId = [];
 	Navigator.close();
