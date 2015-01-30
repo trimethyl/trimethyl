@@ -76,7 +76,7 @@ exports.dispatch = function(url) {
 	exports.currentUrl = url;
 
 	// append the URL to stack
-	exports.stack.push( _.toArray(arguments) );
+	exports.stack.push(url);
 
 	// Check the route to dispatch
 	for (var i in routes) {

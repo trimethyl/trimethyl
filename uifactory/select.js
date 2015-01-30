@@ -196,7 +196,7 @@ function dataPickerInterface(opt) {
 			var val = null;
 			if (_.isObject(v)) {
 				val = _.extend({}, v, { index: index });
-				if (_.isEqual(opt.current, val.value)) {
+				if (opt.current != null && _.isEqual(opt.current, val.value)) {
 					val.selected = true;
 				}
 			} else {
@@ -205,23 +205,32 @@ function dataPickerInterface(opt) {
 					value: v,
 					index: index,
 				};
-				if (opt.current == v) {
+				if (opt.current != null && opt.current == v) {
 					val.selected = true;
 				}
 			}
 			return val;
 		});
 
-		var row = _.findWhere(self.interfaceValues, { selected: true });
+		var row = _.findWhere(self.interfaceValues, {
+			selected: true
+		});
+
 		if (row != null) {
 			self.interfaceValue = row.value;
 			self.interfaceIndex = row.index;
 			self.interfaceTitle = row.title;
+		} else {
+			self.interfaceValue = null;
+			self.interfaceIndex = null;
+			self.interfaceTitle = null;
 		}
 
 	} else if (opt.type === 'date') {
 		self.interfaceValue = opt.current || new Date();
 	}
+
+	console.log(self);
 
 	return self;
 };
@@ -310,12 +319,12 @@ module.exports = function(args) {
 	$this.updateUI = function() {
 		if ($this.typeString === 'plain') {
 			if (OS_IOS) {
-				$this.text = $this.interfaceTitle;
+				$this.text = $this.interfaceTitle || $this.hintText || '';
 			} else {
 				this.setSelectedRow(0, $this.interfaceIndex || 0, false);
 			}
 		} else if ($this.typeString === 'date') {
-			$this.text = Moment($this.interfaceValue).format($this.dateFormat);
+			$this.text = $this.interfaceValue ? Moment($this.interfaceValue).format($this.dateFormat) : ($this.hintText || '');
 		}
 	};
 
@@ -357,6 +366,7 @@ module.exports = function(args) {
 			current: $this.interfaceValue,
 			type: $this.typeString
 		}));
+
 		$this.updateUI();
 	};
 

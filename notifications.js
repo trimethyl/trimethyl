@@ -61,7 +61,7 @@ function onNotificationReceived(e) {
 		}
 	}
 
-	Event.trigger('notification.received', e);
+	Event.trigger('notifications.received', e);
 }
 
 /**
@@ -160,9 +160,9 @@ exports.subscribe = function(channel, data) {
 			deviceToken: deviceToken,
 			channel: channel,
 			data: data,
-			success: function(){
+			success: function(response) {
 				Event.trigger('notifications.subscription.success', { channel: channel });
-				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded');
+				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded', response);
 			},
 			error: function(err) {
 				Event.trigger('notifications.subscription.error', err);
@@ -191,9 +191,9 @@ exports.unsubscribe = function(channel, data) {
 		deviceToken: deviceToken,
 		channel: channel,
 		data: data,
-		success: function(){
+		success: function(response) {
 			Event.trigger('notifications.unsubscription.error', { channel: channel });
-			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded');
+			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded', response);
 		},
 		error: function(err) {
 			Event.trigger('notifications.unsubscription.error', err);

@@ -21,7 +21,7 @@ exports.subscribe = function(opt) {
 			device_token: opt.deviceToken,
 			channel: opt.channel,
 			app_version: Ti.App.version,
-			app_deploytype: Ti.App.deployType,
+			app_deploytype: (Ti.App.deployType === 'production' ? 'production' : 'development'),
 			os: (function() {
 				if (OS_IOS) return 1;
 				if (OS_ANDROID) return 2;

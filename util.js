@@ -265,7 +265,10 @@ exports.buildQuery = function(obj) {
 
 	var q = [];
 	_.each(obj, function(v, k) {
-		if (v != null) q.push(k + '=' + encodeURIComponent(v));
+		if (v != null) {
+			if (typeof v === 'object') v = JSON.stringify(v);
+			q.push(k + '=' + encodeURIComponent(v));
+		}
 	});
 	if (q.length === 0) return '';
 
@@ -357,7 +360,7 @@ exports.parseAsXCallbackURL = function(str) {
 	while (i--) uri[XCU.key[i]] = m[i] || '';
 	uri[XCU.q.name] = {};
 	uri[XCU.key[12]].replace(XCU.q.parser, function($0, $1, $2) {
-		if ($1) uri[XCU.q.name][$1] = $2;
+		if ($1) uri[XCU.q.name][$1] = decodeURIComponent($2);
 	});
 
 	return uri;
@@ -417,4 +420,19 @@ exports.bytesForHumans = function(bytes) {
 	if (bytes === 0) return 'n/a';
 	var i = parseInt(Math.floor(Math.log(bytes)/Math.log(1024)));
 	return Math.round(bytes/Math.pow(1024,i),2) + ' ' + sizes[i];
+};
+
+/**
+ * @method getDatabaseDirectoryName
+ * Get the private documents directory
+ * @return {String}
+ */
+var DATABASE_DIRECTORY_NAME = null;
+exports.getDatabaseDirectoryName = function() {
+	DATABASE_DIRECTORY_NAME = DATABASE_DIRECTORY_NAME || (function() {
+		var path = Ti.Database.open('test').getFile().resolve().split('/');
+		path.pop();
+		return path.join('/') + '/';
+	})();
+	return DATABASE_DIRECTORY_NAME;
 };
