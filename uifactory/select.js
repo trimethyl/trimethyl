@@ -148,7 +148,7 @@ var UIPickers = {
 		});
 		$containerWindow.add($picker);
 		$containerWindow.addEventListener('close', function() {
-			if ($picker.canceled != true) {
+			if ($picker.canceled !== true) {
 				onValueSelected($this, $picker);
 			}
 		});
@@ -230,10 +230,9 @@ function dataPickerInterface(opt) {
 		self.interfaceValue = opt.current || new Date();
 	}
 
-	console.log(self);
 
 	return self;
-};
+}
 
 module.exports = function(args) {
 	_.defaults(args, {

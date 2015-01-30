@@ -78,9 +78,9 @@ exports.facebook = function(args) {
 
 	// Native iOS dialog
 	if (
-		OS_IOS && args.useApp !== true
-	 	&& (dkNappSocial != null && dkNappSocial.isFacebookSupported())
-	 	&& false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
+		OS_IOS && args.useApp !== true &&
+		(dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
+		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
 	) {
 		dkNappSocial.facebook({
 			text: args.text,
@@ -120,8 +120,8 @@ exports.twitter = function(args) {
 
 	// Native iOS Dialog
 	if (
-		OS_IOS && args.useApp !== true
-		&& (dkNappSocial != null && dkNappSocial.isTwitterSupported())
+		OS_IOS && args.useApp !== true &&
+		(dkNappSocial != null && dkNappSocial.isTwitterSupported())
 	) {
 		dkNappSocial.twitter({
 			text: args.text,
