@@ -21,7 +21,17 @@ var windows = {}; // all windows objects
 var windowsId = []; // all windows id
 
 var currentController = null;
+
+/**
+ * @property currentControllerName
+ * @type {Object}
+ */
 exports.currentControllerName = null;
+
+/**
+ * @property currentControllerArgs
+ * @type {Object}
+ */
 exports.currentControllerArgs = null;
 
 /**
@@ -139,7 +149,6 @@ function open(name, args, openArgs, key, useNav) {
 	return controller;
 }
 
-
 /**
  * @method openDirect
  * Require an Alloy.Controller without passing it to the Navigator
@@ -151,8 +160,8 @@ function open(name, args, openArgs, key, useNav) {
  * @param  {String} 	[key]				Optional key that identify this controller
  * @return {Alloy.Controller} 		The controller instance
  */
-exports.openDirect = function(name, args, key) {
-	return open(name, args, null, key, false);
+exports.openDirect = function(name, args, openArgs, key) {
+	return open(name, args, openArgs, key, false);
 };
 
 /**
@@ -177,7 +186,6 @@ exports.open = function(name, args, openArgs, key) {
 
 	return open(name, args, openArgs, key, true);
 };
-
 
 /**
  * Close current Navigatgor and all windows associated with it
@@ -307,13 +315,3 @@ exports.getStack = function() {
 	};
 };
 
-/**
- * @method refresh
- */
-exports.refresh = function() {
-	if (currentController != null && exports.currentControllerName != null) {
-		var $previousView = currentController.getView();
-		Flow.open(exports.currentControllerName, exports.currentControllerArgs, { animated: false });
-		$previousView.close({ animated: false });
-	}
-};
