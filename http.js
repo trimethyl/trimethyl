@@ -18,6 +18,16 @@ exports.config = _.extend({
 	headers: {},
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
+var Event = require('T/event');
+
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('http.'+name, cb);
+};
+
+
 var headers = _.clone(exports.config.headers);
 
 /**

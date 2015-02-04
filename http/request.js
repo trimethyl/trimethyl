@@ -7,6 +7,7 @@ var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
 var Cache = require('T/cache');
+var Q = require('T/ext/q');
 
 function extractHTTPText(data, info) {
 	if (info != null && data != null) {
@@ -22,6 +23,7 @@ function HTTPRequest(opt) {
 		throw new Error('HTTP.Request: URL not set');
 	}
 
+	this.defer = Q.defer();
 	this.opt = opt;
 
 	// if the url is not matching a protocol, assign the base URL
@@ -103,15 +105,27 @@ HTTPRequest.prototype._onError = function(err) {
 
 	var self = this;
 	Ti.API.debug(self);
+
 	if (HTTP.config.errorAlert === true && self.opt.errorAlert !== false) {
-		Util.errorAlert(err, function(){
+
+		Util.errorAlert(err, function() {
 			if (self.onError !== null) {
 				self.onError(err);
 			}
+			self.defer.reject(err);
 		});
+
 	} else if (self.onError !== null) {
+
 		self.onError(err);
+		self.defer.reject(err);
+
 	}
+};
+
+HTTPRequest.prototype._onSuccess = function() {
+	if (this.onSuccess !== null) this.onSuccess.apply(this, arguments);
+	this.defer.resolve.apply(this, arguments);
 };
 
 HTTPRequest.prototype._onComplete = function(e) {
@@ -142,11 +156,10 @@ HTTPRequest.prototype._onComplete = function(e) {
 
 	if (e.success === true) {
 
-		// Write the cache (if needed and supported by configuration)
-		this._maybeCacheResponse();
-
 		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS in '+(this.endTime-this.startTime)+'ms');
-		if (this.onSuccess !== null) this.onSuccess(text, data);
+
+		this._maybeCacheResponse();
+		this._onSuccess(text, data);
 
 	} else {
 
@@ -186,12 +199,13 @@ HTTPRequest.prototype.getCachedResponse = function() {
  * Sent the request over the network
  */
 HTTPRequest.prototype.send = function() {
+	var self = this;
+
 	this.client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
 		cache: false,
 	});
 
-	var self = this;
 	this.client.onload = this.client.onerror = function(e) {
 		self._onComplete(e);
 	};
@@ -207,8 +221,12 @@ HTTPRequest.prototype.send = function() {
 	}
 
 	// Progress callbacks
-	if (_.isFunction(this.opt.ondatastream)) this.client.ondatastream = this.opt.ondatastream;
-	if (_.isFunction(this.opt.ondatasend)) this.client.ondatasend = this.opt.ondatasend;
+	if (_.isFunction(this.opt.ondatastream)) {
+		this.client.ondatastream = this.opt.ondatastream;
+	}
+	if (_.isFunction(this.opt.ondatasend)) {
+		this.client.ondatasend = this.opt.ondatasend;
+	}
 
 	// Set headers
 	this.client.open(this.method, this.url);
@@ -238,13 +256,14 @@ HTTPRequest.prototype.resolve = function() {
 	if (cache != null) {
 
 		if (this.onComplete !== null) this.onComplete();
-		if (this.onSuccess !== null) this.onSuccess(cache);
+		this._onSuccess(cache);
 
 	} else {
 
 		if (Ti.Network.online) {
 			this.send();
 		} else {
+
 			Ti.API.error('HTTP: connection is offline');
 			Event.trigger('http.offline');
 
@@ -265,5 +284,25 @@ HTTPRequest.prototype.resolve = function() {
 HTTPRequest.prototype.abort = function() {
 	this.client.abort();
 };
+
+
+/**
+ * @method success
+ * Promises, man!
+ */
+HTTPRequest.prototype.success = function(func) {
+	this.defer.then(func);
+	return this;
+};
+
+/**
+ * @method abort
+ * Abort this request
+ */
+HTTPRequest.prototype.error = function(func) {
+	this.defer.catch(func);
+	return this;
+};
+
 
 module.exports = HTTPRequest;
