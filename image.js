@@ -59,7 +59,7 @@ exports.process = function(opt) {
 	R = null; // GC
 
 	if (result === false) {
-		return Ti.API.error('Image: Unexeptected error while writing file');
+		return Ti.API.error('Image: Unexepected error while writing file');
 	}
 
 	return file;

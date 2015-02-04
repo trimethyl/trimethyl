@@ -23,7 +23,6 @@ function HTTPRequest(opt) {
 		throw new Error('HTTP.Request: URL not set');
 	}
 
-	this.defer = Q.defer();
 	this.opt = opt;
 
 	// if the url is not matching a protocol, assign the base URL
@@ -50,6 +49,7 @@ function HTTPRequest(opt) {
 		}
 	}
 
+	this.defer = Q.defer();
 	this.hash = this._calculateHash();
 }
 
@@ -291,16 +291,16 @@ HTTPRequest.prototype.abort = function() {
  * Promises, man!
  */
 HTTPRequest.prototype.success = function(func) {
-	this.defer.then(func);
+	this.defer.promise.then(func);
 	return this;
 };
 
 /**
- * @method abort
- * Abort this request
+ * @method error
+ * Promises, man!
  */
 HTTPRequest.prototype.error = function(func) {
-	this.defer.catch(func);
+	this.defer.promise.catch(func);
 	return this;
 };
 
