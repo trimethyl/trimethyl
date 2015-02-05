@@ -17,7 +17,7 @@ var helpers = {};
 function embedFile(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if ( ! file.exists()) {
-		Ti.API.warn('Weballoy: File not found (' + f + ')');
+		Ti.API.debug('Weballoy: File not found (' + f + ')');
 		return null;
 	}
 

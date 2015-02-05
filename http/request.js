@@ -56,7 +56,7 @@ function HTTPRequest(opt) {
 }
 
 HTTPRequest.prototype._log = function(message) {
-	if (HTTP.config.requestsLog) {
+	if (HTTP.config.log) {
 		Ti.API.debug('HTTP: ['+this.hash+']', message);
 	}
 };
@@ -133,7 +133,7 @@ HTTPRequest.prototype._onError = function(err) {
 
 HTTPRequest.prototype._onSuccess = function() {
 	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
-	if (_.isFunction(this.opt.succes)) this.opt.success.apply(this, arguments);
+	if (_.isFunction(this.opt.success)) this.opt.success.apply(this, arguments);
 };
 
 HTTPRequest.prototype._onComplete = function(e) {

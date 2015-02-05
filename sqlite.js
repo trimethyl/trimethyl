@@ -5,10 +5,10 @@
 
 /**
  * @property config
- * @property {Boolean} [config.queryLog=false]
+ * @property {Boolean} [config.log=false]
  */
 exports.config = _.extend({
-	queryLog: false
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.sqlite : {});
 
 
@@ -38,7 +38,7 @@ SQLite.prototype.close = function() {
  * @return {Ti.DB.ResultSet}
  */
 SQLite.prototype.execute = SQLite.prototype.exec = function() {
-	if (exports.config.queryLog) {
+	if (exports.config.log) {
 		Ti.API.debug('SQLite:', arguments);
 	}
 	return Function.prototype.apply.call(this.db.execute, this.db, arguments);

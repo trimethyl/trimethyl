@@ -16,11 +16,63 @@ exports.config = _.extend({
 var Event = require('T/event');
 
 var Navigator = null; // Current navigator
-
-var windows = {}; // all windows objects
-var windowsId = []; // all windows id
-
+var windows = [];
 var currentController = null;
+
+
+function open(name, args, openArgs, key, useNav) {
+	args = args || {};
+	openArgs = openArgs || {};
+
+	var controller = Alloy.createController(name, args);
+	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
+
+	// Get the main window an track focus/blur
+	var $window = controller.getView();
+	if ($window != null) {
+		exports.track(key, $window);
+		exports.setCurrentWindow($window);
+	}
+
+	// Clean up controller on window close
+	if ($window != null) {
+		$window.addEventListener('close', function() {
+			controller.destroy(); // Destroy by KrolllBridge
+			controller.off(); // Turn off Backbone Events
+			if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
+
+			controller = null;
+			$window = null;
+		});
+	}
+
+	// Open the window
+	if (useNav) {
+		Navigator.openWindow($window, openArgs);
+	} else {
+		if (_.isFunction(controller.open)) {
+			controller.open(openArgs);
+		}
+	}
+
+	exports.currentControllerName = name;
+	exports.currentControllerArgs = args;
+	currentController = controller;
+
+	return controller;
+}
+
+function onWindowClose(e) {
+	var flowId = e.source._flowid;
+	var index = _.findWhere(windows, { flowId: flowId });
+	if (index >= 0) {
+		windows.splice(index, 1);
+		Event.trigger('flow.close', {
+			flowId: flowId,
+		});
+	}
+}
+
 
 /**
  * @property currentControllerName
@@ -41,14 +93,6 @@ exports.event = function(name, cb) {
 	Event.on('flow.'+name, cb);
 };
 
-function onWindowClose(e) {
-	delete windows[e.source._flowid];
-	windowsId = _.without(windowsId, e.source._flowid);
-
-	Event.trigger('flow.close', {
-		flowId: e.source._flowid,
-	});
-}
 
 /**
  * @method track
@@ -106,52 +150,9 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
 	exports.setNavigationController(nav, true);
 
 	// Reset variables
-	windows = {};
-	windowsId = [];
+	windows = [];
 };
 
-
-function open(name, args, openArgs, key, useNav) {
-	args = args || {};
-	openArgs = openArgs || {};
-
-	var controller = Alloy.createController(name, args);
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
-
-	// Get the main window an track focus/blur
-	var $window = controller.getView();
-	if ($window != null) {
-		exports.track(key, $window);
-		exports.setCurrentWindow($window);
-	}
-
-	// Clean up controller on window close
-	if ($window != null) {
-		$window.addEventListener('close', function() {
-			controller.destroy(); // Destroy by KrolllBridge
-			controller.off(); // Turn off Backbone Events
-			if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
-
-			controller = null;
-			$window = null;
-		});
-	}
-
-	// Open the window
-	if (useNav) {
-		Navigator.openWindow($window, openArgs);
-	} else {
-		if (_.isFunction(controller.open)) {
-			controller.open(openArgs);
-		}
-	}
-
-	exports.currentControllerName = name;
-	exports.currentControllerArgs = args;
-	currentController = controller;
-
-	return controller;
-}
 
 /**
  * @method openDirect
@@ -185,7 +186,7 @@ exports.openDirect = function(name, args, openArgs, key) {
  */
 exports.open = function(name, args, openArgs, key) {
 	if (Navigator === null) {
-		return Ti.API.warn('Flow: A NavigationController is not defined yet');
+		return Ti.API.warn('Flow: A Navigator is not defined yet');
 	}
 
 	return open(name, args, openArgs, key, true);
@@ -197,12 +198,10 @@ exports.open = function(name, args, openArgs, key) {
 exports.close = function() {
 	if (Navigator === null) return;
 
-	windows = {};
-	windowsId = [];
+	windows = [];
 	Navigator.close();
 	Navigator = null;
 };
-
 
 /**
  * @method setCurrentController
@@ -226,13 +225,6 @@ exports.getCurrentController = function() {
 	return currentController;
 };
 
-/**
- * @method controller
- * @inheritDoc #getCurrentController
- * Alias for {@link #getCurrentController}
- */
-exports.controller = exports.getCurrentController;
-
 
 /**
  * @method setCurrentWindow
@@ -243,15 +235,20 @@ exports.setCurrentWindow = function($win) {
 	if ($win == null) return;
 
 	$win._flowid = _.uniqueId();
-
-	// Store IDs
-	windows[$win._flowid] = $win;
-	windowsId.push($win._flowid);
+	windows.push($win);
 
 	// Add listener
 	$win.addEventListener('close', onWindowClose);
 };
 
+/**
+ * @method getWindows
+ * Return the windows stacks
+ * @return {Array}
+ */
+exports.getWindows = function() {
+	return windows;
+};
 
 /**
  * @method getCurrentWindow
@@ -259,18 +256,8 @@ exports.setCurrentWindow = function($win) {
  * @return {Ti.UI.Window}
  */
 exports.getCurrentWindow = function() {
-	var id = _.last(windowsId);
-	if (id == null) return;
-
-	return windows[id];
+	return _.last(windows);
 };
-
-/**
- * @method window
- * @inheritDoc #getCurrentWindow
- * Alias for {@link #getCurrentWindow}
- */
-exports.window = exports.getCurrentWindow;
 
 
 /**
@@ -280,7 +267,7 @@ exports.window = exports.getCurrentWindow;
  * ** This is required before opening windows **
  *
  * @param {Object} 	nav 			The instance of Ti.UI.iOS.NavigationWindow or compatible
- * @param {Boolean} 	[openNow] 	Specify if call instantly the open on the navigation controller
+ * @param {Boolean} 	[openNow] 	Specify if call instantly the open on the navigator
  */
 exports.setNavigationController = function(nav, openNow) {
 	Navigator = nav;
@@ -289,33 +276,25 @@ exports.setNavigationController = function(nav, openNow) {
 	}
 };
 
+
 /**
  * @method getNavigationController
- * Return the instance set of navigation controller
- *
- * @return {Object} The navigation controller
+ * Return the instance set of Navigator
+ * @return {Object}
  */
 exports.getNavigationController = function() {
 	return Navigator;
 };
 
-/**
- * @method navigator
- * @inheritDoc #getNavigationController
- * Alias for {@link #getNavigationController}
- */
-exports.navigator = exports.getNavigationController;
-
 
 /**
- * @method getStack
- * Return the windows stacks
- * @return {Object}
+ * @method closeAllWindowsExceptFirst
+ * Close all windows, except first.
  */
-exports.getStack = function() {
-	return {
-		order: windowsId,
-		windows: windows
-	};
+exports.closeAllWindowsExceptFirst = function() {
+	var wins = _.clone(windows);
+	for (var i = wins.length-2; i > 0; i--) {
+		wins[i].close({ animated: false });
+	}
+	wins[wins.length-1].close();
 };
-

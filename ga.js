@@ -6,16 +6,22 @@
 /**
  * @property config
  * @property {String} config.ua UA of Google Analitycs
+ * @property {Boolean} [config.log]
  * @type {Object}
  */
 exports.config = _.extend({
-	ua: null
+	ua: null,
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
+
 
 var AnalyticsGoogle = require('analytics.google');
 var tracker = null;
 
 function track(method, what) {
+	if (exports.config.log) {
+		Ti.API.debug('GA: Tracking ' + method, what);
+	}
 	tracker['track' + method](what);
 }
 
@@ -23,7 +29,6 @@ function track(method, what) {
 /**
  * @method trackEvent
  * Track an event
- *
  * @param  {String} cat 	Category **or object passed to native proxy**
  * @param  {String} act 	The action
  * @param  {String} [lbl] 	Label

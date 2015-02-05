@@ -10,14 +10,14 @@
  * @property {Number}  [config.timeout=10000] Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
  * @property {Object}  [config.headers={}] Global headers for all requests.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
- * @property {Boolean} [config.requestsLog=false]
+ * @property {Boolean} [config.log=false]
  */
 exports.config = _.extend({
 	base: '',
 	timeout: 10000,
 	errorAlert: true,
 	headers: {},
-	requestsLog: false
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
