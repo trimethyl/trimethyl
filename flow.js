@@ -125,11 +125,6 @@ function open(name, args, openArgs, key, useNav) {
 		exports.setCurrentWindow($window);
 	}
 
-	// Open the window
-	if (useNav === true) {
-		Navigator.openWindow($window, openArgs);
-	}
-
 	// Clean up controller on window close
 	if ($window != null) {
 		$window.addEventListener('close', function() {
@@ -140,6 +135,15 @@ function open(name, args, openArgs, key, useNav) {
 			controller = null;
 			$window = null;
 		});
+	}
+
+	// Open the window
+	if (useNav) {
+		Navigator.openWindow($window, openArgs);
+	} else {
+		if (_.isFunction(controller.open)) {
+			controller.open(openArgs);
+		}
 	}
 
 	exports.currentControllerName = name;

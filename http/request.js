@@ -19,6 +19,7 @@ function extractHTTPText(data, info) {
 }
 
 function HTTPRequest(opt) {
+	var self = this;
 	if (opt.url == null) {
 		throw new Error('HTTP.Request: URL not set');
 	}
@@ -26,51 +27,62 @@ function HTTPRequest(opt) {
 	this.opt = opt;
 
 	// if the url is not matching a protocol, assign the base URL
-	if (true === /\:\/\//.test(opt.url)) {
+	if (/\:\/\//.test(opt.url)) {
 		this.url = opt.url;
 	} else {
 		this.url = HTTP.config.base.replace(/\/$/, '') + '/' + opt.url.replace(/^\//, '');
 	}
 
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
-	this.headers = _.extend(HTTP.getHeaders(), opt.headers);
+	this.headers = _.extend({}, HTTP.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : HTTP.config.timeout;
-
-	this.onSuccess = _.isFunction(opt.success) ? opt.success : null;
-	this.onComplete = _.isFunction(opt.complete) ? opt.complete : null;
-	this.onError = _.isFunction(opt.error) ? opt.error : null;
 
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
 		if (this.method === 'GET' && _.isObject(opt.data)) {
-			this.url = this.url + Util.buildQuery(opt.data);
+			var exQuery = /\?.*/.test(this.url);
+			this.url = this.url + Util.buildQuery(opt.data, exQuery ? '&' : '?');
 		} else {
 			this.data = opt.data;
 		}
 	}
 
-	this.defer = Q.defer();
 	this.hash = this._calculateHash();
+
+	// Fill the defer, we will manage the callbacks through it
+	this.defer = Q.defer();
+	this.defer.promise.then(function() { self._onSuccess.apply(self, arguments); });
+	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
 }
+
+HTTPRequest.prototype._log = function(message) {
+	if (HTTP.config.requestsLog) {
+		Ti.API.debug('HTTP: ['+this.hash+']', message);
+	}
+};
 
 HTTPRequest.prototype.toString = function() {
 	return this.hash;
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function() {
-	if (HTTP.config.useCache === false || this.opt.cache === false || this.method !== 'GET' || this.client.responseText == null) return;
+	if (HTTP.config.useCache == false || this.opt.cache == false) return;
+	if (this.method !== 'GET' || this.client.responseText == null) return;
+
 	if (this.responseInfo.ttl <= 0) {
-		Ti.API.debug('HTTP: ['+this.hash+'] TTL <= 0');
+		this._log('uncachable due TTL <= 0');
 		return;
 	}
 
 	Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHED for '+this.responseInfo.ttl+'s');
+	this._log('cached for '+this.responseInfo.ttl+'s');
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
 	if (this.client == null || this.client.readyState <= 1) {
-		return { broken: true };
+		return {
+			broken: true
+		};
 	}
 
 	var headers = {
@@ -90,8 +102,11 @@ HTTPRequest.prototype._getResponseInfo = function() {
 	}
 
 	// Always prefer X-Cache-Ttl over Expires
-	if (headers.TTL != null) info.ttl = headers.TTL;
-	else if (headers.Expires != null) info.ttl = Util.timestamp(headers.Expires) - Util.now();
+	if (headers.TTL != null) {
+		info.ttl = headers.TTL;
+	} else if (headers.Expires != null) {
+		info.ttl = Util.timestamp(headers.Expires) - Util.now();
+	}
 
 	// Override
 	if (this.opt.format != null) info.format = this.opt.format;
@@ -101,41 +116,32 @@ HTTPRequest.prototype._getResponseInfo = function() {
 };
 
 HTTPRequest.prototype._onError = function(err) {
-	Ti.API.error('HTTP: ['+this.hash+'] ERROR', err);
-
 	var self = this;
-	Ti.API.debug(self);
+	Ti.API.error('HTTP: ['+this.hash+']', err);
 
-	if (HTTP.config.errorAlert === true && self.opt.errorAlert !== false) {
+	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
 
+	if (HTTP.config.errorAlert && this.opt.errorAlert != false) {
 		Util.errorAlert(err, function() {
-			if (self.onError !== null) {
-				self.onError(err);
-			}
-			self.defer.reject(err);
+			if (_.isFunction(self.opt.error)) self.opt.error(err);
 		});
-
-	} else if (self.onError !== null) {
-
-		self.onError(err);
-		self.defer.reject(err);
-
+		return;
 	}
+
+	if (_.isFunction(self.opt.error)) self.opt.error(err);
 };
 
 HTTPRequest.prototype._onSuccess = function() {
-	if (this.onSuccess !== null) this.onSuccess.apply(this, arguments);
-	this.defer.resolve.apply(this, arguments);
+	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
+	if (_.isFunction(this.opt.succes)) this.opt.success.apply(this, arguments);
 };
 
 HTTPRequest.prototype._onComplete = function(e) {
-	this.endTime = new Date();
-
-	if (this.onComplete !== null) this.onComplete();
+	this.endTime = Date.now();
 	HTTP.removeFromQueue(this);
 
 	// Fire the global event
-	if (this.opt.silent !== true) {
+	if (this.opt.silent != true) {
 		Event.trigger('http.end', {
 			hash: this.hash,
 			eventName: this.opt.eventName
@@ -146,24 +152,22 @@ HTTPRequest.prototype._onComplete = function(e) {
 
 	// If the readyState is not DONE, trigger error, because
 	// client.onload is the function to be called upon a SUCCESSFULL response.
-	if (this.responseInfo.broken === true) {
-		this._onError({});
+	if (this.responseInfo.broken) {
+		this.defer.reject({
+			broken: true
+		});
 		return;
 	}
 
 	var data = this.client.responseData;
 	var text = extractHTTPText(this.client.responseText, this.responseInfo);
 
-	if (e.success === true) {
-
-		Ti.API.debug('HTTP: ['+this.hash+'] SUCCESS in '+(this.endTime-this.startTime)+'ms');
-
+	if (e.success) {
+		this._log('response success ('+(this.endTime-this.startTime)+'ms)');
 		this._maybeCacheResponse();
-		this._onSuccess(text, data);
-
+		this.defer.resolve(text, data);
 	} else {
-
-		this._onError({
+		this.defer.reject({
 			message: Util.getErrorMessage(text),
 			code: this.client.status,
 			response: text
@@ -189,7 +193,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	var cachedData = Cache.get(this.hash);
 	if (cachedData == null) return;
 
-	Ti.API.debug('HTTP: ['+this.hash+'] CACHE SUCCESS for '+(cachedData.expire-Util.now())+'s');
+	this._log('cache hit ('+(cachedData.expire-Util.now())+'s)');
 
 	return extractHTTPText(cachedData.value, cachedData.info);
 };
@@ -200,15 +204,14 @@ HTTPRequest.prototype.getCachedResponse = function() {
  */
 HTTPRequest.prototype.send = function() {
 	var self = this;
+	this._log(this.method + ' ' + this.url + ' ' + (JSON.stringify(this.data) || ''));
 
 	this.client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
 		cache: false,
 	});
 
-	this.client.onload = this.client.onerror = function(e) {
-		self._onComplete(e);
-	};
+	this.client.onload = this.client.onerror = function(e) { self._onComplete(e); };
 
 	// Add this request to the queue
 	HTTP.addToQueue(this);
@@ -221,12 +224,8 @@ HTTPRequest.prototype.send = function() {
 	}
 
 	// Progress callbacks
-	if (_.isFunction(this.opt.ondatastream)) {
-		this.client.ondatastream = this.opt.ondatastream;
-	}
-	if (_.isFunction(this.opt.ondatasend)) {
-		this.client.ondatasend = this.opt.ondatasend;
-	}
+	if (_.isFunction(this.opt.ondatastream)) this.client.ondatastream = this.opt.ondatastream;
+	if (_.isFunction(this.opt.ondatasend)) this.client.ondatasend = this.opt.ondatasend;
 
 	// Set headers
 	this.client.open(this.method, this.url);
@@ -235,14 +234,12 @@ HTTPRequest.prototype.send = function() {
 	});
 
 	// Send the request over Internet
-	this.startTime = new Date();
+	this.startTime = Date.now();
 	if (this.data != null) {
 		this.client.send(this.data);
 	} else {
 		this.client.send();
 	}
-
-	Ti.API.debug('HTTP: ['+this.hash+']', this.method, this.url, JSON.stringify(this.data));
 };
 
 /**
@@ -254,26 +251,22 @@ HTTPRequest.prototype.send = function() {
 HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {
+		this.defer.resolve(cache);
+		return;
+	}
 
-		if (this.onComplete !== null) this.onComplete();
-		this._onSuccess(cache);
-
+	if (Ti.Network.online) {
+		this.send();
 	} else {
 
-		if (Ti.Network.online) {
-			this.send();
-		} else {
+		Ti.API.warn('HTTP: connection is offline');
+		Event.trigger('http.offline');
 
-			Ti.API.error('HTTP: connection is offline');
-			Event.trigger('http.offline');
+		this.defer.reject({
+			offline: true,
+			message: L('network_offline', 'Check your connectivity.')
+		});
 
-			if (this.onComplete !== null) this.onComplete();
-			this._onError({
-				offline: true,
-				message: L('network_offline', 'Check your connectivity.')
-			});
-
-		}
 	}
 };
 
@@ -300,8 +293,25 @@ HTTPRequest.prototype.success = function(func) {
  * Promises, man!
  */
 HTTPRequest.prototype.error = function(func) {
-	this.defer.promise.catch(func);
+	this.defer.promise.fail(func);
 	return this;
+};
+
+/**
+ * @method error
+ * Promises, man!
+ */
+HTTPRequest.prototype.complete = function(func) {
+	this.defer.promise.fin(func);
+	return this;
+};
+
+/**
+ * @method getPromise
+ * Get the deferred internal object
+ */
+HTTPRequest.prototype.getPromise = function() {
+	return this.defer.promise;
 };
 
 

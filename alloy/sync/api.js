@@ -3,38 +3,42 @@
  */
 
 var HTTP = require('T/http');
-
 var CRUD_to_REST = {
-	'create' : 'POST',
-	'read' : 'GET',
-	'update' : 'PUT',
-	'delete' : 'DELETE'
+	'create': 'POST',
+	'read': 'GET',
+	'update': 'PUT',
+	'delete': 'DELETE',
+	'patch': 'PATCH'
 };
 
 exports.sync = function(method, model, opt) {
-	var isCollection;
 	var url = (model.config.adapter.baseUrl || '/') + model.config.adapter.name;
 
-	if (model.id) {
-		isCollection = false;
+	if ((model instanceof Backbone.Model) && model.id != null) {
 		url += '/' + model.id;
-	} else {
-		isCollection = true;
+	}
+
+	if (model.query != null) {
+		if (_.isObject(model.query) || _.isArray(model.query)) {
+			url += require('T/util').buildQuery(model.query);
+		} else if (_.isString(model.query)) {
+			url += model.query.substr(0,1) === '?' ? model.query : ('?'+model.query);
+		}
 	}
 
 	if (opt.patch) method = 'patch';
 
-	var httpOptions = _.extend({}, opt.http, {
+	var httpOpt = _.extend({}, model.http, {
 		url: url,
-		method: CRUD_to_REST[method],
+		method: CRUD_to_REST[method] || 'GET',
 		format: 'json'
 	});
 
 	if (Alloy.Backbone.emulateHTTP) {
-		if (['DELETE','PUT','PATCH'].indexOf(httpOptions.method)!==-1) {
-			httpOptions.method = 'POST';
-			httpOptions.headers = _.extend({}, httpOptions.headers, {
-				'X-HTTP-Method-Override': httpOptions.method
+		if ([ 'DELETE', 'PUT', 'PATCH' ].indexOf(httpOpt.method) !== -1) {
+			httpOpt.method = 'POST';
+			httpOpt.headers = _.extend({}, httpOpt.headers, {
+				'X-HTTP-Method-Override': httpOpt.method
 			});
 		}
 	}
@@ -42,83 +46,74 @@ exports.sync = function(method, model, opt) {
 	switch (method) {
 
 		case 'create':
-		HTTP.send(_.extend({}, httpOptions, {
-			data: model.toJSON(),
-			success: function(resp) {
 
-				if (resp != null && resp.id != null) {
-					opt.success(resp);
-				} else {
-					opt.error();
-				}
+		_.extend(httpOpt, { data: model.toJSON() });
+		HTTP.send(httpOpt).success(function(resp) {
 
-				model.trigger('fetch');
-			},
-			error: opt.error
-		}));
+			if (resp != null && resp.id != null) {
+				opt.success(resp);
+			} else {
+				opt.error();
+			}
+
+		}).error(opt.error);
 		break;
 
 		case 'read':
-		HTTP.send(_.extend({}, httpOptions, {
-			data: opt.args || {},
-			success: function(resp) {
 
-				if (resp != null) {
-					if (isCollection === true) {
+		HTTP.send(httpOpt).success(function(resp) {
 
-						if (_.isObject(resp)){
-							opt.success(resp.data || resp.results || resp.result);
-						} else if (_.isArray(resp)) {
-							opt.success(resp);
-						} else {
-							opt.error();
-						}
+			if (resp != null) {
+				if (model instanceof Backbone.Collection) {
 
-					} else {
+					if (_.isObject(resp)){
+						opt.success(resp.data || resp.results || resp.result);
+					} else if (_.isArray(resp)) {
 						opt.success(resp);
+					} else {
+						opt.error();
 					}
-				} else {
-					opt.error();
-				}
 
-				model.trigger('fetch');
-			},
-			error: opt.error
-		}));
+				} else {
+					opt.success(resp);
+				}
+			} else {
+				opt.error();
+			}
+
+		}).error(opt.error);
 		break;
 
 		case 'update':
-		HTTP.send(_.extend({}, httpOptions, {
-			data: _.pick(model.attributes, _.keys(opt.changes)),
-			success: function(resp) {
 
-				if (resp != null) {
-					opt.success();
-				} else {
-					opt.error();
-				}
+		if (opt.patch) {
+			_.extend(httpOpt, { data: _.pick(model.attributes, _.keys(opt.changes)) });
+		} else {
+			_.extend(httpOpt, { data: model.toJSON() });
+		}
 
-				model.trigger('fetch');
-			},
-			error: opt.error
-		}));
+		HTTP.send(httpOpt).success(function(resp) {
+
+			if (resp != null) {
+				opt.success();
+			} else {
+				opt.error();
+			}
+
+		}).error(opt.error);
 		break;
 
 		case 'delete':
-		HTTP.send(_.extend({}, httpOptions, {
-			data: opt.args || {},
-			success: function(resp) {
 
-				if (resp != null) {
-					opt.success();
-				} else {
-					opt.error();
-				}
+		HTTP.send(httpOpt).success(function(resp) {
 
-				model.trigger('fetch');
-			},
-			error: opt.error
-		}));
+			if (resp != null) {
+				opt.success();
+			} else {
+				opt.error();
+			}
+
+		}).error(opt.error);
 		break;
 
 	}

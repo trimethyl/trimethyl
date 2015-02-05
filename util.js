@@ -257,22 +257,24 @@ exports.parseJSON = function(json) {
  * @method buildQuery
  * Generate URL-encoded query string.
  *
- * @param  {Object} obj Object key-value to parse.
+ * @param {Object} obj 			Object key-value to parse.
+ * @param {String} prepend 	The prepended char
  * @return {String}
  */
-exports.buildQuery = function(obj) {
+exports.buildQuery = function(obj, prepend) {
+	prepend = prepend || '?';
 	if (_.isEmpty(obj)) return '';
 
 	var q = [];
 	_.each(obj, function(v, k) {
 		if (v != null) {
-			if (typeof v === 'object') v = JSON.stringify(v);
+			if (_.isObject(v)) v = JSON.stringify(v);
 			q.push(k + '=' + encodeURIComponent(v));
 		}
 	});
 	if (q.length === 0) return '';
 
-	return '?' + q.join('&');
+	return prepend + q.join('&');
 };
 
 /**
