@@ -65,17 +65,41 @@ HTTPRequest.prototype.toString = function() {
 	return this.hash;
 };
 
-HTTPRequest.prototype._maybeCacheResponse = function() {
+HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (HTTP.config.useCache == false || this.opt.cache == false) return;
-	if (this.method !== 'GET' || this.client.responseText == null) return;
+	if (this.method !== 'GET') return;
 
 	if (this.responseInfo.ttl <= 0) {
 		this._log('uncachable due TTL <= 0');
 		return;
 	}
 
-	Cache.set(this.hash, this.client.responseText, this.responseInfo.ttl, this.responseInfo);
-	this._log('cached for '+this.responseInfo.ttl+'s');
+	Cache.set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
+	this._log('cached for ' + this.responseInfo.ttl + 's');
+};
+
+
+/**
+ * @method getCachedResponse
+ * Return (if exists) the cache
+ * @return {Object}
+ */
+HTTPRequest.prototype.getCachedResponse = function() {
+	if (HTTP.config.useCache === false) return null;
+	if (this.opt.cache === false || this.opt.refresh === true) return null;
+	if (this.method !== 'GET') return null;
+
+	var cachedData = Cache.get(this.hash);
+	if (cachedData == null) return null;
+
+	this._log('cache hit (' + (cachedData.expire-Util.now()) + 's)');
+
+	var value = cachedData.value;
+	if (cachedData.info.format === 'blob') {
+		return value;
+	} else {
+		return extractHTTPText(value, cachedData.info);
+	}
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
@@ -159,44 +183,35 @@ HTTPRequest.prototype._onComplete = function(e) {
 		return;
 	}
 
-	var data = this.client.responseData;
-	var text = extractHTTPText(this.client.responseText, this.responseInfo);
+	var data = null;
+	if (this.opt.format === 'blob') {
+		data = this.client.responseData;
+	} else {
+		data = extractHTTPText(this.client.responseText, this.responseInfo);
+	}
 
 	if (e.success) {
-		this._log('response success ('+(this.endTime-this.startTime)+'ms)');
-		this._maybeCacheResponse();
-		this.defer.resolve(text, data);
+		this._log('response success (' + (this.endTime-this.startTime) + 'ms)');
+		this._maybeCacheResponse(data);
+
+		this.defer.resolve(data);
+
 	} else {
 		this.defer.reject({
-			message: Util.getErrorMessage(text),
+			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
+			error: e.error,
 			code: this.client.status,
-			response: text
+			response: data
 		});
 	}
+
 };
 
 HTTPRequest.prototype._calculateHash = function() {
 	var hash = this.url + Util.hashJavascriptObject(this.data) + Util.hashJavascriptObject(this.headers);
-	return 'http_' + Ti.Utils.md5HexDigest(hash).substr(0, 10);
+	return 'http_' + Ti.Utils.md5HexDigest(hash);
 };
 
-/**
- * @method getCachedResponse
- * Return (if exists) the cache
- * @return {Object}
- */
-HTTPRequest.prototype.getCachedResponse = function() {
-	if (HTTP.config.useCache === false) return;
-	if (this.opt.cache === false || this.opt.refresh === true) return;
-	if (this.method !== 'GET') return;
-
-	var cachedData = Cache.get(this.hash);
-	if (cachedData == null) return;
-
-	this._log('cache hit ('+(cachedData.expire-Util.now())+'s)');
-
-	return extractHTTPText(cachedData.value, cachedData.info);
-};
 
 /**
  * @method send

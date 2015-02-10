@@ -9,9 +9,12 @@
  */
 exports.createNavigationWindow = function(args) {
 	args = args || {};
-	if (OS_IOS) return Ti.UI.iOS.createNavigationWindow(args);
-	var NavigationWindow = require('T/uifactory/navigationwindow');
-	return new NavigationWindow(args);
+	if (OS_IOS) {
+		return Ti.UI.iOS.createNavigationWindow(args);
+	} else if (OS_ANDROID) {
+		var NavigationWindow = require('T/uifactory/navigationwindow');
+		return new NavigationWindow(args);
+	}
 };
 
 /**
@@ -57,3 +60,8 @@ exports.createYoutubeVideoWebView = require('T/uifactory/youtubevideowebview');
  * @method createSelect
  */
 exports.createSelect = require('T/uifactory/select');
+
+/**
+ * @method createView
+ */
+exports.createView = require('T/uifactory/view');

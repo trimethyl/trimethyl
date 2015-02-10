@@ -236,23 +236,22 @@ exports.download = function(url, file, success, error, ondatastream) {
 		refresh: true,
 		format: 'blob',
 		ondatastream: ondatastream,
-		success: function(text, data) {
-			var fileStream = null;
-			if (file.nativePath) {
-				fileStream = file;
-			} else {
-				var appDataDir = Util.getAppDataDirectory();
-				var appDataDirStream = Ti.Filesystem.getFile(appDataDir);
-				if ( ! appDataDirStream.exists()) appDataDirStream.createDirectory();
-				fileStream = Ti.Filesystem.getFile(appDataDir, file);
-			}
+	}).success(function(data) {
+		var fileStream = null;
+		if (file instanceof Ti.File) {
+			fileStream = file;
+		} else {
+			var APP_DATA_DIR = Util.getAppDataDirectory();
+			var appDataDirStream = Ti.Filesystem.getFile(APP_DATA_DIR);
+			if ( ! appDataDirStream.exists()) appDataDirStream.createDirectory();
 
-			if (fileStream.write(data)) {
-				if (_.isFunction(success)) success(fileStream);
-			} else {
-				if (_.isFunction(error)) error({ message: L('unexpected_error', 'Unexpected error') });
-			}
-		},
-		error: error
-	});
+			fileStream = Ti.Filesystem.getFile(APP_DATA_DIR, file);
+		}
+
+		if (fileStream.write(data)) {
+			if (_.isFunction(success)) success(fileStream);
+		} else {
+			if (_.isFunction(error)) error({ message: L('unexpected_error', 'Unexpected error') });
+		}
+	}).error(error);
 };
