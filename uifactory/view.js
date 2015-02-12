@@ -16,11 +16,9 @@ module.exports = function(args) {
 		require('T/uiutil').setBackgroundCoverForView($this, url, $this.width, $this.height);
 	};
 
-	/*
- 	==================================
- 	PARSE ARGUMENTS AND INITIALIZATION
- 	==================================
- 	*/
+	/////////////////
+	// Parse args //
+	/////////////////
 
  	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);
 

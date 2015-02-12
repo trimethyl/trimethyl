@@ -205,9 +205,9 @@ module.exports = function(args) {
 	}
 
 
-	// ==================================
-	// PARSE ARGUMENTS AND INITIALIZATION
-	// ==================================
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
 
 	if (args.deferredBackgroundImage != null) $this.setDeferredBackgroundImage(args.deferredBackgroundImage);
 	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);

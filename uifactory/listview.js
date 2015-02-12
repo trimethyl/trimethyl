@@ -13,7 +13,7 @@ module.exports = function(args) {
 	var devtTime = 0;
 
 	$this.addEventListener('itemclick', function(e){
-		var evtTime = +(new Date());
+		var evtTime = Date.now();
 		var evtClick = {
 			itemId: e.itemId,
 			bindId: e.bindId,

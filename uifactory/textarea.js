@@ -60,11 +60,9 @@ module.exports = function(args) {
 	}
 
 
- 	/*
- 	==================================
- 	PARSE ARGUMENTS AND INITIALIZATION
- 	==================================
- 	*/
+	 //////////////////////
+ 	// Parse arguments //
+	 //////////////////////
 
  	if (OS_IOS && args.hintText != null) {
  		$this.setHintText(args.hintText);

@@ -55,6 +55,11 @@ module.exports = function(args) {
 
 	var $this = Ti.UI.createTextField(args);
 
+
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
+
 	// Password Eye
 	if (OS_IOS && args.textType === 'passwordEye') {
 		var eyeButton = Ti.UI.createButton({
@@ -87,13 +92,7 @@ module.exports = function(args) {
 		});
 	}
 
-
-	// ==================================
-	// PARSE ARGUMENTS AND INITIALIZATION
-	// ==================================
-
 	// Remove autofocus
-
 	if (OS_ANDROID) {
 		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
 		$this.addEventListener('touchstart',  function() {

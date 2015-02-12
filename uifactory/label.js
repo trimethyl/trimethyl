@@ -112,7 +112,9 @@ module.exports = function(args) {
 
 	}
 
-	// Parse arguments and init
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
 
 	if (OS_IOS) {
 		if (args.html != null) $this.setHtml(args.html);

@@ -74,11 +74,9 @@ module.exports = function(args) {
 		});
 	};
 
-	/*
- 	==================================
- 	PARSE ARGUMENTS AND INITIALIZATION
- 	==================================
- 	*/
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
 
 	$this.addEventListener('click', function(e){
 		if (e.source.index == null) return;

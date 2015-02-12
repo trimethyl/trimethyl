@@ -62,7 +62,13 @@ function getHTML(args) {
 
 	// Include template
 	html += '<div id="main" class="' + (args.htmlClass || '') + '">';
-	html += _.template(getFileText('web/views/' + args.name + '.tpl'))(tpl_data);
+
+	if (args.html) {
+		html += _.template(args.html)(tpl_data);
+	} else {
+		html += _.template(getFileText('web/views/' + args.name + '.tpl'))(tpl_data);
+	}
+
 	html += '</div>';
 
 	// Include libs
@@ -96,8 +102,8 @@ exports.addHelper = function(name, method) {
  */
 exports.createView = function(args) {
 	args = args || {};
-	if (_.isEmpty(args.name)) {
-		throw new Error('WebAlloy: you must pass a name');
+	if (!args.name && !args.html) {
+		throw new Error('WebAlloy: you must pass a <name> or <html> property');
 	}
 
 	args.uniqid = _.uniqueId();
@@ -110,9 +116,7 @@ exports.createView = function(args) {
 	}, args));
 
 	$ui.addEventListener('load', function(){
-		if (args.autoHeight === true) {
-			$ui.height = $ui.evalJS('document.body.clientHeight');
-		}
+		if (args.autoHeight) $ui.height = $ui.evalJS('document.documentElement.offsetHeight');
 		if (_.isFunction(args.onLoad)) {
 			args.onLoad.call($ui);
 		}

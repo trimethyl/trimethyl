@@ -65,3 +65,8 @@ exports.createSelect = require('T/uifactory/select');
  * @method createView
  */
 exports.createView = require('T/uifactory/view');
+
+/**
+ * @method createButton
+ */
+exports.createButton = require('T/uifactory/button');
