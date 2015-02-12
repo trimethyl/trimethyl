@@ -71,7 +71,6 @@ module.exports = function(args) {
 		});
 	});
 
-
 	/**
 	 * @method setDeferredBackgroundImage
 	 * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
@@ -83,58 +82,12 @@ module.exports = function(args) {
 		});
 	};
 
-	var bgCoverUI = null;
-	var bgCoverUISview = null;
-	var bgCoverUIRelayouted = false;
-
-	function bgCoverRelayout() {
-		var imgSize = bgCoverUI.size;
-		var winSize = bgCoverUISview.size;
-		var imgRatio = imgSize.width / imgSize.height;
-		var winRatio = winSize.width / winSize.height;
-
-		bgCoverUI.applyProperties(
-			winRatio > imgRatio ?
-			{ opacity: 1, width: winSize.width, height: winSize.width / imgRatio } :
-			{ opacity: 1, width: winSize.height * imgRatio, height: winSize.height }
-		);
-	}
-
 	/**
 	 * @method setBackgroundCoverImage
-	 * Titanium doesn't have `backgroundSize: cover` property. This is a workaround to make it work it!
-	 * @param {String} val
+	 * @param {String} url
 	 */
-	$this.setBackgroundCoverImage = function(val) {
-		if (bgCoverUI !== null) {
-			bgCoverUI.image = val;
-			bgCoverUIRelayouted = false;
-		} else {
-
-			bgCoverUISview = Ti.UI.createScrollView({
-				touchEnabled: false,
-				width: Ti.UI.FILL,
-				height: Ti.UI.FILL,
-				zIndex: -1
-			});
-			bgCoverUI = Ti.UI.createImageView({
-				image: val,
-				opacity: 0
-			});
-			bgCoverUISview.add(bgCoverUI);
-			$this.add(bgCoverUISview);
-
-			bgCoverUI.addEventListener('postlayout', function() {
-				if (bgCoverUIRelayouted === true) return;
-				bgCoverUIRelayouted = true;
-				bgCoverRelayout();
-			});
-
-			Ti.Gesture.addEventListener('orientationchange', bgCoverRelayout);
-			$this.addEventListener('close', function() {
-				Ti.Gesture.removeEventListener('orientationchange', bgCoverRelayout);
-			});
-		}
+	$this.setBackgroundCoverImage = function(url) {
+		require('T/uiutil').setBackgroundCoverForView($this, url, $this.width, $this.height);
 	};
 
 	if (OS_ANDROID) {

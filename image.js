@@ -16,51 +16,78 @@
  *
  * If `height` is passed the image will be resized with the specified height maintaining the ratio.
  *
- * If `width` and `height` are both passed, the image will be resized
- * stretching the image with the specified width and height.
+ * If `width` and `height` are both passed, the image will be resized as a *cover* method.
  *
- * When you set `retina : true`, the output size is multipied for density factor.
+ * If `retina` is passed, that factor is multiplied.
  *
  * ## Output options
  *
  * `filename`: output the blob in the filesystem and release memory blob
+ *
+ * `file`: set the Ti.File output (opt.)
  *
  * @param  {Object} opt The options, see the description above.
  * @return {Object} {Ti.Blob/Ti.File}
  */
 exports.process = function(opt) {
 	if (opt.blob == null) {
-		return Ti.API.error('Image: Blob is null');
+		return Ti.API.error('Image: Blob is null or not instanceof Ti.Blob');
 	}
 
-	var density = opt.retina === true ? Alloy.Globals.SCREEN_DENSITY : 1;
+	var ratio = opt.retina == true ? Device.getScreenDensity() : 1;
 	var R = null;
 
 	if (opt.size != null) {
-		R = opt.blob.imageAsThumbnail(opt.size*density);
+
+		// Thumb
+		R = opt.blob.imageAsThumbnail( opt.size * ratio );
+
+	} else if (opt.width != null && opt.height != null) {
+
+		// Cover
+		var inr = opt.blob.width / opt.blob.height;
+		var outr = opt.width / opt.height;
+		if (outr > inr) {
+			R = opt.blob.imageAsResized(ratio * opt.width, ratio * Math.floor(opt.width / inr));
+		} else {
+			R = opt.blob.imageAsResized(ratio * Math.floor(opt.height * inr), ratio * opt.height);
+		}
+		R = R.imageAsCropped({
+			width: ratio * opt.width,
+			height: ratio * opt.height
+		});
+
 	} else if (opt.width != null || opt.height != null) {
+
+		// Get one of the sizes, and calculate the other
 		opt.width = opt.width || opt.height * (opt.blob.width / opt.blob.height);
 		opt.height = opt.height || opt.width * (opt.blob.height / opt.blob.width);
-		R = opt.blob.imageAsResized(opt.width * density, opt.height * density);
+
+		R = opt.blob.imageAsResized( ratio * opt.width, ratio * opt.height );
+
 	} else {
+
 		R = opt.blob;
+
 	}
 
 	if (R == null) {
-		return Ti.API.error('Image: Unexeptected error');
+		Ti.API.error('Image: Unexpected error');
+		return false;
 	}
 
-	if (opt.filename == null) {
+	if (opt.filename != null || opt.file != null) {
+
+		var file = opt.file || Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, opt.filename);
+		var result = file.write(R);
+
+		if (result === false) {
+			Ti.API.error('Image: Unexepected error while writing file');
+			return false;
+		}
+
+		return file;
+	} else {
 		return R;
 	}
-
-	var file = Ti.Filesystem.getFile(require('T/util').getAppDataDirectory(), opt.filename);
-	var result = file.write(R);
-	R = null; // GC
-
-	if (result === false) {
-		return Ti.API.error('Image: Unexepected error while writing file');
-	}
-
-	return file;
 };
