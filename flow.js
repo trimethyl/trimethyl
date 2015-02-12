@@ -16,35 +16,30 @@ exports.config = _.extend({
 var Event = require('T/event');
 
 var Navigator = null; // Current navigator
-var windows = [];
-var currentController = null;
 
+exports.windows = [];
+var currentController = null;
 
 function open(name, args, openArgs, key, useNav) {
 	args = args || {};
 	openArgs = openArgs || {};
 
 	var controller = Alloy.createController(name, args);
-	key = key || controller.analyticsKey || (name + (args.id ? '/' + args.id : ''));
+	key = key || controller.analyticsKey || ('/' + name + (args.id ? '/' + args.id : ''));
 
 	// Get the main window an track focus/blur
 	var $window = controller.getView();
-	if ($window != null) {
-		exports.track(key, $window);
-		exports.setCurrentWindow($window);
-	}
+	exports.setCurrentWindow($window, key);
 
 	// Clean up controller on window close
-	if ($window != null) {
-		$window.addEventListener('close', function() {
-			controller.destroy(); // Destroy by KrolllBridge
-			controller.off(); // Turn off Backbone Events
-			if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
+	$window.addEventListener('close', function() {
+		controller.destroy(); // Destroy by KrolllBridge
+		controller.off(); // Turn off Backbone Events
+		if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
 
-			controller = null;
-			$window = null;
-		});
-	}
+		controller = null;
+		$window = null;
+	});
 
 	// Open the window
 	if (useNav) {
@@ -63,13 +58,17 @@ function open(name, args, openArgs, key, useNav) {
 }
 
 function onWindowClose(e) {
-	var flowId = e.source._flowid;
-	var index = _.findWhere(windows, { flowId: flowId });
-	if (index >= 0) {
-		windows.splice(index, 1);
-		Event.trigger('flow.close', {
-			flowId: flowId,
-		});
+	var route = e.source._route;
+	Event.trigger('flow.close', {
+		route: route,
+	});
+
+	var index = -1;
+	for (var k in exports.windows) {
+		if (exports.windows[k]._route === route) {
+			exports.windows.splice(+k, 1);
+			return;
+		}
 	}
 }
 
@@ -90,42 +89,7 @@ exports.currentControllerArgs = null;
  * @method event
  */
 exports.event = function(name, cb) {
-	Event.on('flow.'+name, cb);
-};
-
-
-/**
- * @method track
- * Track the time and the screen of this windows with GA
- *
- * @param  {String} 			key  		The tracking key
- * @param  {Ti.UI.Window} 	[$win] 	The window
- */
-exports.track = function(key, $win) {
-	if (_.isEmpty(key)) {
-		return Ti.API.warn('Flow: empty key for tracking');
-	}
-
-	// Track screen with GA
-	if (exports.config.trackWithGA) {
-		require('T/ga').trackScreen(key);
-	}
-
-	// Track timing with GA
-	if (exports.config.trackTimingWithGA) {
-		if ($win != null) {
-			var startFocusTime = null;
-
-			$win.addEventListener('focus', function(){
-				startFocusTime = Date.now();
-			});
-
-			$win.addEventListener('blur', function(){
-				if (startFocusTime === null) return;
-				require('T/ga').trackTiming(key, Date.now() - startFocusTime);
-			});
-		}
-	}
+	Event.on('flow.' + name, cb);
 };
 
 
@@ -145,12 +109,12 @@ exports.track = function(key, $win) {
  * @param  {String}								controllerArgs
  */
 exports.startup = function(controller, nav, win, controllerName, controllerArgs) {
-	exports.setCurrentWindow(win);
+	exports.setCurrentWindow(win, '/home');
 	exports.setCurrentController(controller, controllerName, controllerArgs);
 	exports.setNavigationController(nav, true);
 
 	// Reset variables
-	windows = [];
+	exports.windows = [];
 };
 
 
@@ -198,7 +162,7 @@ exports.open = function(name, args, openArgs, key) {
 exports.close = function() {
 	if (Navigator === null) return;
 
-	windows = [];
+	exports.windows = [];
 	Navigator.close();
 	Navigator = null;
 };
@@ -225,20 +189,42 @@ exports.getCurrentController = function() {
 	return currentController;
 };
 
+function track($window, key) {
+	// Track screen with GA
+	if (exports.config.trackWithGA) {
+		require('T/ga').trackScreen(key);
+	}
+
+	// Track timing with GA
+	if (exports.config.trackTimingWithGA) {
+		var startFocusTime = null;
+
+		$window.addEventListener('focus', function(){
+			startFocusTime = Date.now();
+		});
+
+		$window.addEventListener('blur', function(){
+			if (startFocusTime === null) return;
+			require('T/ga').trackTiming(key, Date.now() - startFocusTime);
+		});
+	}
+}
 
 /**
  * @method setCurrentWindow
  * Set current Window and push in the windows stack
- * @param {Ti.UI.Window} $win
+ * @param {Ti.UI.Window} $window
+ * @param {String} route
  */
-exports.setCurrentWindow = function($win) {
-	if ($win == null) return;
+exports.setCurrentWindow = function($window, route) {
+	$window._route = route;
+	exports.windows.push($window);
 
-	$win._flowid = _.uniqueId();
-	windows.push($win);
+	// Track with GA
+	track($window, route);
 
 	// Add listener
-	$win.addEventListener('close', onWindowClose);
+	$window.addEventListener('close', onWindowClose);
 };
 
 /**
@@ -247,7 +233,7 @@ exports.setCurrentWindow = function($win) {
  * @return {Array}
  */
 exports.getWindows = function() {
-	return windows;
+	return exports.windows;
 };
 
 /**
@@ -256,7 +242,7 @@ exports.getWindows = function() {
  * @return {Ti.UI.Window}
  */
 exports.getCurrentWindow = function() {
-	return _.last(windows);
+	return _.last(exports.windows);
 };
 
 
@@ -292,7 +278,7 @@ exports.getNavigationController = function() {
  * Close all windows, except first.
  */
 exports.closeAllWindowsExceptFirst = function() {
-	var wins = _.clone(windows);
+	var wins = _.clone(exports.windows);
 	for (var i = wins.length-2; i > 0; i--) {
 		wins[i].close({ animated: false });
 	}
