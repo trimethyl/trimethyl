@@ -3,4 +3,4 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-module.exports = Backbone.Events;
+module.exports = _.extend({}, Backbone.Events);
