@@ -5,9 +5,7 @@
 
 
 var Util = require('T/util');
-
-var routes = []; // storage for all routes
-
+var routeRegistry = [];
 
 /**
  * @properties currentUrl
@@ -44,7 +42,7 @@ exports.stack = [];
  * @param  {Function}	callback  		The callback
  */
 exports.on = function(key, callback) {
-	routes.push({
+	routeRegistry.push({
 		key: key,
 		callback: callback
 	});
@@ -65,54 +63,55 @@ exports.on = function(key, callback) {
  * @param  {String} 	url 		The route
  */
 exports.dispatch = function(url) {
+	Ti.API.debug('Router: dispatching <' + url + '>');
+
+	// Set exposed property
+	exports.currentUrl = url;
+	exports.stack.push(url);
+
+	// Parse URL
+	var callbackURL = Util.parseAsXCallbackURL(url);
+	callbackURL.path = callbackURL.path.replace(/\/$/g, '');
+
 	var run = false;
 	var matches = null;
 
-	var X = Util.parseAsXCallbackURL(url);
-	X.path = X.path.replace(/\/$/g, '');
-	Ti.API.debug('Router: dispatching <' + url + '> with path <' + X.path + '>');
-
-	// Set current URL
-	exports.currentUrl = url;
-
-	// append the URL to stack
-	exports.stack.push(url);
-
 	// Check the route to dispatch
-	for (var i in routes) {
-		var routeDefinition = routes[i];
+	for (var i in routeRegistry) {
+		var routeDefinition = routeRegistry[i];
 
 		if (_.isString(routeDefinition.key)) {
 
 			// Regular string equals
-			run = (routeDefinition.key === X.path);
+			run = (routeDefinition.key === callbackURL.path);
 
 		} else if (_.isRegExp(routeDefinition.key)) {
 
 			// Regular expression complex match
-			matches = X.path.match(routeDefinition.key);
+			matches = callbackURL.path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
 
 		} else if (_.isFunction(routeDefinition.key)) {
 
 			// Function match
-			matches = routeDefinition.key(X.path);
+			matches = routeDefinition.key(callbackURL.path);
 			run = (matches !== undefined);
 
 		}
 
 		if (run === true) {
-			Ti.API.debug('Router: Matched with key <' + routeDefinition.key + '> and matches <' + JSON.stringify(matches) + '>');
+			Ti.API.debug('Router: Matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
 
 			exports.currentRoute = routeDefinition;
-			exports.currentRoute.callback.apply(X, matches);
+			exports.currentRoute.callback.apply(callbackURL, matches);
 
-			return; // break the cycle
+			return true;
 		}
 	}
 
 	Ti.API.warn('Router: no matches for the selected route', url);
+	return false;
 };
 
 /**
