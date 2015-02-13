@@ -15,67 +15,9 @@ exports.config = _.extend({
 
 var Event = require('T/event');
 
-var Navigator = null; // Current navigator
-
-exports.windows = [];
+var Navigator = null;
+var windowsStack = [];
 var currentController = null;
-
-function open(name, args, openArgs, key, useNav) {
-	args = args || {};
-	openArgs = openArgs || {};
-
-	var controller = Alloy.createController(name, args);
-	key = key || controller.analyticsKey || ('/' + name + (args.id ? '/' + args.id : ''));
-
-	// Get the main window an track focus/blur
-	var $window = controller.getView();
-	exports.setCurrentWindow($window, key);
-
-	// Clean up controller on window close
-	$window.addEventListener('close', function() {
-		controller.off(); // Turn off Backbone Events
-		controller.destroy(); // Destroy by KrolllBridge
-		if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
-
-		controller = null;
-		$window = null;
-
-		Ti.API.debug('Flow: Controller <' + name + '> destroyed');
-	});
-
-	// Open the window
-	if (useNav) {
-		Navigator.openWindow($window, openArgs);
-	} else {
-		if (_.isFunction(controller.open)) {
-			controller.open(openArgs);
-		} else {
-			$window.open(openArgs);
-		}
-	}
-
-	exports.currentControllerName = name;
-	exports.currentControllerArgs = args;
-	currentController = controller;
-
-	return controller;
-}
-
-function onWindowClose(e) {
-	var route = e.source._route;
-	Event.trigger('flow.close', {
-		route: route,
-	});
-
-	var index = -1;
-	for (var k in exports.windows) {
-		if (exports.windows[k]._route === route) {
-			exports.windows.splice(+k, 1);
-			return;
-		}
-	}
-}
-
 
 /**
  * @property currentControllerName
@@ -96,6 +38,79 @@ exports.event = function(name, cb) {
 	Event.on('flow.' + name, cb);
 };
 
+function track($window, route) {
+	// Track screen with GA
+	if (exports.config.trackWithGA) {
+		require('T/ga').trackScreen(route);
+	}
+
+	// Track timing with GA
+	if (exports.config.trackTimingWithGA) {
+		var startFocusTime = null;
+
+		$window.addEventListener('focus', function(){
+			startFocusTime = Date.now();
+		});
+
+		$window.addEventListener('blur', function(){
+			if (startFocusTime === null) return;
+			require('T/ga').trackTiming(route, Date.now() - startFocusTime);
+		});
+	}
+}
+
+function open(name, args, openArgs, route, useNav) {
+	args = args || {};
+	openArgs = openArgs || {};
+	route = route || ('/' + name + (args.id ? '/' + args.id : ''));
+
+	var controller = Alloy.createController(name, args);
+	exports.setCurrentController(controller, name, args);
+
+	// Get the main window an track focus/blur
+	var $window = controller.getView();
+	exports.setCurrentWindow($window, route);
+
+	// Clean up controller on window close
+	$window.addEventListener('close', function() {
+		controller.off(); // Turn off Backbone Events
+		controller.destroy(); // Destroy by KrolllBridge
+		if (_.isFunction(controller.cleanup)) {
+			controller.cleanup();
+		}
+
+		controller = null;
+		$window = null;
+	});
+
+	// Open the window
+	if (useNav) {
+		Navigator.openWindow($window, openArgs);
+	} else {
+		if (_.isFunction(controller.open)) {
+			controller.open(openArgs);
+		} else {
+			$window.open(openArgs);
+		}
+	}
+
+	return controller;
+}
+
+function onWindowClose(e) {
+	var route = e.source._route;
+	Event.trigger('flow.close', {
+		route: route,
+	});
+
+	var index = -1;
+	for (var k in windowsStack) {
+		if (windowsStack[k]._route === route) {
+			windowsStack.splice(+k, 1);
+			return;
+		}
+	}
+}
 
 /**
  * Set, in a single way, the global Navigator (and open it), the Index-Controller and the Index-Window
@@ -113,12 +128,12 @@ exports.event = function(name, cb) {
  * @param  {String}								controllerArgs
  */
 exports.startup = function(controller, nav, win, controllerName, controllerArgs) {
-	exports.setCurrentWindow(win, '/home');
+	exports.setCurrentWindow(win, '/' + controllerName);
 	exports.setCurrentController(controller, controllerName, controllerArgs);
 	exports.setNavigationController(nav, true);
 
 	// Reset variables
-	exports.windows = [];
+	windowsStack = [];
 };
 
 
@@ -130,11 +145,11 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
  *
  * @param  {String} 	name 				The name of the controller
  * @param  {Object} 	[args]     		The args passed to the controller
- * @param  {String} 	[key]				Optional key that identify this controller
+ * @param  {String} 	[route]				Optional route that identify this controller
  * @return {Alloy.Controller} 		The controller instance
  */
-exports.openDirect = function(name, args, openArgs, key) {
-	return open(name, args, openArgs, key, false);
+exports.openDirect = function(name, args, openArgs, route) {
+	return open(name, args, openArgs, route, false);
 };
 
 /**
@@ -149,15 +164,15 @@ exports.openDirect = function(name, args, openArgs, key) {
  * @param  {String} 	name 				The name of the controller
  * @param  {Object} 	[args]       	The arguments passed to the controller
  * @param  {Object} 	[openArgs]     The arguments passed to the `Navigator.openWindow`
- * @param  {String} 	[key]				Optional key that identify this controller
+ * @param  {String} 	[route]				Optional route that identify this controller
  * @return {Alloy.Controller}    	The controller instance
  */
-exports.open = function(name, args, openArgs, key) {
+exports.open = function(name, args, openArgs, route) {
 	if (Navigator === null) {
 		return Ti.API.warn('Flow: A Navigator is not defined yet');
 	}
 
-	return open(name, args, openArgs, key, true);
+	return open(name, args, openArgs, route, true);
 };
 
 /**
@@ -166,7 +181,7 @@ exports.open = function(name, args, openArgs, key) {
 exports.close = function() {
 	if (Navigator === null) return;
 
-	exports.windows = [];
+	windowsStack = [];
 	Navigator.close();
 	Navigator = null;
 };
@@ -193,27 +208,6 @@ exports.getCurrentController = function() {
 	return currentController;
 };
 
-function track($window, key) {
-	// Track screen with GA
-	if (exports.config.trackWithGA) {
-		require('T/ga').trackScreen(key);
-	}
-
-	// Track timing with GA
-	if (exports.config.trackTimingWithGA) {
-		var startFocusTime = null;
-
-		$window.addEventListener('focus', function(){
-			startFocusTime = Date.now();
-		});
-
-		$window.addEventListener('blur', function(){
-			if (startFocusTime === null) return;
-			require('T/ga').trackTiming(key, Date.now() - startFocusTime);
-		});
-	}
-}
-
 /**
  * @method setCurrentWindow
  * Set current Window and push in the windows stack
@@ -222,7 +216,7 @@ function track($window, key) {
  */
 exports.setCurrentWindow = function($window, route) {
 	$window._route = route;
-	exports.windows.push($window);
+	windowsStack.push($window);
 
 	// Track with GA
 	track($window, route);
@@ -237,7 +231,7 @@ exports.setCurrentWindow = function($window, route) {
  * @return {Array}
  */
 exports.getWindows = function() {
-	return exports.windows;
+	return windowsStack;
 };
 
 /**
@@ -246,7 +240,7 @@ exports.getWindows = function() {
  * @return {Ti.UI.Window}
  */
 exports.getCurrentWindow = function() {
-	return _.last(exports.windows);
+	return _.last(windowsStack);
 };
 
 
@@ -282,7 +276,7 @@ exports.getNavigationController = function() {
  * Close all windows, except first.
  */
 exports.closeAllWindowsExceptFirst = function() {
-	var wins = _.clone(exports.windows);
+	var wins = _.clone(windowsStack);
 	for (var i = wins.length-2; i > 0; i--) {
 		wins[i].close({ animated: false });
 	}
