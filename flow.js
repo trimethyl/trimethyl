@@ -62,13 +62,17 @@ function track($window, route) {
 function open(name, args, openArgs, route, useNav) {
 	args = args || {};
 	openArgs = openArgs || {};
-	route = route || ('/' + name + (args.id ? '/' + args.id : ''));
+	route = route || name;
 
 	var controller = Alloy.createController(name, args);
 	exports.setCurrentController(controller, name, args);
 
-	// Get the main window an track focus/blur
+	// Get the main window to track focus/blur
 	var $window = controller.getView();
+
+	// Check if the getView is a NavigationController, in that case, $window is the subwindow
+	if ($window.window) $window = $window.window;
+
 	exports.setCurrentWindow($window, route);
 
 	// Clean up controller on window close

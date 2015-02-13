@@ -116,7 +116,10 @@ function fetchUserModel(info) {
  * @param  {Object} opt
  */
 exports.login = function(opt) {
-	if (_.isEmpty(opt.driver)) throw new Error('Please set a driver');
+	if (_.isEmpty(opt.driver)) {
+		throw new Error('Please set a driver');
+	}
+
 	silent = false;
 
 	driverLogin(opt)

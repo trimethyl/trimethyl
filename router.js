@@ -101,7 +101,7 @@ exports.dispatch = function(url) {
 		}
 
 		if (run === true) {
-			Ti.API.debug('Router: Matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
+			Ti.API.debug('Router: matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
 
 			exports.currentRoute = routeDefinition;
 			exports.currentRoute.callback.apply(callbackURL, matches);
@@ -110,7 +110,7 @@ exports.dispatch = function(url) {
 		}
 	}
 
-	Ti.API.warn('Router: no matches for the selected route', url);
+	Ti.API.warn('Router: no match for <' + url + '>');
 	return false;
 };
 

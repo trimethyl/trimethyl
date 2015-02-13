@@ -20,7 +20,7 @@ var tracker = null;
 
 function track(method, what) {
 	if (exports.config.log) {
-		Ti.API.debug('GA: Tracking ' + method, what);
+		Ti.API.debug('GA: tracking ' + method, what);
 	}
 	tracker['track' + method](what);
 }
@@ -156,13 +156,16 @@ exports.setTrackerUA = function(ua) {
 	tracker = AnalyticsGoogle.getTracker(ua);
 };
 
-/*
-Init
-*/
+
+//////////
+// Init //
+//////////
 
 AnalyticsGoogle.trackUncaughtExceptions = true;
-AnalyticsGoogle.debug = false;
+AnalyticsGoogle.debug = !!exports.config.log;
 
 if (exports.config.ua != null) {
 	exports.setTrackerUA(exports.config.ua);
+} else {
+	Ti.API.error('GA: empty UA');
 }
