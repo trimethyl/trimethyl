@@ -33,12 +33,14 @@ function open(name, args, openArgs, key, useNav) {
 
 	// Clean up controller on window close
 	$window.addEventListener('close', function() {
-		controller.destroy(); // Destroy by KrolllBridge
 		controller.off(); // Turn off Backbone Events
+		controller.destroy(); // Destroy by KrolllBridge
 		if (_.isFunction(controller.cleanup)) controller.cleanup(); // Custom cleanup
 
 		controller = null;
 		$window = null;
+
+		Ti.API.debug('Flow: Controller <' + name + '> destroyed');
 	});
 
 	// Open the window
