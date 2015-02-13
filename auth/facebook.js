@@ -21,7 +21,9 @@ exports.isStoredLoginAvailable = function() {
 
 exports.storedLogin = function(opt) {
 	if (exports.isStoredLoginAvailable()) {
-		opt.success({ access_token: FB.accessToken });
+		opt.success({
+			access_token: FB.accessToken
+		});
 	} else {
 		opt.error();
 	}

@@ -27,7 +27,7 @@ var Me = null; // User model object
  * @method event
  */
 exports.event = function(name, cb) {
-	Event.on('auth.'+name, cb);
+	Event.on('auth.' + name, cb);
 };
 
 /**
@@ -87,7 +87,8 @@ function apiLogin(data) {
 		data: data,
 		silent: silent,
 		success: q.resolve,
-		error: q.reject
+		error: q.reject,
+		errorAlert: false
 	});
 
 	return q.promise;
@@ -96,7 +97,10 @@ function apiLogin(data) {
 function fetchUserModel(info) {
 	var q = Q.defer();
 
-	Me = Alloy.createModel('user', { id: info.id || 'me' });
+	Me = Alloy.createModel('user', {
+		id: info.id || 'me'
+	});
+
 	Me.fetch({
 		http: {
 			refresh: true,
@@ -123,20 +127,36 @@ exports.login = function(opt) {
 	silent = false;
 
 	driverLogin(opt)
-	.then(apiLogin)
+
+	.then(function(dataFromDriver) {
+		return apiLogin(_.extend(dataFromDriver, {
+			method: opt.driver
+		}));
+	})
+
 	.then(fetchUserModel)
+
 	.then(function(){
 		Ti.App.Properties.setObject('auth.me', Me.toJSON());
 		Ti.App.Properties.setString('auth.driver', opt.driver);
 	})
 
 	.then(function(){
-		Event.trigger('auth.success', { id: Me.id });
-		opt.success({ id: Me.id });
+		Event.trigger('auth.success', {
+			id: Me.id
+		});
+		if (_.isFunction(opt.success)) {
+			opt.success({
+				id: Me.id
+			});
+		}
 	})
-	.fail(function(err){
-		Event.trigger('auth.error', err);
-		opt.error(err);
+
+	.fail(function(e) {
+		Event.trigger('auth.error', e);
+		if (_.isFunction(opt.error)) {
+			opt.error(e);
+		}
 	});
 };
 

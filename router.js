@@ -3,8 +3,17 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/**
+ * @property config
+ * @property {String} config.protocol  Force all protocol different from this to be discarded
+ */
+exports.config = _.extend({
+	protocol: null
+}, Alloy.CFG.T ? Alloy.CFG.T.router : {});
+
 
 var Util = require('T/util');
+
 var routeRegistry = [];
 
 /**
@@ -32,7 +41,7 @@ exports.stack = [];
  * @method on
  * Register a route with defined callbacks
  *
- * @param  {String|RegExp|Function}   	key 			The route name.
+ * @param {Object} key The route name.
  * It can be:
  *
  * * `String`: (exact route match)
@@ -65,13 +74,20 @@ exports.on = function(key, callback) {
 exports.dispatch = function(url) {
 	Ti.API.debug('Router: dispatching <' + url + '>');
 
-	// Set exposed property
-	exports.currentUrl = url;
-	exports.stack.push(url);
-
 	// Parse URL
 	var callbackURL = Util.parseAsXCallbackURL(url);
 	callbackURL.path = callbackURL.path.replace(/\/$/g, '');
+
+	if (callbackURL.protocol && exports.config.protocol) {
+		if (exports.config.protocol !== callbackURL.protocol) {
+			Ti.API.warn('Router: protocol mismatch');
+			return false;
+		}
+	}
+
+	// Set exposed property
+	exports.currentUrl = url;
+	exports.stack.push(url);
 
 	var run = false;
 	var matches = null;
@@ -102,7 +118,6 @@ exports.dispatch = function(url) {
 
 		if (run === true) {
 			Ti.API.debug('Router: matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
-
 			exports.currentRoute = routeDefinition;
 			exports.currentRoute.callback.apply(callbackURL, matches);
 

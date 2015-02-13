@@ -290,7 +290,9 @@ HTTPRequest.prototype.resolve = function() {
  * Abort this request
  */
 HTTPRequest.prototype.abort = function() {
-	this.client.abort();
+	if (this.client != null) {
+		this.client.abort();
+	}
 };
 
 

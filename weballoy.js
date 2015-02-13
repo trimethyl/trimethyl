@@ -54,7 +54,9 @@ function getHTML(args) {
 
 	// Include global css
 	html += embedCSS('web/app.css');
-	html += embedCSS('web/styles/' + args.name + '.css');
+	if (args.name) {
+		html += embedCSS('web/styles/' + args.name + '.css');
+	}
 
 	html += '</head><body>';
 
@@ -65,7 +67,7 @@ function getHTML(args) {
 
 	if (args.html) {
 		html += _.template(args.html)(tpl_data);
-	} else {
+	} else if (args.name) {
 		html += _.template(getFileText('web/views/' + args.name + '.tpl'))(tpl_data);
 	}
 
@@ -78,7 +80,9 @@ function getHTML(args) {
 
 	// Include footer
 	html += embedJS('web/app' + exports.config.jsExt);
-	html += embedJS('web/controllers/' + args.name + exports.config.jsExt);
+	if (args.name) {
+		html += embedJS('web/controllers/' + args.name + exports.config.jsExt);
+	}
 
 	html += '</body></html>';
 

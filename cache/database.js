@@ -40,10 +40,14 @@ exports.get = function(hash) {
  * @param {Object} 	info
  */
 exports.set = function(hash, value, ttl, info) {
+	if (_.isObject(value) || _.isArray(value)) {
+		value = JSON.stringify(value);
+	}
+
 	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)',
 		hash,
 		ttl != null ? Util.fromNow(ttl) : -1,
-		Ti.Utils.base64decode(value),
+		Ti.Utils.base64encode(value),
 		JSON.stringify(info)
 	);
 };

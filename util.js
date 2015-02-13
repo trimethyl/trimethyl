@@ -376,11 +376,7 @@ exports.parseAsXCallbackURL = function(str) {
  */
 exports.hashJavascriptObject = function(obj) {
 	if (obj == null) return 'null';
-	if (_.isArray(obj)) return JSON.stringify(obj);
-	if (_.isObject(obj)) {
-		var keys = _.keys(obj).sort();
-		return JSON.stringify(_.object(keys, _.map(keys, function (key) { return obj[key]; })));
-	}
+	if (_.isArray(obj) || _.isObject(obj)) return JSON.stringify(obj);
 	return obj.toString();
 };
 
@@ -390,13 +386,14 @@ exports.hashJavascriptObject = function(obj) {
  */
 exports.getErrorMessage = function(obj) {
 	if (_.isObject(obj)) {
-		if (obj.error != null) {
-			if (_.isObject(obj.error) && obj.error.message != null) return obj.error.message;
-			return obj.error.toString();
-		} else if (obj.message != null) {
+		if (_.isString(obj.message)) {
 			return obj.message;
+		} else if (_.isObject(obj.error) && _.isString(obj.error.message)) {
+			return obj.error.message;
+		} else if (_.isString(obj.error)) {
+			return obj.error;
 		}
-	} else if (_.isString(obj)) {
+	} else if (!_.isEmpty(obj)) {
 		return obj.toString();
 	}
 	return L('unexpected_error', 'Unexpected error');
