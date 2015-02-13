@@ -47,6 +47,8 @@ function open(name, args, openArgs, key, useNav) {
 	} else {
 		if (_.isFunction(controller.open)) {
 			controller.open(openArgs);
+		} else {
+			$window.open(openArgs);
 		}
 	}
 
