@@ -42,7 +42,7 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 			}, _.isFunction(opt.headerViewCb) ? { headerView: opt.headerViewCb(key) } : { headerTitle: key }));
 		});
 
-		if ($ui != null && opt.sectionIndex === true) {
+		if ($ui != null && opt.sectionIndex) {
 			$ui.sectionIndexTitles = _.map(_.keys(array), function(u, k) {
 				return {
 					title: u,
