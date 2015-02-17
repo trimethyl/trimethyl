@@ -47,10 +47,24 @@ module.exports = function(args) {
 
 
 	switch (args.textType) {
-		case 'number': args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD; break;
-		case 'email': args.keyboardType = Ti.UI.KEYBOARD_EMAIL; break;
-		case 'password': args.passwordMask = true; break;
-		case 'passwordEye': args.passwordMask = true; break;
+
+		case 'number':
+		args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD;
+		break;
+
+		case 'email':
+		args.keyboardType = Ti.UI.KEYBOARD_EMAIL;
+		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
+		args.autocorrect = false;
+		break;
+
+		case 'password':
+		args.passwordMask = true;
+		break;
+
+		case 'passwordEye':
+		args.passwordMask = true;
+		break;
 	}
 
 	var $this = Ti.UI.createTextField(args);
@@ -64,7 +78,8 @@ module.exports = function(args) {
 	if (OS_IOS && args.textType === 'passwordEye') {
 		var eyeButton = Ti.UI.createButton({
 			image: args.passwordEyeImage,
-			height: 40, width: 40,
+			height: 40,
+			width: 40,
 			opacity: 0.2,
 			active: false,
 			tintColor: $this.color
@@ -81,7 +96,7 @@ module.exports = function(args) {
 	}
 
 
-	if (OS_IOS && args.useDoneToolbar === true) {
+	if (OS_IOS && args.useDoneToolbar) {
 		$this.keyboardToolbar = getDoneToolbar({
 			done: function() {
 				$this.blur();

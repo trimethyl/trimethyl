@@ -29,7 +29,6 @@ exports.event = function(name, cb) {
 	Event.on('http.'+name, cb);
 };
 
-
 var headers = _.clone(exports.config.headers);
 
 /**
