@@ -173,6 +173,7 @@ exports.isStoredLoginAvailable = function() {
  */
 exports.storedLogin = function(opt) {
 	if (Ti.Network.online) {
+
 		exports.login(_.extend(opt || {}, {
 			stored: true,
 			driver: getStoredDriver()
@@ -181,6 +182,7 @@ exports.storedLogin = function(opt) {
 	} else {
 
 		if (Ti.App.Properties.hasProperty('auth.me')) {
+
 			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 
 			Event.trigger('auth.success', { id: Me.id });
