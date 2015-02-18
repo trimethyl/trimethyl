@@ -11,13 +11,15 @@
  * @property {Object}  [config.headers={}] Global headers for all requests.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
+ * @property {Boolean} [config.logResponse=false]
  */
 exports.config = _.extend({
 	base: '',
 	timeout: 10000,
 	errorAlert: true,
 	headers: {},
-	log: false
+	log: false,
+	logResponse: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');

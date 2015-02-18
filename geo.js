@@ -20,6 +20,9 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
 var Event = require('T/event');
+var HTTP = require('T/http');
+var Util = require('T/util');
+
 
 function checkForServices() {
 	return Ti.Geolocation.locationServicesEnabled;
@@ -68,7 +71,7 @@ exports.startNavigator = function(lat, lng, mode) {
 
 			Ti.Platform.openURL(
 				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
-				require('T/util').buildQuery({
+				Util.buildQuery({
 					directionsmode: mode || 'walking',
 					saddr: g.latitude + ',' + g.longitude,
 					daddr: lat + ',' + lng
@@ -88,7 +91,7 @@ exports.startNavigator = function(lat, lng, mode) {
 exports.geocode = function(opt) {
 	if (exports.config.geocodeUseGoogle === true) {
 
-		require('T/http').send({
+		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			cache: false,
 			data: {
@@ -137,7 +140,7 @@ exports.geocode = function(opt) {
 exports.reverseGeocode = function(opt) {
 	if (exports.config.useGoogleForGeocode) {
 
-		require('T/http').send({
+		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			noCache: true,
 			data: {
@@ -378,8 +381,7 @@ exports.getRegionBounds = function(array, mulGap) {
  * @return {Boolean}
  */
 exports.isAuthorized = function() {
-
-	if (Ti.Geolocation.locationServicesEnabled == true) {
+	if (Ti.Geolocation.locationServicesEnabled) {
 		if (OS_ANDROID) {
 			return true;
 		} else if (OS_IOS) {
@@ -388,9 +390,8 @@ exports.isAuthorized = function() {
 			return false;
 		}
 	}
-
 	return false;
-}
+};
 
 /**
  * @method isDenied
@@ -399,17 +400,15 @@ exports.isAuthorized = function() {
  * @return {Boolean}
  */
 exports.isDenied = function() {
-
 	if (OS_IOS) {
 		return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_DENIED;
 	}
-
 	return false;
-}
+};
 
 
-/*
-Init
-*/
+//////////
+// Init //
+//////////
 
 Ti.Geolocation.accuracy = Ti.Geolocation[exports.config.gpsAccuracy];

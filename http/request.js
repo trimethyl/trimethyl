@@ -156,7 +156,9 @@ HTTPRequest.prototype._onError = function(err) {
 };
 
 HTTPRequest.prototype._onSuccess = function() {
-	this._log(arguments[0]);
+	if (HTTP.config.logResponse) {
+		Ti.API.debug('HTTP: ['+this.hash+']', arguments[0]);
+	}
 
 	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
 	if (_.isFunction(this.opt.success)) this.opt.success.apply(this, arguments);
