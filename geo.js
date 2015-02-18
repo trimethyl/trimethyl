@@ -372,6 +372,41 @@ exports.getRegionBounds = function(array, mulGap) {
 	};
 };
 
+/**
+ * @method isAuthorized
+ * Check if the location services are enabled and the app is authorized to use them.
+ * @return {Boolean}
+ */
+exports.isAuthorized = function() {
+
+	if (Ti.Geolocation.locationServicesEnabled == true) {
+		if (OS_ANDROID) {
+			return true;
+		} else if (OS_IOS) {
+			return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_AUTHORIZED;
+		} else {
+			return false;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @method isDenied
+ * Check if the the app is denied from using the location services in iOS.
+ * Returns false for every other platform.
+ * @return {Boolean}
+ */
+exports.isDenied = function() {
+
+	if (OS_IOS) {
+		return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_DENIED;
+	}
+
+	return false;
+}
+
 
 /*
 Init
