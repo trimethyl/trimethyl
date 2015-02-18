@@ -66,7 +66,7 @@ HTTPRequest.prototype.toString = function() {
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
-	if (HTTP.config.useCache == false || this.opt.cache == false) return;
+	if (HTTP.config.useCache === false || this.opt.cache === false) return;
 	if (this.method !== 'GET') return;
 
 	if (this.responseInfo.ttl <= 0) {
@@ -169,7 +169,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	HTTP.removeFromQueue(this);
 
 	// Fire the global event
-	if (!this.opt.silent) {
+	if (this.opt.silent === false) {
 		Event.trigger('http.end', {
 			hash: this.hash,
 			eventName: this.opt.eventName
@@ -235,7 +235,7 @@ HTTPRequest.prototype.send = function() {
 	// Add this request to the queue
 	HTTP.addToQueue(this);
 
-	if (!this.opt.silent) {
+	if (this.opt.silent === false) {
 		Event.trigger('http.start', {
 			hash: this.hash,
 			eventName: this.opt.eventName

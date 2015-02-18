@@ -117,7 +117,10 @@ exports.createView = function(args) {
 	}, args));
 
 	$ui.addEventListener('load', function() {
-		if (args.autoHeight) $ui.height = $ui.evalJS('document.documentElement.offsetHeight');
+		if (args.autoHeight) {
+			var offsetHeight = $ui.evalJS('document.documentElement.offsetHeight');
+			$ui.height = 5 + Math.floor(offsetHeight); // Just set a gap of 5
+		}
 		if (_.isFunction(args.onLoad)) {
 			args.onLoad.call($ui);
 		}

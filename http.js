@@ -9,6 +9,7 @@
  * @property {String}  config.base The base URL of the API
  * @property {Number}  [config.timeout=10000] Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
  * @property {Object}  [config.headers={}] Global headers for all requests.
+ * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
  * @property {Boolean} [config.logResponse=false]
@@ -18,6 +19,7 @@ exports.config = _.extend({
 	timeout: 10000,
 	errorAlert: true,
 	headers: {},
+	useCache: true,
 	log: false,
 	logResponse: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
