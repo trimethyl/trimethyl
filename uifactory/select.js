@@ -316,6 +316,10 @@ module.exports = function(args) {
 	}
 
 	$this.updateUI = function() {
+		$this.fireEvent('change', {
+			value: $this.interfaceValue
+		});
+
 		if ($this.typeString === 'plain') {
 			if (OS_IOS) {
 				$this.text = $this.interfaceTitle || $this.hintText || '';

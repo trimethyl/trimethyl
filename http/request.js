@@ -156,7 +156,9 @@ HTTPRequest.prototype._onError = function(err) {
 };
 
 HTTPRequest.prototype._onSuccess = function() {
-	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
+	this._log(arguments[0]);
+
+	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
 	if (_.isFunction(this.opt.success)) this.opt.success.apply(this, arguments);
 };
 
@@ -165,7 +167,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	HTTP.removeFromQueue(this);
 
 	// Fire the global event
-	if (this.opt.silent != true) {
+	if (!this.opt.silent) {
 		Event.trigger('http.end', {
 			hash: this.hash,
 			eventName: this.opt.eventName
@@ -231,7 +233,7 @@ HTTPRequest.prototype.send = function() {
 	// Add this request to the queue
 	HTTP.addToQueue(this);
 
-	if (this.opt.silent !== true) {
+	if (!this.opt.silent) {
 		Event.trigger('http.start', {
 			hash: this.hash,
 			eventName: this.opt.eventName

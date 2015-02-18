@@ -68,18 +68,22 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 * Set the background image with cover method
 * @param {String} url
 */
-exports.setBackgroundCoverForView = function($this, url, w, h) {
-	if (!_.isNumber(w) || !_.isNumber(h)) {
+exports.setBackgroundCoverForView = function($this, url) {
+	if ($this.size == null || $this.size.width == 0 || $this.size.height == 0) {
+
 		$this.addEventListener('postlayout', function postlayout() {
 			$this.removeEventListener('postlayout', postlayout);
-			exports.setBackgroundCoverForView($this, url, $this.size.width, $this.size.height);
+			if ($this.size != null && $this.size.width != 0 && $this.size.height != 0) {
+				exports.setBackgroundCoverForView($this, url);
+			}
 		});
 
 		return false;
 	}
 
-	var ext = url.match(/\.(\w+)$/g);
-	var hashedCachedName = Ti.Utils.md5HexDigest(url) + '_' + (w+'x'+h) + '.' + (ext && ext[1] ? ext[1] : 'jpg');
+	var ext = url.match(/\.(\w+)$/g) || [];
+	var w = $this.size.width, h = $this.size.height;
+	var hashedCachedName = Ti.Utils.md5HexDigest(url) + '_' + (w+'x'+h) + '.' + (ext[1] && ext[1].length >= 3 ? ext[1] : 'jpg');
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
 
 	var onBlobReady = function(blob) {
@@ -94,7 +98,7 @@ exports.setBackgroundCoverForView = function($this, url, w, h) {
 		if (status) {
 			$this.backgroundImage = cachedFile.nativePath;
 		} else {
-			Ti.API.error('UIFactory.View: Can\'t write cover file');
+			Ti.API.error('UIFactory.View: Can\'t write cover file for url <' + url + '>');
 		}
 	};
 
@@ -106,7 +110,11 @@ exports.setBackgroundCoverForView = function($this, url, w, h) {
 		if (/\:\/\//.test(url)) {
 			require('T/http').send({
 				url: url,
-				format: 'blob'
+				format: 'blob',
+				cache: false,
+				refresh: true,
+				errorAlert: false,
+				silent: true
 			}).success(function(data) {
 				onBlobReady(data);
 			}).error(function() {
