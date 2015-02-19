@@ -8,7 +8,7 @@
  * Lists the content of a directory.
  * Returns a list of objects with the structure `{path: "", content: []}`
  *
- * Returns null if the specified path does not point to an existing directory.
+ * Returns `null` if the specified path does not point to an existing directory.
  *
  * @param {String}	the path of the directory
  */
@@ -41,7 +41,7 @@ function recursiveDesc(file) {
  * Lists the content of a directory and all its subdirectories.
  * Returns a list of objects with the structure `{path: "", content: []}`
  *
- * Returns null if the specified path does not point to an existing directory.
+ * Returns `null` if the specified path does not point to an existing directory.
  *
  * @param {String}	the path of the directory
  */
