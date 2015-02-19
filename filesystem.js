@@ -1,4 +1,4 @@
-/*
+/**
 * @class   Filesystem
 * @author  Andrea Jonus <andrea.jonus@caffeinalab.com>
 */
