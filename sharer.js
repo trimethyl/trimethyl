@@ -243,7 +243,10 @@ exports.message = function(args) {
 
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {
-		var recipients = args.recipients != null ? (_.isArray(args.recipients) ? args.recipients : [ args.recipients ]) : null;
+		var recipients = null;
+		if (args.recipients != null) {
+			recipients = _.isArray(args.recipients) ? args.recipients : [ args.recipients ];
+		}
 		var $dialog = benCodingSMS.createSMSDialog({
 			toRecipients: recipients,
 			messageBody: args.fullText

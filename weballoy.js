@@ -11,6 +11,8 @@ exports.config = _.extend({
 	jsExt: '.jslocal'
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
 
+var Device = require('T/device');
+
 var libDir = [];
 var helpers = {};
 
@@ -47,7 +49,7 @@ function getHTML(opt) {
 
 	// Include head (styles)
 	var html = '<!DOCTYPE html><html><head><meta charset="utf-8" />';
-	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
+	html += '<meta name="viewport" content="width=device-width; initial-scale=1; minimum-scale=1; maximum-scale=1; user-scalable=no;" />';
 
 	// Install the global event handler for this specific WebView
 	html += '<script>window.WebAlloy={run:function(name,data){Ti.App.fireEvent("__weballoy_'+opt.uniqid+'",{name:name,data:data});}};</script>';
@@ -106,20 +108,26 @@ exports.addHelper = function(name, method) {
  */
 exports.createView = function(args) {
 	args = args || {};
-
 	args.uniqid = _.uniqueId();
+
+	var html = getHTML(args);
+
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
 		uniqid: args.uniqid,
+		layout: 'absolute',
 		enableZoomControls: false,
 		hideLoadIndicator: true,
-		backgroundColor: 'transparent'
+		scalesPageToFit: false,
+		backgroundColor: 'transparent',
+		width: 320,
+		html: html
 	}, args));
 
 	$ui.addEventListener('load', function() {
 		if (args.autoHeight) {
-			var offsetHeight = $ui.evalJS('document.documentElement.offsetHeight');
-			$ui.height = 5 + Math.floor(offsetHeight); // Just set a gap of 5
+			var offsetHeight = Math.floor( $ui.evalJS('document.documentElement.offsetHeight') );
+			$ui.height = offsetHeight;
 		}
 		if (_.isFunction(args.onLoad)) {
 			args.onLoad.call($ui);
@@ -166,10 +174,6 @@ exports.createView = function(args) {
 		$ui.webapiUnbind = function() {
 			Ti.App.removeEventListener('__weballoy_' + args.uniqid, webapiListener);
 		};
-	}
-
-	if (args.content != null || args.name != null) {
-		$ui.html = getHTML(args);
 	}
 
 	return $ui;

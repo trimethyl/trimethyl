@@ -87,7 +87,7 @@ module.exports = function(args) {
 	 * @param {String} url
 	 */
 	$this.setBackgroundCoverImage = function(url) {
-		require('T/uiutil').setBackgroundCoverForView($this, url);
+		return require('T/uiutil').setBackgroundCoverForView($this, url);
 	};
 
 	if (OS_ANDROID) {

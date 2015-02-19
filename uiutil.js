@@ -3,6 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Q = require('T/ext/q');
 
 /**
  * @method populateListViewFromCollection
@@ -78,7 +79,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 			}
 		});
 
-		return false;
+		return;
 	}
 
 	var ext = url.match(/\.(\w+)$/g) || [];
@@ -120,6 +121,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 			}).error(function() {
 				Ti.API.error('UIFactory.View: URL <' + url + '> can\'t be downloaded');
 			});
+
 		} else {
 			var origFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
 			if (origFile.exists()) {

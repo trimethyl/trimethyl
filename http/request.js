@@ -57,7 +57,7 @@ function HTTPRequest(opt) {
 
 HTTPRequest.prototype._log = function(message) {
 	if (HTTP.config.log) {
-		Ti.API.debug('HTTP: ['+this.hash+']', message);
+		Ti.API.debug('HTTP: [ ' + this.method + ' ' + this.url + ' ]', message);
 	}
 };
 
@@ -141,7 +141,7 @@ HTTPRequest.prototype._getResponseInfo = function() {
 
 HTTPRequest.prototype._onError = function(err) {
 	var self = this;
-	Ti.API.error('HTTP: ['+this.hash+']', err);
+	Ti.API.error('HTTP: [ ' + this.method + ' ' + this.url + ' ]', err);
 
 	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
 
@@ -169,7 +169,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	HTTP.removeFromQueue(this);
 
 	// Fire the global event
-	if (this.opt.silent === false) {
+	if (this.opt.silent != true) {
 		Event.trigger('http.end', {
 			hash: this.hash,
 			eventName: this.opt.eventName
@@ -223,7 +223,6 @@ HTTPRequest.prototype._calculateHash = function() {
  */
 HTTPRequest.prototype.send = function() {
 	var self = this;
-	this._log(this.method + ' ' + this.url + ' ' + (JSON.stringify(this.data) || ''));
 
 	this.client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
@@ -235,7 +234,7 @@ HTTPRequest.prototype.send = function() {
 	// Add this request to the queue
 	HTTP.addToQueue(this);
 
-	if (this.opt.silent === false) {
+	if (this.opt.silent != true) {
 		Event.trigger('http.start', {
 			hash: this.hash,
 			eventName: this.opt.eventName
