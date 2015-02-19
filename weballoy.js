@@ -11,8 +11,6 @@ exports.config = _.extend({
 	jsExt: '.jslocal'
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
 
-var Device = require('T/device');
-
 var libDir = [];
 var helpers = {};
 
@@ -28,19 +26,19 @@ function embedFile(f) {
 
 function getFileText(f) {
 	var file = embedFile(f);
-	if (file === null) return '';
+	if (file == null) return '';
 	return file.read().text;
 }
 
 function embedCSS(f) {
 	var file = embedFile(f);
-	if (file === null) return '';
+	if (file == null) return '';
 	return '<link rel="stylesheet" href="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '" />';
 }
 
 function embedJS(f) {
 	var file = embedFile(f);
-	if (file === null) return '';
+	if (file == null) return '';
 	return '<script src="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '"></script>';
 }
 
@@ -110,24 +108,18 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	var html = getHTML(args);
-
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
-		uniqid: args.uniqid,
-		layout: 'absolute',
 		enableZoomControls: false,
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
 		backgroundColor: 'transparent',
-		width: 320,
-		html: html
+		html: getHTML(args)
 	}, args));
 
 	$ui.addEventListener('load', function() {
 		if (args.autoHeight) {
-			var offsetHeight = Math.floor( $ui.evalJS('document.documentElement.offsetHeight') );
-			$ui.height = offsetHeight;
+			$ui.height = Math.floor( $ui.evalJS('document.documentElement.offsetHeight') );
 		}
 		if (_.isFunction(args.onLoad)) {
 			args.onLoad.call($ui);
