@@ -39,7 +39,7 @@ function recursiveDesc(file) {
 /**
  * @method listDirectory
  * Lists the content of a directory and all its subdirectories.
- * Returns a list of objects with the structure {path: "", content: []}
+ * Returns a list of objects with the structure `{path: "", content: []}`
  *
  * Returns null if the specified path does not point to an existing directory.
  *
