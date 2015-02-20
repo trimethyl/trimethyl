@@ -53,3 +53,30 @@ exports.listDirectoryRecursive = function(path) {
 
 	return recursiveDesc(file);
 };
+
+/**
+ * @method move
+ * Move a file or a directory to a new path. Overwrite the destination path if the flag is set to true.
+ *
+ * Returns true if the operation was successful.
+ *
+ * @param {String}		the path of the file/directory to move
+ * @param {String}		the destination path
+ * @param {Boolean}		set to true to overwrite destination path
+ * @returns {Boolean}
+ */
+exports.move = function(src, dest, ow) {
+	var srcFile = Ti.Filesystem.getFile(src);
+
+	if (!srcFile.exists()) {
+		return false;
+	}
+
+	var destFile = Ti.Filesystem.getFile(dest);
+
+	if (ow && destFile.exists()) {
+		destFile.deleteFile();
+	}
+
+	return srcFile.move(dest);
+};
