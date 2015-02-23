@@ -11,17 +11,20 @@ var Util = require('T/util');
 /**
  * @method get
  * Get an entry
- * @param  {String} hash [description]
+ * @param  {String} hash
+ * @param  {Boolean} bypassExpire
  * @return {Ti.Blob}
  */
-exports.get = function(hash) {
+exports.get = function(hash, bypassExpire) {
 	var row = DB.row('SELECT expire, info FROM cache WHERE hash = ? LIMIT 1', hash);
 	if (row == null) return null;
 
-	var expire = row.expire << 0;
-	if (expire !== -1 && Util.now() > expire) return null;
+	if (bypassExpire === true) {
+		Ti.API.debug('Cache: Get bypassed');
+	}
 
-	console.log(hash);
+	var expire = row.expire << 0;
+	if (bypassExpire !== true && expire !== -1 && Util.now() > expire) return null;
 
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash);
 	if (!file.exists()) return null;

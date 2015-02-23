@@ -89,7 +89,8 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	if (this.opt.cache === false || this.opt.refresh === true) return null;
 	if (this.method !== 'GET') return null;
 
-	var cachedData = Cache.get(this.hash);
+	var bypass = HTTP.config.bypassExpireWhenOffline && !Ti.Network.online;
+	var cachedData = Cache.get(this.hash, bypass);
 	if (cachedData == null) return null;
 
 	this._log('cache hit for ' + (cachedData.expire-Util.now()) + 's');

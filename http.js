@@ -13,6 +13,7 @@
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
  * @property {Boolean} [config.logResponse=false]
+ * @property {Boolean} [config.bypassExpireWhenOffline=true] Bypass the check of expiration cache when Internet is offline.
  */
 exports.config = _.extend({
 	base: '',
@@ -21,7 +22,8 @@ exports.config = _.extend({
 	headers: {},
 	useCache: true,
 	log: false,
-	logResponse: false
+	logResponse: false,
+	bypassExpireWhenOffline: true
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
