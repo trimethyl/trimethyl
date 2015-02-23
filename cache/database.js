@@ -7,26 +7,28 @@
 var SQLite = require('T/sqlite');
 var Util = require('T/util');
 
+
 /**
  * @method get
  * Get an entry
  * @param  {String} hash [description]
- * @return {Object}
+ * @return {Ti.Blob}
  */
 exports.get = function(hash) {
-	var row = DB.row('SELECT expire, value, info FROM cache WHERE hash = ? LIMIT 1', hash);
-	if (row === null) {
-		return null;
-	}
+	var row = DB.row('SELECT expire, info FROM cache WHERE hash = ? LIMIT 1', hash);
+	if (row == null) return null;
 
 	var expire = row.expire << 0;
-	if (expire !== -1 && Util.now() > expire) {
-		return null;
-	}
+	if (expire !== -1 && Util.now() > expire) return null;
+
+	console.log(hash);
+
+	var file = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash);
+	if (!file.exists()) return null;
 
 	return {
+		value: file.read(),
 		expire: expire,
-		value: Ti.Utils.base64decode(row.value),
 		info: Util.parseJSON(row.info)
 	};
 };
@@ -35,21 +37,21 @@ exports.get = function(hash) {
  * @method set
  * Set a new entry
  * @param {String} 	hash
- * @param {Mixed} 	value
+ * @param {Object} 	value
  * @param {Number} 	ttl
  * @param {Object} 	info
  */
 exports.set = function(hash, value, ttl, info) {
-	if (_.isObject(value) || _.isArray(value)) {
-		value = JSON.stringify(value);
+	info = JSON.stringify(info || {});
+	if (_.isObject(value) || _.isArray(value)) value = JSON.stringify(value);
+
+	var expire = -1;
+	if (ttl != null) {
+		expire = Util.fromNow(ttl);
 	}
 
-	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, value, info) VALUES (?, ?, ?, ?)',
-		hash,
-		ttl != null ? Util.fromNow(ttl) : -1,
-		Ti.Utils.base64encode(value),
-		JSON.stringify(info)
-	);
+	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, info) VALUES (?, ?, ?)', hash, expire, info);
+	Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash).write(value);
 };
 
 
@@ -60,6 +62,7 @@ exports.set = function(hash, value, ttl, info) {
  */
 exports.remove = function(hash) {
 	DB.execute('DELETE FROM cache WHERE hash = ?', hash);
+	Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash).deleteFile();
 };
 
 /**
@@ -67,7 +70,8 @@ exports.remove = function(hash) {
  * Prune all
  */
 exports.purge = function() {
-	return DB.execute('DELETE FROM cache WHERE 1');
+	DB.execute('DELETE FROM cache WHERE 1');
+	Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).deleteDirectory(true);
 };
 
 /**
@@ -75,7 +79,7 @@ exports.purge = function() {
  * @return {Number}
  */
 exports.getSize = function() {
-	return DB.db.file ? DB.db.file.size : 0;
+	return Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).size;
 };
 
 
@@ -84,4 +88,4 @@ Init
 */
 
 var DB = new SQLite('app');
-DB.execute('CREATE TABLE IF NOT EXISTS cache (hash TEXT PRIMARY KEY, expire INTEGER, value TEXT, info TEXT)');
+DB.execute('CREATE TABLE IF NOT EXISTS cache (hash TEXT PRIMARY KEY, expire INTEGER, info TEXT)');

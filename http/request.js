@@ -75,7 +75,7 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	}
 
 	Cache.set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
-	this._log('cached for ' + this.responseInfo.ttl + 's');
+	this._log('cached success for ' + this.responseInfo.ttl + 's');
 };
 
 
@@ -92,13 +92,11 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	var cachedData = Cache.get(this.hash);
 	if (cachedData == null) return null;
 
-	this._log('cache hit (' + (cachedData.expire-Util.now()) + 's)');
-
-	var value = cachedData.value;
+	this._log('cache hit for ' + (cachedData.expire-Util.now()) + 's');
 	if (cachedData.info.format === 'blob') {
-		return value;
+		return cachedData.value;
 	} else {
-		return extractHTTPText(value, cachedData.info);
+		return extractHTTPText(cachedData.value.text, cachedData.info);
 	}
 };
 
@@ -195,7 +193,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	if (e.success) {
-		this._log('response success (' + (this.endTime-this.startTime) + 'ms)');
+		this._log('response success in ' + (this.endTime-this.startTime) + 'ms');
 		this._maybeCacheResponse(data);
 
 		this.defer.resolve(data);
@@ -270,21 +268,24 @@ HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {
 		this.defer.resolve(cache);
-		return;
-	}
-
-	if (Ti.Network.online) {
-		this.send();
 	} else {
 
-		Ti.API.warn('HTTP: connection is offline');
-		Event.trigger('http.offline');
+		if (Ti.Network.online) {
 
-		this.defer.reject({
-			offline: true,
-			message: L('network_offline', 'Check your connectivity.')
-		});
+			this._log('sending request...');
+			this.send();
 
+		} else {
+
+			this._log('internet is offline');
+			Event.trigger('http.offline');
+
+			this.defer.reject({
+				offline: true,
+				message: L('network_offline', 'Check your connectivity.')
+			});
+
+		}
 	}
 };
 
