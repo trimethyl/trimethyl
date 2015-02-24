@@ -67,14 +67,12 @@ exports.listDirectoryRecursive = function(path) {
  */
 exports.move = function(src, dest, ow) {
 	var srcFile = Ti.Filesystem.getFile(src);
-
 	if (!srcFile.exists()) {
 		return false;
 	}
 
 	var destFile = Ti.Filesystem.getFile(dest);
-
-	if (ow && destFile.exists()) {
+	if (ow == true && destFile.exists()) {
 		destFile.deleteFile();
 	}
 

@@ -83,7 +83,10 @@ if (OS_IOS) {
 				Ti.App.iOS.removeEventListener('usernotificationsettings', tmpSubscribe);
 				Ti.Network.registerForPushNotifications({
 					callback: onNotificationReceived,
-					success: function(e) { callback(e.deviceToken); },
+					success: function(e) {
+						Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
+						callback(e.deviceToken);
+					},
 					error: function(err) {
 						Ti.API.error('Notifications: Retrieve device token failed', err);
 						Event.trigger('notifications.subscription.error', err);
@@ -101,7 +104,10 @@ if (OS_IOS) {
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
 				types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
-				success: function(e) { callback(e.deviceToken); },
+				success: function(e) {
+					Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
+					callback(e.deviceToken);
+				},
 				error: function(err) {
 					Ti.API.error('Notifications: Retrieve device token failed', err);
 					Event.trigger('notifications.subscription.error', err);
@@ -129,7 +135,10 @@ if (OS_IOS) {
 		CloudPush.addEventListener('trayClickFocusedApp', onNotificationReceived);
 
 		CloudPush.retrieveDeviceToken({
-			success: function(e) { callback(e.deviceToken); },
+			success: function(e) {
+				Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
+				callback(e.deviceToken);
+			},
 			error: function(e) {
 				Ti.API.error('Notifications: Retrieve device token failed', e);
 				Event.trigger('notifications.subscription.error', e);

@@ -9,9 +9,9 @@
  */
 exports.createNavigationWindow = function(args) {
 	args = args || {};
-	if (OS_IOS) {
+	if (OS_IOS && args._useFallback != true) {
 		return Ti.UI.iOS.createNavigationWindow(args);
-	} else if (OS_ANDROID) {
+	} else {
 		var NavigationWindow = require('T/uifactory/navigationwindow');
 		return new NavigationWindow(args);
 	}
@@ -47,8 +47,11 @@ exports.createListView = require('T/uifactory/listview');
  */
 exports.createTabbedBar = function(args) {
 	args = args || {};
-	if (OS_IOS) return Ti.UI.createTabbedBar(args);
-	return require('T/uifactory/tabbedbar')(args);
+	if (OS_IOS && args._useFallback != true) {
+		return Ti.UI.iOS.createTabbedBar(args);
+	} else {
+		return require('T/uifactory/tabbedbar')(args);
+	}
 };
 
 /**

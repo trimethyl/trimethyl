@@ -7,6 +7,9 @@
 var SQLite = require('T/sqlite');
 var Util = require('T/util');
 
+var DIR = Ti.Filesystem.applicationCacheDirectory + '/database';
+Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
+Ti.Filesystem.getFile(DIR).createDirectory();
 
 /**
  * @method get
@@ -26,7 +29,7 @@ exports.get = function(hash, bypassExpire) {
 	var expire = row.expire << 0;
 	if (bypassExpire !== true && expire !== -1 && Util.now() > expire) return null;
 
-	var file = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash);
+	var file = Ti.Filesystem.getFile(DIR, hash);
 	if (!file.exists()) return null;
 
 	return {
@@ -54,7 +57,7 @@ exports.set = function(hash, value, ttl, info) {
 	}
 
 	DB.execute('INSERT OR REPLACE INTO cache (hash, expire, info) VALUES (?, ?, ?)', hash, expire, info);
-	Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash).write(value);
+	Ti.Filesystem.getFile(DIR, hash).write(value);
 };
 
 
@@ -65,7 +68,7 @@ exports.set = function(hash, value, ttl, info) {
  */
 exports.remove = function(hash) {
 	DB.execute('DELETE FROM cache WHERE hash = ?', hash);
-	Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hash).deleteFile();
+	Ti.Filesystem.getFile(DIR, hash).deleteFile();
 };
 
 /**
@@ -74,7 +77,7 @@ exports.remove = function(hash) {
  */
 exports.purge = function() {
 	DB.execute('DELETE FROM cache WHERE 1');
-	Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).deleteDirectory(true);
+	Ti.Filesystem.getFile(DIR).deleteDirectory(true);
 };
 
 /**
@@ -82,7 +85,7 @@ exports.purge = function() {
  * @return {Number}
  */
 exports.getSize = function() {
-	return Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).size;
+	return Ti.Filesystem.getFile(DIR).size;
 };
 
 

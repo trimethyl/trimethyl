@@ -8,6 +8,14 @@
 
 module.exports = function(args) {
 	args = args || {};
+	_.defaults(args, {
+		height: 34,
+		tintColor: '#000',
+		labelStyle: {},
+		borderColor: args.tintColor,
+		borderWidth: 1,
+		borderRadius: 10
+	});
 
 	var $this = Ti.UI.createView(args);
 
@@ -26,18 +34,25 @@ module.exports = function(args) {
 		});
 
 		var width = Math.floor(100 / labels.length) + '%';
-		var $wrap = Ti.UI.createView({ layout: 'horizontal' });
-		_.each(labels, function(l, i){
-			$wrap.add(Ti.UI.createButton({
+		var $wrap = Ti.UI.createView({
+			layout: 'horizontal',
+		});
+
+		_.each(labels, function(l, i) {
+
+			var lblArgs = _.extend({
+				color: $this.color || $this.tintColor,
+				font: $this.font,
+			}, $this.labelStyle, {
 				title: l,
 				index: i,
-				width: width, left: 0, right: 0, height: 32,
-				borderColor: $this.tintColor || '#000',
-				borderWidth: 1,
-				font: $this.font || {},
-				backgroundColor: 'transparent',
-				color: $this.tintColor || '#000'
-			}));
+				width: width,
+				height: Ti.UI.FILL,
+				left: 0,
+				right: 0
+			});
+
+			$wrap.add(Ti.UI.createButton(lblArgs));
 		});
 
 		if (UIWrapLabels !== null) $this.remove(UIWrapLabels);
@@ -60,14 +75,14 @@ module.exports = function(args) {
 		_.each(UIWrapLabels && UIWrapLabels.children ? UIWrapLabels.children : [], function($c, i) {
 			if (+i === labelIndex) {
 				$c.applyProperties({
-					backgroundColor: $this.tintColor || '#000',
-					color: $this.backgroundColor || '#fff',
+					backgroundColor: $this.tintColor,
+					color: $this.activeColor || $this.backgroundColor || '#fff',
 					active: false
 				});
 			} else {
 				$c.applyProperties({
 					backgroundColor: 'transparent',
-					color: $this.tintColor || '#000',
+					color: $this.color || $this.tintColor,
 					active: true
 				});
 			}
@@ -80,7 +95,7 @@ module.exports = function(args) {
 
 	$this.addEventListener('click', function(e){
 		if (e.source.index == null) return;
-		$this.setIndex(e.source.index);
+		$this.setIndex(+e.source.index);
 	});
 
 	if (args.labels != null) $this.setLabels(args.labels);
