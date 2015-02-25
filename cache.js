@@ -16,5 +16,4 @@ function load(name) {
 	return require('T/cache/'+name);
 }
 
-
 module.exports = load(exports.config.strategy);

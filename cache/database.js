@@ -3,7 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
 var SQLite = require('T/sqlite');
 var Util = require('T/util');
 
@@ -78,6 +77,7 @@ exports.remove = function(hash) {
 exports.purge = function() {
 	DB.execute('DELETE FROM cache WHERE 1');
 	Ti.Filesystem.getFile(DIR).deleteDirectory(true);
+	Ti.Filesystem.getFile(DIR).createDirectory();
 };
 
 /**

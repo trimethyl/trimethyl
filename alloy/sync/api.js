@@ -28,7 +28,7 @@ exports.sync = function(method, model, opt) {
 
 	if (opt.patch) method = 'patch';
 
-	var httpOpt = _.extend({}, opt.http, {
+	var httpOpt = _.extend({}, model.config.http, opt.http, {
 		url: url,
 		method: CRUD_to_REST[method] || 'GET',
 		format: 'json'
