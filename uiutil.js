@@ -84,7 +84,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 
 	var ext = url.match(/\.(\w+)$/g) || [];
 	var w = $this.size.width, h = $this.size.height;
-	var hashedCachedName = Ti.Utils.md5HexDigest(url) + '_' + (w+'x'+h) + '.' + (ext[1] && ext[1].length >= 3 ? ext[1] : 'jpg');
+	var hashedCachedName = Ti.Utils.md5HexDigest(url) + '_' + (w+'x'+h) + '.png';
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
 
 	var onBlobReady = function(blob) {

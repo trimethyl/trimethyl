@@ -64,7 +64,7 @@ function onValueSelected($this, $picker) {
 		$this.interfaceIndex = e.row.index;
 		$this.interfaceTitle = e.row.title;
 	} else if ($this.typeString === 'date') {
-		$this.interfaceValue = e.value;
+		$this.interfaceValue = $picker.value;
 	}
 
 	if (_.isFunction($this.updateUI)) {
