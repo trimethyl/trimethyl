@@ -52,6 +52,7 @@ module.exports = function(args) {
 		activityButton: null
 
 	});
+
 	var $this = Ti.UI.createWindow(args);
 
 	$this.opened = false;

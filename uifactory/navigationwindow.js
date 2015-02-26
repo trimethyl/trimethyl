@@ -2,8 +2,7 @@
  * @class  	UIFactory.NavigationWindow
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * Android implementations of `Ti.UI.iOS.NavigationWindow`
- *
+ * Simple stack of `Ti.UI.iOS.NavigationWindow`
  */
 
 function NavigationWindow(args) {

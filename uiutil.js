@@ -3,8 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-var Q = require('T/ext/q');
-
 /**
  * @method populateListViewFromCollection
  * Parse an array or a Backbone.Collection and populate a ListView with this values.
@@ -82,7 +80,6 @@ exports.setBackgroundCoverForView = function($this, url) {
 		return;
 	}
 
-	var ext = url.match(/\.(\w+)$/g) || [];
 	var w = $this.size.width, h = $this.size.height;
 	var hashedCachedName = Ti.Utils.md5HexDigest(url) + '_' + (w+'x'+h) + '.png';
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
@@ -96,7 +93,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 			file: cachedFile
 		});
 
-		if (status) {
+		if (status == true) {
 			$this.backgroundImage = cachedFile.nativePath;
 		} else {
 			Ti.API.error('UIFactory.View: Can\'t write cover file for url <' + url + '>');
@@ -108,7 +105,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 
 	} else {
 
-		if (/\:\/\//.test(url)) {
+		if (/^https?\:\/\//.test(url)) {
 			require('T/http').send({
 				url: url,
 				format: 'blob',
@@ -123,7 +120,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 			});
 
 		} else {
-			var origFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
+			var origFile = Ti.Filesystem.getFile(url);
 			if (origFile.exists()) {
 				onBlobReady(origFile.read());
 			} else {
