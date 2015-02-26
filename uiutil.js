@@ -85,7 +85,9 @@ exports.setBackgroundCoverForView = function($this, url) {
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
 
 	var onBlobReady = function(blob) {
-		var status = require('T/image').process({
+		Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
+
+		var cachedFileStatus = require('T/image').process({
 			blob: blob,
 			width: w,
 			height: h,
@@ -93,8 +95,8 @@ exports.setBackgroundCoverForView = function($this, url) {
 			file: cachedFile
 		});
 
-		if (status == true) {
-			$this.backgroundImage = cachedFile.nativePath;
+		if (cachedFileStatus != false) {
+			$this.backgroundImage = cachedFileStatus.nativePath;
 		} else {
 			Ti.API.error('UIFactory.View: Can\'t write cover file for url <' + url + '>');
 		}
