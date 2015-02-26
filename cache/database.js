@@ -6,7 +6,7 @@
 var SQLite = require('T/sqlite');
 var Util = require('T/util');
 
-var DIR = Ti.Filesystem.applicationCacheDirectory + '/database';
+var DIR = Ti.Filesystem.applicationCacheDirectory + 'database';
 Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
 Ti.Filesystem.getFile(DIR).createDirectory();
 
@@ -85,7 +85,7 @@ exports.purge = function() {
  * @return {Number}
  */
 exports.getSize = function() {
-	return Ti.Filesystem.getFile(DIR).size;
+	return T('filesystem').getSize(DIR);
 };
 
 

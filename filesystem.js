@@ -26,12 +26,12 @@ exports.listDirectory = function(path) {
 	});
 };
 
-function recursiveDesc(file) {
+function recursiveIterator(file, callback) {
 	return _.map(file.getDirectoryListing(), function(item) {
 		var curFile = Ti.Filesystem.getFile(item);
 		return {
 			path: curFile.getNativePath(),
-			content: curFile.isDirectory() ? recursiveDesc(curFile) : []
+			content: curFile.isDirectory() ? recursiveIterator(curFile) : []
 		};
 	});
 }
@@ -51,7 +51,7 @@ exports.listDirectoryRecursive = function(path) {
 		return null;
 	}
 
-	return recursiveDesc(file);
+	return recursiveIterator(file);
 };
 
 /**
@@ -77,4 +77,21 @@ exports.move = function(src, dest, ow) {
 	}
 
 	return srcFile.move(dest);
+};
+
+/**
+ * @method  getSize
+ * Get the size of a directory in bytes
+ * @return {Number}
+ */
+exports.getSize = function(path) {
+	var file = path.nativePath ? path : Ti.Filesystem.getFile(path);
+	if (!file.isDirectory()) {
+		return file.getSize();
+	}
+
+	return _.reduce(file.getDirectoryListing(), function(carry, f) {
+		carry += exports.getSize( Ti.Filesystem.getFile(file.nativePath, f) );
+		return carry;
+	}, 0);
 };
