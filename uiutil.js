@@ -120,7 +120,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 			});
 
 		} else {
-			var origFile = Ti.Filesystem.getFile(url);
+			var origFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
 			if (origFile.exists()) {
 				onBlobReady(origFile.read());
 			} else {
