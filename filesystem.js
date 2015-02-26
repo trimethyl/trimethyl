@@ -4,41 +4,24 @@
 * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
 */
 
-/**
- * @method listDirectory
- * Lists the content of a directory.
- * Returns a list of objects with the structure `{path: "", content: []}`
- *
- * Returns `null` if the specified path does not point to an existing directory.
- *
- * @param {String}	the path of the directory
- */
-exports.listDirectory = function(path) {
-	var file = Ti.Filesystem.getFile(path);
-	if (!file.isDirectory()) {
-		return null;
-	}
-
+function recursiveIterator(file) {
 	return _.map(file.getDirectoryListing(), function(item) {
-		return {
-			path: Ti.Filesystem.getFile(item).getNativePath(),
-			content:[]
-		};
-	});
-};
-
-function recursiveIterator(file, callback) {
-	return _.map(file.getDirectoryListing(), function(item) {
-		var curFile = Ti.Filesystem.getFile(item);
-		return {
-			path: curFile.getNativePath(),
-			content: curFile.isDirectory() ? recursiveIterator(curFile) : []
-		};
+		var curFile = Ti.Filesystem.getFile(file.nativePath, item);
+		if (curFile.isDirectory()) {
+			return {
+				path: curFile.nativePath,
+				content: recursiveIterator( curFile )
+			};
+		} else {
+			return {
+				path: curFile.nativePath
+			};
+		}
 	});
 }
 
 /**
- * @method listDirectory
+ * @method listDirectoryRecursive
  * Lists the content of a directory and all its subdirectories.
  * Returns a list of objects with the structure `{path: "", content: []}`
  *
@@ -88,7 +71,7 @@ exports.move = function(src, dest, ow) {
 exports.getSize = function(path) {
 	var file = path.nativePath ? path : Ti.Filesystem.getFile(path);
 	if (!file.isDirectory()) {
-		return file.getSize();
+		return file.size;
 	}
 
 	return _.reduce(file.getDirectoryListing(), function(carry, f) {
