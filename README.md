@@ -1,6 +1,6 @@
-# Trimethyl 2
+![image](https://s3.amazonaws.com/f.cl.ly/items/3h2Q2i0K1s2i0u2G2h2N/logo.jpg)
 
-Trimethyl is a collection of very useful modules to work with **Titanium**.
+Trimethyl is a collection of very useful modules to work with **Appcelerator Titanium**.
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
