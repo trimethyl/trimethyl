@@ -1,6 +1,7 @@
 /**
 * @class   Filesystem
 * @author  Andrea Jonus <andrea.jonus@caffeinalab.com>
+* @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
 */
 
 /**
