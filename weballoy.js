@@ -106,7 +106,8 @@ exports.addHelper = function(name, method) {
  */
 exports.createView = function(args) {
 	args = args || {};
-	if (!args.name && !args.html) {
+
+	if (args.name == null && args.html == null) {
 		throw new Error('WebAlloy: you must pass a <name> or <html> property');
 	}
 
