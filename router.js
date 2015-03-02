@@ -53,7 +53,7 @@ exports.stack = [];
 exports.on = function(key, callback) {
 	routeRegistry.push({
 		key: key,
-		callback: callback
+		callback: callback,
 	});
 };
 
@@ -69,7 +69,7 @@ exports.on = function(key, callback) {
  *
  * The arguments passed are the matches for your regex definition (if present)
  *
- * @param  {String} 	url 		The route
+ * @param  {String} url 		The route
  */
 exports.dispatch = function(url) {
 	Ti.API.debug('Router: dispatching <' + url + '>');
@@ -85,9 +85,6 @@ exports.dispatch = function(url) {
 		}
 	}
 
-	// Set exposed property
-	exports.currentUrl = url;
-	exports.stack.push(url);
 
 	var run = false;
 	var matches = null;
@@ -118,8 +115,23 @@ exports.dispatch = function(url) {
 
 		if (run === true) {
 			Ti.API.debug('Router: matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
-			exports.currentRoute = routeDefinition;
-			exports.currentRoute.callback.apply(callbackURL, matches);
+
+			var callback = routeDefinition.callback;
+			if (_.isFunction(callback)) {
+
+				exports.stack.push(url);
+				exports.currentUrl = url;
+				exports.currentRoute = routeDefinition;
+
+				callback.apply(callbackURL, matches);
+
+			} else if (_.isObject(callback)) {
+
+				if (callback.alias != null) {
+					exports.dispatch(callback.alias);
+				}
+
+			}
 
 			return true;
 		}
@@ -142,8 +154,8 @@ exports.go = exports.dispatch;
  * @param  {String} newUrl
  */
 exports.alias = function(url, newUrl) {
-	exports.on(url, function() {
-		exports.go(newUrl);
+	exports.on(url, {
+		alias: newUrl
 	});
 };
 
