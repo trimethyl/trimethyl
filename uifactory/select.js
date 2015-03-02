@@ -9,6 +9,7 @@ function createTiUIPicker($this) {
 	var $picker = null;
 
 	if ($this.typeString === 'plain') {
+
 		if (OS_IOS) {
 			$picker = Ti.UI.createPicker({
 				width: Ti.UI.FILL,
@@ -34,6 +35,7 @@ function createTiUIPicker($this) {
 		});
 
 	} else if ($this.typeString === 'date') {
+
 		if (OS_IOS) {
 			$picker = Ti.UI.createPicker({
 				value: $this.interfaceValue,
@@ -57,18 +59,20 @@ function createTiUIPicker($this) {
 
 // When a value change
 function onValueSelected($this, $picker) {
-	var e = $picker.cdata;
+	var e = $picker.cdata || {};
 
 	if ($this.typeString === 'plain') {
-		$this.interfaceValue = e.row.value;
-		$this.interfaceIndex = e.row.index;
-		$this.interfaceTitle = e.row.title;
+		if (e.row != null) {
+			$this.interfaceValue = e.row.value;
+			$this.interfaceIndex = e.row.index;
+			$this.interfaceTitle = e.row.title;
+		}
 	} else if ($this.typeString === 'date') {
-		$this.interfaceValue = e.value;
+		$this.interfaceValue = $picker.value;
 	}
 
-	if (_.isFunction($this.updateUI)) {
-		$this.updateUI();
+	if (OS_IOS) {
+		if (_.isFunction($this.updateUI)) $this.updateUI();
 	}
 }
 
@@ -316,6 +320,10 @@ module.exports = function(args) {
 	}
 
 	$this.updateUI = function() {
+		$this.fireEvent('change', {
+			value: $this.interfaceValue
+		});
+
 		if ($this.typeString === 'plain') {
 			if (OS_IOS) {
 				$this.text = $this.interfaceTitle || $this.hintText || '';

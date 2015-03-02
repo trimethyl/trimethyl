@@ -3,6 +3,8 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+Ti.Trimethyl = true;
+
 var Util = require('T/util');
 var Device = require('T/device');
 

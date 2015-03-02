@@ -40,8 +40,10 @@ FB.addEventListener('login', function(e){
 		return Ti.API.debug('Auth.Facebook: login prevented');
 	}
 
-	if (e.success === true) {
-		_opt.success({ access_token: FB.accessToken });
+	if (e.success) {
+		_opt.success({
+			access_token: FB.accessToken
+		});
 	} else {
 		_opt.error({
 			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')

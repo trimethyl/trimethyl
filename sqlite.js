@@ -27,7 +27,9 @@ function SQLite(name, file) {
 SQLite.prototype.close = function() {
 	try {
 		this.db.close();
-	} catch (ex) {}
+	} catch (ex) {
+		Ti.API.error('SQLite: error while closening database');
+	}
 };
 
 /**

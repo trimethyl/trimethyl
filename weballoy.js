@@ -26,36 +26,37 @@ function embedFile(f) {
 
 function getFileText(f) {
 	var file = embedFile(f);
-	if (file === null) return '';
+	if (file == null) return '';
 	return file.read().text;
 }
 
 function embedCSS(f) {
 	var file = embedFile(f);
-	if (file === null) return '';
+	if (file == null) return '';
 	return '<link rel="stylesheet" href="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '" />';
 }
 
 function embedJS(f) {
 	var file = embedFile(f);
-	if (file === null) return '';
+	if (file == null) return '';
 	return '<script src="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '"></script>';
 }
 
-function getHTML(args) {
-	var tpl_data = _.extend({}, helpers, args.webdata);
+function getHTML(opt) {
+	var tpl_data = _.extend({}, helpers, opt.webdata);
 
 	// Include head (styles)
 	var html = '<!DOCTYPE html><html><head><meta charset="utf-8" />';
-	html += '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />';
+	html += '<meta name="viewport" content="width=device-width; initial-scale=1; minimum-scale=1; maximum-scale=1; user-scalable=no;" />';
+	html += '<style>body{-webkit-text-size-adjust:none;}</style>'; //iOS auto expand font BUG
 
 	// Install the global event handler for this specific WebView
-	html += '<script>window.WebAlloy={run:function(name,data){Ti.App.fireEvent("__weballoy_'+args.uniqid+'",{name:name,data:data});}};</script>';
+	html += '<script>window.WebAlloy={run:function(name,data){Ti.App.fireEvent("__weballoy_'+opt.uniqid+'",{name:name,data:data});}};</script>';
 
 	// Include global css
 	html += embedCSS('web/app.css');
-	if (args.name) {
-		html += embedCSS('web/styles/' + args.name + '.css');
+	if (opt.name) {
+		html += embedCSS('web/styles/' + opt.name + '.css');
 	}
 
 	html += '</head><body>';
@@ -63,12 +64,12 @@ function getHTML(args) {
 	html += _.template(getFileText('web/app.tpl'))(tpl_data);
 
 	// Include template
-	html += '<div id="main" class="' + (args.htmlClass || '') + '">';
+	html += '<div id="main" class="' + (opt.htmlClass || '') + '">';
 
-	if (args.html) {
-		html += _.template(args.html)(tpl_data);
-	} else if (args.name) {
-		html += _.template(getFileText('web/views/' + args.name + '.tpl'))(tpl_data);
+	if (opt.content) {
+		html += _.template(opt.content)(tpl_data);
+	} else if (opt.name) {
+		html += _.template(getFileText('web/views/' + opt.name + '.tpl'))(tpl_data);
 	}
 
 	html += '</div>';
@@ -80,8 +81,8 @@ function getHTML(args) {
 
 	// Include footer
 	html += embedJS('web/app' + exports.config.jsExt);
-	if (args.name) {
-		html += embedJS('web/controllers/' + args.name + exports.config.jsExt);
+	if (opt.name) {
+		html += embedJS('web/controllers/' + opt.name + exports.config.jsExt);
 	}
 
 	html += '</body></html>';
@@ -106,28 +107,25 @@ exports.addHelper = function(name, method) {
  */
 exports.createView = function(args) {
 	args = args || {};
-
-	if (args.name == null && args.html == null) {
-		throw new Error('WebAlloy: you must pass a <name> or <html> property');
-	}
-
 	args.uniqid = _.uniqueId();
+
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
-		uniqid: args.uniqid,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
-		backgroundColor: 'transparent'
+		scalesPageToFit: false,
+		backgroundColor: 'transparent',
+		html: getHTML(args)
 	}, args));
 
-	$ui.addEventListener('load', function(){
-		if (args.autoHeight) $ui.height = $ui.evalJS('document.documentElement.offsetHeight');
+	$ui.addEventListener('load', function() {
+		if (args.autoHeight) {
+			$ui.height = Math.floor( $ui.evalJS('document.documentElement.offsetHeight') );
+		}
 		if (_.isFunction(args.onLoad)) {
 			args.onLoad.call($ui);
 		}
 	});
-
-	$ui.html = getHTML(args);
 
 	$ui._ = function(js) {
 		return $ui.evalJS(js);
@@ -156,7 +154,6 @@ exports.createView = function(args) {
 	$ui.render = function(data) {
 		$ui.$('#main').set('innerHTML', $ui.tpl(_.extend({}, helpers, data)));
 	};
-
 
 	// Install the API listener
 	if (args.webapi != null) {

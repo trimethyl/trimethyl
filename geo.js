@@ -20,6 +20,9 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
 var Event = require('T/event');
+var HTTP = require('T/http');
+var Util = require('T/util');
+
 
 function checkForServices() {
 	return Ti.Geolocation.locationServicesEnabled;
@@ -34,7 +37,7 @@ function checkForServices() {
  * @param {Object}	opt
  */
 exports.getCurrentPosition = function(opt) {
-	if (false === checkForServices()) {
+	if (!exports.isAuthorized()) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
 		return;
@@ -46,7 +49,7 @@ exports.getCurrentPosition = function(opt) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (opt.silent !== false) Event.trigger('geo.end');
 
-		if (e.success === true) {
+		if (e.success === true && e.coords != null) {
 			if (_.isFunction(opt.success)) opt.success(e.coords);
 		} else {
 			if (_.isFunction(opt.error)) opt.error({});
@@ -68,7 +71,7 @@ exports.startNavigator = function(lat, lng, mode) {
 
 			Ti.Platform.openURL(
 				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
-				require('T/util').buildQuery({
+				Util.buildQuery({
 					directionsmode: mode || 'walking',
 					saddr: g.latitude + ',' + g.longitude,
 					daddr: lat + ',' + lng
@@ -88,7 +91,7 @@ exports.startNavigator = function(lat, lng, mode) {
 exports.geocode = function(opt) {
 	if (exports.config.geocodeUseGoogle === true) {
 
-		require('T/http').send({
+		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			cache: false,
 			data: {
@@ -114,7 +117,7 @@ exports.geocode = function(opt) {
 	} else {
 
 		Ti.Geolocation.forwardGeocoder(opt.address, function(res) {
-			if (res.success === false) {
+			if (!res.success) {
 				if (_.isFunction(opt.error)) opt.error();
 				return;
 			}
@@ -137,7 +140,7 @@ exports.geocode = function(opt) {
 exports.reverseGeocode = function(opt) {
 	if (exports.config.useGoogleForGeocode) {
 
-		require('T/http').send({
+		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
 			noCache: true,
 			data: {
@@ -163,7 +166,7 @@ exports.reverseGeocode = function(opt) {
 	} else {
 
 		Ti.Geolocation.reverseGeocoder(opt.lat, opt.lng, function(res) {
-			if (res.success === false || _.isEmpty(res.places)) {
+			if (!res.success || _.isEmpty(res.places)) {
 				if (_.isFunction(opt.error)) opt.error();
 				return;
 			}
@@ -213,7 +216,11 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
  * @return {Array}
  */
 exports.markerCluster = function(e, markers, keys){
-	_.defaults(keys, { latitude: 'lat', longitude: 'lng', id: 'id' });
+	_.defaults(keys, {
+		latitude: 'lat',
+		longitude: 'lng',
+		id: 'id'
+	});
 
 	var c = {};
 	var g = {};
@@ -226,10 +233,10 @@ exports.markerCluster = function(e, markers, keys){
 	var degreeLng = 2 * exports.config.clusterPixelRadius / lngR;
 
 	var boundingBox = [
-	e.latitude - e.latitudeDelta/2 - degreeLat,
-	e.longitude + e.longitudeDelta/2 + degreeLng,
-	e.latitude + e.latitudeDelta/2 + degreeLat,
-	e.longitude - e.longitudeDelta/2 - degreeLng
+		e.latitude - e.latitudeDelta/2 - degreeLat,
+		e.longitude + e.longitudeDelta/2 + degreeLng,
+		e.latitude + e.latitudeDelta/2 + degreeLat,
+		e.longitude - e.longitudeDelta/2 - degreeLng
 	];
 
 	var isBackbone = (markers instanceof Backbone.Collection);
@@ -372,9 +379,40 @@ exports.getRegionBounds = function(array, mulGap) {
 	};
 };
 
+/**
+ * @method isAuthorized
+ * Check if the location services are enabled and the app is authorized to use them.
+ * @return {Boolean}
+ */
+exports.isAuthorized = function() {
+	if (Ti.Geolocation.locationServicesEnabled) {
+		if (OS_ANDROID) {
+			return true;
+		} else if (OS_IOS) {
+			return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_AUTHORIZED;
+		} else {
+			return false;
+		}
+	}
+	return false;
+};
 
-/*
-Init
-*/
+/**
+ * @method isDenied
+ * Check if the the app is denied from using the location services in iOS.
+ * Returns false for every other platform.
+ * @return {Boolean}
+ */
+exports.isDenied = function() {
+	if (OS_IOS) {
+		return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_DENIED;
+	}
+	return false;
+};
+
+
+//////////
+// Init //
+//////////
 
 Ti.Geolocation.accuracy = Ti.Geolocation[exports.config.gpsAccuracy];

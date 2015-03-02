@@ -9,15 +9,21 @@
  * @property {String}  config.base The base URL of the API
  * @property {Number}  [config.timeout=10000] Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
  * @property {Object}  [config.headers={}] Global headers for all requests.
+ * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
+ * @property {Boolean} [config.logResponse=false]
+ * @property {Boolean} [config.bypassExpireWhenOffline=true] Bypass the check of expiration cache when Internet is offline.
  */
 exports.config = _.extend({
 	base: '',
 	timeout: 10000,
 	errorAlert: true,
 	headers: {},
-	log: false
+	useCache: true,
+	log: false,
+	logResponse: false,
+	bypassExpireWhenOffline: true
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
@@ -28,7 +34,6 @@ var Event = require('T/event');
 exports.event = function(name, cb) {
 	Event.on('http.'+name, cb);
 };
-
 
 var headers = _.clone(exports.config.headers);
 
@@ -235,23 +240,26 @@ exports.download = function(url, file, success, error, ondatastream) {
 		cache: false,
 		refresh: true,
 		format: 'blob',
+		error: error,
 		ondatastream: ondatastream,
 	}).success(function(data) {
 		var fileStream = null;
-		if (file instanceof Ti.File) {
+		if (file.nativePath) {
 			fileStream = file;
 		} else {
 			var APP_DATA_DIR = Util.getAppDataDirectory();
-			var appDataDirStream = Ti.Filesystem.getFile(APP_DATA_DIR);
-			if ( ! appDataDirStream.exists()) appDataDirStream.createDirectory();
-
+			Ti.Filesystem.getFile(APP_DATA_DIR).createDirectory();
 			fileStream = Ti.Filesystem.getFile(APP_DATA_DIR, file);
 		}
 
 		if (fileStream.write(data)) {
 			if (_.isFunction(success)) success(fileStream);
 		} else {
-			if (_.isFunction(error)) error({ message: L('unexpected_error', 'Unexpected error') });
+			if (_.isFunction(error)) {
+				error({
+					message: L('unexpected_error', 'Unexpected error')
+				});
+			}
 		}
-	}).error(error);
+	});
 };

@@ -8,15 +8,14 @@
  * * `hockeyApp`: Load HockeyApp SDK. Default: `true`
  * @type {Object}
  */
-var config = _.extend({
+exports.config = _.extend({
 	showOnShake: true,
 	hockeyApp: true
 }, Alloy.CFG.T ? Alloy.CFG.T.testmenu : {});
-exports.config = config;
 
-if (config.hockeyApp === true) {
+if (exports.config.hockeyApp == true && Ti.App.Properties.hasProperty('hockeyapp.id')) {
 	var HA = require('nl.rebelic.hockeyapp');
-	HA.start(T('prop').getString('hockeyapp.id'));
+	HA.start( Ti.App.Properties.getString('hockeyapp.id') );
 }
 
 /**
@@ -32,7 +31,7 @@ exports.show = function() {
 			Ti.Media.takeScreenshot(function(e) {
 				var emailDialog = Ti.UI.createEmailDialog({
 					subject: '[' + Ti.App.name + '] Feedback',
-					toRecipients: [ T('prop').getString('support.email') ]
+					toRecipients: [ Ti.App.Properties.getString('support.email') ]
 				});
 				var reportInfo = JSON.stringify({
 					device: T('device').getInfo(),
@@ -71,7 +70,7 @@ exports.show = function() {
 	opts.push({
 		title: 'Delete DB cache (~' + T('util').bytesForHumans(T('cache').getSize()) + ')',
 		callback: function() {
-			T('cache').prune();
+			T('cache').purge();
 			d.hide();
 		}
 	});
@@ -83,6 +82,6 @@ exports.show = function() {
 	var d = T('dialog').option(Ti.App.name+' v'+Ti.App.version+'\n'+Ti.App.id+'\nTESTING MENU', opts);
 };
 
-if (config.showOnShake === true) {
+if (exports.config.showOnShake == true) {
 	Ti.Gesture.addEventListener('shake', exports.show);
 }

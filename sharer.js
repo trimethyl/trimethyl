@@ -243,11 +243,21 @@ exports.message = function(args) {
 
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {
-		var $dialog = benCodingSMS.createSMSDialog({ messageBody: args.fullText });
+		var recipients = null;
+		if (args.recipients != null) {
+			recipients = _.isArray(args.recipients) ? args.recipients : [ args.recipients ];
+		}
+		var $dialog = benCodingSMS.createSMSDialog({
+			toRecipients: recipients,
+			messageBody: args.fullText
+		});
+
 		$dialog.addEventListener('completed', function(){ onSocialComplete({ success: true, platform: 'messages' }); });
 		$dialog.addEventListener('cancelled', function(){ onSocialCancel({ success: false, platform: 'messages' }); });
-		$dialog.addEventListener('errored', function(){ onSocialComplete({ success: false, platform: 'messages' }); });
-		$dialog.open({ animated: true });
+		$dialog.addEventListener('error', function(){ onSocialComplete({ success: false, platform: 'messages' }); });
+		$dialog.open({
+			animated: true
+		});
 
 		return true;
 	}

@@ -15,13 +15,16 @@ var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
 
-// Driver loader
+var Me = null; // User model object
+
 function load(name) {
 	return require('T/auth/'+name);
 }
 
-var silent = true; // HTTP requests flag
-var Me = null; // User model object
+/**
+ * @method loadDriver
+ */
+exports.loadDriver = load;
 
 /**
  * @method event
@@ -48,7 +51,6 @@ exports.isLoggedIn = function() {
 	return Me !== null;
 };
 
-
 /**
  * @method getUserID
  * Get current User ID
@@ -60,7 +62,7 @@ exports.getUserID = function(){
 };
 
 function getStoredDriver(){
-	if ( ! Ti.App.Properties.hasProperty('auth.driver') || ! Ti.App.Properties.hasProperty('auth.me')) {
+	if (!Ti.App.Properties.hasProperty('auth.driver') || !Ti.App.Properties.hasProperty('auth.me')) {
 		return null;
 	}
 	return Ti.App.Properties.getString('auth.driver');
@@ -69,7 +71,8 @@ function getStoredDriver(){
 function driverLogin(opt) {
 	var q = Q.defer();
 
-	load(opt.driver)[ opt.stored === true ? 'storedLogin' : 'login' ]({
+	var method = opt.stored === true ? 'storedLogin' : 'login';
+	load(opt.driver)[ method ]({
 		data: opt.data,
 		success: q.resolve,
 		error: q.reject
@@ -85,10 +88,9 @@ function apiLogin(data) {
 		url: exports.config.loginUrl,
 		method: 'POST',
 		data: data,
-		silent: silent,
+		errorAlert: false,
 		success: q.resolve,
 		error: q.reject,
-		errorAlert: false
 	});
 
 	return q.promise;
@@ -105,7 +107,7 @@ function fetchUserModel(info) {
 		http: {
 			refresh: true,
 			cache: false,
-			silent: silent
+			errorAlert: false
 		},
 		success: q.resolve,
 		error: q.reject
@@ -124,8 +126,6 @@ exports.login = function(opt) {
 		throw new Error('Please set a driver');
 	}
 
-	silent = false;
-
 	driverLogin(opt)
 
 	.then(function(dataFromDriver) {
@@ -142,9 +142,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function(){
-		Event.trigger('auth.success', {
-			id: Me.id
-		});
+		Event.trigger('auth.success', { id: Me.id });
 		if (_.isFunction(opt.success)) {
 			opt.success({
 				id: Me.id
@@ -154,9 +152,7 @@ exports.login = function(opt) {
 
 	.fail(function(e) {
 		Event.trigger('auth.error', e);
-		if (_.isFunction(opt.error)) {
-			opt.error(e);
-		}
+		if (_.isFunction(opt.error)) opt.error(e);
 	});
 };
 
@@ -176,24 +172,30 @@ exports.isStoredLoginAvailable = function() {
  * @param  {Object} opt
  */
 exports.storedLogin = function(opt) {
-	silent = true;
-
 	if (Ti.Network.online) {
 
-		exports.login(_.extend(opt, {
+		exports.login(_.extend(opt || {}, {
 			stored: true,
 			driver: getStoredDriver()
 		}));
 
 	} else {
 
-		if (Ti.App.Properties.hasObject('auth.me')) {
-			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
-			opt.success();
-		} else {
-			opt.error();
-		}
+		if (Ti.App.Properties.hasProperty('auth.me')) {
 
+			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+
+			Event.trigger('auth.success', { id: Me.id });
+			if (_.isFunction(opt.success)) {
+				opt.success({
+					id: Me.id
+				});
+			}
+
+		} else {
+			Event.trigger('auth.error', {});
+			if (_.isFunction(opt.error)) opt.error({});
+		}
 	}
 };
 

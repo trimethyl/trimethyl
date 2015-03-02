@@ -52,6 +52,7 @@ module.exports = function(args) {
 		activityButton: null
 
 	});
+
 	var $this = Ti.UI.createWindow(args);
 
 	$this.opened = false;
@@ -87,7 +88,7 @@ module.exports = function(args) {
 	 * @param {String} url
 	 */
 	$this.setBackgroundCoverImage = function(url) {
-		require('T/uiutil').setBackgroundCoverForView($this, url, $this.width, $this.height);
+		return require('T/uiutil').setBackgroundCoverForView($this, url);
 	};
 
 	if (OS_ANDROID) {
