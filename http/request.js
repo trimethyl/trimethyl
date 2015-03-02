@@ -55,14 +55,12 @@ function HTTPRequest(opt) {
 	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
 }
 
-HTTPRequest.prototype._log = function(message) {
-	if (HTTP.config.log) {
-		Ti.API.debug('HTTP: [ ' + this.method + ' ' + this.url + ' ]', message);
-	}
-};
-
 HTTPRequest.prototype.toString = function() {
 	return this.hash;
+};
+
+HTTPRequest.prototype.getDebugString = function() {
+	return '[' + this.method+' '+this.url+ ']';
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
@@ -70,12 +68,16 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (this.method !== 'GET') return;
 
 	if (this.responseInfo.ttl <= 0) {
-		this._log('uncachable due TTL <= 0');
+		if (HTTP.config.log) {
+			Ti.API.trace('HTTP:', this.getDebugString(), 'uncachable due TTL <= 0');
+		}
 		return;
 	}
 
 	Cache.set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
-	this._log('cached success for ' + this.responseInfo.ttl + 's');
+	if (HTTP.config.log) {
+		Ti.API.debug('HTTP:', this.getDebugString(), 'cached success for ' + this.responseInfo.ttl + 's');
+	}
 };
 
 
@@ -93,7 +95,10 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	var cachedData = Cache.get(this.hash, bypass);
 	if (cachedData == null) return null;
 
-	this._log('cache hit for ' + (cachedData.expire-Util.now()) + 's');
+	if (HTTP.config.log) {
+		Ti.API.trace('HTTP:', this.getDebugString(), 'cache hit for ' + (cachedData.expire-Util.now()) + 's');
+	}
+
 	if (cachedData.info.format === 'blob') {
 		return cachedData.value;
 	} else {
@@ -156,7 +161,7 @@ HTTPRequest.prototype._onError = function(err) {
 
 HTTPRequest.prototype._onSuccess = function() {
 	if (HTTP.config.logResponse) {
-		Ti.API.debug('HTTP: ['+this.hash+']', arguments[0]);
+		Ti.API.debug('HTTP:', this.getDebugString(), arguments[0]);
 	}
 
 	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
@@ -194,7 +199,9 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	if (e.success) {
-		this._log('response success in ' + (this.endTime-this.startTime) + 'ms');
+		if (HTTP.config.log) {
+			Ti.API.debug('HTTP:', this.getDebugString(), 'response success in ' + (this.endTime-this.startTime) + 'ms');
+		}
 		this._maybeCacheResponse(data);
 
 		this.defer.resolve(data);
@@ -273,12 +280,13 @@ HTTPRequest.prototype.resolve = function() {
 
 		if (Ti.Network.online) {
 
-			this._log('sending request...');
+			if (HTTP.config.log) {
+				Ti.API.trace('HTTP:', this.getDebugString(), 'sending request...');
+			}
 			this.send();
 
 		} else {
 
-			this._log('internet is offline');
 			Event.trigger('http.offline');
 
 			this.defer.reject({

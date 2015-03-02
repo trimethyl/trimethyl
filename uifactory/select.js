@@ -321,7 +321,8 @@ module.exports = function(args) {
 
 	$this.updateUI = function() {
 		$this.fireEvent('change', {
-			value: $this.interfaceValue
+			value: $this.interfaceValue,
+			source: $this
 		});
 
 		if ($this.typeString === 'plain') {

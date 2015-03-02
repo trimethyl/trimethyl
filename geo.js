@@ -19,10 +19,17 @@ exports.config = _.extend({
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
-var Event = require('T/event');
 var HTTP = require('T/http');
 var Util = require('T/util');
 
+var Event = require('T/event');
+
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('http.'+name, cb);
+};
 
 function checkForServices() {
 	return Ti.Geolocation.locationServicesEnabled;
@@ -37,6 +44,8 @@ function checkForServices() {
  * @param {Object}	opt
  */
 exports.getCurrentPosition = function(opt) {
+	opt = opt || {};
+
 	if (!exports.isAuthorized()) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
