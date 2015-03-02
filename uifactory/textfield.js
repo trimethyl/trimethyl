@@ -59,10 +59,14 @@ module.exports = function(args) {
 		break;
 
 		case 'password':
+		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
+		args.autocorrect = false;
 		args.passwordMask = true;
 		break;
 
 		case 'passwordEye':
+		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
+		args.autocorrect = false;
 		args.passwordMask = true;
 		break;
 	}
@@ -77,7 +81,7 @@ module.exports = function(args) {
 	// Password Eye
 	if (OS_IOS && args.textType === 'passwordEye') {
 		var eyeButton = Ti.UI.createButton({
-			image: args.passwordEyeImage,
+			image: args.passwordEyeImage || '/images/T/eye.png',
 			height: 40,
 			width: 40,
 			opacity: 0.2,
@@ -96,7 +100,7 @@ module.exports = function(args) {
 	}
 
 
-	if (OS_IOS && args.useDoneToolbar) {
+	if (OS_IOS && args.useDoneToolbar == true) {
 		$this.keyboardToolbar = getDoneToolbar({
 			done: function() {
 				$this.blur();
