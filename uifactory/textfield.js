@@ -80,7 +80,7 @@ module.exports = function(args) {
 
 	// Password Eye
 	if (OS_IOS && args.textType === 'passwordEye') {
-		var eyeButton = Ti.UI.createButton({
+		var $eyeButton = Ti.UI.createButton({
 			image: args.passwordEyeImage || '/images/T/eye.png',
 			height: 40,
 			width: 40,
@@ -88,14 +88,14 @@ module.exports = function(args) {
 			active: false,
 			tintColor: $this.color
 		});
-		$this.setRightButton(eyeButton);
+		$this.setRightButton($eyeButton);
 		$this.setRightButtonPadding(0);
 		$this.setRightButtonMode(Ti.UI.INPUT_BUTTONMODE_ALWAYS);
 
-		eyeButton.addEventListener('click', function(){
-			eyeButton.active = !eyeButton.active;
-			eyeButton.opacity = eyeButton.active ? 1 : 0.2;
-			$this.setPasswordMask(!eyeButton.active);
+		$eyeButton.addEventListener('click', function(){
+			$eyeButton.active = !$eyeButton.active;
+			$eyeButton.opacity = $eyeButton.active ? 1 : 0.2;
+			$this.setPasswordMask(!$eyeButton.active);
 		});
 	}
 

@@ -35,6 +35,15 @@ exports.event = function(name, cb) {
 	Event.on('http.'+name, cb);
 };
 
+/**
+ * @method getUniqueId
+ * @return {String}
+ */
+var __uniqueId = 0;
+exports.getUniqueId = function() {
+	return __uniqueId++;
+};
+
 var headers = _.clone(exports.config.headers);
 
 /**

@@ -91,6 +91,31 @@ module.exports = function(args) {
 		return require('T/uiutil').setBackgroundCoverForView($this, url);
 	};
 
+	/**
+	 * @method fadeIn
+	 * Fade in this window
+	 */
+	$this.fadeIn = function() {
+		$this.opacity = 0;
+		$this.open();
+		$this.animate({
+			opacity: 1,
+			duration: 300
+		});
+	};
+
+	/**
+	 * @method fadeOut
+	 * Fade in this window
+	 */
+	$this.fadeOut = function() {
+		setTimeout(function() { $this.close(); }, 300);
+		$this.animate({
+			opacity: 0,
+			duration: 300
+		});
+	};
+
 	if (OS_ANDROID) {
 
 		/**
