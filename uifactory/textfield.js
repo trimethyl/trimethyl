@@ -42,7 +42,6 @@ module.exports = function(args) {
 		 * @property {Boolean} [useDoneToolbar=false] Add a default toolbar with a *Done* button that simply blur the TextField.
 		 */
 		useDoneToolbar: false,
-
 	});
 
 
@@ -89,7 +88,6 @@ module.exports = function(args) {
 			tintColor: $this.color
 		});
 		$this.setRightButton($eyeButton);
-		$this.setRightButtonPadding(0);
 		$this.setRightButtonMode(Ti.UI.INPUT_BUTTONMODE_ALWAYS);
 
 		$eyeButton.addEventListener('click', function(){

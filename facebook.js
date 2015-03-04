@@ -19,4 +19,8 @@ if (!_.isEmpty(exports.config.permissions)) {
 	Facebook.permissions = exports.config.permissions;
 }
 
+Facebook.getCanPresentShareDialog = Facebook.getCanPresentShareDialog || function() {
+	return true;
+};
+
 module.exports = Facebook;

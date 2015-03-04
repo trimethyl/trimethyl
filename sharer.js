@@ -80,7 +80,7 @@ exports.facebook = function(args) {
 	if (
 		OS_IOS && args.useApp !== true &&
 		(dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
-		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // iOS share dialog doesn't share Facebook links
+		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
 	) {
 		dkNappSocial.facebook({
 			text: args.text,
@@ -91,7 +91,7 @@ exports.facebook = function(args) {
 	}
 
 	// SDK
-	if (FB != null && _.isFunction(FB.share)) {
+	if (FB != null && FB.getCanPresentShareDialog()) {
 		FB.share({
 			url: args.url,
 			title: args.title,
@@ -151,7 +151,7 @@ exports.twitter = function(args) {
  * Share via Mail
  * @param {Object} args
  */
-exports.email = function(args) {
+exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
 
 	var $dialog = Ti.UI.createEmailDialog({
@@ -204,7 +204,10 @@ exports.whatsapp = function(args) {
 	// Native protocol binding
 	if (OS_IOS) {
 		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
-			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
+			require('T/dialog').confirmYes(
+				L('app_not_installed', 'App not installed'),
+				String.format(L('app_install_question', 'You must install %s to proceed.'), 'Whatsapp'),
+			function() {
 				Util.openInStore('310633997');
 			}, L('install_app', 'Install app'));
 		});
