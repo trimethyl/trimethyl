@@ -104,7 +104,7 @@ exports.facebook = function(args) {
 	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
 		app_id: Ti.App.Properties.getString('ti.facebook.appid'),
 		display: 'touch',
-		redirect_uri: Ti.App.url,
+		redirect_uri: args.redirect_uri || Ti.App.url,
 		href: args.url
 	}));
 };
