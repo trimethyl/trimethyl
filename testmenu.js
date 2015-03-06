@@ -56,7 +56,7 @@ exports.show = function() {
 		title: 'Ping API server',
 		callback: function() {
 			T('http').send({
-				url: '',
+				url: HTTP.config.base + '/',
 				errorAlert: false,
 				success: function() {
 					T('dialog').alert('Is up! :)', null);
@@ -68,9 +68,11 @@ exports.show = function() {
 		}
 	});
 	opts.push({
-		title: 'Delete DB cache (~' + T('util').bytesForHumans(T('cache').getSize()) + ')',
+		title: 'Delete DB cache (~' + T('util').bytesForHumans(T('filesystem').getSize(Ti.Filesystem.applicationCacheDirectory)) + ')',
 		callback: function() {
-			T('cache').purge();
+			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).deleteDirectory(true);
+			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
+			T('cache').purge()
 			d.hide();
 		}
 	});

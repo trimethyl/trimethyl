@@ -60,7 +60,7 @@ Ti.App.addEventListener('resumed', function() {
 	exports.launchURL = Util.parseSchema();
 	Ti.API.debug('App: Resumed with schema <' + exports.launchURL + '>');
 
-	if (exports.launchURL !== exports.pauseURL && exports.config.useRouter) {
+	if (exports.config.useRouter) {
 		Router.go(exports.launchURL);
 	}
 });

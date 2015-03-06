@@ -74,7 +74,6 @@ exports.on = function(key, callback) {
 exports.dispatch = function(url) {
 	Ti.API.debug('Router: dispatching <' + url + '>');
 
-	// Parse URL
 	var callbackURL = Util.parseAsXCallbackURL(url);
 	callbackURL.path = callbackURL.path.replace(/\/$/g, '');
 
@@ -84,7 +83,6 @@ exports.dispatch = function(url) {
 			return false;
 		}
 	}
-
 
 	var run = false;
 	var matches = null;
