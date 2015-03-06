@@ -272,3 +272,17 @@ exports.download = function(url, file, success, error, ondatastream) {
 		}
 	});
 };
+
+/**
+ * @method exportCookiesToSystem
+ * Export the HTTP cookies to the system to make them available to `WebViews`
+ * @param  {String} domain The domain. Default is `HTTP.config.base`
+ */
+exports.exportCookiesToSystem = function(domain) {
+	if (!OS_ANDROID) return;
+
+	domain = domain || HTTP.config.base.replace('http://', '');
+	_.each(Ti.Network.getHTTPCookiesForDomain(domain), function(c) {
+		Ti.Network.addSystemCookie(c);
+	});
+};
