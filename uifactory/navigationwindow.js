@@ -6,7 +6,6 @@
  */
 
 function NavigationWindow(args) {
-	this.args = args || {};
 	this.windows = [];
 	this.window = args.window || null;
 }
@@ -62,6 +61,60 @@ NavigationWindow.prototype.openWindow = function(window, opt) {
 NavigationWindow.prototype.closeWindow = function(window) {
 	window.close();
 };
+
+NavigationWindow.prototype.getWindow = function() {
+	return this.window;
+};
+
+_.each([
+	'animate',
+	'addEventListener',
+	'applyProperties',
+	'convertPointToView',
+	'fireEvent',
+	'hide',
+	'remove',
+	'show',
+	'toImage',
+
+	'setBackgroundColor',
+	'setBackgroundImage',
+	'setBackgroundRepeat',
+	'setBorderColor',
+	'setBorderRadius',
+	'setBorderWidth',
+	'setFullscreen',
+	'setHeight',
+	'setHorizontalWrap',
+	'setLayout',
+	'setOpacity',
+	'setOrientationModes',
+	'setTouchEnabled',
+	'setTransform',
+	'setVisible',
+
+	'getBackgroundColor',
+	'getBackgroundImage',
+	'getBackgroundRepeat',
+	'getBorderColor',
+	'getBorderRadius',
+	'getBorderWidth',
+	'getFullscreen',
+	'getHeight',
+	'getHorizontalWrap',
+	'getLayout',
+	'getOpacity',
+	'getOrientationModes',
+	'getTouchEnabled',
+	'getTransform',
+	'getVisible'
+], function(method) {
+	NavigationWindow.prototype[method] = function() {
+		return this.window[method].apply(this.window, arguments);
+	};
+});
+
+// Extension
 
 NavigationWindow.prototype.getWindowsStack = function() {
 	return this.windows;

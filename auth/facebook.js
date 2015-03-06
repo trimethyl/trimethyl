@@ -8,7 +8,13 @@ var _opt = null;
 
 exports.login = function(opt) {
 	_opt = opt;
-	FB.authorize();
+	if (FB.loggedIn && FB.accessToken) {
+		_opt.success({
+			access_token: FB.accessToken
+		});
+	} else {
+		FB.authorize();
+	}
 };
 
 exports.logout = function() {
