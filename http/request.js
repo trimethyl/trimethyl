@@ -310,6 +310,7 @@ HTTPRequest.prototype.resolve = function() {
 HTTPRequest.prototype.abort = function() {
 	if (this.client != null) {
 		this.client.abort();
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> aborted!');
 	}
 };
 

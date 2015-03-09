@@ -204,7 +204,7 @@ module.exports = function(args) {
 		$this.processTitles = function () {
 			$this.setActionBarProperties({
 				title: ($this.title && $this.subtitle) ? $this.title : ($this.subtitle === false ? $this.title : Ti.App.name),
-				subtitle: ($this.title && $this.subtitle) ? $this.subtitle : ($this.subtitle === false ? null : $this.title)
+				subtitle: ($this.title && $this.subtitle) ? $this.subtitle : ($this.subtitle === false ? null : ($this.title || null))
 			});
 		};
 

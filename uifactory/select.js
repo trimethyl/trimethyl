@@ -5,6 +5,40 @@
 
 var Moment = require('T/ext/moment');
 
+function fillPickerData($this, $picker) {
+	if (OS_ANDROID && $picker.columns != null && $picker.columns[0] != null) {
+		_.each($picker.columns[0], function($row) {
+			$picker.columns[0].removeRow($row);
+		});
+	}
+
+	if ($this != null && $this.interfaceValues != null && $this.interfaceValues.length > 0) {
+		$picker.add(_.map($this.interfaceValues, function(o) {
+			return Ti.UI.createPickerRow(o);
+		}));
+
+		$picker.setSelectedRow(0, $this.interfaceIndex || 0, false);
+	}
+}
+
+function onValueSelected($this, $picker) {
+	var e = $picker.cdata || {};
+
+	if ($this.typeString === 'plain') {
+		if (e.row != null) {
+			$this.interfaceValue = e.row.value;
+			$this.interfaceIndex = e.row.index;
+			$this.interfaceTitle = e.row.title;
+		}
+	} else if ($this.typeString === 'date') {
+		$this.interfaceValue = $picker.value;
+	}
+
+	if (OS_IOS) {
+		if (_.isFunction($this.updateUI)) $this.updateUI();
+	}
+}
+
 function createTiUIPicker($this) {
 	var $picker = null;
 
@@ -18,13 +52,7 @@ function createTiUIPicker($this) {
 			$picker = Ti.UI.createPicker($this);
 		}
 
-		// Cycle over values and row
-		$picker.add(_.map($this.interfaceValues, function(o) {
-			return Ti.UI.createPickerRow(o);
-		}));
-
-		// Set current value
-		$picker.setSelectedRow(0, $this.interfaceIndex || 0, false);
+		fillPickerData($this, $picker);
 
 		$picker.addEventListener('change', function(e) {
 			$picker.cdata = e;
@@ -55,25 +83,6 @@ function createTiUIPicker($this) {
 	}
 
 	return $picker;
-}
-
-// When a value change
-function onValueSelected($this, $picker) {
-	var e = $picker.cdata || {};
-
-	if ($this.typeString === 'plain') {
-		if (e.row != null) {
-			$this.interfaceValue = e.row.value;
-			$this.interfaceIndex = e.row.index;
-			$this.interfaceTitle = e.row.title;
-		}
-	} else if ($this.typeString === 'date') {
-		$this.interfaceValue = $picker.value;
-	}
-
-	if (OS_IOS) {
-		if (_.isFunction($this.updateUI)) $this.updateUI();
-	}
 }
 
 // Get the two buttons in the toolbar
@@ -374,6 +383,10 @@ module.exports = function(args) {
 			current: $this.interfaceValue,
 			type: $this.typeString
 		}));
+
+		if (OS_ANDROID) {
+			fillPickerData($this, $this);
+		}
 
 		$this.updateUI();
 	};
