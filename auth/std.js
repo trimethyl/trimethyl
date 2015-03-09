@@ -4,6 +4,10 @@
  */
 
 exports.login = function(opt) {
+	if (opt.data == null) {
+		throw new Error('Auth: set data when calling Auth.login');
+	}
+
 	Ti.App.Properties.setObject('auth.std.data', opt.data);
 	opt.success(opt.data);
 };
