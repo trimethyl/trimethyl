@@ -49,7 +49,7 @@ module.exports = function(args) {
 				width: width,
 				height: Ti.UI.FILL,
 				left: 0,
-				right: 0
+				right: -1
 			});
 
 			$wrap.add(Ti.UI.createButton(lblArgs));
