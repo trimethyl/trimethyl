@@ -44,7 +44,7 @@ For example, the module named `{Module}`, will read the `Alloy.CFG.T.{module}` o
 You can customize the options, editing your **config.json** file:
 
 ```javascript
-{ 
+{
 	"T":{
 		"module": {
 			...
