@@ -251,9 +251,8 @@ exports.message = exports.sms = function(args) {
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {
 		var recipients = null;
-		if (args.recipients != null) {
-			recipients = _.isArray(args.recipients) ? args.recipients : [ args.recipients ];
-		}
+		if (args.recipients != null) recipients = _.isArray(args.recipients) ? args.recipients : [ args.recipients ];
+
 		var $dialog = benCodingSMS.createSMSDialog({
 			toRecipients: recipients,
 			messageBody: args.fullText
@@ -271,14 +270,14 @@ exports.message = exports.sms = function(args) {
 
 	// Android Native
 	if (OS_ANDROID) {
-		var intent = Ti.Android.createIntent({
-			action: Ti.Android.ACTION_VIEW,
-			type: 'vnd.android-dir/mms-sms',
-		});
-		intent.putExtra('sms_body', args.fullText);
-		Ti.Android.currentActivity.startActivity(intent, L('share', 'Share'));
+		var url = 'sms:';
+		if (args.recipients != null) url += _.isArray(args.recipients) ? args.recipients[0] : args.recipients;
 
-		return true;
+		url += Util.buildQuery({
+			body: args.fullText
+		});
+
+		return Ti.Platform.openURL(url);
 	}
 };
 
