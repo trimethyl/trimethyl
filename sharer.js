@@ -5,6 +5,7 @@
 
 
 var Util = require('T/util');
+var x = 1;
 
 var globalCallback = null; // Handle all callbacks
 
@@ -100,6 +101,21 @@ exports.facebook = function(args) {
 		return true;
 	}
 
+	// Android Native intent
+	if (OS_ANDROID) {
+		try {
+			var intent = Ti.Android.createIntent({
+				action: Ti.Android.ACTION_SEND,
+				packageName: 'com.facebook.katana',
+				type: 'text/plain'
+			});
+			intent.putExtra(Ti.Android.EXTRA_TEXT, args.url);
+			Ti.Android.currentActivity.startActivity(intent);
+
+			return true;
+		} catch (err) {}
+	}
+
 	// Fallback
 	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
 		app_id: Ti.App.Properties.getString('ti.facebook.appid'),
@@ -159,6 +175,7 @@ exports.email = exports.mail = function(args) {
 	var $dialog = Ti.UI.createEmailDialog({
 		subject: args.subject || args.title,
 		messageBody: args.fullText,
+		toRecipients: args.mailTo || []
 	});
 
 	if (args.imageBlob != null) {
@@ -182,38 +199,6 @@ exports.email = exports.mail = function(args) {
 	$dialog.open();
 };
 
-/**
- * @method email
- * Share to a list of recipients via Mail
- * @param {Object} args
- */
-exports.emailTo = exports.mailTo = function(args) {
-	args = parseArgs(args);
-
-	var $dialog = Ti.UI.createEmailDialog({
-		subject: args.subject || args.title,
-		messageBody: args.fullText,
-		toRecipients: args.to || []
-	});
-
-	if (args.imageBlob != null) $dialog.addAttachment(args.imageBlob);
-
-	$dialog.addEventListener('complete', function(e) {
-		if (e.result !== this.CANCELLED) {
-			onSocialComplete({
-				success: (e.result === this.SENT),
-				platform: 'email'
-			});
-		} else {
-			onSocialCancel({
-				success: false,
-				platform: 'email'
-			});
-		}
-	});
-
-	$dialog.open();
-};
 
 /**
  * @method googleplus
@@ -261,13 +246,13 @@ exports.whatsapp = function(args) {
 			});
 			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
 			Ti.Android.currentActivity.startActivity(intent, L('share', 'Share'));
+
+			return true;
 		} catch (err) {
 			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
 				Util.openInStore('com.whatsapp');
 			}, L('install_app', 'Install app'));
 		}
-
-		return true;
 	}
 };
 
@@ -356,7 +341,7 @@ Init
 
 // Load modules
 
-var FB = Util.requireOrNull('T/facebook');
+var FB = require('T/fb');
 
 if (OS_IOS) {
 

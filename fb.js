@@ -20,7 +20,11 @@ if (!_.isEmpty(exports.config.permissions)) {
 }
 
 Facebook.getCanPresentShareDialog = Facebook.getCanPresentShareDialog || function() {
-	return true;
+	return false;
+};
+
+Facebook.share = Facebook.share || function() {
+	return false;
 };
 
 module.exports = Facebook;
