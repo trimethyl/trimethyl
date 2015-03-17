@@ -122,9 +122,17 @@ exports.setBackgroundCoverForView = function($this, url) {
 			});
 
 		} else {
+
+			if (OS_ANDROID) url = url.replace(/^\//, '');
 			var origFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
+
 			if (origFile.exists()) {
-				onBlobReady(origFile.read());
+				var blob = origFile.read();
+				if (blob != null) {
+					onBlobReady(blob);
+				} else {
+					Ti.API.error('UIFactory.View: File <' + url + '> exists but is unreadable');
+				}
 			} else {
 				Ti.API.error('UIFactory.View: File <' + url + '> doesn\'t exists');
 			}

@@ -124,7 +124,7 @@ exports.twitter = function(args) {
 		(dkNappSocial != null && dkNappSocial.isTwitterSupported())
 	) {
 		dkNappSocial.twitter({
-			text: args.text,
+			text: args.tweetText || args.text,
 			image: args.image,
 			url: args.url
 		});
@@ -132,7 +132,9 @@ exports.twitter = function(args) {
 	}
 
 	// iOS Native
-	var nativeIOSURL = 'twitter://post' + Util.buildQuery({ message: args.fullText });
+	var nativeIOSURL = 'twitter://post' + Util.buildQuery({
+		message: args.tweetText + (args.url ? ' ('+args.url+')' : '')
+	});
 	if (OS_IOS && Ti.Platform.canOpenURL(nativeIOSURL)) {
 		Ti.Platform.openURL(nativeIOSURL);
 		return true;
@@ -159,7 +161,9 @@ exports.email = exports.mail = function(args) {
 		messageBody: args.fullText,
 	});
 
-	if (args.imageBlob != null) $dialog.addAttachment(args.imageBlob);
+	if (args.imageBlob != null) {
+		$dialog.addAttachment(args.imageBlob);
+	}
 
 	$dialog.addEventListener('complete', function(e) {
 		if (e.result !== this.CANCELLED) {
@@ -273,7 +277,7 @@ exports.whatsapp = function(args) {
  * Share via Messages
  * @param {Object} args
  */
-exports.message = function(args) {
+exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
 
 	// iOS Native modal
@@ -309,7 +313,6 @@ exports.message = function(args) {
 		return true;
 	}
 };
-exports.sms = exports.message;
 
 
 /**

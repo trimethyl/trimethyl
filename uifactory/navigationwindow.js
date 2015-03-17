@@ -10,14 +10,6 @@ function NavigationWindow(args) {
 	this.window = args.window || null;
 }
 
-function __onWindowClose(nav, e) {
-	var window = e.source;
-	if (_.isNumber(window.navigationIndex)) {
-		nav.windows.splice(window.navigationWindow, 1);
-		nav.window = _.last(nav.windows);
-	}
-}
-
 NavigationWindow.prototype.open = function(opt) {
 	if (this.window == null) {
 		Ti.API.error('UIFactory.NavigationWindow: no window defined in NavigationWindow');
@@ -48,7 +40,10 @@ NavigationWindow.prototype.openWindow = function(window, opt) {
 	opt = opt || {};
 
 	window.navigationIndex = this.windows.length;
-	window.__onClose = function(e) { __onWindowClose(self, e); };
+	window.__onClose = function() {
+		self.windows.splice(window.navigationIndex, 1);
+		self.window = _.last(self.windows);
+	};
 	window.addEventListener('close', window.__onClose);
 
 	this.windows.push(window);
