@@ -178,6 +178,38 @@ exports.email = exports.mail = function(args) {
 	$dialog.open();
 };
 
+/**
+ * @method email
+ * Share to a list of recipients via Mail
+ * @param {Object} args
+ */
+exports.emailTo = exports.mailTo = function(args) {
+	args = parseArgs(args);
+
+	var $dialog = Ti.UI.createEmailDialog({
+		subject: args.subject || args.title,
+		messageBody: args.fullText,
+		toRecipients: args.to || []
+	});
+
+	if (args.imageBlob != null) $dialog.addAttachment(args.imageBlob);
+
+	$dialog.addEventListener('complete', function(e) {
+		if (e.result !== this.CANCELLED) {
+			onSocialComplete({
+				success: (e.result === this.SENT),
+				platform: 'email'
+			});
+		} else {
+			onSocialCancel({
+				success: false,
+				platform: 'email'
+			});
+		}
+	});
+
+	$dialog.open();
+};
 
 /**
  * @method googleplus
