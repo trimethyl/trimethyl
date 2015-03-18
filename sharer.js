@@ -5,8 +5,6 @@
 
 
 var Util = require('T/util');
-var x = 1;
-
 var globalCallback = null; // Handle all callbacks
 
 function onSocialComplete(e) {
