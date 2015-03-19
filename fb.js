@@ -16,7 +16,7 @@ var Facebook = Util.requireOrNull('com.facebook') || Util.requireOrNull('faceboo
 
 Facebook.appid = Facebook.appid || Ti.App.Properties.getString('ti.facebook.appid');
 if (!_.isEmpty(exports.config.permissions)) {
-	Facebook.permissions = exports.config.permissions;
+	Facebook.setPermissions(exports.config.permissions);
 }
 
 Facebook.getCanPresentShareDialog = Facebook.getCanPresentShareDialog || function() {
