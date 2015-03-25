@@ -167,12 +167,12 @@ exports.autoMapModel = function(single, plural) {
 	plural = plural || single+'s';
 
 	exports.on('/' + plural, function() {
-		require('T/flow').open(plural);
+		require('T/flow').open(plural, {}, {}, this.source);
 	});
 
 	exports.on(new RegExp('/' + plural + '/([0-9]+)'), function(id) {
 		require('T/flow').open(single, {
 			id: id
-		});
+		}, {}, this.source);
 	});
 };
