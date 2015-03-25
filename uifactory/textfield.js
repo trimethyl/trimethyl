@@ -114,6 +114,7 @@ module.exports = function(args) {
 		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
 		$this.addEventListener('touchstart',  function() {
 			$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_SHOW_ON_FOCUS);
+			$this.setKeyboardType(args.keyboardType || Ti.UI.KEYBOARD_DEFAULT);
 		});
 	}
 
