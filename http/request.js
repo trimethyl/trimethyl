@@ -319,7 +319,7 @@ HTTPRequest.prototype.abort = function() {
  * @method success
  * Promises, man!
  */
-HTTPRequest.prototype.success = function(func) {
+HTTPRequest.prototype.success = HTTPRequest.prototype.then = function(func) {
 	this.defer.promise.then(func);
 	return this;
 };
@@ -328,7 +328,7 @@ HTTPRequest.prototype.success = function(func) {
  * @method error
  * Promises, man!
  */
-HTTPRequest.prototype.error = function(func) {
+HTTPRequest.prototype.error = HTTPRequest.prototype.fail = function(func) {
 	this.defer.promise.fail(func);
 	return this;
 };
@@ -337,7 +337,7 @@ HTTPRequest.prototype.error = function(func) {
  * @method error
  * Promises, man!
  */
-HTTPRequest.prototype.complete = function(func) {
+HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = function(func) {
 	this.defer.promise.fin(func);
 	return this;
 };

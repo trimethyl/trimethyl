@@ -119,7 +119,7 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 /**
  * @method openInStore
  * Open the iTunes Store or Google Play Store of specified appid
- * @param {String} appid Application ID
+ * @property appid The appid
  */
 exports.openInStore = function(appid) {
 	if (OS_IOS) {

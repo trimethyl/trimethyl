@@ -7,29 +7,54 @@
  *
  */
 
+function getDoneToolbar(opt) {
+	var $doneBtn = Ti.UI.createButton({
+		title: L('done', 'Done'),
+		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+	});
+	$doneBtn.addEventListener('click', opt.done);
+
+	return Ti.UI.iOS.createToolbar({
+		borderTop: true,
+		borderBottom: true,
+		items:[
+			Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+			$doneBtn
+		]
+	});
+}
+
+function onTextAreaFocus(e) {
+	if (_.isEmpty(e.source.getRealValue())) {
+		e.source.applyProperties({
+			value: '',
+			color: e.source.realColor
+		});
+	}
+}
+
+function onTextAreaBlur(e) {
+	if (_.isEmpty(e.source.value)) {
+		e.source.applyProperties({
+			value: e.source.hintText,
+			color: e.source.hintTextColor || '#AAA'
+		});
+	} else {
+		e.source.color = e.source.realColor;
+	}
+}
+
 module.exports = function(args) {
-	args = args || {};
+	_.defaults(args, {
+
+		/**
+		 * @property {Boolean} [useDoneToolbar=false] Add a default toolbar with a *Done* button that simply blur the TextField.
+		 */
+		useDoneToolbar: false,
+
+	});
+
 	var $this = Ti.UI.createTextArea(args);
-
-	function onTextAreaFocus() {
-		if (_.isEmpty($this.getRealValue())) {
-			$this.applyProperties({
-				value: '',
-				color: $this.color || '#000'
-			});
-		}
-	}
-
-	function onTextAreaBlur() {
-		if (_.isEmpty($this.value)) {
-			$this.applyProperties({
-				value: $this.hintText,
-				color: $this.hintTextColor || '#AAA'
-			});
-		} else {
-			$this.color = $this.color || '#000';
-		}
-	}
 
 	if (OS_IOS) {
 
@@ -41,6 +66,15 @@ module.exports = function(args) {
 		$this.getRealValue = function(){
 			if ($this.hintText === $this.value) return '';
 			return $this.value;
+		};
+
+		/**
+		 * @method setRealValue
+		 * Set the real value when using hintText hack
+		 */
+		$this.setRealValue = function(v){
+			$this.value = v;
+			$this.color = $this.realColor;
 		};
 
 		$this.getHintText = function() {
@@ -60,15 +94,29 @@ module.exports = function(args) {
 	}
 
 
-	 //////////////////////
+	//////////////////////
  	// Parse arguments //
-	 //////////////////////
+	//////////////////////
+
+	if (OS_IOS && args.useDoneToolbar == true) {
+		$this.keyboardToolbar = getDoneToolbar({
+			done: function() {
+				$this.blur();
+			},
+			cancel: function() {
+				$this.blur();
+			}
+		});
+	}
 
  	if (OS_IOS && args.hintText != null) {
- 		$this.setHintText(args.hintText);
+ 		$this.realColor = args.color || '#000';
+ 		$this.hintText = args.hintText;
+
  		$this.addEventListener('focus', onTextAreaFocus);
  		$this.addEventListener('blur', onTextAreaBlur);
- 		onTextAreaBlur();
+
+ 		onTextAreaBlur({ source: $this });
  	}
 
  	// Remove autofocus

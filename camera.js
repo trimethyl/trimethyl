@@ -54,7 +54,7 @@ exports.choosePhoto = function(opt, callback) {
  * @param  {Function} callback  	Success callback
  */
 exports.selectPhoto = function(opt, callback){
-	require('T/dialog').option('', [
+	require('T/dialog').option(L('select_photo_source'), [
 	{
 		title: L('take_photo', 'Take photo'),
 		callback: function(){ exports.takePhoto(opt, callback); }
@@ -62,6 +62,10 @@ exports.selectPhoto = function(opt, callback){
 	{
 		title: L('choose_existing_photo', 'Choose existing photo'),
 		callback: function(){ exports.choosePhoto(opt, callback); }
+	},
+	{
+		title: L('cancel'),
+		cancel: true
 	}
 	]);
 };

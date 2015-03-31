@@ -3,6 +3,14 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/**
+ * @property config
+ * @property {String} config.trackWithGA	Track sharing automatically with GA
+ */
+exports.config = _.extend({
+	trackWithGA: true,
+}, Alloy.CFG.T ? Alloy.CFG.T.sharer : {});
+
 
 var Util = require('T/util');
 var globalCallback = null; // Handle all callbacks
@@ -74,6 +82,9 @@ function parseArgs(args) {
  */
 exports.facebook = function(args) {
 	args = parseArgs(args);
+	if (exports.config.trackWithGA) {
+		T('ga').social('facebook', args.url);
+	}
 
 	// Native iOS dialog
 	if (
@@ -131,6 +142,9 @@ exports.facebook = function(args) {
  */
 exports.twitter = function(args) {
 	args = parseArgs(args);
+	if (exports.config.trackWithGA) {
+		T('ga').social('twitter', args.url);
+	}
 
 	// Native iOS Dialog
 	if (
@@ -169,6 +183,9 @@ exports.twitter = function(args) {
  */
 exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
+	if (exports.config.trackWithGA) {
+		T('ga').social('email', args.url);
+	}
 
 	var $dialog = Ti.UI.createEmailDialog({
 		subject: args.subject || args.title,
@@ -205,6 +222,9 @@ exports.email = exports.mail = function(args) {
  */
 exports.googleplus = function(args) {
 	args = parseArgs(args);
+	if (exports.config.trackWithGA) {
+		T('ga').social('googleplus', args.url);
+	}
 
 	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
 		url: args.url
@@ -219,6 +239,9 @@ exports.googleplus = function(args) {
  */
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
+	if (exports.config.trackWithGA) {
+		T('ga').social('whatsapp', args.url);
+	}
 
 	// Native protocol binding
 	if (OS_IOS) {
@@ -262,6 +285,9 @@ exports.whatsapp = function(args) {
  */
 exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
+	if (exports.config.trackWithGA) {
+		T('ga').social('message', args.url);
+	}
 
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {

@@ -110,6 +110,7 @@ module.exports = function(args) {
 	}
 
 	// Remove autofocus
+
 	if (OS_ANDROID) {
 		$this.setSoftKeyboardOnFocus(Ti.UI.Android.SOFT_KEYBOARD_HIDE_ON_FOCUS);
 		$this.addEventListener('touchstart',  function() {

@@ -46,17 +46,25 @@ function checkForServices() {
 exports.getCurrentPosition = function(opt) {
 	opt = opt || {};
 
-	if (!exports.isAuthorized()) {
+	if (exports.isAuthorized() === false) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
-		return;
+		if (opt.silent !== false) {
+			Event.trigger('geo.disabled');
+		}
+
+		return false;
 	}
 
-	if (opt.silent !== false) Event.trigger('geo.start');
+	if (opt.silent !== false) {
+		Event.trigger('geo.start');
+	}
 
 	Ti.Geolocation.getCurrentPosition(function(e) {
 		if (_.isFunction(opt.complete)) opt.complete();
-		if (opt.silent !== false) Event.trigger('geo.end');
+		if (opt.silent !== false) {
+			Event.trigger('geo.end');
+		}
 
 		if (e.success === true && e.coords != null) {
 			if (_.isFunction(opt.success)) opt.success(e.coords);
@@ -151,7 +159,6 @@ exports.reverseGeocode = function(opt) {
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
-			noCache: true,
 			data: {
 				latlng: opt.lat + ',' + opt.lng,
 				sensor: 'false'
@@ -259,18 +266,18 @@ exports.markerCluster = function(e, markers, keys){
 	}
 
 	function createCObjFunction(m) {
-		var tmpLat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
-		var tmpLng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
+		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
 		c[m.id] = { latitude: tmpLat, longitude: tmpLng };
 	}
 
 
 	// Start clustering
 
-	if (isBackbone === true) {
-		markers.map(exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
+	if (isBackbone) {
+		markers.map(exports.config.clusterRemoveOutOfBB ? removeOutOfBBFunction : createCObjFunction);
 	} else {
-		_.each(markers, exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
+		_.each(markers, exports.config.clusterRemoveOutOfBB  ? removeOutOfBBFunction : createCObjFunction);
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
@@ -302,20 +309,17 @@ exports.markerCluster = function(e, markers, keys){
 
 
 	// Set all annotations
-	var data = [];
-	_.each(c, function(a, id){
+	return _.map(c, function(a, id){
 		if (a.count > 1) {
-			data.push({
+			return {
 				latitude: parseFloat(c[id].latitude.toFixed(2)),
 				longitude: parseFloat(c[id].longitude.toFixed(2)),
 				count: c[id].count
-			});
+			};
 		} else {
-			data.push(+id);
+			return +id;
 		}
 	});
-
-	return data;
 };
 
 
@@ -394,16 +398,7 @@ exports.getRegionBounds = function(array, mulGap) {
  * @return {Boolean}
  */
 exports.isAuthorized = function() {
-	if (Ti.Geolocation.locationServicesEnabled) {
-		if (OS_ANDROID) {
-			return true;
-		} else if (OS_IOS) {
-			return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_AUTHORIZED;
-		} else {
-			return false;
-		}
-	}
-	return false;
+	return Ti.Geolocation.locationServicesEnabled;
 };
 
 /**
@@ -413,10 +408,7 @@ exports.isAuthorized = function() {
  * @return {Boolean}
  */
 exports.isDenied = function() {
-	if (OS_IOS) {
-		return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_DENIED;
-	}
-	return false;
+	return !Ti.Geolocation.locationServicesEnabled;
 };
 
 

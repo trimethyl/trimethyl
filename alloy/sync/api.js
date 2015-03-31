@@ -66,10 +66,10 @@ exports.sync = function(method, model, opt) {
 			if (resp != null) {
 				if (model instanceof Backbone.Collection) {
 
-					if (_.isObject(resp)){
-						opt.success(resp.data || resp.results || resp.result);
-					} else if (_.isArray(resp)) {
+					if (_.isArray(resp)) {
 						opt.success(resp);
+					} else if (_.isObject(resp)){
+						opt.success(resp.data || resp.results || resp.result);
 					} else {
 						opt.error();
 					}
