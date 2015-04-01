@@ -369,10 +369,10 @@ var FB = require('T/fb');
 
 if (OS_IOS) {
 
-	var dkNappSocial = Util.requireOrNull('dk.napp.social');
 	var benCodingSMS = Util.requireOrNull('bencoding.sms');
 
-	if (benCodingSMS != null) {
+	var dkNappSocial = Util.requireOrNull('dk.napp.social');
+	if (dkNappSocial != null) {
 		dkNappSocial.addEventListener('complete', onSocialComplete);
 		dkNappSocial.addEventListener('cancelled', onSocialCancel);
 	}
