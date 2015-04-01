@@ -19,6 +19,7 @@ exports.config = _.extend({
 var Event = require('T/event');
 var Util = require('T/util');
 var Router = require('T/router');
+var Q = require('T/ext/q');
 
 var wasInBackground = false;
 
@@ -162,6 +163,8 @@ if (OS_IOS) {
  * @param {Object} data 		Additional data
  */
 exports.subscribe = function(channel, data) {
+	var defer = Q.defer();
+
 	subscribeFunction(function(deviceToken) {
 		Ti.App.Properties.setString('notifications.token', deviceToken);
 
@@ -172,13 +175,19 @@ exports.subscribe = function(channel, data) {
 			success: function(response) {
 				Event.trigger('notifications.subscription.success', { channel: channel });
 				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded', response);
+
+				defer.resolve(response);
 			},
 			error: function(err) {
 				Event.trigger('notifications.subscription.error', err);
 				Ti.API.error('Notifications: Subscription failed to channel <' + channel + '>', err);
+
+				defer.reject(err);
 			}
 		});
 	});
+
+	return defer.promise;
 };
 
 
@@ -189,10 +198,15 @@ exports.subscribe = function(channel, data) {
  * @param {Object} data 		Additional data
  */
 exports.unsubscribe = function(channel, data) {
+	var defer = Q.defer();
+
 	var deviceToken = Ti.App.Properties.getString('notifications.token');
 	if (_.isEmpty(deviceToken)) {
 		Ti.API.error('Notifications: Error while getting deviceToken');
-		return;
+		defer.reject({
+			missingToken: true
+		});
+		return defer.promise;
 	}
 
 	Ti.App.Properties.removeProperty('notifications.token');
@@ -203,12 +217,18 @@ exports.unsubscribe = function(channel, data) {
 		success: function(response) {
 			Event.trigger('notifications.unsubscription.error', { channel: channel });
 			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded', response);
+
+			defer.resolve(response);
 		},
 		error: function(err) {
 			Event.trigger('notifications.unsubscription.error', err);
 			Ti.API.error('Notifications: Unsubscription failed to channel <' + channel + '>', err);
+
+			defer.reject(err);
 		}
 	});
+
+	return defer.promise;
 };
 
 
