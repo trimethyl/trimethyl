@@ -23,10 +23,21 @@ var Q = require('T/ext/q');
 
 var wasInBackground = false;
 
-// Driver loader
 function load(name) {
 	return require('T/notifications/'+name);
 }
+
+/**
+ * @method loadDriver
+ */
+exports.loadDriver = load;
+
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('notifications.' + name, cb);
+};
 
 function onNotificationReceived(e) {
 	e = e || {};
@@ -200,16 +211,16 @@ exports.subscribe = function(channel, data) {
 exports.unsubscribe = function(channel, data) {
 	var defer = Q.defer();
 
-	var deviceToken = Ti.App.Properties.getString('notifications.token');
+	var deviceToken = exports.getStoredDeviceToken();
 	if (_.isEmpty(deviceToken)) {
 		Ti.API.error('Notifications: Error while getting deviceToken');
 		defer.reject({
 			missingToken: true
 		});
+
 		return defer.promise;
 	}
 
-	Ti.App.Properties.removeProperty('notifications.token');
 	load(exports.config.driver).unsubscribe({
 		deviceToken: deviceToken,
 		channel: channel,
@@ -273,6 +284,14 @@ exports.resetBadge = function() {
  */
 exports.incBadge = function(i) {
 	exports.setBadge(exports.getBadge() + i);
+};
+
+/**
+ * @method getStoredDeviceToken
+ * @return {String}
+ */
+exports.getStoredDeviceToken = function() {
+	return Ti.App.Properties.getString('notifications.token');
 };
 
 
