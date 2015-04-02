@@ -56,7 +56,7 @@ exports.move = function(src, dest, ow) {
 	}
 
 	var destFile = Ti.Filesystem.getFile(dest);
-	if (ow == true && destFile.exists()) {
+	if (ow === true && destFile.exists()) {
 		destFile.deleteFile();
 	}
 
