@@ -140,3 +140,30 @@ exports.setBackgroundCoverForView = function($this, url) {
 	}
 
 };
+
+/**
+ * @method  buildKeyboardToolbar
+ * @return {Ti.UI.iOS.Toolbar}
+ */
+exports.buildKeyboardToolbar = function(opt) {
+	var $doneBtn = Ti.UI.createButton({
+		title: L('done', 'Done'),
+		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+	});
+	$doneBtn.addEventListener('click', opt.done);
+
+	var $cancelBtn = Ti.UI.createButton({
+		title: L('cancel', 'Cancel'),
+	});
+	$cancelBtn.addEventListener('click', opt.cancel);
+
+	return Ti.UI.iOS.createToolbar({
+		borderTop: true,
+		borderBottom: true,
+		items:[
+		$cancelBtn,
+		Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+		$doneBtn
+		]
+	});
+};

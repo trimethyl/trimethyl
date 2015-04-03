@@ -6,23 +6,6 @@
  *
  */
 
-function getDoneToolbar(opt) {
-	var $doneBtn = Ti.UI.createButton({
-		title: L('done', 'Done'),
-		style: Ti.UI.iPhone.SystemButtonStyle.DONE
-	});
-	$doneBtn.addEventListener('click', opt.done);
-
-	return Ti.UI.iOS.createToolbar({
-		borderTop: true,
-		borderBottom: true,
-		items:[
-			Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
-			$doneBtn
-		]
-	});
-}
-
 module.exports = function(args) {
 	_.defaults(args, {
 
@@ -99,11 +82,13 @@ module.exports = function(args) {
 
 
 	if (OS_IOS && args.useDoneToolbar === true) {
-		$this.keyboardToolbar = getDoneToolbar({
+		$this.keyboardToolbar = require('T/uiutil').buildKeyboardToolbar({
 			done: function() {
+				$this.fireEvent('toolbar.done');
 				$this.blur();
 			},
 			cancel: function() {
+				$this.fireEvent('toolbar.cancel');
 				$this.blur();
 			}
 		});

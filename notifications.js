@@ -223,13 +223,13 @@ exports.subscribe = function(channel, data) {
 			data: data,
 			success: function(response) {
 				Event.trigger('notifications.subscription.success', { channel: channel });
-				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded', response);
+				Ti.API.debug('Notifications: Subscription to channel <' + (channel || 'default') + '> succeded', response);
 
 				defer.resolve(response);
 			},
 			error: function(err) {
 				Event.trigger('notifications.subscription.error', err);
-				Ti.API.error('Notifications: Subscription failed to channel <' + channel + '>', err);
+				Ti.API.error('Notifications: Subscription failed to channel <' + (channel || 'default') + '>', err);
 
 				defer.reject(err);
 			}
@@ -266,13 +266,13 @@ exports.unsubscribe = function(channel, data) {
 		data: data,
 		success: function(response) {
 			Event.trigger('notifications.unsubscription.error', { channel: channel });
-			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded', response);
+			Ti.API.debug('Notifications: Unsubscription to channel <' + (channel || 'default') + '> succeded', response);
 
 			defer.resolve(response);
 		},
 		error: function(err) {
 			Event.trigger('notifications.unsubscription.error', err);
-			Ti.API.error('Notifications: Unsubscription failed to channel <' + channel + '>', err);
+			Ti.API.error('Notifications: Unsubscription failed to channel <' + (channel || 'default') + '>', err);
 
 			defer.reject(err);
 		}
