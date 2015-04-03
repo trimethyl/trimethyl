@@ -19,13 +19,25 @@ exports.config = _.extend({
 var Event = require('T/event');
 var Util = require('T/util');
 var Router = require('T/router');
+var Q = require('T/ext/q');
 
 var wasInBackground = false;
 
-// Driver loader
 function load(name) {
 	return require('T/notifications/'+name);
 }
+
+/**
+ * @method loadDriver
+ */
+exports.loadDriver = load;
+
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('notifications.' + name, cb);
+};
 
 function onNotificationReceived(e) {
 	e = e || {};
@@ -71,12 +83,16 @@ exports.event = function(name, cb) {
 	Event.on('notifications.'+name, cb);
 };
 
-var subscribeFunction = null;
-var unsubscribeFunction = null;
 
+/**
+ * @method activate
+ * @param  {Function} callback Callback invoked when success occur
+ */
 if (OS_IOS) {
 
-	subscribeFunction = function(callback) {
+	exports.activate = function() {
+		var defer = Q.defer();
+
 		if (Util.getIOSVersion() >= 8) {
 
 			var tmpSubscribe = function() {
@@ -85,39 +101,53 @@ if (OS_IOS) {
 					callback: onNotificationReceived,
 					success: function(e) {
 						Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
-						callback(e.deviceToken);
+
+						defer.resolve(e.deviceToken);
+						Event.trigger('notifications.activation.success');
 					},
 					error: function(err) {
 						Ti.API.error('Notifications: Retrieve device token failed', err);
-						Event.trigger('notifications.subscription.error', err);
+
+						defer.reject(err);
+						Event.trigger('notifications.activation.error', err);
 					}
 				});
 			};
 
 			Ti.App.iOS.addEventListener('usernotificationsettings',  tmpSubscribe);
 			Ti.App.iOS.registerUserNotificationSettings({
-				types: [ Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT, Ti.App.iOS.USER_NOTIFICATION_TYPE_SOUND, Ti.App.iOS.USER_NOTIFICATION_TYPE_BADGE ]
+				types: [
+					Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT,
+					Ti.App.iOS.USER_NOTIFICATION_TYPE_SOUND,
+					Ti.App.iOS.USER_NOTIFICATION_TYPE_BADGE
+				]
 			});
 
 		} else {
 
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
-				types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ],
+				types: [
+					Ti.Network.NOTIFICATION_TYPE_BADGE,
+					Ti.Network.NOTIFICATION_TYPE_ALERT,
+					Ti.Network.NOTIFICATION_TYPE_SOUND
+				],
 				success: function(e) {
 					Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
-					callback(e.deviceToken);
+
+					defer.resolve(e.deviceToken);
+					Event.trigger('notifications.activation.success');
 				},
 				error: function(err) {
 					Ti.API.error('Notifications: Retrieve device token failed', err);
-					Event.trigger('notifications.subscription.error', err);
+
+					defer.reject(err);
+					Event.trigger('notifications.activation.error', err);
 				},
 			});
 		}
-	};
 
-	unsubscribeFunction = function(){
-		Ti.Network.unregisterForPushNotifications();
+		return defer.promise;
 	};
 
 } else if (OS_ANDROID) {
@@ -128,7 +158,9 @@ if (OS_IOS) {
 	CloudPush.showTrayNotification = true;
 	CloudPush.showTrayNotificationsWhenFocused = false;
 
-	subscribeFunction = function(callback) {
+	exports.activate = function() {
+		var defer = Q.defer();
+
 		// add a series of callback on the same functions, and set values inset
 		CloudPush.addEventListener('callback', onNotificationReceived);
 		CloudPush.addEventListener('trayClickLaunchedApp', onNotificationReceived);
@@ -137,23 +169,39 @@ if (OS_IOS) {
 		CloudPush.retrieveDeviceToken({
 			success: function(e) {
 				Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
-				callback(e.deviceToken);
+
+				defer.resolve(e.deviceToken);
+				Event.trigger('notifications.activation.success');
 			},
-			error: function(e) {
-				Ti.API.error('Notifications: Retrieve device token failed', e);
-				Event.trigger('notifications.subscription.error', e);
+			error: function(err) {
+				Ti.API.error('Notifications: Retrieve device token failed', err);
+
+				defer.reject(err);
+				Event.trigger('notifications.activation.error', err);
 			}
 		});
-	};
 
-	unsubscribeFunction = function(){
-		CloudPush.removeEventListener('callback', onNotificationReceived);
-		CloudPush.removeEventListener('trayClickLaunchedApp', onNotificationReceived);
-		CloudPush.removeEventListener('trayClickFocusedApp', onNotificationReceived);
+		return defer.promise;
 	};
 
 }
 
+
+/**
+ * @method deactivate
+ * Deactivate completely the notifications
+ */
+exports.deactivate = function() {
+	Ti.App.Properties.removeProperty('notifications.token');
+
+	if (OS_IOS) {
+		Ti.Network.unregisterForPushNotifications();
+	} else {
+		CloudPush.removeEventListener('callback', onNotificationReceived);
+		CloudPush.removeEventListener('trayClickLaunchedApp', onNotificationReceived);
+		CloudPush.removeEventListener('trayClickFocusedApp', onNotificationReceived);
+	}
+};
 
 /**
  * @method subscribe
@@ -162,7 +210,11 @@ if (OS_IOS) {
  * @param {Object} data 		Additional data
  */
 exports.subscribe = function(channel, data) {
-	subscribeFunction(function(deviceToken) {
+	var defer = Q.defer();
+
+	exports.activate()
+	.fail(defer.reject)
+	.then(function(deviceToken) {
 		Ti.App.Properties.setString('notifications.token', deviceToken);
 
 		load(exports.config.driver).subscribe({
@@ -172,13 +224,20 @@ exports.subscribe = function(channel, data) {
 			success: function(response) {
 				Event.trigger('notifications.subscription.success', { channel: channel });
 				Ti.API.debug('Notifications: Subscription to channel <' + channel + '> succeded', response);
+
+				defer.resolve(response);
 			},
 			error: function(err) {
 				Event.trigger('notifications.subscription.error', err);
 				Ti.API.error('Notifications: Subscription failed to channel <' + channel + '>', err);
+
+				defer.reject(err);
 			}
 		});
+
 	});
+
+	return defer.promise;
 };
 
 
@@ -189,13 +248,18 @@ exports.subscribe = function(channel, data) {
  * @param {Object} data 		Additional data
  */
 exports.unsubscribe = function(channel, data) {
-	var deviceToken = Ti.App.Properties.getString('notifications.token');
+	var defer = Q.defer();
+
+	var deviceToken = exports.getStoredDeviceToken();
 	if (_.isEmpty(deviceToken)) {
 		Ti.API.error('Notifications: Error while getting deviceToken');
-		return;
+		defer.reject({
+			missingToken: true
+		});
+
+		return defer.promise;
 	}
 
-	Ti.App.Properties.removeProperty('notifications.token');
 	load(exports.config.driver).unsubscribe({
 		deviceToken: deviceToken,
 		channel: channel,
@@ -203,12 +267,18 @@ exports.unsubscribe = function(channel, data) {
 		success: function(response) {
 			Event.trigger('notifications.unsubscription.error', { channel: channel });
 			Ti.API.debug('Notifications: Unsubscription to channel <' + channel + '> succeded', response);
+
+			defer.resolve(response);
 		},
 		error: function(err) {
 			Event.trigger('notifications.unsubscription.error', err);
 			Ti.API.error('Notifications: Unsubscription failed to channel <' + channel + '>', err);
+
+			defer.reject(err);
 		}
 	});
+
+	return defer.promise;
 };
 
 
@@ -255,6 +325,13 @@ exports.incBadge = function(i) {
 	exports.setBadge(exports.getBadge() + i);
 };
 
+/**
+ * @method getStoredDeviceToken
+ * @return {String}
+ */
+exports.getStoredDeviceToken = function() {
+	return Ti.App.Properties.getString('notifications.token');
+};
 
 /*
 Init

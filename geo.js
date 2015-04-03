@@ -14,7 +14,7 @@
 exports.config = _.extend({
 	gpsAccuracy: 'ACCURACY_HIGH',
 	geocodeUseGoogle: true,
-	clusterPixelRadius: 15,
+	clusterPixelRadius: 30,
 	clusterRemoveOutofBB: true,
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
@@ -231,8 +231,8 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
  * @param  {Object} [keys] 	The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
  * @return {Array}
  */
-exports.markerCluster = function(e, markers, keys){
-	_.defaults(keys, {
+exports.markerCluster = function(e, markers, keys) {
+	keys = _.defaults(keys || {}, {
 		latitude: 'lat',
 		longitude: 'lng',
 		id: 'id'
@@ -273,7 +273,6 @@ exports.markerCluster = function(e, markers, keys){
 
 
 	// Start clustering
-
 	if (isBackbone) {
 		markers.map(exports.config.clusterRemoveOutOfBB ? removeOutOfBBFunction : createCObjFunction);
 	} else {
@@ -286,7 +285,7 @@ exports.markerCluster = function(e, markers, keys){
 		_.each(c, function(b, jd){
 			if (id == jd || zoomToCluster === false) return;
 			var dst = dist(lngR * Math.abs(a.latitude - b.latitude), lngR * Math.abs(a.longitude - b.longitude));
-			if (dst < exports.config.pixelRadius) {
+			if (dst < exports.config.clusterPixelRadius) {
 				if (!(id in g)) g[id] = [id];
 				g[id].push(jd);
 				delete c[jd];
@@ -317,7 +316,7 @@ exports.markerCluster = function(e, markers, keys){
 				count: c[id].count
 			};
 		} else {
-			return +id;
+			return id << 0;
 		}
 	});
 };

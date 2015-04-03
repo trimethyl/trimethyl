@@ -1,0 +1,9 @@
+{
+	"eqnull": true,
+	"-W041": false,
+	"globals": {
+		"Ti": true,
+		"_": true,
+		"Backbone": true
+	}
+}

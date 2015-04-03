@@ -154,7 +154,7 @@ HTTPRequest.prototype._onError = function(err) {
 
 	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
 
-	if (HTTP.config.errorAlert && this.opt.errorAlert != false) {
+	if (HTTP.config.errorAlert && this.opt.errorAlert !== false) {
 		Util.errorAlert(err, function() {
 			if (_.isFunction(self.opt.error)) self.opt.error(err);
 		});
@@ -178,7 +178,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	HTTP.removeFromQueue(this);
 
 	// Fire the global event
-	if (this.opt.silent != true) {
+	if (this.opt.silent !== true) {
 		Event.trigger('http.end', {
 			hash: this.hash,
 			eventName: this.opt.eventName
@@ -245,7 +245,7 @@ HTTPRequest.prototype.send = function() {
 	// Add this request to the queue
 	HTTP.addToQueue(this);
 
-	if (this.opt.silent != true) {
+	if (this.opt.silent !== true) {
 		Event.trigger('http.start', {
 			hash: this.hash,
 			eventName: this.opt.eventName

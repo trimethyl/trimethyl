@@ -13,7 +13,7 @@ exports.config = _.extend({
 	hockeyApp: true
 }, Alloy.CFG.T ? Alloy.CFG.T.testmenu : {});
 
-if (exports.config.hockeyApp == true && Ti.App.Properties.hasProperty('hockeyapp.id')) {
+if (exports.config.hockeyApp === true && Ti.App.Properties.hasProperty('hockeyapp.id')) {
 	var HA = require('nl.rebelic.hockeyapp');
 	HA.start( Ti.App.Properties.getString('hockeyapp.id') );
 }
@@ -72,7 +72,7 @@ exports.show = function() {
 		callback: function() {
 			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).deleteDirectory(true);
 			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
-			T('cache').purge()
+			T('cache').purge();
 			d.hide();
 		}
 	});
@@ -84,6 +84,6 @@ exports.show = function() {
 	var d = T('dialog').option(Ti.App.name+' v'+Ti.App.version+'\n'+Ti.App.id+'\nTESTING MENU', opts);
 };
 
-if (exports.config.showOnShake == true) {
+if (exports.config.showOnShake === true) {
 	Ti.Gesture.addEventListener('shake', exports.show);
 }

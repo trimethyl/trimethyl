@@ -98,7 +98,7 @@ module.exports = function(args) {
  	// Parse arguments //
 	//////////////////////
 
-	if (OS_IOS && args.useDoneToolbar == true) {
+	if (OS_IOS && args.useDoneToolbar === true) {
 		$this.keyboardToolbar = getDoneToolbar({
 			done: function() {
 				$this.blur();
