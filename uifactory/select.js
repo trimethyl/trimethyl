@@ -7,9 +7,10 @@ var Moment = require('T/ext/moment');
 
 function fillPickerData($this, $picker) {
 	if (OS_ANDROID && $picker.columns != null && $picker.columns[0] != null) {
-		_.each($picker.columns[0], function($row) {
-			$picker.columns[0].removeRow($row);
-		});
+		var col = $picker.columns[0];
+		for (var i = col.rowCount; i >= 0; i--) {
+			col.removeRow( col.rows[i] );
+		}
 	}
 
 	if ($this != null && $this.interfaceValues != null && $this.interfaceValues.length > 0) {
