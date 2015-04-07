@@ -34,15 +34,17 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 
 	if (opt.groupBy != null) {
 
-		var array = (C instanceof Backbone.Collection) ? C.groupBy(opt.groupBy) : _.groupBy(C, opt.groupBy);
+		var array = (C instanceof Backbone.Collection) ? C.groupBy(opt.groupBy) : ( _.isArray(C) ? _.groupBy(C, opt.groupBy) : C );
 		sec = _.map(array, function(els, key) {
+			var hViewExtend = _.isFunction(opt.headerViewCb) ? { headerView: opt.headerViewCb(key) } : { headerTitle: key };
+
 			return Ti.UI.createListSection(_.extend({
 				items: _.map(els, opt.datasetCb),
-			}, _.isFunction(opt.headerViewCb) ? { headerView: opt.headerViewCb(key) } : { headerTitle: key }));
+			}, hViewExtend));
 		});
 
 		if (OS_IOS && $ui != null && opt.sectionIndex == true) {
-			$ui.sectionIndexTitles = _.map(_.keys(array), function(u, k) {
+			$ui.sectionIndexTitles = _.map(Object.keys(array), function(u, k) {
 				return {
 					title: u,
 					index: k
