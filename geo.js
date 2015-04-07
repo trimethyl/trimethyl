@@ -8,14 +8,14 @@
  * @property {String} [config.gpsAccuracy="ACCURACY_HIGH"] Accuracy of localization. Must be one of `'ACCURACY_HIGH'` and `'ACCURACY_LOW'`
  * @property {Boolean} [config.geocodeUseGoogle=true] Tell to use Google Services instead of Titanium geocoding services.
  * @property {Number} [config.clusterPixelRadius=15] The clustering radius expressed in px.
- * @property {Boolean} [config.clusterRemoveOutofBB=true] Tell the clustering to remove pins that are out of the bounding box.
+ * @property {Boolean} [config.clusterRemoveOutOfBB=true] Tell the clustering to remove pins that are out of the bounding box.
  * @property {Number} [config.clusterMaxDelta=0.3] The value before the clustering is off.
  */
 exports.config = _.extend({
 	gpsAccuracy: 'ACCURACY_HIGH',
 	geocodeUseGoogle: true,
 	clusterPixelRadius: 30,
-	clusterRemoveOutofBB: true,
+	clusterRemoveOutOfBB: true,
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
@@ -226,12 +226,12 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
 /**
  * @method markerCluster
  * Process a set of markers and cluster them
- * @param  {Object} e       	The arguments retrived from TiMap.addEventListener('regionchanged', **event**)
+ * @param  {Object} map      	The `Ti.Map` object.
  * @param  {Object} markers 	The markers **must be** an instance of `Backbone.Collection` or an Object id-indexed
  * @param  {Object} [keys] 	The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
  * @return {Array}
  */
-exports.markerCluster = function(e, markers, keys) {
+exports.markerCluster = function(map, markers, keys) {
 	keys = _.defaults(keys || {}, {
 		latitude: 'lat',
 		longitude: 'lng',
@@ -240,58 +240,57 @@ exports.markerCluster = function(e, markers, keys) {
 
 	var c = {};
 	var g = {};
-
-	/* latR, lngR represents the current degrees visible */
-	var latR = (e.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / e.latitudeDelta;
-	var lngR = (e.source.size.width || Alloy.Globals.SCREEN_WIDTH) / e.longitudeDelta;
-
-	var degreeLat = 2 * exports.config.clusterPixelRadius / latR;
-	var degreeLng = 2 * exports.config.clusterPixelRadius / lngR;
-
-	var boundingBox = [
-		e.latitude - e.latitudeDelta/2 - degreeLat,
-		e.longitude + e.longitudeDelta/2 + degreeLng,
-		e.latitude + e.latitudeDelta/2 + degreeLat,
-		e.longitude - e.longitudeDelta/2 - degreeLng
-	];
-
+	var region = map.region;
 	var isBackbone = (markers instanceof Backbone.Collection);
 
-	function removeOutOfBBFunction(m){
-		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
-		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
+	// latR, lngR represents the current degrees visible
+	var latR = (map.size.height || Alloy.Globals.SCREEN_HEIGHT) / region.latitudeDelta;
+	var lngR = (map.size.width || Alloy.Globals.SCREEN_WIDTH) / region.longitudeDelta;
+	var degreeLat = 2 * exports.config.clusterPixelRadius / latR;
+	var degreeLng = 2 * exports.config.clusterPixelRadius / lngR;
+	var boundingBox = [
+		region.latitude - region.latitudeDelta/2 - degreeLat,
+		region.longitude + region.longitudeDelta/2 + degreeLng,
+		region.latitude + region.latitudeDelta/2 + degreeLat,
+		region.longitude - region.longitudeDelta/2 - degreeLng
+	];
+
+	function removeOutOfBBFunction(m) {
+		var tmpLat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmpLng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
 		if (tmpLat < boundingBox[2] && tmpLat > boundingBox[0] && tmpLng > boundingBox[3] && tmpLng < boundingBox[1]) {
 			c[m[keys.id]] = { latitude: tmpLat, longitude: tmpLng };
 		}
 	}
 
 	function createCObjFunction(m) {
-		var tmpLat = parseFloat( isBackbone ? m.get(keys.latitude) : m[keys.latitude] );
-		var tmpLng = parseFloat( isBackbone ? m.get(keys.longitude) : m[keys.longitude] );
+		var tmpLat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmpLng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
 		c[m.id] = { latitude: tmpLat, longitude: tmpLng };
 	}
 
-
 	// Start clustering
-	if (isBackbone) {
-		markers.map(exports.config.clusterRemoveOutOfBB ? removeOutOfBBFunction : createCObjFunction);
+	if (isBackbone === true) {
+		markers.map(exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	} else {
-		_.each(markers, exports.config.clusterRemoveOutOfBB  ? removeOutOfBBFunction : createCObjFunction);
+		_.each(markers, exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
-	var zoomToCluster = e.longitudeDelta > exports.config.clusterMaxDelta;
+	var zoomToCluster = region.longitudeDelta > exports.config.clusterMaxDelta;
 	_.each(c, function(a, id){
 		_.each(c, function(b, jd){
 			if (id == jd || zoomToCluster === false) return;
 			var dst = dist(lngR * Math.abs(a.latitude - b.latitude), lngR * Math.abs(a.longitude - b.longitude));
 			if (dst < exports.config.clusterPixelRadius) {
-				if (!(id in g)) g[id] = [id];
+				if ((id in g) === false) g[id] = [id];
 				g[id].push(jd);
 				delete c[jd];
 			}
 		});
-		if (!(id in g)) g[id] = [id];
+		if ((id in g) === false) {
+			g[id] = [id];
+		}
 		delete c[id];
 	});
 
@@ -299,8 +298,8 @@ exports.markerCluster = function(e, markers, keys) {
 	_.each(g, function(a, id){
 		c[id] = { latitude: 0.0,  longitude: 0.0, count: _.keys(a).length };
 		_.each(a, function(b){
-			c[id].latitude += parseFloat(isBackbone ? markers.get(b).get(keys.latitude) : markers[b][keys.latitude]);
-			c[id].longitude += parseFloat(isBackbone ? markers.get(b).get(keys.longitude) : markers[b][keys.longitude]);
+			c[id].latitude += parseFloat(isBackbone === true ? markers.get(b).get(keys.latitude) : markers[b][keys.latitude]);
+			c[id].longitude += parseFloat(isBackbone === true ? markers.get(b).get(keys.longitude) : markers[b][keys.longitude]);
 		});
 		c[id].latitude = c[id].latitude / c[id].count;
 		c[id].longitude = c[id].longitude / c[id].count;
@@ -316,6 +315,7 @@ exports.markerCluster = function(e, markers, keys) {
 				count: c[id].count
 			};
 		} else {
+			// Ensure ID is a number
 			return id << 0;
 		}
 	});
