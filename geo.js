@@ -226,12 +226,12 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
 /**
  * @method markerCluster
  * Process a set of markers and cluster them
- * @param  {Object} map      	The `Ti.Map` object.
+ * @param  {Object} event     The event raised from `regionchanged`.
  * @param  {Object} markers 	The markers **must be** an instance of `Backbone.Collection` or an Object id-indexed
  * @param  {Object} [keys] 	The keys of the object to get informations. Default: `{ latitude: 'lat', longitude: 'lng', id: 'id' }`
  * @return {Array}
  */
-exports.markerCluster = function(map, markers, keys) {
+exports.markerCluster = function(event, markers, keys) {
 	keys = _.defaults(keys || {}, {
 		latitude: 'lat',
 		longitude: 'lng',
@@ -240,19 +240,18 @@ exports.markerCluster = function(map, markers, keys) {
 
 	var c = {};
 	var g = {};
-	var region = map.region;
 	var isBackbone = (markers instanceof Backbone.Collection);
 
 	// latR, lngR represents the current degrees visible
-	var latR = (map.size.height || Alloy.Globals.SCREEN_HEIGHT) / region.latitudeDelta;
-	var lngR = (map.size.width || Alloy.Globals.SCREEN_WIDTH) / region.longitudeDelta;
+	var latR = (event.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / event.latitudeDelta;
+	var lngR = (event.source.size.width || Alloy.Globals.SCREEN_WIDTH) / event.longitudeDelta;
 	var degreeLat = 2 * exports.config.clusterPixelRadius / latR;
 	var degreeLng = 2 * exports.config.clusterPixelRadius / lngR;
 	var boundingBox = [
-		region.latitude - region.latitudeDelta/2 - degreeLat,
-		region.longitude + region.longitudeDelta/2 + degreeLng,
-		region.latitude + region.latitudeDelta/2 + degreeLat,
-		region.longitude - region.longitudeDelta/2 - degreeLng
+		event.latitude - event.latitudeDelta/2 - degreeLat,
+		event.longitude + event.longitudeDelta/2 + degreeLng,
+		event.latitude + event.latitudeDelta/2 + degreeLat,
+		event.longitude - event.longitudeDelta/2 - degreeLng
 	];
 
 	function removeOutOfBBFunction(m) {
@@ -277,7 +276,7 @@ exports.markerCluster = function(map, markers, keys) {
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
-	var zoomToCluster = region.longitudeDelta > exports.config.clusterMaxDelta;
+	var zoomToCluster = event.longitudeDelta > exports.config.clusterMaxDelta;
 	_.each(c, function(a, id){
 		_.each(c, function(b, jd){
 			if (id == jd || zoomToCluster === false) return;
