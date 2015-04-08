@@ -32,7 +32,7 @@
 exports.populateListViewFromCollection = function(C, opt, $ui) {
 	var sec = [];
 
-	if (!_.isEmpty(opt.groupBy)) {
+	if (opt.groupBy != null && opt.groupBy != false) {
 
 		var array = (C instanceof Backbone.Collection) ? C.groupBy(opt.groupBy) : ( _.isArray(C) ? _.groupBy(C, opt.groupBy) : C );
 		sec = _.map(array, function(els, key) {
