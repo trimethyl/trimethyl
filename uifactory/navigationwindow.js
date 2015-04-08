@@ -28,10 +28,12 @@ NavigationWindow.prototype.close = function(callback) {
 			return;
 		}
 
-		var w = self.windows.pop();
+		var w = self.windows.shift();
 		w.removeEventListener('close', w.__onClose);
 		w.addEventListener('close', _close);
-		w.close({ animated: false });
+		w.close({
+			animated: self.windows.length === 0
+		});
 	})();
 };
 
