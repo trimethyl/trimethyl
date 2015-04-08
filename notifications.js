@@ -23,14 +23,15 @@ var Q = require('T/ext/q');
 
 var wasInBackground = false;
 
-function load(name) {
-	return require('T/notifications/'+name);
-}
-
 /**
  * @method loadDriver
  */
-exports.loadDriver = load;
+exports.loadDriver = function(name) {
+	return Alloy.Globals.Trimethyl.loadDriver('notifications', name, {
+		subscribe: function(opt) {},
+		unsubscribe: function(opt) {}
+	});
+};
 
 /**
  * @method event
@@ -229,7 +230,7 @@ exports.subscribe = function(channel, data) {
 	.then(function(deviceToken) {
 		Ti.App.Properties.setString('notifications.token', deviceToken);
 
-		load(exports.config.driver).subscribe({
+		exports.loadDriver(exports.config.driver).subscribe({
 			deviceToken: deviceToken,
 			channel: channel,
 			data: data,
@@ -272,7 +273,7 @@ exports.unsubscribe = function(channel, data) {
 		return defer.promise;
 	}
 
-	load(exports.config.driver).unsubscribe({
+	exports.loadDriver(exports.config.driver).unsubscribe({
 		deviceToken: deviceToken,
 		channel: channel,
 		data: data,

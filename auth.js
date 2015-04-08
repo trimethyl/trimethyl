@@ -17,14 +17,17 @@ var Event = require('T/event');
 
 var Me = null; // User model object
 
-function load(name) {
-	return require('T/auth/'+name);
-}
-
 /**
  * @method loadDriver
  */
-exports.loadDriver = load;
+exports.loadDriver = function(name) {
+	return Alloy.Globals.Trimethyl.loadDriver('auth', name, {
+		login: function() {},
+		storedLogin: function() {},
+		isStoredLoginAvailable: function() {},
+		logout: function() {}
+	});
+};
 
 /**
  * @method event
@@ -72,7 +75,7 @@ function driverLogin(opt) {
 	var q = Q.defer();
 
 	var method = opt.stored === true ? 'storedLogin' : 'login';
-	load(opt.driver)[ method ]({
+	exports.loadDriver(opt.driver)[ method ]({
 		data: opt.data,
 		success: q.resolve,
 		error: q.reject
@@ -163,7 +166,7 @@ exports.login = function(opt) {
  */
 exports.isStoredLoginAvailable = function() {
 	var driver = getStoredDriver();
-	return !_.isEmpty(driver) && load(driver).isStoredLoginAvailable();
+	return !_.isEmpty(driver) && exports.loadDriver(driver).isStoredLoginAvailable();
 };
 
 /**
@@ -210,7 +213,7 @@ exports.logout = function(callback) {
 
 	var driver = getStoredDriver();
 	if (driver != null) {
-		load(driver).logout();
+		exports.loadDriver(driver).logout();
 	}
 
 	Me = null;
