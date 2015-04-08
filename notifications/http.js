@@ -5,17 +5,19 @@
 
 /**
  * @property config
- * @property {String} config.endpoint 					URL for subscription
+ * @property {String} config.subscribeEndpoint		URL for subscription
+ * @property {String} config.unsubscribeEndpoint	URL for unsubscription
  */
 exports.config = _.extend({
-	endpoint: null,
+	subscribeEndpoint: '/notifications/subscribe',
+	unsubscribeEndpoint: '/notifications/unsubscribe'
 }, (Alloy.CFG.T && Alloy.CFG.T.notifications) ? Alloy.CFG.T.notifications.http : {});
 
 var HTTP = require('T/http');
 
 exports.subscribe = function(opt) {
 	HTTP.send({
-		url: exports.config.endpoint,
+		url: exports.config.subscribeEndpoint,
 		method: 'POST',
 		data: _.extend({}, opt.data, {
 			device_token: opt.deviceToken,
@@ -35,10 +37,9 @@ exports.subscribe = function(opt) {
 
 exports.unsubscribe = function(opt) {
 	HTTP.send({
-		url: exports.config.endpoint + '/' + opt.deviceToken,
-		method: 'DELETE',
+		url: exports.config.unsubscribeEndpoint + '/' + opt.deviceToken,
+		method: 'POST',
 		data: _.extend({}, opt.data, {
-			device_token: opt.deviceToken,
 			channel: opt.channel,
 		}),
 		success: opt.success,
