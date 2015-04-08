@@ -5,15 +5,17 @@
 
 /**
  * @property config
- * @property {String} [config.strategy="database"] The default strategy
+ * @property {String} [config.driver="database"] 	The driver to use
  */
 exports.config = _.extend({
-	strategy: 'database'
+	driver: 'database'
 }, Alloy.CFG.T ? Alloy.CFG.T.cache : {});
 
-// Driver loader
-function load(name) {
-	return require('T/cache/'+name);
-}
+module.exports = Alloy.Globals.Trimethyl.loadDriver('cache', exports.config.driver, {
 
-module.exports = load(exports.config.strategy);
+	get: function(hash) {},
+	set: function(hash, value) {},
+	remove: function(hash) {}
+	purge: function(hash) {},
+
+});

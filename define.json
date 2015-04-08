@@ -1,0 +1,6 @@
+{
+	"app": ["util","router"],
+	"auth": ["http","event"],
+	"camera": ["util","dialog"],
+
+}

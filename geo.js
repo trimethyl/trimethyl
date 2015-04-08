@@ -21,8 +21,8 @@ exports.config = _.extend({
 
 var HTTP = require('T/http');
 var Util = require('T/util');
-
 var Event = require('T/event');
+var Dialog = require('T/dialog');
 
 /**
  * @method event
@@ -363,7 +363,7 @@ exports.checkForDependencies = function() {
 	}
 
 	// Open Play Store to download
-	require('T/dialog').errorAlert(errorMessage, function(){
+	Dialog.errorAlert(errorMessage, function(){
 		Ti.Platform.openURL('https://play.google.com/store/apps/details?id=com.google.android.gms');
 		Ti.Android.currentActivity.finish();
 	});

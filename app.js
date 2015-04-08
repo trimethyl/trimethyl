@@ -14,7 +14,6 @@ exports.config = _.extend({
 var Util = require('T/util');
 var Router = require('T/router');
 
-
 /**
  * @property {String} launchURL
  */

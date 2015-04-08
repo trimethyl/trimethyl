@@ -3,6 +3,8 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Dialog = require('T/dialog');
+var Util = require('T/util');
 
 /**
  * Call showCamera or openPhotoGallery using same options
@@ -19,7 +21,7 @@ function getPhoto(method, opt, callback){
 		cancel: function(e) { Ti.API.warn('Camera: Cancelled', e); },
 		error: function(err) {
 			Ti.API.error('Camera: Error', err);
-			require('T/util').errorAlert(L('unexpected_error', 'Unexpected error'));
+			Util.errorAlert(L('unexpected_error', 'Unexpected error'));
 		}
 	}));
 }
@@ -54,7 +56,7 @@ exports.choosePhoto = function(opt, callback) {
  * @param  {Function} callback  	Success callback
  */
 exports.selectPhoto = function(opt, callback){
-	require('T/dialog').option(L('select_photo_source'), [
+	Dialog.option(L('select_photo_source'), [
 	{
 		title: L('take_photo', 'Take photo'),
 		callback: function(){ exports.takePhoto(opt, callback); }

@@ -8,39 +8,47 @@
  * @method  createNavigationWindow
  */
 exports.createNavigationWindow = function(args) {
-	args = args || {};
 	if (OS_IOS && args._useFallback != true) {
 		return Ti.UI.iOS.createNavigationWindow(args);
 	} else {
-		var NavigationWindow = require('T/uifactory/navigationwindow');
-		return new NavigationWindow(args);
+		return new (require('T/uifactory/navigationwindow'))(args);
 	}
 };
 
 /**
  * @method createWindow
  */
-exports.createWindow = require('T/uifactory/window');
+exports.createWindow = function(args) {
+	return require('T/uifactory/window')(args);
+};
 
 /**
  * @method createTextField
  */
-exports.createTextField = require('T/uifactory/textfield');
+exports.createTextField = function(args) {
+	return require('T/uifactory/textfield')(args)
+};
 
 /**
  * @method createTextArea
  */
-exports.createTextArea = require('T/uifactory/textarea');
+exports.createTextArea = function(args) {
+	return require('T/uifactory/textarea')(args);
+};
 
 /**
  * @method createLabel
  */
-exports.createLabel = require('T/uifactory/label');
+exports.createLabel = function(args) {
+	return require('T/uifactory/label')(args);
+};
 
 /**
  * @method createListView
  */
-exports.createListView = require('T/uifactory/listview');
+exports.createListView = function(args) {
+	return require('T/uifactory/listview')(args);
+};
 
 /**
  * @method createTabbedBar
@@ -57,19 +65,27 @@ exports.createTabbedBar = function(args) {
 /**
  * @method createYoutubeVideoWebView
  */
-exports.createYoutubeVideoWebView = require('T/uifactory/youtubevideowebview');
+exports.createYoutubeVideoWebView = function(args) {
+	return require('T/uifactory/youtubevideowebview')(args);
+};
 
 /**
  * @method createSelect
  */
-exports.createSelect = require('T/uifactory/select');
+exports.createSelect = function(args) {
+	reutrn require('T/uifactory/select')(args);
+};
 
 /**
  * @method createView
  */
-exports.createView = require('T/uifactory/view');
+exports.createView = function(args) {
+	return require('T/uifactory/view')(args);
+};
 
 /**
  * @method createButton
  */
-exports.createButton = require('T/uifactory/button');
+exports.createButton = function(args) {
+	return require('T/uifactory/button')(args);
+};
