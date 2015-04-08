@@ -1,0 +1,124 @@
+{
+	"app":{
+		"dependencies": ["util","router"]
+	},
+	"auth":{
+		"dependencies": ["http","event","ext/q"]
+	},
+	"cache":{
+
+	},
+	"cache/database":{
+		"dependencies": ["sqlite","utils"]
+	},
+	"camera":{
+		"dependencies": ["util","dialog"]
+	},
+	"device":{
+
+	},
+	"dialog":{
+
+	},
+	"event":{
+
+	},
+	"fb":{
+		"modules": ["com.facebook","facebook"]
+	},
+	"filesystem":{
+
+	},
+	"flow":{
+		"dependencies": ["event"]
+	},
+	"ga":{
+		"modules": ["analytics.google"]
+	},
+	"geo":{
+		"dependencies": ["http","util","event","dialog"],
+		"modules": ["ti.map"]
+	},
+	"http":{
+		"dependencies": ["event","util","cache","ext/q"]
+	},
+	"image":{
+
+	},
+	"notifications":{
+		"dependencies": ["event","util","router","ext/q"]
+	},
+	"notifications/http":{
+		"dependencies": ["http"]
+	},
+	"notifications/cloud":{
+		"modules": ["ti.cloud"]
+	},
+	"prop":{
+
+	},
+	"router":{
+		"dependencies": ["util","flow"]
+	},
+	"sharer":{
+		"dependencies": ["fb"],
+		"modules": ["bencoding.sms","dk.napp.social"]
+	},
+	"sounds":{
+
+	},
+	"sqlite":{
+
+	},
+	"testmenu":{
+		"modules": ["nl.rebelic.hockeyapp"]
+	},
+	"uifactory":{
+
+	},
+	"uifactory/button":{
+
+	},
+	"uifactory/label":{
+
+	},
+	"uifactory/listview":{
+
+	},
+	"uifactory/navigationwindow":{
+
+	},
+	"uifactory/select":{
+
+	},
+	"uifactory/tabbedbar":{
+
+	},
+	"uifactory/textarea":{
+		"dependencies": ["uiutil"]
+	},
+	"uifactory/textfield":{
+		"dependencies": ["uiutil"]
+	},
+	"uifactory/view":{
+		"trymethyl": ["uiutil"]
+	},
+	"uifactory/window":{
+		"trymethyl": ["uiutil"]
+	},
+	"uifactory/youtubevideowebview":{
+
+	},
+	"uiutil":{
+		"dependencies": ["image","http"]
+	},
+	"util":{
+		"dependencies": ["http","dialog"]
+	},
+	"weballoy":{
+
+	},
+
+	"ext/q":{},
+	"ext/underscore.string":{}
+}
