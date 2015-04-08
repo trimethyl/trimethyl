@@ -10,8 +10,7 @@
  * @return {Number} The density
  */
 exports.getScreenDensity = function() {
-	if (OS_ANDROID) return Ti.Platform.displayCaps.logicalDensityFactor;
-	return Titanium.Platform.displayCaps.dpi/160;
+	return Alloy.Globals.SCREEN_DENSITY;
 };
 
 /**
@@ -20,9 +19,8 @@ exports.getScreenDensity = function() {
  * @return {Number} The width
  */
 exports.getScreenWidth = function() {
-	if (OS_IOS) return Ti.Platform.displayCaps.platformWidth;
-	return Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
-};
+	return Alloy.Globals.SCREEN_WIDTH;
+}
 
 /**
  * @method getScreenHeight
@@ -30,8 +28,7 @@ exports.getScreenWidth = function() {
  * @return {Number} The height
  */
 exports.getScreenHeight = function() {
-	if (OS_IOS) return Ti.Platform.displayCaps.platformHeight;
-	return Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
+	return Alloy.Globals.SCREEN_HEIGHT;
 };
 
 /**
@@ -40,7 +37,7 @@ exports.getScreenHeight = function() {
  * @return {Boolean}
  */
 exports.isSimulator = function() {
-	return Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
+	return Alloy.Globals.IS_SIMULATOR;
 };
 
 /**
