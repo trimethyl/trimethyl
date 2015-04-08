@@ -3,6 +3,8 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var UIUtil = require('T/uiutil');
+
 module.exports = function(args) {
 	args = args || {};
 
@@ -13,7 +15,7 @@ module.exports = function(args) {
 	 * @param {String} url
 	 */
 	$this.setBackgroundCoverImage = function(url) {
-		return require('T/uiutil').setBackgroundCoverForView($this, url);
+		return UIUtil.setBackgroundCoverForView($this, url);
 	};
 
 	/////////////////

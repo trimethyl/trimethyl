@@ -3,7 +3,7 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-var Moment = require('T/ext/moment');
+var Moment = require('alloy/moment');
 
 function fillPickerData($this, $picker) {
 	if (OS_ANDROID && $picker.columns != null && $picker.columns[0] != null) {

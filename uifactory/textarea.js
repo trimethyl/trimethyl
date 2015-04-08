@@ -3,9 +3,10 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * * Add support for `hintText`, that is missing on iOS.
- * * Removed the annoying autofocus on Android
  *
  */
+
+var UIUtil = require('T/uiutil');
 
 function onTextAreaFocus(e) {
 	if (_.isEmpty(e.source.getRealValue())) {
@@ -82,7 +83,7 @@ module.exports = function(args) {
 	//////////////////////
 
 	if (OS_IOS && args.useDoneToolbar === true) {
-		$this.keyboardToolbar = require('T/uiutil').buildKeyboardToolbar({
+		$this.keyboardToolbar = UIUtil.buildKeyboardToolbar({
 			done: function() {
 				$this.fireEvent('toolbar.done');
 				$this.blur();

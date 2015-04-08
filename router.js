@@ -13,6 +13,7 @@ exports.config = _.extend({
 
 
 var Util = require('T/util');
+var Flow = require('T/flow');
 
 var routeRegistry = [];
 
@@ -167,11 +168,11 @@ exports.autoMapModel = function(single, plural) {
 	plural = plural || single+'s';
 
 	exports.on('/' + plural, function() {
-		require('T/flow').open(plural, {}, {}, this.source);
+		Flow.open(plural, {}, {}, this.source);
 	});
 
 	exports.on(new RegExp('/' + plural + '/([0-9]+)'), function(id) {
-		require('T/flow').open(single, {
+		Flow.open(single, {
 			id: id
 		}, {}, this.source);
 	});

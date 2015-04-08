@@ -5,6 +5,7 @@
 
 
 var Dialog = require('T/dialog');
+var HTTP = require('T/http');
 
 /**
  * @method requireOrNull
@@ -325,7 +326,7 @@ exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
 	obj = obj || {};
 	obj.access_token = opt.appid + '|' + opt.appsecret;
 
-	require('T/http').send({
+	HTTP.send({
 		url: 'https://graph.facebook.com/' + path.replace(/^\//, ''),
 		data: obj,
 		format: 'json',

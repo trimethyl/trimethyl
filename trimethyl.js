@@ -27,7 +27,7 @@ Alloy.Globals.SCREEN_HEIGHT = OS_IOS ? Ti.Platform.displayCaps.platformHeight : 
 Alloy.Globals.SCREEN_DENSITY = OS_ANDROID ? Ti.Platform.displayCaps.logicalDensityFactor : Titanium.Platform.displayCaps.dpi/160;
 Alloy.Globals.SIMULATOR = Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
 
-Alloy.Globals.SCREEN_RETINA = +Alloy.Globals.SCREEN_DENSITY === 2;
+Alloy.Globals.SCREEN_RETINA = Alloy.Globals.SCREEN_DENSITY == 2;
 Alloy.Globals.IOS7 = OS_IOS && Ti.Platform.version.split('.')[0] == 7;
 Alloy.Globals.IOS8 = OS_IOS && Ti.Platform.version.split('.')[0] == 8;
 

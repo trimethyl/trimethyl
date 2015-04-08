@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Image = require('T/image');
+var HTTP = require('T/http');
+
 /**
  * @method populateListViewFromCollection
  * Parse an array or a Backbone.Collection and populate a ListView with this values.
@@ -89,7 +92,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 	var onBlobReady = function(blob) {
 		Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
 
-		var cachedFileStatus = require('T/image').process({
+		var cachedFileStatus = Image.process({
 			blob: blob,
 			width: w,
 			height: h,
@@ -110,7 +113,7 @@ exports.setBackgroundCoverForView = function($this, url) {
 	} else {
 
 		if (/^https?\:\/\//.test(url)) {
-			require('T/http').send({
+			HTTP.send({
 				url: url,
 				format: 'blob',
 				cache: false,

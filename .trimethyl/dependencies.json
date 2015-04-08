@@ -1,0 +1,64 @@
+{
+	"app":{
+		"trimethyl": ["util","router"]
+	},
+	"auth":{
+		"trimethyl": ["http","event","ext/q"]
+	},
+	"camera":{
+		"trimethyl": ["util","dialog"]
+	},
+	"facebook":{
+		"modules": ["com.facebook","facebook"]
+	},
+	"flow":{
+		"trimethyl": ["event"]
+	},
+	"ga":{
+		"modules": ["analytics.google"]
+	},
+	"geo":{
+		"trimethyl": ["http","util","event","dialog"],
+		"modules": ["ti.map"]
+	},
+	"http":{
+		"trimethyl": ["event","util","cache","ext/q"]
+	},
+	"notifications":{
+		"trimethyl": ["event","util","router","ext/q"]
+	},
+	"notifications/http":{
+		"trimethyl": ["http"]
+	},
+	"notifications/cloud":{
+		"modules": ["ti.cloud"]
+	},
+	"router":{
+		"trimethyl": ["util","flow"]
+	},
+	"sharer":{
+		"trimethyl": ["fb"],
+		"modules": ["bencoding.sms","dk.napp.social"]
+	},
+	"uifactory/textarea":{
+		"trimethyl": ["uiutil"]
+	},
+	"uifactory/textfield":{
+		"trimethyl": ["uiutil"]
+	},
+	"uifactory/view":{
+		"trymethyl": ["uiutil"]
+	},
+	"uifactory/window":{
+		"trymethyl": ["uiutil"]
+	},
+	"testmenu":{
+		"modules": ["nl.rebelic.hockeyapp"]
+	},
+	"uiutil":{
+		"trimethyl": ["image","http"]
+	},
+	"util":{
+		"trimethyl": ["http","dialog"]
+	}
+}

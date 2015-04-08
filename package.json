@@ -11,7 +11,9 @@
 		"url": "https://github.com/CaffeinaLab/Trimethyl/issues"
 	},
 	"scripts":{
-		"install": "node _install.js",
-		"test": "jshint . --exclude ext"
+		"install": "node .trimethyl/install.js",
+		"hook": "node .trimethyl/hook.js",
+		"compile": "node .trimethyl/compile.js",
+		"test": "jshint . --exclude ext --exclude .trimethyl"
 	}
 }
