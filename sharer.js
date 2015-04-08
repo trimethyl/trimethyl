@@ -83,7 +83,7 @@ function parseArgs(args) {
 exports.facebook = function(args) {
 	args = parseArgs(args);
 	if (exports.config.trackWithGA) {
-		T('ga').social('facebook', args.url);
+		T('ga').social('facebook', 'share', args.url);
 	}
 
 	// Native iOS dialog
@@ -101,7 +101,7 @@ exports.facebook = function(args) {
 	}
 
 	// SDK
-	if (FB != null && FB.getCanPresentShareDialog()) {
+	if (FB != null && FB.getCanPresentShareDialog() === true) {
 		FB.share({
 			url: args.url,
 			title: args.title,
@@ -143,7 +143,7 @@ exports.facebook = function(args) {
 exports.twitter = function(args) {
 	args = parseArgs(args);
 	if (exports.config.trackWithGA) {
-		T('ga').social('twitter', args.url);
+		T('ga').social('twitter', 'share', args.url);
 	}
 
 	// Native iOS Dialog
@@ -184,7 +184,7 @@ exports.twitter = function(args) {
 exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
 	if (exports.config.trackWithGA) {
-		T('ga').social('email', args.url);
+		T('ga').social('email', 'sent', args.url);
 	}
 
 	var $dialog = Ti.UI.createEmailDialog({
@@ -223,7 +223,7 @@ exports.email = exports.mail = function(args) {
 exports.googleplus = function(args) {
 	args = parseArgs(args);
 	if (exports.config.trackWithGA) {
-		T('ga').social('googleplus', args.url);
+		T('ga').social('googleplus', 'share', args.url);
 	}
 
 	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
@@ -240,7 +240,7 @@ exports.googleplus = function(args) {
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
 	if (exports.config.trackWithGA) {
-		T('ga').social('whatsapp', args.url);
+		T('ga').social('whatsapp', 'share', args.url);
 	}
 
 	// Native protocol binding
@@ -286,7 +286,7 @@ exports.whatsapp = function(args) {
 exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
 	if (exports.config.trackWithGA) {
-		T('ga').social('message', args.url);
+		T('ga').social('message', 'sent', args.url);
 	}
 
 	// iOS Native modal

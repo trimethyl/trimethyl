@@ -133,6 +133,12 @@ if (OS_IOS) {
 					Ti.Network.NOTIFICATION_TYPE_SOUND
 				],
 				success: function(e) {
+					if (e.deviceToken == null) {
+						Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
+						defer.reject(err);
+						return;
+					}
+
 					Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
 
 					defer.resolve(e.deviceToken);
@@ -168,6 +174,12 @@ if (OS_IOS) {
 
 		CloudPush.retrieveDeviceToken({
 			success: function(e) {
+				if (e.deviceToken == null) {
+					Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
+					defer.reject(err);
+					return;
+				}
+
 				Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
 
 				defer.resolve(e.deviceToken);
@@ -327,10 +339,21 @@ exports.incBadge = function(i) {
 
 /**
  * @method getStoredDeviceToken
+ * Get the stored device token. Don't rely on this method to check if notifications are active.
+ * Use #isActive instead
  * @return {String}
  */
 exports.getStoredDeviceToken = function() {
 	return Ti.App.Properties.getString('notifications.token');
+};
+
+/**
+ * @method isActive
+ * Check if the notifications system is active and the user has given permissions.
+ * @return {Boolean} [description]
+ */
+exports.isActive = function() {
+	return Ti.App.Properties.hasProperty('notifications.token');
 };
 
 /*

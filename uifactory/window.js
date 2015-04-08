@@ -49,7 +49,12 @@ module.exports = function(args) {
 		/**
 		 * @property {Object} [activityButton=null] View {@link setActivityButton}
 		 */
-		activityButton: null
+		activityButton: null,
+
+		/**
+		 * @property {Boolean} [exitOnBack=null] Set an handler that kill the entire app when back button is closed
+		 */
+		exitOnBack: null
 
 	});
 
@@ -257,6 +262,12 @@ module.exports = function(args) {
 		if (args.backButtonDisabled === true) {
 			$this.addEventListener('androidback', function() {
 				return false;
+			});
+		}
+
+		if (args.exitOnBack === true) {
+			$this.addEventListener('androidback', function() {
+				Ti.Android.currentActivity.finish();
 			});
 		}
 

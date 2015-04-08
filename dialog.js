@@ -143,14 +143,15 @@ exports.confirmYes = confirmYes;
  * @param  {String}   	title 				The title
  * @param  {String}   	message   			The message
  * @param  {Object}    	dict 					Buttons as Dictonary
+ * @param  {Object}		[ext] 				Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
-function dialogPrompt(title, message, dict) {
+function dialogPrompt(title, message, dict, ext) {
 	if (OS_IOS) {
 
-		return dialogConfirm(title, message, dict, {
+		return dialogConfirm(title, message, dict, _.extend({
 			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT
-		});
+		}, ext));
 
 	} else if (OS_ANDROID) {
 
@@ -163,9 +164,11 @@ function dialogPrompt(title, message, dict) {
 			};
 		});
 
-		return dialogConfirm(title, message, dict, {
-			androidView: Ti.UI.createTextField()
-		});
+		return dialogConfirm(title, message, dict, _.extend({
+			androidView: Ti.UI.createTextField({
+				value: (ext ? ext.value : '')
+			})
+		}, ext));
 
 	}
 }
