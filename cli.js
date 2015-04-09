@@ -5,10 +5,11 @@ var path = require('path');
 var _ = require('underscore');
 var logger = require('./lib/logger');
 var program = require('commander');
-var notifier = require('update-notifier')();
 
 var package = require('./package.json');
 var trimethyl = require('./index.js');
+
+var notifier = (require('update-notifier'))({ pkg: package });
 
 var CWD = process.cwd();
 

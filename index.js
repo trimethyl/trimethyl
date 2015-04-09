@@ -5,7 +5,9 @@ var logger = require('./lib/logger');
 var CWD = process.cwd();
 
 function readConfig() {
-	var config = {};
+	var config = {
+		libs: []
+	};
 	if (fs.existsSync(CWD + '/trimethyl.json')) {
 		try {
 			config = require(CWD + '/trimethyl.json');
