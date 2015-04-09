@@ -231,8 +231,7 @@ exports.fromNow = function(t) {
  * @return {String}
  */
 exports.timestampForHumans = function(ts) {
-	var moment = require('T/ext/moment');
-	return moment(ts*1000).format();
+	return require('alloy/moment')(ts*1000).format();
 };
 
 /**

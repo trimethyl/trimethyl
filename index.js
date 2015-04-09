@@ -24,6 +24,9 @@ exports.install = function() {
 
 	// Get the configuration
 	var config = readConfig();
+	if (_.isEmpty(config.libs)) {
+		config.libs = Object.keys(map);
+	}
 
 	// Get the libraries to copy in /Resources
 	var libs = {

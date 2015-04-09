@@ -154,12 +154,12 @@
 	"uifactory/view":{
 		"name": "UIFactory.View",
 		"description": "View façade",
-		"trymethyl": ["uiutil"]
+		"dependencies": ["uiutil"]
 	},
 	"uifactory/window":{
 		"name": "UIFactory.Window",
 		"description": "Window façade",
-		"trymethyl": ["uiutil"]
+		"dependencies": ["uiutil"]
 	},
 	"uifactory/youtubevideowebview":{
 		"name": "UIFactory.YoutubeVideoWebView",
