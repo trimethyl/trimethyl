@@ -3,6 +3,8 @@
  */
 
 var HTTP = require('T/http');
+var Util = require('T/util');
+
 var CRUD_to_REST = {
 	'create': 'POST',
 	'read': 'GET',
@@ -20,7 +22,7 @@ exports.sync = function(method, model, opt) {
 
 	if (model.query != null) {
 		if (_.isObject(model.query) || _.isArray(model.query)) {
-			url += require('T/util').buildQuery(model.query);
+			url += Util.buildQuery(model.query);
 		} else if (_.isString(model.query)) {
 			url += model.query.substr(0,1) === '?' ? model.query : ('?'+model.query);
 		}

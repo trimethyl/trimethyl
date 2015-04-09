@@ -6,7 +6,7 @@
 		"dependencies": ["http","event","ext/q"]
 	},
 	"cache":{
-
+		"dependencies": ["cache/database"]
 	},
 	"cache/database":{
 		"dependencies": ["sqlite","utils"]
@@ -120,5 +120,9 @@
 	},
 
 	"ext/q":{},
-	"ext/underscore.string":{}
+	"ext/underscore.string":{},
+
+	"alloy/sync/api":{
+		"dependencies": ["http","util"]
+	}
 }

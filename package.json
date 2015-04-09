@@ -10,9 +10,9 @@
 	"bugs":{
 		"url": "https://github.com/CaffeinaLab/Trimethyl/issues"
 	},
+	"main": "./_tools/index.js",
 	"scripts":{
-		"preinstall": "node .trimethyl/preinstall.js",
-		"install": "node .trimethyl/install.js",
+		"preinstall": "node _tools/preinstall.js",
 		"test": "jshint . --exclude ext --exclude .trimethyl"
 	}
 }
