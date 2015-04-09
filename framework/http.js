@@ -106,12 +106,6 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	}
 };
 
-
-/**
- * @method getCachedResponse
- * Return (if exists) the cache
- * @return {Object}
- */
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (exports.config.useCache === false) return null;
 	if (this.opt.cache === false || this.opt.refresh === true) return null;
@@ -248,11 +242,6 @@ HTTPRequest.prototype._calculateHash = function() {
 	return 'http_' + Ti.Utils.md5HexDigest(hash);
 };
 
-
-/**
- * @method send
- * Sent the request over the network
- */
 HTTPRequest.prototype.send = function() {
 	var self = this;
 
@@ -292,12 +281,6 @@ HTTPRequest.prototype.send = function() {
 	}
 };
 
-/**
- * @method resolve
- *
- * Magically resolve the request.
- * It checks cache, connectivity, and resolve.
- */
 HTTPRequest.prototype.resolve = function() {
 	var cache = this.getCachedResponse();
 	if (cache != null) {
@@ -324,10 +307,6 @@ HTTPRequest.prototype.resolve = function() {
 	}
 };
 
-/**
- * @method abort
- * Abort this request
- */
 HTTPRequest.prototype.abort = function() {
 	if (this.client != null) {
 		this.client.abort();
@@ -336,37 +315,21 @@ HTTPRequest.prototype.abort = function() {
 };
 
 
-/**
- * @method success
- * Promises, man!
- */
 HTTPRequest.prototype.success = HTTPRequest.prototype.then = function(func) {
 	this.defer.promise.then(func);
 	return this;
 };
 
-/**
- * @method error
- * Promises, man!
- */
 HTTPRequest.prototype.error = HTTPRequest.prototype.fail = function(func) {
 	this.defer.promise.fail(func);
 	return this;
 };
 
-/**
- * @method error
- * Promises, man!
- */
 HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = function(func) {
 	this.defer.promise.fin(func);
 	return this;
 };
 
-/**
- * @method getPromise
- * Get the deferred internal object
- */
 HTTPRequest.prototype.getPromise = function() {
 	return this.defer.promise;
 };
@@ -376,7 +339,7 @@ HTTPRequest.prototype.getPromise = function() {
  * @method event
  */
 exports.event = function(name, cb) {
-	Event.on('http.'+name, cb);
+	Event.on('http.' + name, cb);
 };
 
 /**

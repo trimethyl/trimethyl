@@ -3,10 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-
-var Dialog = require('T/dialog');
-var HTTP = require('T/http');
-
 /**
  * @method requireOrNull
  * Require a module, or return a null object
@@ -308,36 +304,6 @@ exports.dial = function(tel) {
 	}
 };
 
-/**
- * @method facebookGraphWithAppToken
- * Call the graph using app token.
- *
- * @param  {String}   path     The path for the open graph request.
- * @param  {Object}   object   The data for the open graph request.
- * @param  {Object}   opt      The options.
- * Required options are:
- * * **appid**: Application ID
- * * **appsecret**: Application secret
- * * **[expire]**: Cache the request for specified seconds.
- * * **[error]**: Error callback
- * @param  {Function} callback Success callback
- */
-exports.facebookGraphWithAppToken = function(path, obj, opt, callback) {
-	obj = obj || {};
-	obj.access_token = opt.appid + '|' + opt.appsecret;
-
-	HTTP.send({
-		url: 'https://graph.facebook.com/' + path.replace(/^\//, ''),
-		data: obj,
-		format: 'json',
-		refresh: opt.refresh,
-		expire: opt.expire,
-		silent: opt.silent,
-		error: opt.error,
-		success: callback
-	});
-};
-
 var XCU = {
 	key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
 	q: {
@@ -406,7 +372,7 @@ exports.getErrorMessage = function(obj) {
  * @param  {Function} [callback] 	The callback
  */
 exports.errorAlert = exports.alertError = function(err, callback) {
-	Dialog.alert(L('error', 'Error'), exports.getErrorMessage(err), callback);
+	require('T/dialog').alert(L('error', 'Error'), exports.getErrorMessage(err), callback);
 };
 
 /**

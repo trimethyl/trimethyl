@@ -173,7 +173,7 @@
 	"util":{
 		"name": "Util",
 		"description": "Simply, utilities.",
-		"dependencies": ["http","dialog"]
+		"dependencies": ["dialog"]
 	},
 	"weballoy":{
 		"name": "WebAlloy",
