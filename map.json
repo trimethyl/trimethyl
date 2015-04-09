@@ -1,0 +1,197 @@
+{
+	"app":{
+		"name": "App",
+		"description": "Application manager",
+		"dependencies": ["util","router"]
+	},
+	"auth":{
+		"name": "Auth",
+		"description": "Authentication with a REST web server provided by local drivers.",
+		"dependencies": ["http","event","ext/q"]
+	},
+	"cache":{
+		"name": "Cache",
+		"description": "Cache interface with different strategies.",
+		"dependencies": ["cache/database"]
+	},
+	"cache/database":{
+		"name": "Cache.Database",
+		"description": "Cache driver with SQLite",
+		"dependencies": ["sqlite","utils"]
+	},
+	"camera":{
+		"name": "Camera",
+		"description": "Helper for Camera access.",
+		"dependencies": ["util","dialog"]
+	},
+	"device":{
+		"name": "Device",
+		"description": "Retrieve current informations about device."
+	},
+	"dialog":{
+		"name": "Dialog",
+		"description": "Show dialogs with an alternative dictionary-based syntax."
+	},
+	"event":{
+		"name": "Event",
+		"description": "Event manager based on Backbone.Events."
+	},
+	"fb":{
+		"name": "FB",
+		"description": "Proxy for Facebook SDK.",
+		"modules": ["com.facebook","facebook"]
+	},
+	"filesystem":{
+		"name": "Filesystem",
+		"description": "Filesystem proxy."
+	},
+	"flow":{
+		"name": "Flow",
+		"description": "Manages the app windows flow.",
+		"dependencies": ["event"]
+	},
+	"ga":{
+		"name": "GA",
+		"description": "Google Analytics proxy.",
+		"modules": ["analytics.google"]
+	},
+	"geo":{
+		"name": "Geo",
+		"description": "Geographic API proxy and Map additional features like clustering.",
+		"dependencies": ["http","util","event","dialog"],
+		"modules": ["ti.map"]
+	},
+	"http":{
+		"name": "HTTP",
+		"description": "Make HTTP requests is a simple way.",
+		"dependencies": ["event","util","cache","ext/q"]
+	},
+	"image":{
+		"name": "Image",
+		"description": "Image manipulation features."
+	},
+	"notifications":{
+		"name": "Notifications",
+		"description": "Push notifications interface provided by different drivers.",
+		"dependencies": ["event","util","router","ext/q"]
+	},
+	"notifications/http":{
+		"name": "Notifications.HTTP",
+		"description": "Driver based on HTTP.",
+		"dependencies": ["http"]
+	},
+	"notifications/cloud":{
+		"name": "Notifications.Cloud",
+		"description": "Driver based on CloudPush of Appcelerator.",
+		"modules": ["ti.cloud"]
+	},
+	"prop":{
+		"name": "Prop",
+		"description": "Alias for Ti.App.Properties."
+	},
+	"router":{
+		"name": "Router",
+		"description": "Manage your app flow with a routing system.",
+		"dependencies": ["util","flow"]
+	},
+	"sharer":{
+		"name": "Sharer",
+		"description": "Share like a sharer, be social!",
+		"dependencies": ["fb"],
+		"modules": ["bencoding.sms","dk.napp.social"]
+	},
+	"sounds":{
+		"name": "Sounds",
+		"description": "Proxy for Ti.Media.Sound."
+	},
+	"sqlite":{
+		"name": "SQLite",
+		"description": "JavaScript SQLite abstraction layer."
+	},
+	"testmenu":{
+		"name": "Testmenu",
+		"description": "Testing menu on shake!",
+		"modules": ["nl.rebelic.hockeyapp"]
+	},
+	"uifactory":{
+		"name": "UIFactory",
+		"description": "Façade for new/XP UI elements."
+	},
+	"uifactory/button":{
+		"name": "UIFactory.Button",
+		"description": "Button façade"
+	},
+	"uifactory/label":{
+		"name": "UIFactory.Label",
+		"description": "Button façade"
+	},
+	"uifactory/listview":{
+		"name": "UIFactory.ListView",
+		"description": "ListView façade"
+	},
+	"uifactory/navigationwindow":{
+		"name": "UIFactory.NavigationWindow",
+		"description": "NavigationWindow façade"
+	},
+	"uifactory/select":{
+		"name": "UIFactory.Select",
+		"description": "Select façade"
+	},
+	"uifactory/tabbedbar":{
+		"name": "UIFactory.TabbedBar",
+		"description": "TabbedBar façade"
+	},
+	"uifactory/textarea":{
+		"name": "UIFactory.Textarea",
+		"description": "Textarea façade",
+		"dependencies": ["uiutil"]
+	},
+	"uifactory/textfield":{
+		"name": "UIFactory.Textfield",
+		"description": "Textfield façade",
+		"dependencies": ["uiutil"]
+	},
+	"uifactory/view":{
+		"name": "UIFactory.View",
+		"description": "View façade",
+		"trymethyl": ["uiutil"]
+	},
+	"uifactory/window":{
+		"name": "UIFactory.Window",
+		"description": "Window façade",
+		"trymethyl": ["uiutil"]
+	},
+	"uifactory/youtubevideowebview":{
+		"name": "UIFactory.YoutubeVideoWebView",
+		"description": "YoutubeVideoWebView façade"
+	},
+	"uiutil":{
+		"name": "UIUtil",
+		"description": "UI related utilities.",
+		"dependencies": ["image","http"]
+	},
+	"util":{
+		"name": "Util",
+		"description": "Simply, utilities.",
+		"dependencies": ["http","dialog"]
+	},
+	"weballoy":{
+		"name": "WebAlloy",
+		"description": "µ-web-framework to write Alloy apps in HTML/CSS/JS."
+	},
+
+	"ext/q":{
+		"name": "Q (external)",
+		"description": "--"
+	},
+	"ext/underscore.string":{
+		"name": "Underscore.String (external)",
+		"description": "--"
+	},
+
+	"alloy/sync/api":{
+		"name": "API Alloy Adapter",
+		"description": "A sync for Backbone to work with HTTP models.",
+		"dependencies": ["http","util"]
+	}
+}

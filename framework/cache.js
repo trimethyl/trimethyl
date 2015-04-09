@@ -18,7 +18,7 @@ exports.loadDriver = function(name) {
 	return Alloy.Globals.Trimethyl.loadDriver('cache', name, {
 		get: function(hash) {},
 		set: function(hash, value) {},
-		remove: function(hash) {}
+		remove: function(hash) {},
 		purge: function(hash) {},
 	});
 };

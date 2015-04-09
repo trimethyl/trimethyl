@@ -26,7 +26,7 @@ exports.createWindow = function(args) {
  * @method createTextField
  */
 exports.createTextField = function(args) {
-	return require('T/uifactory/textfield')(args)
+	return require('T/uifactory/textfield')(args);
 };
 
 /**
@@ -73,7 +73,7 @@ exports.createYoutubeVideoWebView = function(args) {
  * @method createSelect
  */
 exports.createSelect = function(args) {
-	reutrn require('T/uifactory/select')(args);
+	return require('T/uifactory/select')(args);
 };
 
 /**

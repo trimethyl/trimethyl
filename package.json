@@ -1,18 +1,27 @@
 {
-	"name": "trimethyl",
-	"description": "Alloy+Titanium toolchain with superpowers",
-	"version": "3.0.0",
-	"author": "Flavio De Stefano <flavio.destefano@caffeinalab.com>",
-	"repository":{
-		"type": "git",
-		"url": "https://github.com/CaffeinaLab/Trimethyl"
-	},
-	"bugs":{
-		"url": "https://github.com/CaffeinaLab/Trimethyl/issues"
-	},
-	"main": "./_tools/index.js",
-	"scripts":{
-		"preinstall": "node _tools/preinstall.js",
-		"test": "jshint . --exclude ext --exclude .trimethyl"
-	}
+  "name": "trimethyl",
+  "description": "Alloy+Titanium toolchain with superpowers",
+  "version": "3.0.0",
+  "author": "Flavio De Stefano <flavio.destefano@caffeinalab.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CaffeinaLab/Trimethyl"
+  },
+  "bugs": {
+    "url": "https://github.com/CaffeinaLab/Trimethyl/issues"
+  },
+  "main": "./index.js",
+  "scripts": {
+    "test": "jshint . --exclude ext --exclude .trimethyl"
+  },
+  "bin": {
+    "trimethyl": "./cli.js"
+  },
+  "dependencies": {
+    "colors": "^1.0.3",
+    "commander": "^2.7.1",
+    "fs-extended": "^0.2.0",
+    "underscore": "^1.8.3"
+  }
 }
