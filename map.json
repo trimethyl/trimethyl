@@ -15,7 +15,7 @@
 		"dependencies": ["fb"]
 	},
 	"auth/std":{
-		"name": "Auth.Facebook",
+		"name": "Auth.Standard",
 		"description": "Standard driver for authentication."
 	},
 	"cache":{
