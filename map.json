@@ -9,6 +9,15 @@
 		"description": "Authentication with a REST web server provided by local drivers.",
 		"dependencies": ["http","event","ext/q"]
 	},
+	"auth/facebook":{
+		"name": "Auth.Facebook",
+		"description": "Facebook driver for authentication.",
+		"dependencies": ["fb"]
+	},
+	"auth/std":{
+		"name": "Auth.Facebook",
+		"description": "Standard driver for authentication."
+	},
 	"cache":{
 		"name": "Cache",
 		"description": "Cache interface with different strategies.",
