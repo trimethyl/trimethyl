@@ -95,7 +95,9 @@ module.exports = function(args) {
 	 * @param {String} url
 	 */
 	$this.setBackgroundCoverImage = function(url) {
-		return UIUtil.setBackgroundCoverForView($this, url);
+		UIUtil.setBackgroundCoverForView($this, url, function(file) {
+			$this.backgroundImage = file;
+		});
 	};
 
 	/**

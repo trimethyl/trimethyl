@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.View
+ * @class  	UIFactory.ImageView
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -8,15 +8,15 @@ var UIUtil = require('T/uiutil');
 module.exports = function(args) {
 	args = args || {};
 
-	var $this = Ti.UI.createView(args);
+	var $this = Ti.UI.createImageView(args);
 
 	/**
-	 * @method setBackgroundCoverImage
+	 * @method setcoverImage
 	 * @param {String} url
 	 */
-	$this.setBackgroundCoverImage = function(url) {
+	$this.setCoverImage = function(url) {
 		UIUtil.setBackgroundCoverForView($this, url, function(file) {
-			$this.backgroundImage = file;
+			$this.image = file;
 		});
 	};
 
@@ -24,7 +24,7 @@ module.exports = function(args) {
 	// Parse args //
 	/////////////////
 
- 	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);
+ 	if (args.coverImage != null) $this.setCoverImage(args.coverImage);
 
 	return $this;
 };

@@ -130,6 +130,10 @@
 		"name": "UIFactory.Button",
 		"description": "Button façade"
 	},
+	"uifactory/imageview":{
+		"name": "UIFactory.ImageView",
+		"description": "ImageView façade"
+	},
 	"uifactory/label":{
 		"name": "UIFactory.Label",
 		"description": "Button façade"

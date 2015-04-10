@@ -72,13 +72,13 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 * Set the background image with cover method
 * @param {String} url
 */
-exports.setBackgroundCoverForView = function($this, url) {
+exports.setBackgroundCoverForView = function($this, url, callback) {
 	if ($this.size == null || $this.size.width == 0 || $this.size.height == 0) {
 
 		$this.addEventListener('postlayout', function postlayout() {
 			$this.removeEventListener('postlayout', postlayout);
 			if ($this.size != null && $this.size.width != 0 && $this.size.height != 0) {
-				exports.setBackgroundCoverForView($this, url);
+				exports.setBackgroundCoverForView($this, url, callback);
 			}
 		});
 
@@ -100,15 +100,15 @@ exports.setBackgroundCoverForView = function($this, url) {
 			file: cachedFile
 		});
 
-		if (cachedFileStatus != false) {
-			$this.backgroundImage = cachedFileStatus.nativePath;
+		if (cachedFileStatus != false && cachedFileStatus.nativePath) {
+			callback(cachedFileStatus.nativePath);
 		} else {
 			Ti.API.error('UIFactory.View: Can\'t write cover file for url <' + url + '>');
 		}
 	};
 
 	if (cachedFile.exists()) {
-		$this.backgroundImage = cachedFile.nativePath;
+		callback(cachedFile.nativePath);
 
 	} else {
 
