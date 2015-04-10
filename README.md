@@ -10,30 +10,31 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-
 ## Installation via NPM
 
 [![NPM](https://nodei.co/npm/trimethyl.png)](https://npmjs.org/package/trimethyl)
 
-In your Titanium project, run:
+Install globally with npm:
 
 ```
-npm install trimethyl
+[sudo] npm install -g trimethyl
 ```
 
-## Update via NPM
+In your Titanium project, now you have the command `trimethyl`, run:
 
 ```
-npm update trimethyl
+trimethyl install
 ```
 
-## Installation via GitHub
+## Configure modules
 
-If you want to install via GitHub, just clone/download this repository and extract it in `app/lib/T`.
+You can specify which modules you want to install, just type:
 
 ```
-git clone git@github.com:CaffeinaLab/Trimethyl.git app/lib/T
+trimethyl add {module}
 ```
+
+Or edit the `trimethyl.json` file in your project directory.
 
 ## Configuration
 
