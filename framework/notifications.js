@@ -96,8 +96,17 @@ if (OS_IOS) {
 
 		if (Util.getIOSVersion() >= 8) {
 
-			var tmpSubscribe = function() {
-				Ti.App.iOS.removeEventListener('usernotificationsettings', tmpSubscribe);
+			var userNotificationsCallback = function(settings) {
+				Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
+
+				if (_.isEmpty(settings.types)) {
+					Ti.API.error('Notifications: User has disabled notifications from settings');
+
+					defer.reject({ servicesDisabled: true })
+					Event.trigger('notifications.disabled');
+					return;
+				}
+
 				Ti.Network.registerForPushNotifications({
 					callback: onNotificationReceived,
 					success: function(e) {
@@ -115,7 +124,7 @@ if (OS_IOS) {
 				});
 			};
 
-			Ti.App.iOS.addEventListener('usernotificationsettings',  tmpSubscribe);
+			Ti.App.iOS.addEventListener('usernotificationsettings', userNotificationsCallback);
 			Ti.App.iOS.registerUserNotificationSettings({
 				types: [
 					Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT,
@@ -341,20 +350,25 @@ exports.incBadge = function(i) {
 /**
  * @method getStoredDeviceToken
  * Get the stored device token. Don't rely on this method to check if notifications are active.
- * Use #isActive instead
  * @return {String}
  */
 exports.getStoredDeviceToken = function() {
-	return Ti.App.Properties.getString('notifications.token');
+	return Ti.App.Properties.hasProperty('notifications.token') ? Ti.App.Properties.getString('notifications.token') : null;
 };
 
 /**
- * @method isActive
+ * @method isAuthorized
  * Check if the notifications system is active and the user has given permissions.
  * @return {Boolean} [description]
  */
-exports.isActive = function() {
-	return Ti.App.Properties.hasProperty('notifications.token');
+exports.isAuthorized = function() {
+	if (OS_ANDROID) return true;
+
+	if (OS_IOS && Util.getIOSVersion() >= 8) {
+		return !_.isEmpty(Ti.App.iOS.currentUserNotificationSettings.types);
+	}
+
+	return true;
 };
 
 /*
