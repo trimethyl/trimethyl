@@ -163,7 +163,7 @@ if (OS_IOS) {
 	CloudPush.debug = !ENV_PRODUCTION;
 	CloudPush.showAppOnTrayClick = true;
 	CloudPush.showTrayNotification = true;
-	CloudPush.showTrayNotificationsWhenFocused = true;
+	CloudPush.showTrayNotificationsWhenFocused = false;
 
 	exports.activate = function() {
 		var defer = Q.defer();
