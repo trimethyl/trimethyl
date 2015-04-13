@@ -51,6 +51,8 @@ FB.addEventListener('login', function(e){
 			access_token: FB.accessToken
 		});
 	} else {
+		// Check for token validation errors. The token may have been revoked after a password change or for other reasons.
+		if (e.error.indexOf('Error validating access token:') >= 0) FB.logout();
 		_opt.error({
 			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')
 		});
