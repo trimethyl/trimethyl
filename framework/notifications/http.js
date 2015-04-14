@@ -31,7 +31,8 @@ exports.subscribe = function(opt) {
 		}),
 		success: opt.success,
 		error: opt.error,
-		errorAlert: false
+		errorAlert: false,
+		silent: true
 	});
 };
 
@@ -44,6 +45,7 @@ exports.unsubscribe = function(opt) {
 		}),
 		success: opt.success,
 		error: opt.error,
-		errorAlert: false
+		errorAlert: false,
+		silent: true
 	});
 };
