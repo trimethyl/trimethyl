@@ -47,7 +47,7 @@ function onNotificationReceived(e) {
 	if (OS_ANDROID) {
 		// When the app is in background, the type is !== 'callback'
 		// So, we simply save the state wasInBackground and return because the notification.received event must NOT be triggered
-		if (e.type !== 'callback') {
+		if (e.type === 'trayClickLaunchedApp') {
 			wasInBackground = true;
 			return;
 		}
@@ -57,17 +57,19 @@ function onNotificationReceived(e) {
 			e.data = Util.parseJSON(e.payload);
 			_.extend(e.data, e.data.android);
 		}
+
 		e.inBackground = wasInBackground;
+		wasInBackground = false;
 	}
 
 	// Auto-reset the badge
-	if (exports.config.autoReset) {
+	if (exports.config.autoReset === true) {
 		exports.resetBadge();
 	}
 
 	// Router
-	if (exports.config.useRouter) {
-		if (e.inBackground) {
+	if (exports.config.useRouter === true) {
+		if (e.inBackground == true) {
 			if (e.data.url != null) {
 				Router.go(e.data.url);
 			}
@@ -178,9 +180,10 @@ if (OS_IOS) {
 		var defer = Q.defer();
 
 		// add a series of callback on the same functions, and set values inset
-		CloudPush.addEventListener('callback', onNotificationReceived);
 		CloudPush.addEventListener('trayClickLaunchedApp', onNotificationReceived);
 		CloudPush.addEventListener('trayClickFocusedApp', onNotificationReceived);
+		// After the others
+		CloudPush.addEventListener('callback', onNotificationReceived);
 
 		CloudPush.retrieveDeviceToken({
 			success: function(e) {
@@ -219,9 +222,9 @@ exports.deactivate = function() {
 	if (OS_IOS) {
 		Ti.Network.unregisterForPushNotifications();
 	} else {
-		CloudPush.removeEventListener('callback', onNotificationReceived);
 		CloudPush.removeEventListener('trayClickLaunchedApp', onNotificationReceived);
 		CloudPush.removeEventListener('trayClickFocusedApp', onNotificationReceived);
+		CloudPush.removeEventListener('callback', onNotificationReceived);
 	}
 };
 
@@ -375,7 +378,7 @@ exports.isAuthorized = function() {
 Init
 */
 
-if (exports.config.autoReset) {
+if (exports.config.autoReset === true) {
 	exports.resetBadge();
 	Ti.App.addEventListener('resumed', exports.resetBadge);
 }
