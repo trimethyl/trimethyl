@@ -167,8 +167,6 @@ HTTPRequest.prototype._onError = function(err) {
 	var self = this;
 	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
 
-	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
-
 	if (exports.config.errorAlert && this.opt.errorAlert !== false) {
 		Util.errorAlert(err, function() {
 			if (_.isFunction(self.opt.error)) self.opt.error(err);
@@ -177,6 +175,7 @@ HTTPRequest.prototype._onError = function(err) {
 	}
 
 	if (_.isFunction(self.opt.error)) self.opt.error(err);
+	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
 };
 
 HTTPRequest.prototype._onSuccess = function() {
@@ -184,8 +183,8 @@ HTTPRequest.prototype._onSuccess = function() {
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
 	}
 
-	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
 	if (_.isFunction(this.opt.success)) this.opt.success.apply(this, arguments);
+	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
 };
 
 HTTPRequest.prototype._onComplete = function(e) {
