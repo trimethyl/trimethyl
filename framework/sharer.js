@@ -82,22 +82,8 @@ function parseArgs(args) {
  */
 exports.facebook = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA) {
+	if (exports.config.trackWithGA === true) {
 		T('ga').social('facebook', 'share', args.url);
-	}
-
-	// Native iOS dialog
-	if (
-		OS_IOS && args.useApp !== true &&
-		(dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
-		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
-	) {
-		dkNappSocial.facebook({
-			text: args.text,
-			image: args.image,
-			url: args.url
-		});
-		return true;
 	}
 
 	// SDK
@@ -106,6 +92,18 @@ exports.facebook = function(args) {
 			url: args.url,
 			title: args.title,
 			description: args.description
+		});
+		return true;
+	}
+
+	// Native iOS dialog
+	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
+		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
+	) {
+		dkNappSocial.facebook({
+			text: args.text,
+			image: args.image,
+			url: args.url
 		});
 		return true;
 	}
@@ -142,29 +140,39 @@ exports.facebook = function(args) {
  */
 exports.twitter = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA) {
+	if (exports.config.trackWithGA === true) {
 		T('ga').social('twitter', 'share', args.url);
 	}
 
+	// iOS Tweetbot App
+	if (OS_IOS) {
+		var tweetbotNativeURL = 'tweetbot:///post' + Util.buildQuery({
+			text: (args.tweetText || args.text) + (args.url ? ' (' + args.url + ')' : '')
+		});
+		if (Ti.Platform.canOpenURL(tweetbotNativeURL)) {
+			Ti.Platform.openURL(tweetbotNativeURL);
+			return true;
+		}
+	}
+
+	// iOS Twitter App
+	if (OS_IOS) {
+		var twitterNativeURL = 'twitter://post' + Util.buildQuery({
+			message: (args.tweetText || args.text) + (args.url ? ' (' + args.url + ')' : '')
+		});
+		if (Ti.Platform.canOpenURL(twitterNativeURL)) {
+			Ti.Platform.openURL(twitterNativeURL);
+			return true;
+		}
+	}
+
 	// Native iOS Dialog
-	if (
-		OS_IOS && args.useApp !== true &&
-		(dkNappSocial != null && dkNappSocial.isTwitterSupported())
-	) {
+	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isTwitterSupported())) {
 		dkNappSocial.twitter({
-			text: args.tweetText || args.text,
+			text: (args.tweetText || args.text),
 			image: args.image,
 			url: args.url
 		});
-		return true;
-	}
-
-	// iOS Native
-	var nativeIOSURL = 'twitter://post' + Util.buildQuery({
-		message: args.tweetText + (args.url ? ' ('+args.url+')' : '')
-	});
-	if (OS_IOS && Ti.Platform.canOpenURL(nativeIOSURL)) {
-		Ti.Platform.openURL(nativeIOSURL);
 		return true;
 	}
 
@@ -183,7 +191,7 @@ exports.twitter = function(args) {
  */
 exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA) {
+	if (exports.config.trackWithGA === true) {
 		T('ga').social('email', 'sent', args.url);
 	}
 
@@ -222,7 +230,7 @@ exports.email = exports.mail = function(args) {
  */
 exports.googleplus = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA) {
+	if (exports.config.trackWithGA === true) {
 		T('ga').social('googleplus', 'share', args.url);
 	}
 
@@ -239,7 +247,7 @@ exports.googleplus = function(args) {
  */
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA) {
+	if (exports.config.trackWithGA === true) {
 		T('ga').social('whatsapp', 'share', args.url);
 	}
 
@@ -285,7 +293,7 @@ exports.whatsapp = function(args) {
  */
 exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA) {
+	if (exports.config.trackWithGA === true) {
 		T('ga').social('message', 'sent', args.url);
 	}
 
