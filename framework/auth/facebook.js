@@ -5,15 +5,22 @@
 
 var FB = require('T/fb');
 var _opt = null;
+var resumeListenerInstalled = false;
 
 exports.login = function(opt) {
-	_opt = opt;
-	if (FB.loggedIn && FB.accessToken) {
+	_opt = opt; // store globally
+	if (FB.loggedIn === true && FB.accessToken != null) {
 		_opt.success({
 			access_token: FB.accessToken
 		});
 	} else {
 		FB.authorize();
+
+		// Fix: SDK doesn't trigger login event.
+		if (OS_IOS && resumeListenerInstalled === false) {
+			resumeListenerInstalled = true;
+			Ti.App.addEventListener('resumed', FB.authorize);
+		}
 	}
 };
 
@@ -22,7 +29,7 @@ exports.logout = function() {
 };
 
 exports.isStoredLoginAvailable = function() {
-	return FB.loggedIn || !_.isEmpty(FB.accessToken);
+	return FB.loggedIn === true && FB.accessToken != null;
 };
 
 exports.storedLogin = function(opt) {
@@ -58,5 +65,8 @@ FB.addEventListener('login', function(e){
 		});
 	}
 
+	// Reset _opt to prevent double triggers of callbacks
 	_opt = null;
 });
+
+
