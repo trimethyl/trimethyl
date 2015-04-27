@@ -13,6 +13,7 @@ exports.config = _.extend({
 
 var libDir = [];
 var helpers = {};
+var fonts = [];
 
 function embedFile(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
@@ -42,6 +43,12 @@ function embedJS(f) {
 	return '<script src="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '"></script>';
 }
 
+function embedFont(f) {
+	var file = embedFile(f.src);
+	if (file == null) return '';
+	return '<style>@font-face { font-family: "' + f.name + '"; font-weight: ' + f.weight + '; src: url("' + f.src + '"); }</style>';
+}
+
 function getHTML(opt) {
 	var tpl_data = _.extend({}, helpers, opt.webdata);
 
@@ -52,6 +59,11 @@ function getHTML(opt) {
 
 	// Install the global event handler for this specific WebView
 	html += '<script>window.WebAlloy={run:function(name,data){Ti.App.fireEvent("__weballoy_'+opt.uniqid+'",{name:name,data:data});}};</script>';
+
+	// Include fonts
+	_.each(fonts, function(f) {
+		html += embedFont(f);
+	});
 
 	// Include global css
 	html += embedCSS('web/app.css');
@@ -101,6 +113,27 @@ exports.addHelper = function(name, method) {
 };
 
 /**
+ * @method addFont
+ * Add a font dynamically loaded with font-face in CSS
+ * @param {String} 		name   		The name of the font
+ * @param {String} 		weight 		The weight of the font
+ * @param {String}		filename 	The filename of the font (must be located in `app/assets/fonts`)
+ */
+exports.addFont = function(name, weight, filename) {
+	var url = Ti.Filesystem.getFile('fonts', filename);
+	if (!url.exists()) {
+		Ti.API.debug('Weballoy: File not found (' + url.nativePath + ')');
+		return false;
+	}
+
+	fonts.push({
+		name: name,
+		weight: weight,
+		src: Ti.Filesystem.getFile('fonts', filename).getNativePath()
+	});
+};
+
+/**
  * @method createView
  * @param  {Object} args Arguments for the view.
  * @return {Ti.UI.WebView}
@@ -109,14 +142,20 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
+	var tmpName = (args.name ? Ti.Utils.md5HexDigest(args.name) : args.uniqid) + '.html';
+	var tmpFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, tmpName);
+	tmpFile.write(getHTML(args));
+
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
 		backgroundColor: 'transparent',
-		html: getHTML(args)
+		url: tmpFile.nativePath
 	}, args));
+
+	tmpFile = null;
 
 	$ui.addEventListener('load', function() {
 		if (args.autoHeight) {
