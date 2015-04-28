@@ -14,12 +14,19 @@ exports.login = function(opt) {
 			access_token: FB.accessToken
 		});
 	} else {
-		FB.authorize();
+		if (Ti.Network.online) {
+			FB.authorize();
 
-		// Fix: SDK doesn't trigger login event.
-		if (OS_IOS && resumeListenerInstalled === false) {
-			resumeListenerInstalled = true;
-			Ti.App.addEventListener('resumed', FB.authorize);
+			// Fix: SDK doesn't trigger login event.
+			if (OS_IOS && resumeListenerInstalled === false) {
+				resumeListenerInstalled = true;
+				Ti.App.addEventListener('resumed', FB.authorize);
+			}
+		} else {
+			_opt.error({
+				offline: true,
+				message: L('network_offline', 'Check your connectivity.')
+			});
 		}
 	}
 };
@@ -58,8 +65,7 @@ FB.addEventListener('login', function(e){
 			access_token: FB.accessToken
 		});
 	} else {
-		// Check for token validation errors. The token may have been revoked after a password change or for other reasons.
-		if (e.error.indexOf('Error validating access token:') >= 0) FB.logout();
+		FB.logout();
 		_opt.error({
 			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')
 		});
