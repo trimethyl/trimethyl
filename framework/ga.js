@@ -5,23 +5,22 @@
 
 /**
  * @property config
- * @property {String} config.ua UA of Google Analitycs
- * @property {Boolean} [config.log]
+ * @property {String} 	config.ua 			UA of Google Analitycs
+ * @property {Boolean} 	config.dryRun		Enable debug mode. This will prevent sending data to Google Analytics.
  * @type {Object}
  */
 exports.config = _.extend({
 	ua: null,
-	log: false
+	dryRun: false
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
 
 var AnalyticsGoogle = require('analytics.google');
 var tracker = null;
 
+
 function track(method, what) {
-	if (exports.config.log) {
-		Ti.API.debug('GA: tracking ' + method, what);
-	}
+	if (_.isEmpty(what)) return;
 	tracker['track' + method](what);
 }
 
@@ -66,8 +65,17 @@ exports.event = exports.trackEvent;
  * Track a screen
  * @param  {String} name 	The screen name
  */
-exports.trackScreen = function(obj){
+exports.trackScreen = function(screenName) {
 	if (tracker === null) return;
+	var obj;
+
+	if (_.isObject(obj)) {
+		obj = screenName;
+	} else {
+		obj = {
+			screenName: screenName
+		};
+	}
 
 	track('Screen', obj);
 };
@@ -161,11 +169,13 @@ exports.setTrackerUA = function(ua) {
 // Init //
 //////////
 
-AnalyticsGoogle.trackUncaughtExceptions = true;
-AnalyticsGoogle.debug = !!exports.config.log;
-
 if (exports.config.ua != null) {
-	exports.setTrackerUA(exports.config.ua);
+
+	exports.setTrackerUA( exports.config.ua );
+	AnalyticsGoogle.trackUncaughtExceptions = true;
+	AnalyticsGoogle.dryRun = !!exports.config.dryRun;
+
 } else {
 	Ti.API.error('GA: empty UA');
 }
+
