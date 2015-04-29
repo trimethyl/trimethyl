@@ -120,16 +120,16 @@ exports.addHelper = function(name, method) {
  * @param {String}		filename 	The filename of the font (must be located in `app/assets/fonts`)
  */
 exports.addFont = function(name, weight, filename) {
-	var url = Ti.Filesystem.getFile('fonts', filename);
-	if (!url.exists()) {
-		Ti.API.debug('Weballoy: File not found (' + url.nativePath + ')');
+	var tiFile = Ti.Filesystem.getFile('fonts', filename);
+	if ( ! tiFile.exists()) {
+		Ti.API.debug('Weballoy: File not found (' + tiFile.nativePath + ')');
 		return false;
 	}
 
 	fonts.push({
 		name: name,
 		weight: weight,
-		src: Ti.Filesystem.getFile('fonts', filename).getNativePath()
+		src: tiFile.nativePath
 	});
 };
 
