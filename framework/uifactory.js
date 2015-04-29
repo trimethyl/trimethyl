@@ -96,3 +96,10 @@ exports.createButton = function(args) {
 exports.createImageView = function(args) {
 	return require('T/uifactory/imageview')(args);
 };
+
+/**
+ * @method createImageView
+ */
+exports.createImageLoadingView = function(args) {
+	return require('T/uifactory/imageloadingview')(args);
+};

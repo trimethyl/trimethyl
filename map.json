@@ -134,6 +134,10 @@
 		"name": "UIFactory.ImageView",
 		"description": "ImageView façade"
 	},
+	"uifactory/imageloadingview":{
+		"name": "UIFactory.ImageLoadingView",
+		"description": "ImageLoadingView façade"
+	},
 	"uifactory/label":{
 		"name": "UIFactory.Label",
 		"description": "Button façade"
