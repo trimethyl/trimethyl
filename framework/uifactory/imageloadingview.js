@@ -4,6 +4,9 @@
 */
 
 module.exports = function(args) {
+	var hasWidth = args.width ? true : false;
+	var hasHeight = args.height ? true : false;
+
 	_.defaults(args, {
 		height: Ti.UI.SIZE,
 		width: Ti.UI.SIZE,
@@ -103,9 +106,17 @@ module.exports = function(args) {
 	$this.__image.image = img;
 
 	$this.__image.addEventListener('load', function() {
-		$this.__image.left = $this.__image.top = $this.__image.right = $this.__image.bottom = 0;
-		$this.__image.height = $this.rect.height;
-		$this.__image.width = $this.rect.width;
+		if (hasHeight && hasWidth) {
+			$this.__image.height = $this.rect.height;
+			$this.__image.width = $this.rect.width;
+		} else if (hasHeight) {
+			$this.__image.height = $this.rect.height;
+			$this.width = Ti.UI.SIZE;
+		} else if (hasWidth) {
+			$this.__image.width = $this.rect.width;
+			$this.height = Ti.UI.SIZE;
+		}
+
 		$this.hideIndicator();
 	});
 
