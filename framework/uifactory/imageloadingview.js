@@ -55,13 +55,16 @@ module.exports = function(args) {
 	* Show an activity indicator, hiding the displayed image
 	*/
 	$this.showIndicator = function() {
-		if (indicatorVisible) return;
+		if (indicatorVisible === true) return;
 		indicatorVisible = true;
+
 		$this.add($this.__indicator);
-		$this.__indicator.height = 50;
-		$this.__indicator.width = 50;
+		$this.__indicator.applyProperties({
+			height: 50,
+			width: 50,
+			opacity: 0
+		});
 		$this.__indicator.show();
-		$this.__image.opacity = 0;
 	};
 
 	/**
@@ -69,8 +72,9 @@ module.exports = function(args) {
 	* Hide this ImageView's activity indicator
 	*/
 	$this.hideIndicator = function() {
-		if (!indicatorVisible) return;
+		if (indicatorVisible === false) return;
 		indicatorVisible = false;
+
 		$this.__indicator.hide();
 		$this.__image.opacity = 1;
 		$this.remove($this.__indicator);
@@ -82,7 +86,8 @@ module.exports = function(args) {
 	* @param {boolean} visible
 	*/
 	$this.toggleIndicator = function(visible) {
-		if (visible) $this.showIndicator(); else $this.hideIndicator();
+		if (visible) $this.showIndicator();
+		else $this.hideIndicator();
 	};
 
 	/**
@@ -102,6 +107,10 @@ module.exports = function(args) {
 	$this.getImage = function() {
 		return $this.__image.image;
 	};
+
+	///////////
+	// Init //
+	///////////
 
 	$this.__image.image = img;
 
