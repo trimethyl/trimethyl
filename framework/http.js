@@ -55,7 +55,7 @@ function HTTPRequest(opt) {
 	}
 
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
-	this.headers = _.extend({}, HTTP.getHeaders(), opt.headers);
+	this.headers = _.extend({}, exports.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
 
 	// Rebuild the URL if is a GET and there's data
@@ -69,7 +69,7 @@ function HTTPRequest(opt) {
 	}
 
 	this.hash = this._calculateHash();
-	this.uniqueId = HTTP.getUniqueId();
+	this.uniqueId = exports.getUniqueId();
 
 	// Fill the defer, we will manage the callbacks through it
 	this.defer = Q.defer();
@@ -189,7 +189,7 @@ HTTPRequest.prototype._onSuccess = function() {
 
 HTTPRequest.prototype._onComplete = function(e) {
 	this.endTime = Date.now();
-	HTTP.removeFromQueue(this);
+	exports.removeFromQueue(this);
 
 	// Fire the global event
 	if (this.opt.silent !== true) {
@@ -252,7 +252,7 @@ HTTPRequest.prototype.send = function() {
 	this.client.onload = this.client.onerror = function(e) { self._onComplete(e); };
 
 	// Add this request to the queue
-	HTTP.addToQueue(this);
+	exports.addToQueue(this);
 
 	if (this.opt.silent !== true) {
 		Event.trigger('http.start', {
