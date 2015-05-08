@@ -98,7 +98,7 @@ exports.createImageView = function(args) {
 };
 
 /**
- * @method createImageView
+ * @method createImageLoadingView
  */
 exports.createImageLoadingView = function(args) {
 	return require('T/uifactory/imageloadingview')(args);
