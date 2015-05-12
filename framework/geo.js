@@ -49,20 +49,20 @@ exports.getCurrentPosition = function(opt) {
 	if (exports.isAuthorized() === false) {
 		if (_.isFunction(opt.complete)) opt.complete();
 		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
-		if (opt.silent !== false) {
+		if (opt.silent !== true) {
 			Event.trigger('geo.disabled');
 		}
 
 		return false;
 	}
 
-	if (opt.silent !== false) {
+	if (opt.silent !== true) {
 		Event.trigger('geo.start');
 	}
 
 	Ti.Geolocation.getCurrentPosition(function(e) {
 		if (_.isFunction(opt.complete)) opt.complete();
-		if (opt.silent !== false) {
+		if (opt.silent !== true) {
 			Event.trigger('geo.end');
 		}
 
