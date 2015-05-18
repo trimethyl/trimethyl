@@ -20,7 +20,7 @@ exports.getScreenDensity = function() {
  */
 exports.getScreenWidth = function() {
 	return Alloy.Globals.SCREEN_WIDTH;
-}
+};
 
 /**
  * @method getScreenHeight

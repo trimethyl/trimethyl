@@ -43,6 +43,7 @@ SQLite.prototype.execute = SQLite.prototype.exec = function() {
 	if (exports.config.log) {
 		Ti.API.debug('SQLite:', arguments);
 	}
+
 	return Function.prototype.apply.call(this.db.execute, this.db, arguments);
 };
 

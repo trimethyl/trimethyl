@@ -30,7 +30,7 @@
   },
   "main": "./index.js",
   "scripts": {
-    "test": "jshint . --exclude ext --exclude .trimethyl"
+    "test": "jshint framework --exclude framework/ext"
   },
   "bin": {
     "trimethyl": "./cli.js"
