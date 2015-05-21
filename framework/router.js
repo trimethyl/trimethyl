@@ -18,21 +18,21 @@ var Flow = require('T/flow');
 var routeRegistry = [];
 
 /**
- * @properties currentUrl
+ * @property currentUrl
  * Latest URL dispatched
  * @type {String}
  */
 exports.currentUrl = null;
 
 /**
- * @properties currentRoute
+ * @property currentRoute
  * Latest Route (not URL) dispatched
  * @type {Object}
  */
 exports.currentRoute = null;
 
 /**
- * @properties stack
+ * @property stack
  * All routes in a stack
  * @type {Array}
  */

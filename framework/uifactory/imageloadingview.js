@@ -1,6 +1,6 @@
 /**
-* @class  	ImageView
-* @author  Andrea Jonus <andrea.jonus@caffeina.it>
+* @class  	UIFactory.ImageLoadingView
+* @author  	Andrea Jonus <andrea.jonus@caffeina.it>
 */
 
 module.exports = function(args) {
