@@ -12,19 +12,22 @@ module.exports = function(args) {
 		width: Ti.UI.SIZE,
 
 		/**
-		* @property {Number} [indicatorStyle] Sets the style of the activity indicator. See [Ti.UI.ActivityIndicator.style]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-style}
+		* @property {Number} [indicatorStyle] Sets the style of the activity indicator.
+		* See [Ti.UI.ActivityIndicator.style]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-style}
 		* @default [Ti.UI.ActivityIndicatorStyle.DARK|Ti.UI.iPhone.ActivityIndicatorStyle.DARK]
 		*/
 		indicatorStyle: OS_ANDROID ? Ti.UI.ActivityIndicatorStyle.DARK : Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
 
 		/**
-		* @property {Number} [indicatorMessage] Sets the message of the activity indicator. See [Ti.UI.ActivityIndicator.message]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-message}
+		* @property {Number} [indicatorMessage] Sets the message of the activity indicator.
+		* See [Ti.UI.ActivityIndicator.message]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-message}
 		* @default [null]
 		*/
 		indicatorMessage: null,
 
 		/**
-		* @property {Number} [indicatorMessage] Sets the message's color of the activity indicator. See [Ti.UI.ActivityIndicator.color]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-color}
+		* @property {Number} [indicatorMessage] Sets the message's color of the activity indicator.
+		* See [Ti.UI.ActivityIndicator.color]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-color}
 		* @default [null]
 		*/
 		indicatorColor: null
