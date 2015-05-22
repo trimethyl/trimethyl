@@ -15,6 +15,8 @@ var libDir = [];
 var helpers = {};
 var fonts = [];
 
+var CACHE_DIR = Ti.Filesystem.applicationCacheDirectory + '/weballoy';
+
 function embedFile(f) {
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if ( ! file.exists()) {
@@ -143,7 +145,9 @@ exports.createView = function(args) {
 	args.uniqid = _.uniqueId();
 
 	var tmpName = (args.name ? Ti.Utils.md5HexDigest(args.name) : args.uniqid) + '.html';
-	var tmpFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, tmpName);
+
+	var tmpFile = Ti.Filesystem.getFile(CACHE_DIR, tmpName);
+	if (tmpFile.exists()) tmpFile.deleteFile();
 	tmpFile.write(getHTML(args));
 
 	var $ui = Ti.UI.createWebView(_.extend({
@@ -218,5 +222,7 @@ Init
 
 var jsFiles = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing();
 _.each(jsFiles, function(js) {
-	libDir.push('web/lib/'+js);
+	libDir.push('web/lib/' + js);
 });
+
+Ti.Filesystem.getFile(CACHE_DIR).createDirectory();

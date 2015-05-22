@@ -16,12 +16,6 @@ exports.login = function(opt) {
 	} else {
 		if (Ti.Network.online) {
 			FB.authorize();
-
-			// Fix: SDK doesn't trigger login event.
-			if (OS_IOS && resumeListenerInstalled === false) {
-				resumeListenerInstalled = true;
-				Ti.App.addEventListener('resumed', FB.authorize);
-			}
 		} else {
 			_opt.error({
 				offline: true,

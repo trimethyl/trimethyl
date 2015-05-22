@@ -86,16 +86,6 @@ exports.facebook = function(args) {
 		T('ga').social('facebook', 'share', args.url);
 	}
 
-	// SDK
-	if (FB != null && FB.getCanPresentShareDialog() === true) {
-		FB.share({
-			url: args.url,
-			title: args.title,
-			description: args.description
-		});
-		return true;
-	}
-
 	// Native iOS dialog
 	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
 		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
@@ -104,6 +94,16 @@ exports.facebook = function(args) {
 			text: args.text,
 			image: args.image,
 			url: args.url
+		});
+		return true;
+	}
+
+	// SDK
+	if (FB != null && FB.canPresentShareDialog) {
+		FB.presentShareDialog({
+			url: args.url,
+			title: args.title,
+			description: args.description
 		});
 		return true;
 	}
@@ -121,6 +121,16 @@ exports.facebook = function(args) {
 
 			return true;
 		} catch (err) {}
+	}
+
+	// SDK Web
+	if (FB != null) {
+		FB.presentWebShareDialog({
+			url: args.url,
+			title: args.title,
+			description: args.description
+		});
+		return;
 	}
 
 	// Fallback
