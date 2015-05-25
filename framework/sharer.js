@@ -188,7 +188,7 @@ exports.twitter = function(args) {
 
 	// Fallback
 	Ti.Platform.openURL('http://www.twitter.com/intent/tweet' + Util.buildQuery({
-		 text: args.text,
+		 text: (args.tweetText || args.text),
 		 url: args.url
 	}));
 };
