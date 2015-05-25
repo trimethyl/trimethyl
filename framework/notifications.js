@@ -104,7 +104,7 @@ if (OS_IOS) {
 				if (_.isEmpty(settings.types)) {
 					Ti.API.error('Notifications: User has disabled notifications from settings');
 
-					defer.reject({ servicesDisabled: true })
+					defer.reject({ servicesDisabled: true });
 					Event.trigger('notifications.disabled');
 					return;
 				}
@@ -112,6 +112,12 @@ if (OS_IOS) {
 				Ti.Network.registerForPushNotifications({
 					callback: onNotificationReceived,
 					success: function(e) {
+						if (e.deviceToken == null) {
+							Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
+							defer.reject(err);
+							return;
+						}
+
 						Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
 
 						defer.resolve(e.deviceToken);

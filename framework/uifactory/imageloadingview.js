@@ -1,6 +1,6 @@
 /**
-* @class  	ImageView
-* @author  Andrea Jonus <andrea.jonus@caffeina.it>
+* @class  	UIFactory.ImageLoadingView
+* @author  	Andrea Jonus <andrea.jonus@caffeina.it>
 */
 
 module.exports = function(args) {
@@ -12,19 +12,22 @@ module.exports = function(args) {
 		width: Ti.UI.SIZE,
 
 		/**
-		* @property {Number} [indicatorStyle] Sets the style of the activity indicator. See [Ti.UI.ActivityIndicator.style]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-style}
+		* @property {Number} [indicatorStyle] Sets the style of the activity indicator.
+		* See [Ti.UI.ActivityIndicator.style]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-style}
 		* @default [Ti.UI.ActivityIndicatorStyle.DARK|Ti.UI.iPhone.ActivityIndicatorStyle.DARK]
 		*/
 		indicatorStyle: OS_ANDROID ? Ti.UI.ActivityIndicatorStyle.DARK : Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
 
 		/**
-		* @property {Number} [indicatorMessage] Sets the message of the activity indicator. See [Ti.UI.ActivityIndicator.message]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-message}
+		* @property {Number} [indicatorMessage] Sets the message of the activity indicator.
+		* See [Ti.UI.ActivityIndicator.message]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-message}
 		* @default [null]
 		*/
 		indicatorMessage: null,
 
 		/**
-		* @property {Number} [indicatorMessage] Sets the message's color of the activity indicator. See [Ti.UI.ActivityIndicator.color]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-color}
+		* @property {Number} [indicatorMessage] Sets the message's color of the activity indicator.
+		* See [Ti.UI.ActivityIndicator.color]{@link http://docs.appcelerator.com/titanium/3.0/#!/api/Titanium.UI.ActivityIndicator-property-color}
 		* @default [null]
 		*/
 		indicatorColor: null
@@ -55,13 +58,16 @@ module.exports = function(args) {
 	* Show an activity indicator, hiding the displayed image
 	*/
 	$this.showIndicator = function() {
-		if (indicatorVisible) return;
+		if (indicatorVisible === true) return;
 		indicatorVisible = true;
+
 		$this.add($this.__indicator);
-		$this.__indicator.height = 50;
-		$this.__indicator.width = 50;
+		$this.__indicator.applyProperties({
+			height: 50,
+			width: 50,
+			opacity: 0
+		});
 		$this.__indicator.show();
-		$this.__image.opacity = 0;
 	};
 
 	/**
@@ -69,8 +75,9 @@ module.exports = function(args) {
 	* Hide this ImageView's activity indicator
 	*/
 	$this.hideIndicator = function() {
-		if (!indicatorVisible) return;
+		if (indicatorVisible === false) return;
 		indicatorVisible = false;
+
 		$this.__indicator.hide();
 		$this.__image.opacity = 1;
 		$this.remove($this.__indicator);
@@ -82,7 +89,8 @@ module.exports = function(args) {
 	* @param {boolean} visible
 	*/
 	$this.toggleIndicator = function(visible) {
-		if (visible) $this.showIndicator(); else $this.hideIndicator();
+		if (visible) $this.showIndicator();
+		else $this.hideIndicator();
 	};
 
 	/**
@@ -102,6 +110,10 @@ module.exports = function(args) {
 	$this.getImage = function() {
 		return $this.__image.image;
 	};
+
+	///////////
+	// Init //
+	///////////
 
 	$this.__image.image = img;
 

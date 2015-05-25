@@ -4,8 +4,11 @@
  */
 
 Ti.Trimethyl = true;
+Alloy.CFG.T = Alloy.CFG.T || {};
 
-// Framework loaders
+///////////////////////
+// Framework loaders //
+///////////////////////
 
 Alloy.Globals.Trimethyl = {
 
@@ -20,7 +23,10 @@ Alloy.Globals.Trimethyl = {
 
 };
 
-// Alloy Globals Contants
+
+////////////////////////////
+// Alloy Globals Contants //
+////////////////////////////
 
 Alloy.Globals.SCREEN_WIDTH = OS_IOS ? Ti.Platform.displayCaps.platformWidth : Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
 Alloy.Globals.SCREEN_HEIGHT = OS_IOS ? Ti.Platform.displayCaps.platformHeight : Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
@@ -31,7 +37,10 @@ Alloy.Globals.SCREEN_RETINA = Alloy.Globals.SCREEN_DENSITY == 2;
 Alloy.Globals.IOS7 = OS_IOS && Ti.Platform.version.split('.')[0] == 7;
 Alloy.Globals.IOS8 = OS_IOS && Ti.Platform.version.split('.')[0] == 8;
 
-// Global App Listeners
+
+//////////////////////////
+// Global App Listeners //
+//////////////////////////
 
 Ti.App.addEventListener('openURL', function(e){
 	Ti.Platform.openURL(e.url);

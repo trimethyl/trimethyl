@@ -59,9 +59,10 @@ Ti.App.addEventListener('resumed', function() {
 	exports.launchURL = Util.parseSchema();
 	Ti.API.debug('App: Resumed with schema <' + exports.launchURL + '>');
 
-	if (exports.config.useRouter) {
-		Router.go(exports.launchURL);
-	}
+	if (exports.pauseURL === exports.launchURL) return;
+	if (!exports.config.useRouter) return;
+
+	Router.go(exports.launchURL);
 });
 
 /**
@@ -69,7 +70,9 @@ Ti.App.addEventListener('resumed', function() {
  */
 exports.start = function() {
 	Ti.API.info('App: Started with schema <' + exports.launchURL + '>');
-	if (exports.config.useRouter && exports.launchURL != null) {
-		Router.go(exports.launchURL);
-	}
+	if (!exports.config.useRouter) return;
+	if (exports.launchURL == null) return;
+
+	Router.go(exports.launchURL);
+
 };

@@ -8,6 +8,7 @@ function readConfig() {
 	var config = {
 		libs: []
 	};
+
 	if (fs.existsSync(CWD + '/trimethyl.json')) {
 		try {
 			config = require(CWD + '/trimethyl.json');
@@ -16,6 +17,7 @@ function readConfig() {
 			process.exit(1);
 		}
 	}
+
 	return config;
 }
 
@@ -73,22 +75,28 @@ exports.install = function() {
 
 exports.add = function(value) {
 	var config = readConfig();
+
 	config.libs.push(value);
 	config.libs = _.uniq(config.libs);
+
 	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
 	logger.info('trimethyl.json file written successfully');
+
 	return true;
 };
 
 exports.remove = function(value) {
 	var config = readConfig();
 	var io = config.libs.indexOf(value);
-	if (io !== -1) {
-		config.libs.splice(io, 1);
-		fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
-		logger.info('trimethyl.json file written successfully');
-		return true;
-	} else {
+
+	if (io === -1) {
 		logger.warn('Unable to find <' + value + '> in your libs');
+		return;
 	}
+
+	config.libs.splice(io, 1);
+	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
+	logger.info('trimethyl.json file written successfully');
+
+	return true;
 };
