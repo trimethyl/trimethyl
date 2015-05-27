@@ -567,6 +567,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 			fileStream = Ti.Filesystem.getFile(APP_DATA_DIR, file);
 		}
 
+		if (fileStream.exists()) fileStream.deleteFile();
 		if (fileStream.write(data)) {
 			if (_.isFunction(success)) success(fileStream);
 		} else {
