@@ -394,10 +394,16 @@ exports.bytesForHumans = function(bytes) {
  */
 var DATABASE_DIRECTORY_NAME = null;
 exports.getDatabaseDirectoryName = function() {
-	DATABASE_DIRECTORY_NAME = DATABASE_DIRECTORY_NAME || (function() {
-		var path = Ti.Database.open('test').getFile().resolve().split('/');
-		path.pop();
-		return path.join('/') + '/';
-	})();
+	if (DATABASE_DIRECTORY_NAME === null) {
+		if (OS_IOS) {
+			var db = Ti.Database.open('test');
+			var path = db.file.resolve().split('/'); path.pop();
+			db.close();
+			DATABASE_DIRECTORY_NAME = path.join('/') + '/';
+		} else if (OS_ANDROID) {
+			DATABASE_DIRECTORY_NAME = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent ? 'externalStorageDirectory' : 'applicationDataDirectory' ] + '/databases';
+			try { Ti.Filesystem.getFile(DATABASE_DIRECTORY_NAME).createDirectory(); } catch (err) {}
+		}
+	}
 	return DATABASE_DIRECTORY_NAME;
 };
