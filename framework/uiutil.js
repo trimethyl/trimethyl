@@ -103,7 +103,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 		if (cachedFileStatus != false && cachedFileStatus.nativePath) {
 			callback(cachedFileStatus.nativePath);
 		} else {
-			Ti.API.error('UIFactory.View: Can\'t write cover file for url <' + url + '>');
+			Ti.API.error('UIUtil: Can\'t write cover file for url <' + url + '>');
 		}
 	};
 
@@ -123,7 +123,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 			}).success(function(data) {
 				onBlobReady(data);
 			}).error(function() {
-				Ti.API.error('UIFactory.View: URL <' + url + '> can\'t be downloaded');
+				Ti.API.error('UIUtil: URL <' + url + '> can\'t be downloaded');
 			});
 
 		} else {
@@ -136,10 +136,10 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 				if (blob != null) {
 					onBlobReady(blob);
 				} else {
-					Ti.API.error('UIFactory.View: File <' + url + '> exists but is unreadable');
+					Ti.API.error('UIUtil: File <' + url + '> exists but is unreadable');
 				}
 			} else {
-				Ti.API.error('UIFactory.View: File <' + url + '> doesn\'t exists');
+				Ti.API.error('UIUtil: File <' + url + '> doesn\'t exists');
 			}
 		}
 	}
