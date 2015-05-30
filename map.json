@@ -132,7 +132,8 @@
 	},
 	"uifactory/imageview":{
 		"name": "UIFactory.ImageView",
-		"description": "ImageView façade"
+		"description": "ImageView façade",
+		"dependencies": ["uiutil"]
 	},
 	"uifactory/imageloadingview":{
 		"name": "UIFactory.ImageLoadingView",
