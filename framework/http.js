@@ -244,12 +244,12 @@ HTTPRequest.prototype._calculateHash = function() {
 HTTPRequest.prototype.send = function() {
 	var self = this;
 
-	this.client = Ti.Network.createHTTPClient({
+	var client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
 		cache: false,
 	});
 
-	this.client.onload = this.client.onerror = function(e) { self._onComplete(e); };
+	client.onload = client.onerror = function(e) { self._onComplete(e); };
 
 	// Add this request to the queue
 	exports.addToQueue(this);
@@ -262,22 +262,25 @@ HTTPRequest.prototype.send = function() {
 	}
 
 	// Progress callbacks
-	if (_.isFunction(this.opt.ondatastream)) this.client.ondatastream = this.opt.ondatastream;
-	if (_.isFunction(this.opt.ondatasend)) this.client.ondatasend = this.opt.ondatasend;
+	if (_.isFunction(this.opt.ondatastream)) client.ondatastream = this.opt.ondatastream;
+	if (_.isFunction(this.opt.ondatasend)) client.ondatasend = this.opt.ondatasend;
 
 	// Set headers
-	this.client.open(this.method, this.url);
+	client.open(this.method, this.url);
+
 	_.each(this.headers, function(h, k) {
-		this.client.setRequestHeader(k, h);
+		client.setRequestHeader(k, h);
 	});
 
 	// Send the request over Internet
 	this.startTime = Date.now();
 	if (this.data != null) {
-		this.client.send(this.data);
+		client.send(this.data);
 	} else {
-		this.client.send();
+		client.send();
 	}
+
+	this.client = client;
 };
 
 HTTPRequest.prototype.resolve = function() {
