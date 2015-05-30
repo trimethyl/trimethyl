@@ -77,8 +77,7 @@
 	},
 	"image":{
 		"name": "Image",
-		"description": "Image manipulation features.",
-		"dependencies": ["device"]
+		"description": "Image manipulation features."
 	},
 	"notifications":{
 		"name": "Notifications",

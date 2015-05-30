@@ -34,7 +34,7 @@ exports.process = function(opt) {
 		return Ti.API.error('Image: Blob is null or not instanceof Ti.Blob');
 	}
 
-	var ratio = opt.retina === true ? Device.getScreenDensity() : 1;
+	var ratio = opt.retina === true ? Alloy.Globals.SCREEN_DENSITY : 1;
 	var R = null;
 
 	if (opt.size != null) {
