@@ -34,7 +34,7 @@ exports.sync = function(method, model, opt) {
 		url: url,
 		method: CRUD_to_REST[method] || 'GET',
 		format: 'json'
-	});
+	}, opt.httpOverride);
 
 	if (Alloy.Backbone.emulateHTTP) {
 		if ([ 'DELETE', 'PUT', 'PATCH' ].indexOf(httpOpt.method) !== -1) {
