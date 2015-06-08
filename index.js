@@ -21,8 +21,16 @@ function readConfig() {
 	return config;
 }
 
+function readMap() {
+	return require('./map.json');
+}
+
+/**
+ * @method install
+ * Copy the modules
+ */
 exports.install = function() {
-	var map = require('./map.json');
+	var map = readMap();
 
 	// Get the configuration
 	var config = readConfig();
@@ -38,34 +46,42 @@ exports.install = function() {
 		}
 	};
 
-	function buildDependencies(key) {
-		if (map[key] == null) return;
-		if (libs[key] != null) return;
+	function buildDependencies(key, req, tabs) {
+		req = req || null;
+		tabs = tabs || 0;
+		if (key in libs) return;
 
-		libs[key] = map[key];
-		if (map[key].dependencies != null) {
-			map[key].dependencies.forEach(buildDependencies);
-		}
+		var val = map[key];
+		libs[key] = _.extend({}, val, {
+			requiredBy: req,
+			tabs: tabs
+		});
+		(val.dependencies || []).forEach(function(o) {
+			buildDependencies(o, val, tabs+1);
+		});
 	}
-	(config.libs || []).forEach(buildDependencies);
+	(config.libs || []).forEach(function(v) {
+		buildDependencies(v);
+	});
 
 	var R = CWD + '/app/lib';
 	if (fs.existsSync(R) === false) fs.mkdirSync(R);
 	fs.deleteDirSync(R + '/T');
 
 	// Copy libs!!
-	_.each(libs, function(info, name) {
-		logger.info('Installing ' + info.name);
+	_.each(libs, function(info, key) {
+		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '|' + new Array(3).join('-') : '';
+		logger.info(tabs + 'Installing ' + info.name);
 
 		var srcFile, dstFile;
 
-		if (/^alloy\//.test(name)) {
-			name = name.replace('alloy/', '');
-			dstFile = R + '/alloy/' + name + '.js';
-			srcFile = __dirname + '/framework/alloy/' + name + '.js';
+		if (/^alloy\//.test(key)) {
+			key = key.replace('alloy/', '');
+			dstFile = R + '/alloy/' + key + '.js';
+			srcFile = __dirname + '/framework/alloy/' + key + '.js';
 		} else {
-			dstFile = R + '/T/' + name + '.js';
-			srcFile = __dirname + '/framework/' + name + '.js';
+			dstFile = R + '/T/' + key + '.js';
+			srcFile = __dirname + '/framework/' + key + '.js';
 		}
 
 		fs.createDirSync(path.dirname(dstFile));
@@ -73,9 +89,18 @@ exports.install = function() {
 	});
 };
 
+/**
+ * @method add
+ * Add a module to the app
+ */
 exports.add = function(value) {
-	var config = readConfig();
+	var map = readMap();
+	if (!(value in map)) {
+		logger.error('Module <' + value + '> is not a valid Trimethyl module.');
+		process.exit();
+	}
 
+	var config = readConfig();
 	config.libs.push(value);
 	config.libs = _.uniq(config.libs);
 
@@ -85,6 +110,10 @@ exports.add = function(value) {
 	return true;
 };
 
+/**
+ * @method remove
+ * Remove a module to the app
+ */
 exports.remove = function(value) {
 	var config = readConfig();
 	var io = config.libs.indexOf(value);
@@ -95,6 +124,7 @@ exports.remove = function(value) {
 	}
 
 	config.libs.splice(io, 1);
+
 	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
 	logger.info('trimethyl.json file written successfully');
 

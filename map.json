@@ -26,7 +26,7 @@
 	"cache/database":{
 		"name": "Cache.Database",
 		"description": "Cache driver with SQLite",
-		"dependencies": ["sqlite","utils","filesystem"]
+		"dependencies": ["sqlite","util","filesystem"]
 	},
 	"camera":{
 		"name": "Camera",
