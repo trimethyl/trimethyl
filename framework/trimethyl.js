@@ -45,3 +45,19 @@ Alloy.Globals.IOS8 = OS_IOS && Ti.Platform.version.split('.')[0] == 8;
 Ti.App.addEventListener('openURL', function(e){
 	Ti.Platform.openURL(e.url);
 });
+
+/////////////////////////////////////////////
+// Extend underscore with awesome features //
+/////////////////////////////////////////////
+
+_.mixin({
+	deepClone: function(object) {
+		var clone = _.clone(object);
+		_.each(clone, function(value, key) {
+			if (_.isObject(value)) {
+				clone[key] = _.deepClone(value);
+			}
+		});
+		return clone;
+	}
+});
