@@ -87,6 +87,11 @@ exports.install = function() {
 		fs.createDirSync(path.dirname(dstFile));
 		fs.copyFileSync(srcFile, dstFile);
 	});
+
+	// Write version
+	config.version = require('package.json').version;
+	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
+	logger.info('trimethyl.json file written successfully');
 };
 
 /**
