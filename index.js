@@ -70,8 +70,8 @@ exports.install = function() {
 
 	// Copy libs!!
 	_.each(libs, function(info, key) {
-		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '|' + new Array(3).join('-') : '';
-		logger.info(tabs + 'Installing ' + info.name);
+		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*5).join(' ') + '⧷' + new Array(4).join('-') : '';
+		logger.debug(tabs + 'Installing ' + info.name);
 
 		var srcFile, dstFile;
 
@@ -89,9 +89,10 @@ exports.install = function() {
 	});
 
 	// Write version
-	config.version = require('package.json').version;
+	config.version = require('./package.json').version;
 	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
-	logger.info('trimethyl.json file written successfully');
+
+	logger.info('Version installed: ' + config.version);
 };
 
 /**
