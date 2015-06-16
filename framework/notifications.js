@@ -243,6 +243,13 @@ exports.deactivate = function() {
 exports.subscribe = function(channel, data) {
 	var defer = Q.defer();
 
+	if (!Ti.Network.online) {
+		defer.reject({
+			offline: true
+		});
+		return defer.promise;
+	}
+
 	exports.activate()
 	.fail(defer.reject)
 	.then(function(deviceToken) {
@@ -280,6 +287,13 @@ exports.subscribe = function(channel, data) {
  */
 exports.unsubscribe = function(channel, data) {
 	var defer = Q.defer();
+
+	if (!Ti.Network.online) {
+		defer.reject({
+			offline: true
+		});
+		return defer.promise;
+	}
 
 	var deviceToken = exports.getStoredDeviceToken();
 	if (_.isEmpty(deviceToken)) {

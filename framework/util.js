@@ -407,3 +407,86 @@ exports.getDatabaseDirectoryName = function() {
 	}
 	return DATABASE_DIRECTORY_NAME;
 };
+
+/**
+ * @method compareVersions
+ * Compare two app versions
+ * @param  {String} a
+ * @param  {String} b
+ * @return {Number}
+ */
+exports.compareVersions = function(a, b) {
+	if (a == null || b == null) return 0;
+
+	a = a.split('.');
+	b = b.split('.');
+	for (var i = 0; i < Math.max(a.length, b.length); i++) {
+		var _a = +a[i] || 0, _b = +b[i] || 0;
+		console.log(_a, _b);
+		if (_a > _b) return 1;
+		else if (_a < _b) return -1;
+	}
+	return 0;
+};
+
+/**
+ * @method notifyUpdate
+ * Check on the App/Play store if new version of this app has been released.
+ * If it is, a dialog is shown to update the app.
+ */
+exports.notifyUpdate = function() {
+	if (!Ti.Network.online) return;
+
+	var url = null;
+	var appstore_id = null;
+	if (OS_IOS) {
+		appstore_id = Ti.App.Properties.getString('appstore.id');
+		url = 'https://itunes.apple.com/lookup?id=' + appstore_id;
+	} else if (OS_ANDROID) {
+		appstore_id = Ti.App.id;
+		url = 'https://androidquery.appspot.com/api/market?app=' + appstore_id;
+	} else {
+		return;
+	}
+
+	if (appstore_id == null) return;
+
+	T('http').send({
+		url: url,
+		errorAlert: false,
+		format: 'json',
+		success: function(response) {
+			if (response == null || !_.isObject(response)) return;
+
+			var new_version = null;
+			if (OS_IOS) {
+				new_version = (response.results && response.results[0]) ? response.results[0].version : null;
+			} else if (OS_ANDROID) {
+				new_version = response.version || null;
+			}
+
+			var version_compare = exports.compareVersions(new_version, Ti.App.version);
+
+			Ti.API.info('Util: App store version is ' + new_version);
+			Ti.API.info('Util: Current version is ' + Ti.App.version);
+
+			if (version_compare > 0) {
+				T('dialog').confirm(
+				L('app_new_version_title', 'Update available'),
+				String.format(L('app_new_version_message', 'A new version of %s is available: %s\nDo you want to download it?'), Ti.App.name, new_version), [
+				{
+					title: L('app_new_version_button_later', 'Later'),
+					cancel: true,
+				},
+				{
+					title: L('app_new_version_button_update', 'Update'),
+					selected: true,
+					callback: function() {
+						exports.openInStore(appstore_id);
+					}
+				}
+				]);
+			}
+		}
+	});
+};
