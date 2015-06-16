@@ -2,7 +2,7 @@
 	"app":{
 		"name": "App",
 		"description": "Application manager",
-		"dependencies": ["util","router"]
+		"dependencies": ["util","router","http","dialog"]
 	},
 	"auth":{
 		"name": "Auth",
@@ -191,7 +191,7 @@
 	"util":{
 		"name": "Util",
 		"description": "Simply, utilities.",
-		"dependencies": ["dialog","http"]
+		"dependencies": ["dialog"]
 	},
 	"weballoy":{
 		"name": "WebAlloy",
