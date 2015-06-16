@@ -422,7 +422,6 @@ exports.compareVersions = function(a, b) {
 	b = b.split('.');
 	for (var i = 0; i < Math.max(a.length, b.length); i++) {
 		var _a = +a[i] || 0, _b = +b[i] || 0;
-		console.log(_a, _b);
 		if (_a > _b) return 1;
 		else if (_a < _b) return -1;
 	}
