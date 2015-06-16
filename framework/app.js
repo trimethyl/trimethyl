@@ -46,25 +46,6 @@ exports.setFirstUse = function() {
 	Ti.App.Properties.setString('app.firstuse', Util.now());
 };
 
-/*
-Init
-*/
-
-Ti.App.addEventListener('pause', function(){
-	exports.pauseURL = exports.launchURL;
-	Ti.API.debug('App: Paused');
-});
-
-Ti.App.addEventListener('resumed', function() {
-	exports.launchURL = Util.parseSchema();
-	Ti.API.debug('App: Resumed with schema <' + exports.launchURL + '>');
-
-	if (exports.pauseURL === exports.launchURL) return;
-	if (!exports.config.useRouter) return;
-
-	Router.go(exports.launchURL);
-});
-
 /**
  * @method start
  */
@@ -137,3 +118,22 @@ exports.notifyUpdate = function() {
 		}
 	});
 };
+
+/*
+Init
+*/
+
+Ti.App.addEventListener('pause', function(){
+	exports.pauseURL = exports.launchURL;
+	Ti.API.debug('App: Paused');
+});
+
+Ti.App.addEventListener('resumed', function() {
+	exports.launchURL = Util.parseSchema();
+	Ti.API.debug('App: Resumed with schema <' + exports.launchURL + '>');
+
+	if (exports.pauseURL === exports.launchURL) return;
+	if (!exports.config.useRouter) return;
+
+	Router.go(exports.launchURL);
+});
