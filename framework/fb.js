@@ -20,8 +20,4 @@ if (!_.isEmpty(exports.config.permissions)) {
 
 Facebook.initialize();
 
-if (_.isFunction(Facebook.publishInstall)) {
-	Facebook.publishInstall();
-}
-
 module.exports = Facebook;
