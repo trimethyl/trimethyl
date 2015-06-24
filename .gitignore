@@ -3,3 +3,4 @@ node_modules/
 test_app/build/
 test_app/Resources
 test_app/platform
+test_app/features
