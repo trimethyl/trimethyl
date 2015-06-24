@@ -99,7 +99,7 @@ exports.facebook = function(args) {
 	}
 
 	// SDK
-	if (FB != null && FB.canPresentShareDialog) {
+	if (FB != null && FB.canPresentShareDialog === true) {
 		FB.presentShareDialog({
 			url: args.url,
 			title: args.title,
@@ -317,9 +317,27 @@ exports.message = exports.sms = function(args) {
 			messageBody: args.fullText
 		});
 
-		$dialog.addEventListener('completed', function(){ onSocialComplete({ success: true, platform: 'messages' }); });
-		$dialog.addEventListener('cancelled', function(){ onSocialCancel({ success: false, platform: 'messages' }); });
-		$dialog.addEventListener('error', function(){ onSocialComplete({ success: false, platform: 'messages' }); });
+		$dialog.addEventListener('completed', function(){
+			onSocialComplete({
+				success: true,
+				platform: 'messages'
+			});
+		});
+
+		$dialog.addEventListener('cancelled', function(){
+			onSocialCancel({
+				success: false,
+				platform: 'messages'
+			});
+		});
+
+		$dialog.addEventListener('error', function(){
+			onSocialComplete({
+				success: false,
+				platform: 'messages'
+			});
+		});
+
 		$dialog.open({
 			animated: true
 		});
@@ -381,9 +399,10 @@ exports.activity = function(args) {
 Init
 */
 
-// Load modules
-
 var FB = require('T/fb');
+if (FB != null) {
+	FB.addEventListener('shareCompleted', onSocialComplete);
+}
 
 if (OS_IOS) {
 

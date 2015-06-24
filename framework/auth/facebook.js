@@ -5,7 +5,6 @@
 
 var FB = require('T/fb');
 var _opt = null;
-var resumeListenerInstalled = false;
 
 exports.login = function(opt) {
 	_opt = opt; // store globally
@@ -47,7 +46,6 @@ exports.storedLogin = function(opt) {
 Init
 */
 
-FB.forceDialogAuth = false;
 FB.addEventListener('login', function(e){
 	// This is a security hack caused by iOS SDK that automatically trigger the login event
 	if (_opt == null) {
