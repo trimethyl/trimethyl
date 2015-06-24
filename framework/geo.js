@@ -85,7 +85,6 @@ exports.getCurrentPosition = function(opt) {
 exports.startNavigator = function(lat, lng, mode) {
 	exports.getCurrentPosition({
 		success: function(g) {
-
 			Ti.Platform.openURL(
 				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
 				Util.buildQuery({
@@ -94,7 +93,15 @@ exports.startNavigator = function(lat, lng, mode) {
 					daddr: lat + ',' + lng
 				})
 			);
-
+		},
+		error: function() {
+			Ti.Platform.openURL(
+				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
+				Util.buildQuery({
+					directionsmode: mode || 'walking',
+					daddr: lat + ',' + lng
+				})
+			);
 		}
 	});
 };
