@@ -117,11 +117,6 @@
 		"name": "SQLite",
 		"description": "JavaScript SQLite abstraction layer."
 	},
-	"testmenu":{
-		"name": "Testmenu",
-		"description": "Testing menu on shake!",
-		"modules": ["nl.rebelic.hockeyapp"]
-	},
 	"uifactory":{
 		"name": "UIFactory",
 		"description": "Façade for new/XP UI elements."

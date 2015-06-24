@@ -5,12 +5,8 @@
 
 /**
  * @property config
- * @property {Boolean} [config.trackWithGA=true] Send the trackScreen to GA
- * @property {Boolean} [config.trackTimingWithGA=true] Track the timing of focus/blur of the window to GA
  */
 exports.config = _.extend({
-	trackWithGA: true,
-	trackTimingWithGA: true
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 
 var Event = require('T/event');
@@ -40,23 +36,19 @@ exports.event = function(name, cb) {
 
 function track($window, route) {
 	// Track screen with GA
-	if (exports.config.trackWithGA) {
-		require('T/ga').trackScreen(route);
-	}
+	require('T/ga').trackScreen(route);
 
 	// Track timing with GA
-	if (exports.config.trackTimingWithGA) {
-		var startFocusTime = null;
+	var startFocusTime = null;
 
-		$window.addEventListener('focus', function(){
-			startFocusTime = Date.now();
-		});
+	$window.addEventListener('focus', function(){
+		startFocusTime = Date.now();
+	});
 
-		$window.addEventListener('blur', function(){
-			if (startFocusTime === null) return;
-			require('T/ga').trackTiming(route, Date.now() - startFocusTime);
-		});
-	}
+	$window.addEventListener('blur', function(){
+		if (startFocusTime === null) return;
+		require('T/ga').trackTiming(route, Date.now() - startFocusTime);
+	});
 }
 
 function open(name, args, openArgs, route, useNav) {

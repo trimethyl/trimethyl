@@ -84,7 +84,7 @@ exports.purge = function() {
  * @return {Number}
  */
 exports.getSize = function() {
-	return T('filesystem').getSize(DIR);
+	return require('T/filesystem').getSize(DIR);
 };
 
 

@@ -1,0 +1,9 @@
+# Locates cucumber.yml file. The file can end in .yml or .yaml,
+# and be located in the current directory (eg. project root) or
+# in a .config/ or config/ subdirectory of the current directory.
+
+# config/cucumber.yml
+##YAML Template
+
+
+ios: PLATFORM=ios  -r features/support -r features/step_definitions -r features/BasePages -r features/ios/support -r features/ios/helpers -r features/ios/pages

@@ -5,10 +5,8 @@
 
 /**
  * @property config
- * @property {String} config.trackWithGA	Track sharing automatically with GA
  */
 exports.config = _.extend({
-	trackWithGA: true,
 }, Alloy.CFG.T ? Alloy.CFG.T.sharer : {});
 
 
@@ -82,9 +80,7 @@ function parseArgs(args) {
  */
 exports.facebook = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA === true) {
-		T('ga').social('facebook', 'share', args.url);
-	}
+	require('T/ga').social('facebook', 'share', args.url);
 
 	// Native iOS dialog
 	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
@@ -150,9 +146,7 @@ exports.facebook = function(args) {
  */
 exports.twitter = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA === true) {
-		T('ga').social('twitter', 'share', args.url);
-	}
+	require('T/ga').social('twitter', 'share', args.url);
 
 	// iOS Tweetbot App
 	if (OS_IOS) {
@@ -201,9 +195,7 @@ exports.twitter = function(args) {
  */
 exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA === true) {
-		T('ga').social('email', 'sent', args.url);
-	}
+	require('T/ga').social('email', 'sent', args.url);
 
 	var $dialog = Ti.UI.createEmailDialog({
 		subject: args.subject || args.title,
@@ -240,9 +232,7 @@ exports.email = exports.mail = function(args) {
  */
 exports.googleplus = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA === true) {
-		T('ga').social('googleplus', 'share', args.url);
-	}
+	require('T/ga').social('googleplus', 'share', args.url);
 
 	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
 		url: args.url
@@ -257,9 +247,7 @@ exports.googleplus = function(args) {
  */
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA === true) {
-		T('ga').social('whatsapp', 'share', args.url);
-	}
+	require('T/ga').social('whatsapp', 'share', args.url);
 
 	// Native protocol binding
 	if (OS_IOS) {
@@ -303,9 +291,7 @@ exports.whatsapp = function(args) {
  */
 exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
-	if (exports.config.trackWithGA === true) {
-		T('ga').social('message', 'sent', args.url);
-	}
+	require('T/ga').social('message', 'sent', args.url);
 
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {

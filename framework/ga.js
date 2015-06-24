@@ -14,13 +14,16 @@ exports.config = _.extend({
 	dryRun: false
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
+var Util = require('T/util');
 
-var AnalyticsGoogle = require('analytics.google');
+var AnalyticsGoogle = Util.requireOrNull('analytics.google');
 var tracker = null;
 
 
 function track(method, what) {
+	if (tracker === null) return;
 	if (_.isEmpty(what)) return;
+
 	tracker['track' + method](what);
 }
 
@@ -169,13 +172,12 @@ exports.setTrackerUA = function(ua) {
 // Init //
 //////////
 
-if (exports.config.ua != null) {
+if (exports.config.ua != null && AnalyticsGoogle != null) {
 
 	exports.setTrackerUA( exports.config.ua );
 	AnalyticsGoogle.trackUncaughtExceptions = true;
 	AnalyticsGoogle.dryRun = !!exports.config.dryRun;
 
 } else {
-	Ti.API.error('GA: empty UA');
+	Ti.API.error('GA: initialization failed');
 }
-

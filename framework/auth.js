@@ -221,7 +221,7 @@ exports.logout = function(callback) {
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
 
-	T('cache').purge();
+	require('T/cache').purge();
 	HTTP.resetCookies();
 
 	if (_.isFunction(callback)) callback();

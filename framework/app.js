@@ -66,20 +66,15 @@ exports.notifyUpdate = function() {
 	if (!Ti.Network.online) return;
 
 	var url = null;
-	var appstore_id = null;
 	if (OS_IOS) {
-		appstore_id = Ti.App.Properties.getString('appstore.id');
-		url = 'https://itunes.apple.com/lookup?id=' + appstore_id;
+		url = 'https://itunes.apple.com/lookup?bundleId=' + Ti.App.id;
 	} else if (OS_ANDROID) {
-		appstore_id = Ti.App.id;
-		url = 'https://androidquery.appspot.com/api/market?app=' + appstore_id;
+		url = 'https://androidquery.appspot.com/api/market?app=' + Ti.App.id;
 	} else {
 		return;
 	}
 
-	if (appstore_id == null) return;
-
-	T('http').send({
+	require('T/http').send({
 		url: url,
 		errorAlert: false,
 		format: 'json',
@@ -99,18 +94,20 @@ exports.notifyUpdate = function() {
 			Ti.API.info('Util: Current version is ' + Ti.App.version);
 
 			if (version_compare > 0) {
-				T('dialog').confirm(
+				require('T/dialog').confirm(
 				L('app_new_version_title', 'Update available'),
-				String.format(L('app_new_version_message', 'A new version of %s is available: %s\nDo you want to download it?'), Ti.App.name, new_version), [
+				String.format(L('app_new_version_message', 'A new version of %s is available: %s'), Ti.App.name, new_version), [
 				{
 					title: L('app_new_version_button_later', 'Later'),
-					cancel: true,
+					callback: function() {
+						require('T/ga').trackEvent('updatedialog', 'later');
+					}
 				},
 				{
 					title: L('app_new_version_button_update', 'Update'),
 					selected: true,
 					callback: function() {
-						Util.openInStore(appstore_id);
+						Util.openInStore( OS_IOS ? response.results[0].trackId : Ti.App.id );
 					}
 				}
 				]);

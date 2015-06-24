@@ -122,4 +122,4 @@ Solve a problem. Features are great, but even better is cleaning-up and fixing i
 
 ## Copyright and license
 
-Copyright 2014 [Caffeina](http://caffeina.co) srl under the [MIT license](LICENSE.md).
+Copyright 2014 [Caffeina](http://caffeina.co) srl under the [Apache license](LICENSE.md).
