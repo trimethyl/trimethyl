@@ -4,7 +4,9 @@
  */
 
 var FB = require('T/fb');
+
 var _opt = null;
+var resumeListenerInstalled = false;
 
 exports.login = function(opt) {
 	_opt = opt; // store globally
@@ -14,7 +16,15 @@ exports.login = function(opt) {
 		});
 	} else {
 		if (Ti.Network.online) {
+
 			FB.authorize();
+
+			// Fix: SDK doesn't trigger login event on return
+			if (OS_IOS && resumeListenerInstalled === false) {
+				resumeListenerInstalled = true;
+				Ti.App.addEventListener('resumed', FB.authorize);
+			}
+
 		} else {
 			_opt.error({
 				offline: true,

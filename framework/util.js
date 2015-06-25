@@ -102,6 +102,15 @@ exports.openTwitterStatus = function(userid, statusid) {
 };
 
 /**
+ * @method  openYoutubeProfile
+ * Open a Youtube profile in the Yotube application
+ * @param  {String} ytid Youtube ID
+ */
+exports.openYoutubeProfile = function(ytid) {
+	Ti.Platform.openURL('https://www.youtube.com/user/' + ytid);
+};
+
+/**
  * Get the Facebook avatar from the graph
  *
  * @param  {String} fbid Facebook ID

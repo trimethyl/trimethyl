@@ -57,7 +57,7 @@
 	"flow":{
 		"name": "Flow",
 		"description": "Manages the app windows flow.",
-		"dependencies": ["event"]
+		"dependencies": ["event","ga"]
 	},
 	"ga":{
 		"name": "GA",
@@ -106,7 +106,7 @@
 	"sharer":{
 		"name": "Sharer",
 		"description": "Share like a sharer, be social!",
-		"dependencies": ["fb"],
+		"dependencies": ["fb","ga"],
 		"modules": ["bencoding.sms","dk.napp.social"]
 	},
 	"sounds":{
