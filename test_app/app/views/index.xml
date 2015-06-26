@@ -1,5 +1,5 @@
 <Alloy>
-	<Window class="container">
-		<Label id="label" onClick="doClick">Hello, World</Label>
+	<Window>
+		<ScrollView id="main" />
 	</Window>
 </Alloy>

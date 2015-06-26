@@ -30,17 +30,20 @@ exports.requireOrNull = function(name) {
  * @param  {String} [error]    The error to show
  */
 exports.openURL = function(url, fallback, error) {
-	function doFallback() {
+	var doFallback = function() {
 		if (fallback != null) {
-			if (_.isFunction(fallback)) fallback();
-			else if (_.isString(fallback)) Ti.Platform.openURL(fallback);
+			if (_.isFunction(fallback)) {
+				fallback();
+			} else if (_.isString(fallback)) {
+				Ti.Platform.openURL(fallback);
+			}
 		} else if (error != null) {
 			exports.errorAlert(error);
 		}
-	}
+	};
 
 	if (OS_IOS) {
-		if (Ti.Platform.canOpenURL(url) === true) {
+		if (Ti.Platform.canOpenURL(url)) {
 			Ti.Platform.openURL(url);
 		} else {
 			doFallback();
@@ -55,13 +58,39 @@ exports.openURL = function(url, fallback, error) {
 };
 
 /**
+ * @method 	tryOpenURLs
+ * Try to open all URLs in the array
+ * @param  {Array} urls
+ * @return {Boolean} `true` if at least one url has been opened.
+ */
+exports.tryOpenURLs = function(urls) {
+	for (var i = 0; i < urls.length; i++) {
+		try {
+			if (OS_IOS) {
+				if (Ti.Platform.canOpenURL(urls[i])) {
+					Ti.Platform.openURL(urls[i]);
+				} else {
+					throw new Error();
+				}
+			} else if (OS_ANDROID) {
+				Ti.Platform.openURL(urls[i]);
+			}
+
+			return true;
+		} catch (err) {}
+	}
+
+	return false;
+};
+
+/**
  * @method startActivity
  * Valid only on Android, start the activity catching any possible errors.
  *
  * If `error` is provided, show the error dialog with this message.
  *
- * @param  {Object} opt   Options for `createIntent(...)`
- * @param  {String} [error] Error message
+ * @param  {Object} opt   		Options for `createIntent(...)`
+ * @param  {String} [error] 	Error message
  */
 exports.startActivity = function(opt, error) {
 	try {
@@ -76,38 +105,52 @@ exports.startActivity = function(opt, error) {
 /**
  * @method  openFacebookProfile
  * Open a Facebook profile in the Facebook application
- * @param  {String} fbid Facebook ID
+ * @param  {String} fb_id 	Facebook ID
  */
-exports.openFacebookProfile = function(fbid) {
-	exports.openURL('fb://profile/' + fbid, 'https://facebook.com/' + fbid);
+exports.openFacebookProfile = function(fb_id) {
+	if (!/^\d+$/.test(fb_id)) {
+		Ti.API.warn('Util: openFacebookProfile needs a numeric ID, not the username');
+	}
+
+	return exports.tryOpenURLs([
+		'fb://profile/' + fb_id,
+		'https://www.facebook.com/' + fb_id
+	]);
 };
 
 /**
  * @method  openTwitterProfile
  * Open a Twitter profile in the Twitter application
- * @param  {String} twid Twitter screen name
+ * @param  {String} tw_username 	Twitter screen name
  */
-exports.openTwitterProfile = function(twid) {
-	return exports.openURL('twitter://user?screen_name=' + twid, 'http://twitter.com/' + twid);
+exports.openTwitterProfile = function(tw_username) {
+	return exports.tryOpenURLs([
+		'tweetbot:///user_profile/' + tw_username,
+		'twitter://user?screen_name=' + tw_username,
+		'http://www.twitter.com/' + tw_username
+	]);
 };
 
 /**
  * @method  openTwitterStatus
  * Open a Twitter status in the Twitter application
- * @param  {String} userid   The user id
- * @param  {String} statusid The status id
+ * @param  {String} tw_username   	The user id
+ * @param  {String} status_id 		The status id
  */
-exports.openTwitterStatus = function(userid, statusid) {
-	return exports.openURL('twitter://status?id=' + statusid, 'http://twitter.com/' + userid + '/statuses/' + statusid);
+exports.openTwitterStatus = function(tw_username, status_id) {
+	return exports.tryOpenURLs([
+		'twitter://status?id=' + status_id,
+		'http://www.twitter.com/' + tw_username + '/statuses/' + status_id
+	]);
 };
 
 /**
  * @method  openYoutubeProfile
  * Open a Youtube profile in the Yotube application
- * @param  {String} ytid Youtube ID
+ * @param  {String} ytid 	Youtube ID
  */
 exports.openYoutubeProfile = function(ytid) {
-	Ti.Platform.openURL('https://www.youtube.com/user/' + ytid);
+	return Ti.Platform.openURL('https://www.youtube.com/user/' + ytid);
 };
 
 /**
