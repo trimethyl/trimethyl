@@ -61,18 +61,34 @@ exports.start = function() {
  * @method notifyUpdate
  * Check on the App/Play store if new version of this app has been released.
  * If it is, a dialog is shown to update the app.
+ * @param  {String} 		url
+ * @param  {Function} 	version_callback
+ * @param  {Function} 	success_callback
  */
-exports.notifyUpdate = function() {
+exports.notifyUpdate = function(url, version_callback, success_callback) {
 	if (!Ti.Network.online) return;
 
-	var url = null;
-	if (OS_IOS) {
-		url = 'https://itunes.apple.com/lookup?bundleId=' + Ti.App.id;
-	} else if (OS_ANDROID) {
-		url = 'https://androidquery.appspot.com/api/market?app=' + Ti.App.id;
-	} else {
-		return;
+	if (url == null) {
+		if (OS_IOS) {
+			url = 'https://itunes.apple.com/lookup?bundleId=' + Ti.App.id;
+		} else if (OS_ANDROID) {
+			url = 'https://androidquery.appspot.com/api/market?app=' + Ti.App.id;
+		} else {
+			return;
+		}
 	}
+
+	version_callback = version_callback || function(response) {
+		if (OS_IOS) {
+			return (response.results && response.results[0]) ? response.results[0].version : null;
+		} else if (OS_ANDROID) {
+			return response.version || null;
+		}
+	};
+
+	success_callback = success_callback || function(response) {
+		Util.openInStore( OS_IOS ? response.results[0].trackId : Ti.App.id );
+	};
 
 	require('T/http').send({
 		url: url,
@@ -81,13 +97,7 @@ exports.notifyUpdate = function() {
 		success: function(response) {
 			if (response == null || !_.isObject(response)) return;
 
-			var new_version = null;
-			if (OS_IOS) {
-				new_version = (response.results && response.results[0]) ? response.results[0].version : null;
-			} else if (OS_ANDROID) {
-				new_version = response.version || null;
-			}
-
+			var new_version = version_callback(response);
 			var version_compare = Util.compareVersions(new_version, Ti.App.version);
 
 			Ti.API.info('Util: App store version is ' + new_version);
@@ -107,7 +117,7 @@ exports.notifyUpdate = function() {
 					title: L('app_new_version_button_update', 'Update'),
 					selected: true,
 					callback: function() {
-						Util.openInStore( OS_IOS ? response.results[0].trackId : Ti.App.id );
+						success_callback(response);
 					}
 				}
 				]);
