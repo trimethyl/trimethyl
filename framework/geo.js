@@ -83,27 +83,35 @@ exports.getCurrentPosition = function(opt) {
  * @param  {String} [mode] 	GPS mode used (walking,driving)
  */
 exports.startNavigator = function(lat, lng, mode) {
-	exports.getCurrentPosition({
-		success: function(g) {
-			Ti.Platform.openURL(
-				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
-				Util.buildQuery({
-					directionsmode: mode || 'walking',
-					saddr: g.latitude + ',' + g.longitude,
-					daddr: lat + ',' + lng
-				})
-			);
+	var query = {
+		directionsmode: mode || 'walking',
+		daddr: lat + ',' + lng
+	};
+
+	if (OS_IOS && Ti.Platform.canOpenURL('comgooglemapsurl://')) {
+		// Prompt the user which service want to use.
+		// We prefer Google Maps, end.
+		Dialog.option(L('open_with', 'Open with...'), [
+		{
+			title: 'Google Maps',
+			callback: function() {
+				Ti.Platform.openURL('comgooglemapsurl://' + Util.buildQuery(query));
+			}
 		},
-		error: function() {
-			Ti.Platform.openURL(
-				(OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') +
-				Util.buildQuery({
-					directionsmode: mode || 'walking',
-					daddr: lat + ',' + lng
-				})
-			);
+		{
+			title: 'Apple Maps',
+			callback: function() {
+				Ti.Platform.openURL('http://maps.apple.com/' + Util.buildQuery(query));
+			}
+		},
+		{
+			title: L('cancel', 'Cancel'),
+			cancel: true
 		}
-	});
+		]);
+	} else {
+		Ti.Platform.openURL((OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') + Util.buildQuery(query));
+	}
 };
 
 
