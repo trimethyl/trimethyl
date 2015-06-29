@@ -5,24 +5,15 @@
 
 /**
  * @property config
- * @property {Boolean} 	[config.useRouter=true]		Auto-route using the Router class.
  */
 exports.config = _.extend({
-	useRouter: true,
 }, Alloy.CFG.T ? Alloy.CFG.T.app : {});
 
 var Util = require('T/util');
 var Router = require('T/router');
 
-/**
- * @property {String} launchURL
- */
-exports.launchURL = Util.parseSchema();
-
-/**
- * @property {String} pauseURL
- */
-exports.pauseURL = null;
+var launchURL = null;
+var pauseURL = null;
 
 /**
  * @method isFirstUse
@@ -50,11 +41,11 @@ exports.setFirstUse = function() {
  * @method start
  */
 exports.start = function() {
-	Ti.API.info('App: Started with schema <' + exports.launchURL + '>');
-	if (!exports.config.useRouter) return;
-	if (exports.launchURL == null) return;
-
-	Router.go(exports.launchURL);
+	if (launchURL != null) {
+		Ti.API.info('App: Started with schema <' + launchURL + '>');
+		Router.go(launchURL);
+		launchURL = null;
+	}
 };
 
 /**
@@ -131,16 +122,22 @@ Init
 */
 
 Ti.App.addEventListener('pause', function(){
-	exports.pauseURL = exports.launchURL;
-	Ti.API.debug('App: Paused');
+	Ti.API.info('App: Paused with schema <' + pauseURL + '>');
 });
 
 Ti.App.addEventListener('resumed', function() {
-	exports.launchURL = Util.parseSchema();
-	Ti.API.debug('App: Resumed with schema <' + exports.launchURL + '>');
+	var launchURL = Util.parseSchema();
 
-	if (exports.pauseURL === exports.launchURL) return;
-	if (!exports.config.useRouter) return;
+	if (pauseURL !== launchURL && launchURL != null) {
+		Ti.API.info('App: Resumed with schema <' + launchURL + '>');
+		Router.go(launchURL);
+	} else {
+		Ti.API.info('App: Resumed with same/null schema <' + launchURL + '>, so triggering nothing');
+	}
 
-	Router.go(exports.launchURL);
+	pauseURL = launchURL;
+	launchURL = null;
 });
+
+launchURL = Util.parseSchema();
+pauseURL = launchURL;
