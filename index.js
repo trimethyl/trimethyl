@@ -21,8 +21,52 @@ function readConfig() {
 	return config;
 }
 
-function readMap() {
-	return require('./map.json');
+var __map = null;
+function getMap() {
+	__map = __map || require('./map.json');
+	return __map;
+}
+
+function buildDependencies(libs, key, req, tabs) {
+	req = req || null;
+	tabs = tabs || 0;
+	if (key in libs) return;
+
+	var dst_file, src_file;
+
+	if (/^alloy\//.test(key)) {
+		key = key.replace('alloy/', '');
+		dst_file = CWD + '/app/lib' + '/alloy/' + key + '.js';
+		src_file = __dirname + '/framework/alloy/' + key + '.js';
+	} else {
+		dst_file = CWD + '/app/lib' + '/T/' + key + '.js';
+		src_file = __dirname + '/framework/' + key + '.js';
+	}
+
+	var val = getMap()[key];
+	libs[key] = _.extend({}, val, {
+		requiredBy: req,
+		tabs: tabs,
+		dst_file: dst_file,
+		src_file: src_file,
+		size: (fs.statSync(src_file).size / 1000).toFixed(2) + "KB"
+	});
+	(val.dependencies || []).forEach(function(o) {
+		buildDependencies(libs, o, val, tabs+1);
+	});
+}
+
+function compareVersions(a, b) {
+	if (a == null || b == null) return 0;
+
+	a = a.split('.');
+	b = b.split('.');
+	for (var i = 0; i < Math.max(a.length, b.length); i++) {
+		var _a = +a[i] || 0, _b = +b[i] || 0;
+		if (_a > _b) return 1;
+		else if (_a < _b) return -1;
+	}
+	return 0;
 }
 
 /**
@@ -30,66 +74,50 @@ function readMap() {
  * Copy the modules
  */
 exports.install = function() {
-	var map = readMap();
+	var current_version = require('./package.json').version;
 
 	// Get the configuration
 	var config = readConfig();
+
+	if (compareVersions(config.version, current_version) === 1) {
+		logger.warn("You are doing a downgrade from " + config.version + ' to ' + current_version);
+	}
+
 	if (_.isEmpty(config.libs)) {
-		config.libs = Object.keys(map);
+		// If a configuration is missing, copy all libs
+		config.libs = Object.keys(getMap());
+		logger.warn('Configuration missing, all libraries will be copied');
 	}
 
 	// Get the libraries to copy in /Resources
-	var libs = {
-		"trimethyl" : {
-			"name": "Trimethyl",
-			"description": "Base bootstrap framework file."
-		}
-	};
+	var libs_to_copy = {};
 
-	function buildDependencies(key, req, tabs) {
-		req = req || null;
-		tabs = tabs || 0;
-		if (key in libs) return;
-
-		var val = map[key];
-		libs[key] = _.extend({}, val, {
-			requiredBy: req,
-			tabs: tabs
-		});
-		(val.dependencies || []).forEach(function(o) {
-			buildDependencies(o, val, tabs+1);
-		});
-	}
-	(config.libs || []).forEach(function(v) {
-		buildDependencies(v);
+	// Build deps
+	(["trimethyl"].concat( config.libs )).forEach(function(v) {
+		buildDependencies(libs_to_copy, v);
 	});
 
-	var R = CWD + '/app/lib';
-	if (fs.existsSync(R) === false) fs.mkdirSync(R);
-	fs.deleteDirSync(R + '/T');
+	// Ensure path extistence
+	if ( ! fs.existsSync(CWD + '/app/lib')) fs.mkdirSync(CWD + '/app/lib');
+	fs.deleteDirSync(CWD + '/app/lib/T');
+	fs.mkdirSync(CWD + '/app/lib/T');
 
 	// Copy libs!!
-	_.each(libs, function(info, key) {
-		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*5).join(' ') + '⧷' + new Array(4).join('-') : '';
-		logger.debug(tabs + 'Installing ' + info.name);
+	_.each(libs_to_copy, function(info, key) {
+		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '└' + new Array(3).join('─') : '';
+		logger.debug(tabs + 'Installing ' + info.name + ' (' + info.size + ')');
 
-		var srcFile, dstFile;
+		var dir_name = path.dirname(info.dst_file);
+		if ( ! fs.existsSync(dir_name)) fs.createDirSync(dir_name);
 
-		if (/^alloy\//.test(key)) {
-			key = key.replace('alloy/', '');
-			dstFile = R + '/alloy/' + key + '.js';
-			srcFile = __dirname + '/framework/alloy/' + key + '.js';
-		} else {
-			dstFile = R + '/T/' + key + '.js';
-			srcFile = __dirname + '/framework/' + key + '.js';
-		}
-
-		fs.createDirSync(path.dirname(dstFile));
-		fs.copyFileSync(srcFile, dstFile);
+		fs.copyFileSync(info.src_file, info.dst_file);
 	});
 
+	// Add utils
+	config.version = current_version;
+	config.install_date = Date.now();
+
 	// Write version
-	config.version = require('./package.json').version;
 	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(config));
 
 	logger.info('Version installed: ' + config.version);
@@ -100,8 +128,7 @@ exports.install = function() {
  * Add a module to the app
  */
 exports.add = function(value) {
-	var map = readMap();
-	if (!(value in map)) {
+	if (!(value in getMap())) {
 		logger.error('Module <' + value + '> is not a valid Trimethyl module.');
 		process.exit();
 	}

@@ -1,4 +1,10 @@
 {
+
+	"trimethyl":{
+		"name": "Trimethyl Bootstrap",
+		"description": "Boostrap for Trimethyl"
+	},
+
 	"app":{
 		"name": "App",
 		"description": "Application manager",
