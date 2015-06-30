@@ -35,15 +35,19 @@ function buildDependencies(libs, key, req, tabs) {
 	var dst_file, src_file;
 
 	if (/^alloy\//.test(key)) {
-		key = key.replace('alloy/', '');
-		dst_file = CWD + '/app/lib' + '/alloy/' + key + '.js';
-		src_file = __dirname + '/framework/alloy/' + key + '.js';
+		dst_file = CWD + '/app/lib' + '/alloy/' + key.replace('alloy/', '') + '.js';
+		src_file = __dirname + '/framework/alloy/' + key.replace('alloy/', '') + '.js';
 	} else {
 		dst_file = CWD + '/app/lib' + '/T/' + key + '.js';
 		src_file = __dirname + '/framework/' + key + '.js';
 	}
 
 	var val = getMap()[key];
+	if (val == null) {
+		logger.error('Unable to find module "' + key + '"');
+		return;
+	}
+
 	libs[key] = _.extend({}, val, {
 		requiredBy: req,
 		tabs: tabs,
