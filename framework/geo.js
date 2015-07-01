@@ -31,9 +31,6 @@ exports.event = function(name, cb) {
 	Event.on('http.'+name, cb);
 };
 
-function checkForServices() {
-	return Ti.Geolocation.locationServicesEnabled;
-}
 
 /**
  * @method getCurrentPosition
