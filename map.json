@@ -34,6 +34,11 @@
 		"description": "Cache driver with SQLite",
 		"dependencies": ["sqlite","util","filesystem"]
 	},
+	"calendar": {
+		"name": "Calendar",
+		"description": "Calendar related utilities",
+		"dependencies": ["dialog"]
+	},
 	"camera":{
 		"name": "Camera",
 		"description": "Helper for Camera access.",
