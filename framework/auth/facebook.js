@@ -22,7 +22,9 @@ exports.login = function(opt) {
 			// Fix: SDK doesn't trigger login event on return
 			if (OS_IOS && resumeListenerInstalled === false) {
 				resumeListenerInstalled = true;
-				Ti.App.addEventListener('resumed', FB.authorize);
+				Ti.App.addEventListener('resumed', function() {
+					FB.authorize();
+				});
 			}
 
 		} else {
