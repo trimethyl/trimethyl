@@ -310,19 +310,23 @@ exports.parseJSON = function(json) {
  * @return {String}
  */
 exports.buildQuery = function(obj, prepend) {
-	prepend = prepend || '?';
 	if (_.isEmpty(obj)) return '';
 
 	var q = [];
-	_.each(obj, function(v, k) {
-		if (v != null) {
-			if (_.isObject(v)) v = JSON.stringify(v);
-			q.push(k + '=' + encodeURIComponent(v));
-		}
-	});
-	if (q.length === 0) return '';
+	var builder = function(value, key) {
+		if (value === null || value === undefined) return;
 
-	return prepend + q.join('&');
+		if (_.isArray(value)) {
+			_.each(value, function(v) { builder(v, key+'[]'); });
+		} else if (_.isObject(value)) {
+			_.each(value, function(v, k) { builder(v, key+'['+k+']'); });
+		} else {
+			q.push( encodeURIComponent(key) + '=' + encodeURIComponent(value) );
+		}
+	};
+
+	_.each(obj, builder);
+	return q.length === 0 ? '' : ((prepend || '?') + q.join('&'));
 };
 
 /**
