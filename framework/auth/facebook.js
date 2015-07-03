@@ -6,7 +6,6 @@
 var FB = require('T/fb');
 
 var _opt = null;
-var resumeListenerInstalled = false;
 
 exports.login = function(opt) {
 	_opt = opt; // store globally
