@@ -10,25 +10,14 @@ var resumeListenerInstalled = false;
 
 exports.login = function(opt) {
 	_opt = opt; // store globally
+
 	if (FB.loggedIn === true && FB.accessToken != null) {
 		_opt.success({
 			access_token: FB.accessToken
 		});
 	} else {
 		if (Ti.Network.online) {
-
 			FB.authorize();
-
-			// Fix: SDK doesn't trigger login event on return
-			if (OS_IOS && resumeListenerInstalled === false) {
-				resumeListenerInstalled = true;
-				Ti.App.addEventListener('resumed', function() {
-					if (/^fb\d+\:\/\//.test(Ti.App.getArguments().url)) {
-						FB.authorize();
-					}
-				});
-			}
-
 		} else {
 			_opt.error({
 				offline: true,
@@ -60,7 +49,9 @@ exports.storedLogin = function(opt) {
 Init
 */
 
-FB.addEventListener('login', function(e){
+FB.addEventListener('login', function(e) {
+	Ti.API.debug('Auth.Facebook: login fired', e);
+
 	// This is a security hack caused by iOS SDK that automatically trigger the login event
 	if (_opt == null) {
 		return Ti.API.debug('Auth.Facebook: login prevented');

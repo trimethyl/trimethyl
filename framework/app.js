@@ -13,7 +13,6 @@ var Util = require('T/util');
 var Router = require('T/router');
 
 var launchURL = null;
-var pauseURL = null;
 
 /**
  * @method isFirstUse
@@ -121,23 +120,14 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 Init
 */
 
-Ti.App.addEventListener('pause', function(){
-	Ti.API.info('App: Paused with schema <' + pauseURL + '>');
-});
 
 Ti.App.addEventListener('resumed', function() {
 	var launchURL = Util.parseSchema();
-
-	if (pauseURL !== launchURL && launchURL != null) {
+	if (launchURL != null) {
 		Ti.API.info('App: Resumed with schema <' + launchURL + '>');
 		Router.go(launchURL);
-	} else {
-		Ti.API.info('App: Resumed with same/null schema <' + launchURL + '>, so triggering nothing');
+		launchURL = null;
 	}
-
-	pauseURL = launchURL;
-	launchURL = null;
 });
 
 launchURL = Util.parseSchema();
-pauseURL = launchURL;
