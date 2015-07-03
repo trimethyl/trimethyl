@@ -23,7 +23,9 @@ exports.login = function(opt) {
 			if (OS_IOS && resumeListenerInstalled === false) {
 				resumeListenerInstalled = true;
 				Ti.App.addEventListener('resumed', function() {
-					FB.authorize();
+					if (/^fb\d+\:\/\//.test(Ti.App.getArguments().url)) {
+						FB.authorize();
+					}
 				});
 			}
 
