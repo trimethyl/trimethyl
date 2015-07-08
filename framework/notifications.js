@@ -13,7 +13,7 @@
 exports.config = _.extend({
 	autoReset: true,
 	useRouter: true,
-	driver: 'cloud',
+	driver: 'http',
 }, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
 
 var Event = require('T/event');
@@ -41,26 +41,7 @@ exports.event = function(name, cb) {
 };
 
 function onNotificationReceived(e) {
-	e = e || {};
 	Ti.API.debug("Notifications: Received", e);
-
-	if (OS_ANDROID) {
-		// When the app is in background, the type is !== 'callback'
-		// So, we simply save the state wasInBackground and return because the notification.received event must NOT be triggered
-		if (e.type === 'trayClickLaunchedApp') {
-			wasInBackground = true;
-			return;
-		}
-
-		// Reformat in iOS style
-		if (e.payload != null) {
-			e.data = Util.parseJSON(e.payload);
-			_.extend(e.data, e.data.android);
-		}
-
-		e.inBackground = wasInBackground;
-		wasInBackground = false;
-	}
 
 	// Auto-reset the badge
 	if (exports.config.autoReset === true) {
@@ -91,65 +72,24 @@ exports.event = function(name, cb) {
  * @method activate
  * @param  {Function} callback Callback invoked when success occur
  */
-if (OS_IOS) {
+exports.activate = function() {
+	var defer = Q.defer();
 
-	exports.activate = function() {
-		var defer = Q.defer();
+	if (OS_IOS && Util.getIOSVersion() >= 8) {
 
-		if (Util.getIOSVersion() >= 8) {
+		var userNotificationsCallback = function(settings) {
+			Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
 
-			var userNotificationsCallback = function(settings) {
-				Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
+			if (_.isEmpty(settings.types)) {
+				Ti.API.error('Notifications: User has disabled notifications from settings');
 
-				if (_.isEmpty(settings.types)) {
-					Ti.API.error('Notifications: User has disabled notifications from settings');
-
-					defer.reject({ servicesDisabled: true });
-					Event.trigger('notifications.disabled');
-					return;
-				}
-
-				Ti.Network.registerForPushNotifications({
-					callback: onNotificationReceived,
-					success: function(e) {
-						if (e.deviceToken == null) {
-							Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
-							defer.reject(err);
-							return;
-						}
-
-						Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
-
-						defer.resolve(e.deviceToken);
-						Event.trigger('notifications.activation.success');
-					},
-					error: function(err) {
-						Ti.API.error('Notifications: Retrieve device token failed', err);
-
-						defer.reject(err);
-						Event.trigger('notifications.activation.error', err);
-					}
-				});
-			};
-
-			Ti.App.iOS.addEventListener('usernotificationsettings', userNotificationsCallback);
-			Ti.App.iOS.registerUserNotificationSettings({
-				types: [
-					Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT,
-					Ti.App.iOS.USER_NOTIFICATION_TYPE_SOUND,
-					Ti.App.iOS.USER_NOTIFICATION_TYPE_BADGE
-				]
-			});
-
-		} else {
+				defer.reject({ servicesDisabled: true });
+				Event.trigger('notifications.disabled');
+				return;
+			}
 
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
-				types: [
-					Ti.Network.NOTIFICATION_TYPE_BADGE,
-					Ti.Network.NOTIFICATION_TYPE_ALERT,
-					Ti.Network.NOTIFICATION_TYPE_SOUND
-				],
 				success: function(e) {
 					if (e.deviceToken == null) {
 						Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
@@ -167,31 +107,30 @@ if (OS_IOS) {
 
 					defer.reject(err);
 					Event.trigger('notifications.activation.error', err);
-				},
+				}
 			});
-		}
+		};
 
-		return defer.promise;
-	};
+		Ti.App.iOS.addEventListener('usernotificationsettings', userNotificationsCallback);
+		Ti.App.iOS.registerUserNotificationSettings({
+			types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ]
+		});
 
-} else if (OS_ANDROID) {
+	} else {
 
-	var CloudPush = require('ti.cloudpush');
-	CloudPush.debug = !ENV_PRODUCTION;
-	CloudPush.showAppOnTrayClick = true;
-	CloudPush.showTrayNotification = true;
-	CloudPush.showTrayNotificationsWhenFocused = true;
+		var Module = null;
+		var moduleOpt = {};
 
-	exports.activate = function() {
-		var defer = Q.defer();
+		if (OS_IOS) {
+			Module = Ti.Network;
+			moduleOpt.types = [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ];
+		} else if (OS_ANDROID) {
+			Module = require("it.caffeina.gcm");
+			moduleOpt.senderId = Ti.App.Properties.getString('gcm.senderid');
+		} else return;
 
-		// add a series of callback on the same functions, and set values inset
-		CloudPush.addEventListener('trayClickLaunchedApp', onNotificationReceived);
-		CloudPush.addEventListener('trayClickFocusedApp', onNotificationReceived);
-		// After the others
-		CloudPush.addEventListener('callback', onNotificationReceived);
-
-		CloudPush.retrieveDeviceToken({
+		Module.registerForPushNotifications(_.extend(moduleOpt, {
+			callback: onNotificationReceived,
 			success: function(e) {
 				if (e.deviceToken == null) {
 					Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
@@ -209,13 +148,12 @@ if (OS_IOS) {
 
 				defer.reject(err);
 				Event.trigger('notifications.activation.error', err);
-			}
-		});
+			},
+		}));
+	}
 
-		return defer.promise;
-	};
-
-}
+	return defer.promise;
+};
 
 
 /**
@@ -226,12 +164,12 @@ exports.deactivate = function() {
 	Ti.App.Properties.removeProperty('notifications.token');
 
 	if (OS_IOS) {
-		Ti.Network.unregisterForPushNotifications();
-	} else {
-		CloudPush.removeEventListener('trayClickLaunchedApp', onNotificationReceived);
-		CloudPush.removeEventListener('trayClickFocusedApp', onNotificationReceived);
-		CloudPush.removeEventListener('callback', onNotificationReceived);
-	}
+		Module = Ti.Network;
+	} else if (OS_ANDROID) {
+		Module = require("it.caffeina.gcm");
+	} else return;
+
+	Module.unregisterForPushNotifications();
 };
 
 /**
@@ -385,8 +323,6 @@ exports.getStoredDeviceToken = function() {
  * @return {Boolean} [description]
  */
 exports.isAuthorized = function() {
-	if (OS_ANDROID) return true;
-
 	if (OS_IOS && Util.getIOSVersion() >= 8) {
 		return !_.isEmpty(Ti.App.iOS.currentUserNotificationSettings.types);
 	}
