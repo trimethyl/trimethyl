@@ -323,10 +323,6 @@ exports.getStoredDeviceToken = function() {
  * @return {Boolean} [description]
  */
 exports.isAuthorized = function() {
-	if (OS_IOS && Util.getIOSVersion() >= 8) {
-		return !_.isEmpty(Ti.App.iOS.currentUserNotificationSettings.types);
-	}
-
 	return true;
 };
 
