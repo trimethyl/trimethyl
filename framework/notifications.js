@@ -79,6 +79,14 @@ exports.activate = function() {
 
 		var userNotificationsCallback = function(settings) {
 			Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
+
+			if (_.isEmpty(settings.types)) {
+				defer.reject({
+					disabled: true
+				});
+				return;
+			}
+
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
 				success: function(e) {
