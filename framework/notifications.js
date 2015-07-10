@@ -79,15 +79,6 @@ exports.activate = function() {
 
 		var userNotificationsCallback = function(settings) {
 			Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
-
-			if (_.isEmpty(settings.types)) {
-				Ti.API.error('Notifications: User has disabled notifications from settings');
-
-				defer.reject({ servicesDisabled: true });
-				Event.trigger('notifications.disabled');
-				return;
-			}
-
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
 				success: function(e) {
