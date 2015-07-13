@@ -116,10 +116,10 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 	});
 };
 
-/*
-Init
-*/
 
+//////////
+// Init //
+//////////
 
 Ti.App.addEventListener('resumed', function() {
 	var launchURL = Util.parseSchema();

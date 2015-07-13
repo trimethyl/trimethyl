@@ -19,12 +19,15 @@ var Util = require('T/util');
 var AnalyticsGoogle = Util.requireOrNull('analytics.google');
 var tracker = null;
 
-
 function track(method, what) {
 	if (tracker === null) return;
 	if (_.isEmpty(what)) return;
 
-	tracker['track' + method](what);
+	try {
+		tracker['track' + method](what);
+	} catch (err) {
+		Ti.API.error('GA: Error while calling method ' + method, err);
+	}
 }
 
 
@@ -157,6 +160,35 @@ exports.trackTiming = function(cat, time, name, lbl){
  * Alias for {@link #trackTiming}
  */
 exports.time = exports.trackTiming;
+
+
+/**
+ * @method trackException
+ * @param  {String} description 	The description of the exception **or object passed to native proxy**
+ * @param  {Boolean} fatal       Fatal or not?
+ */
+exports.trackException = function(description, fatal) {
+	if (tracker === null) return;
+	var obj;
+
+	if (_.isObject(description)) {
+		obj = description;
+	} else {
+		obj = {
+			description: description,
+			fatal: !!fatal
+		};
+	}
+
+	track('Exception', obj);
+};
+
+/**
+ * @method exception
+ * @inheritDoc #trackException
+ * Alias for {@link #trackException}
+ */
+exports.exception = exports.trackException;
 
 
 /**
