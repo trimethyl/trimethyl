@@ -85,19 +85,19 @@ exports.activate = function() {
 			Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
 
 			if (_.isEmpty(settings.types)) {
-				defer.reject({
+				return defer.reject({
 					disabled: true
 				});
-				return;
 			}
 
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
 				success: function(e) {
 					if ( ! validateToken(e.deviceToken)) {
-						Ti.API.error('Notifications: Retrieve device token failed', err);
-						defer.reject(err);
-						return;
+						Ti.API.error('Notifications: Retrieve device token failed');
+						return defer.reject({
+							invalidToken: true
+						});
 					}
 
 					Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
@@ -138,9 +138,10 @@ exports.activate = function() {
 			callback: onNotificationReceived,
 			success: function(e) {
 				if ( ! validateToken(e.deviceToken)) {
-					Ti.API.error('Notifications: Retrieve device token failed', err);
-					defer.reject(err);
-					return;
+					Ti.API.error('Notifications: Retrieve device token failed');
+					return defer.reject({
+						invalidToken: true
+					});
 				}
 
 				Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
