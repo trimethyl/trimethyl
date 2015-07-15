@@ -14,10 +14,15 @@ exports.config = _.extend({
 var Util = require('T/util');
 var Facebook = require('facebook');
 
+// Old Facebook module require that the app-id is set at runtime
+Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid');
+
 if (!_.isEmpty(exports.config.permissions)) {
 	Facebook.setPermissions(exports.config.permissions);
 }
 
-Facebook.initialize();
+if (_.isFunction(Facebook.initialize)) {
+	Facebook.initialize();
+}
 
 module.exports = Facebook;
