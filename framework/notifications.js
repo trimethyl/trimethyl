@@ -21,7 +21,11 @@ var Util = require('T/util');
 var Router = require('T/router');
 var Q = require('T/ext/q');
 
-var wasInBackground = false;
+// http://stackoverflow.com/questions/24748624/gcm-regid-validation-token-lengths-mismatch
+function validateToken(token) {
+	return token != null && token != "undefined" && token != "null" && token.length >= 32;
+}
+
 
 /**
  * @method loadDriver
@@ -90,15 +94,17 @@ exports.activate = function() {
 			Ti.Network.registerForPushNotifications({
 				callback: onNotificationReceived,
 				success: function(e) {
-					if (e.deviceToken == null) {
-						Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
+					if ( ! validateToken(e.deviceToken)) {
+						Ti.API.error('Notifications: Retrieve device token failed', err);
 						defer.reject(err);
 						return;
 					}
 
 					Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
 
+					Ti.App.Properties.setString('notifications.token', e.deviceToken);
 					defer.resolve(e.deviceToken);
+
 					Event.trigger('notifications.activation.success');
 				},
 				error: function(err) {
@@ -131,15 +137,17 @@ exports.activate = function() {
 		Module.registerForPushNotifications(_.extend(moduleOpt, {
 			callback: onNotificationReceived,
 			success: function(e) {
-				if (e.deviceToken == null) {
-					Ti.API.error('Notifications: Retrieve device token failed (empty)', err);
+				if ( ! validateToken(e.deviceToken)) {
+					Ti.API.error('Notifications: Retrieve device token failed', err);
 					defer.reject(err);
 					return;
 				}
 
 				Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
 
+				Ti.App.Properties.setString('notifications.token', e.deviceToken);
 				defer.resolve(e.deviceToken);
+
 				Event.trigger('notifications.activation.success');
 			},
 			error: function(err) {
@@ -190,7 +198,6 @@ exports.subscribe = function(channel, data) {
 	exports.activate()
 	.fail(defer.reject)
 	.then(function(deviceToken) {
-		Ti.App.Properties.setString('notifications.token', deviceToken);
 
 		exports.loadDriver(exports.config.driver).subscribe({
 			deviceToken: deviceToken,
@@ -313,7 +320,7 @@ exports.incBadge = function(i) {
  * @return {String}
  */
 exports.getStoredDeviceToken = function() {
-	return Ti.App.Properties.hasProperty('notifications.token') ? Ti.App.Properties.getString('notifications.token') : null;
+	return Ti.App.Properties.getString('notifications.token', null);
 };
 
 /**
