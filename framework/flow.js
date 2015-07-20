@@ -58,9 +58,9 @@ function track($window, route) {
 	});
 }
 
-function open(name, args, openArgs, route, useNav) {
+function open(name, args, open_args, route, useNav) {
 	args = args || {};
-	openArgs = openArgs || {};
+	open_args = open_args || {};
 	route = route || name;
 
 	var controller = Alloy.createController(name, args);
@@ -86,26 +86,29 @@ function open(name, args, openArgs, route, useNav) {
 		$window = null;
 	});
 
-	$window.addEventListener('open', function(e) {
-		Event.trigger('flow.open.end', {
-			count: --exports.openingCount
+	if (open_args.silent !== true) {
+		$window.addEventListener('open', function(e) {
+			Event.trigger('flow.open.end', {
+				count: --exports.openingCount
+			});
 		});
-	});
+	}
 
 	// Trigger the events
-	Event.trigger('flow.open.start', {
-		count: ++exports.openingCount
-	});
-
+	if (open_args.silent !== true) {
+		Event.trigger('flow.open.start', {
+			count: ++exports.openingCount
+		});
+	}
 
 	// Open the window
 	if (useNav) {
-		Navigator.openWindow($window, openArgs);
+		Navigator.openWindow($window, open_args);
 	} else {
 		if (_.isFunction(controller.open)) {
-			controller.open(openArgs);
+			controller.open(open_args);
 		} else {
-			$window.open(openArgs);
+			$window.open(open_args);
 		}
 	}
 
