@@ -16,6 +16,13 @@ var windowsStack = [];
 var currentController = null;
 
 /**
+ * @property openingCount
+ * @type {Number}
+ */
+exports.openingCount = 0;
+
+
+/**
  * @property currentControllerName
  * @type {Object}
  */
@@ -79,6 +86,12 @@ function open(name, args, openArgs, route, useNav) {
 		$window = null;
 	});
 
+	$window.addEventListener('open', function(e) {
+		Event.trigger('flow.open.end', {
+			count: --exports.openingCount
+		});
+	});
+
 	// Open the window
 	if (useNav) {
 		Navigator.openWindow($window, openArgs);
@@ -89,6 +102,11 @@ function open(name, args, openArgs, route, useNav) {
 			$window.open(openArgs);
 		}
 	}
+
+	// Trigger the events
+	Event.trigger('flow.open.start', {
+		count: ++exports.openingCount
+	});
 
 	return controller;
 }
