@@ -58,6 +58,12 @@ function track($window, route) {
 	});
 }
 
+function endOpen() {
+	Event.trigger('flow.open.end', {
+		count: --exports.openingCount
+	});
+}
+
 function open(name, args, open_args, route, useNav) {
 	args = args || {};
 	open_args = open_args || {};
@@ -96,20 +102,27 @@ function open(name, args, open_args, route, useNav) {
 
 	// Trigger the events
 	if (open_args.silent !== true) {
-		Event.trigger('flow.open.start', {
-			count: ++exports.openingCount
-		});
+		endOpen();
 	}
 
 	// Open the window
-	if (useNav) {
-		Navigator.openWindow($window, open_args);
-	} else {
-		if (_.isFunction(controller.open)) {
-			controller.open(open_args);
+	try {
+
+		if (useNav) {
+			Navigator.openWindow($window, open_args);
 		} else {
-			$window.open(open_args);
+			if (_.isFunction(controller.open)) {
+				controller.open(open_args);
+			} else {
+				$window.open(open_args);
+			}
 		}
+
+	} catch (ex) {
+		if (open_args.silent !== true) {
+			endOpen();
+		}
+		throw ex;
 	}
 
 	return controller;
