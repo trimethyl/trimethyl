@@ -92,6 +92,12 @@ function open(name, args, openArgs, route, useNav) {
 		});
 	});
 
+	// Trigger the events
+	Event.trigger('flow.open.start', {
+		count: ++exports.openingCount
+	});
+
+
 	// Open the window
 	if (useNav) {
 		Navigator.openWindow($window, openArgs);
@@ -102,11 +108,6 @@ function open(name, args, openArgs, route, useNav) {
 			$window.open(openArgs);
 		}
 	}
-
-	// Trigger the events
-	Event.trigger('flow.open.start', {
-		count: ++exports.openingCount
-	});
 
 	return controller;
 }
