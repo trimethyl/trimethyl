@@ -16,13 +16,6 @@ var windowsStack = [];
 var currentController = null;
 
 /**
- * @property openingCount
- * @type {Number}
- */
-exports.openingCount = 0;
-
-
-/**
  * @property currentControllerName
  * @type {Object}
  */
@@ -58,15 +51,9 @@ function track($window, route) {
 	});
 }
 
-function endOpen() {
-	Event.trigger('flow.open.end', {
-		count: --exports.openingCount
-	});
-}
-
-function open(name, args, open_args, route, useNav) {
+function open(name, args, openArgs, route, useNav) {
 	args = args || {};
-	open_args = open_args || {};
+	openArgs = openArgs || {};
 	route = route || name;
 
 	var controller = Alloy.createController(name, args);
@@ -92,37 +79,15 @@ function open(name, args, open_args, route, useNav) {
 		$window = null;
 	});
 
-	if (open_args.silent !== true) {
-		$window.addEventListener('open', function(e) {
-			Event.trigger('flow.open.end', {
-				count: --exports.openingCount
-			});
-		});
-	}
-
-	// Trigger the events
-	if (open_args.silent !== true) {
-		endOpen();
-	}
-
 	// Open the window
-	try {
-
-		if (useNav) {
-			Navigator.openWindow($window, open_args);
+	if (useNav) {
+		Navigator.openWindow($window, openArgs);
+	} else {
+		if (_.isFunction(controller.open)) {
+			controller.open(openArgs);
 		} else {
-			if (_.isFunction(controller.open)) {
-				controller.open(open_args);
-			} else {
-				$window.open(open_args);
-			}
+			$window.open(openArgs);
 		}
-
-	} catch (ex) {
-		if (open_args.silent !== true) {
-			endOpen();
-		}
-		throw ex;
 	}
 
 	return controller;
