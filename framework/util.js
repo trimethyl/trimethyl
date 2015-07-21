@@ -444,24 +444,37 @@ exports.bytesForHumans = function(bytes) {
 };
 
 /**
- * @method getDatabaseDirectoryName
+ * @method getDatabaseDirectory
  * Get the private documents directory
  * @return {String}
  */
-var DATABASE_DIRECTORY_NAME = null;
-exports.getDatabaseDirectoryName = function() {
-	if (DATABASE_DIRECTORY_NAME === null) {
+var DATABASE_DIRECTORY = null;
+exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
+	if (DATABASE_DIRECTORY === null) {
 		if (OS_IOS) {
 			var db = Ti.Database.open('test');
 			var path = db.file.resolve().split('/'); path.pop();
 			db.close();
-			DATABASE_DIRECTORY_NAME = path.join('/') + '/';
+			DATABASE_DIRECTORY = path.join('/') + '/';
 		} else if (OS_ANDROID) {
-			DATABASE_DIRECTORY_NAME = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent ? 'externalStorageDirectory' : 'applicationDataDirectory' ] + '/databases';
-			try { Ti.Filesystem.getFile(DATABASE_DIRECTORY_NAME).createDirectory(); } catch (err) {}
+			DATABASE_DIRECTORY = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent ? 'externalStorageDirectory' : 'applicationDataDirectory' ] + '/databases';
+			try { Ti.Filesystem.getFile(DATABASE_DIRECTORY).createDirectory(); } catch (err) {}
 		}
 	}
-	return DATABASE_DIRECTORY_NAME;
+	return DATABASE_DIRECTORY;
+};
+
+/**
+ * @method getResourcesDirectory
+ * Get the resources directory path
+ * @return {String}
+ */
+exports.getResourcesDirectory = function() {
+	if (Ti.Shadow) {
+		return Ti.Filesystem.applicationDataDirectory + Ti.App.name + (OS_IOS ? '/iphone/' : '/android/');
+	} else {
+		return Ti.Filesystem.resourcesDirectory;
+	}
 };
 
 /**

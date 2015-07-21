@@ -15,11 +15,12 @@ var libDir = [];
 var helpers = {};
 var fonts = [];
 
+var Util = require('T/util');
 var CACHE_DIR = Ti.Filesystem.applicationCacheDirectory + '/weballoy';
 
 function embedFile(f) {
-	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
-	if ( ! file.exists()) {
+	var file = Ti.Filesystem.getFile(Util.getResourcesDirectory(), f);
+	if (file.exists() === false) {
 		Ti.API.debug('Weballoy: File not found (' + f + ')');
 		return null;
 	}
