@@ -58,7 +58,7 @@ SQLite.fromFile = function(path) {
  */
 SQLite.prototype.table = function(name) {
 	this.query = {
-		method: '',
+		method: 'select',
 		table: name,
 		where: [],
 		whereData: [],
@@ -80,12 +80,48 @@ SQLite.prototype.select = function() {
 	this.query.method = 'select';
 
 	var args = _.toArray(arguments);
-	if (args.length > 1) {
+	if (args.length === 0) {
+
+		/*
+		.select()
+		*/
+		this.query.select = null;
+
+	} else if (args.length > 1) {
+
+		/*
+		.select('id', 'title', 'order')
+		*/
 		this.query.select = _.object(args, args);
+
 	} else {
-		if (_.isArray(args[0])) this.query.select = _.object(args[0], args[0]);
-		else if (_.isObject(args[0])) this.query.select = args[0];
-		else this.query.select = _.object([args[0]], [args[0]]);
+
+		if (_.isArray(args[0])) {
+
+			/*
+			.select(['id', 'title', 'order'])
+			*/
+			this.query.select = _.object(args[0], args[0]);
+
+		} else if (_.isObject(args[0])) {
+
+			/*
+			.select({
+				"_alias": "alias",
+				"_id": "id"
+			})
+			*/
+			this.query.select = args[0];
+
+		} else {
+
+			/*
+			.select('id')
+			*/
+			this.query.select = _.object([args[0]], [args[0]]);
+
+		}
+
 	}
 
 	return this;
@@ -100,6 +136,12 @@ SQLite.prototype.select = function() {
 SQLite.prototype.update = function(obj) {
 	if (this.query === null) throw new Error('Start a query chain with .table() method');
 
+	/*
+	.update({
+		value: 2,
+		other_value: 3
+	})
+	*/
 	this.query.method = 'update';
 	this.query.update = _.keys(obj);
 	this.query.updateData = _.values(obj);
@@ -134,22 +176,52 @@ SQLite.prototype.truncate = function() {
 };
 
 /**
- * @method andWhere
+ * @method where
  * Add where clauses.
  * @return {SQLite}
  */
-SQLite.prototype.andWhere = function() {
+SQLite.prototype.where = SQLite.prototype.andWhere = function() {
 	if (this.query === null) throw new Error('Start a query chain with .table() method');
 
 	var args = _.toArray(arguments);
 	if (args.length === 1) {
-		this.query.where.push(args[0]);
+
+		if (_.isObject(args[0])) {
+
+			/*
+			.where({
+				id: 2,
+				id_sub: 3
+			})
+			*/
+			this.query.where = _.map(_.keys(args[0]), function(k) { return k + ' = ?'; });
+			this.query.whereData = _.values(args[0]);
+
+		} else if (_.iString(args[0])) {
+
+			/*
+			.where('id = 2')
+			*/
+			this.query.where.push(args[0]);
+
+		}
+
 	} else if (args.length === 2) {
+
+		/*
+		.where('id', 2)
+		*/
 		this.query.where.push(args[0] + ' = ?');
 		this.query.whereData.push(args[1]);
+
 	} else if (args.length === 3) {
+
+		/*
+		.where('string', 'LIKE', 'test')
+		*/
 		this.query.where.push(args[0] + ' ' + args[1] + ' ?');
 		this.query.whereData.push(args[2]);
+
 	}
 
 	return this;
