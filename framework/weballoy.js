@@ -11,21 +11,25 @@ exports.config = _.extend({
 	jsExt: '.jslocal'
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
 
-var libDir = [];
-var helpers = {};
-var fonts = [];
-
 var Util = require('T/util');
 var CACHE_DIR = Ti.Filesystem.applicationCacheDirectory + '/weballoy';
 
+var lib_dir = [];
+var fonts = [];
+
+var helpers = {
+	RESOURCE_DIR: Util.getResourcesDirectory(),
+	WEBALLOY_DIR: Util.getResourcesDirectory() + '/web'
+};
+
 function embedFile(f) {
-	var file = Ti.Filesystem.getFile(Util.getResourcesDirectory(), f);
-	if (file.exists() === false) {
+	var tiFile = Ti.Filesystem.getFile(Util.getResourcesDirectory() + '/' + f);
+	if (tiFile.exists() === false) {
 		Ti.API.debug('Weballoy: File not found (' + f + ')');
 		return null;
 	}
 
-	return file;
+	return tiFile;
 }
 
 function getFileText(f) {
@@ -90,7 +94,7 @@ function getHTML(opt) {
 	html += '</div>';
 
 	// Include libs
-	_.each(libDir, function(js) {
+	_.each(lib_dir, function(js) {
 		html += embedJS(js);
 	});
 
@@ -123,9 +127,9 @@ exports.addHelper = function(name, method) {
  * @param {String}		filename 	The filename of the font (must be located in `app/assets/fonts`)
  */
 exports.addFont = function(name, weight, filename) {
-	var tiFile = Ti.Filesystem.getFile('fonts', filename);
-	if ( ! tiFile.exists()) {
-		Ti.API.debug('Weballoy: File not found (' + tiFile.nativePath + ')');
+	var tiFile = Ti.Filesystem.getFile(Util.getResourcesDirectory() + '/fonts/' + filename);
+	if (tiFile.exists() === false) {
+		Ti.API.debug('Weballoy: Fond not found (' + tiFile.nativePath + ')');
 		return false;
 	}
 
@@ -145,11 +149,11 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	var tmpName = (args.name ? Ti.Utils.md5HexDigest(args.name) : args.uniqid) + '.html';
+	var tmp_name = (args.name ? Ti.Utils.md5HexDigest(args.name) : args.uniqid) + '.html';
 
-	var tmpFile = Ti.Filesystem.getFile(CACHE_DIR, tmpName);
-	if (tmpFile.exists()) tmpFile.deleteFile();
-	tmpFile.write(getHTML(args));
+	var tmp_file = Ti.Filesystem.getFile(CACHE_DIR, tmp_name);
+	if (tmp_file.exists()) tmp_file.deleteFile();
+	tmp_file.write(getHTML(args));
 
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
@@ -157,10 +161,10 @@ exports.createView = function(args) {
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
 		backgroundColor: 'transparent',
-		url: tmpFile.nativePath
+		url: tmp_file.nativePath
 	}, args));
 
-	tmpFile = null;
+	tmp_file = null;
 
 	$ui.addEventListener('load', function() {
 		if (args.autoHeight) {
@@ -223,7 +227,7 @@ Init
 
 var jsFiles = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing();
 _.each(jsFiles, function(js) {
-	libDir.push('web/lib/' + js);
+	lib_dir.push('web/lib/' + js);
 });
 
 Ti.Filesystem.getFile(CACHE_DIR).createDirectory();
