@@ -11,15 +11,44 @@ exports.config = _.extend({
 	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.sqlite : {});
 
+var Util = require('T/util');
 
 function SQLite(name, file) {
 	this.query = null;
+
 	if (file == null) {
 		this.db = Ti.Database.open(name);
 	} else {
 		this.db = Ti.Database.install(file, name);
 	}
 }
+
+/**
+ * @static
+ * @method  fromFile
+ * Return a new instance of SQLite opened from an absolute file
+ * @param  {String} path
+ * @return {SQLite}
+ */
+SQLite.fromFile = function(path) {
+	var file = Ti.Filesystem.getFile(path);
+	var name = file.name.replace(/\..+$/, '');
+
+	var destination_file = Ti.Filesystem.getFile(Util.getDatabaseDirectory() + '/' + name + '.sql');
+
+	if (destination_file.exists()) destination_file.deleteFile();
+	destination_file.write(file);
+
+	// I know, this functions seems a bit an hack, but the API is inconsistent:
+	// On iOS, open doesn't recognize a path, so we have to copy the SQL file in the exact location, then pass the name.
+	// On Android, it simply works with open + file, but we have to copy to external storage if present.
+
+	if (OS_IOS) {
+		return new SQLite(name);
+	} else if (OS_ANDROID) {
+		return new SQLite(destination_file.resolve());
+	}
+};
 
 /**
  * @method table
