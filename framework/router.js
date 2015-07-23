@@ -61,7 +61,8 @@ exports.on = function() {
 	routeRegistry.push({
 		key: key,
 		callback: callback,
-		callbacks: callbacks
+		callbacks: callbacks,
+		defer: defer
 	});
 };
 
@@ -140,8 +141,6 @@ exports.dispatch = function(url) {
 				exports.stack.push(url);
 				exports.currentUrl = url;
 				exports.currentRoute = routeDefinition;
-
-				console.log( _.isArray(routeDefinition.callbacks), routeDefinition.callbacks.toString() );
 
 				if (routeDefinition.callbacks.length > 0) {
 					routeDefinition.callbacks.reduce(Q.when, Q()).then(function() {
