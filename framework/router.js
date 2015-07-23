@@ -61,8 +61,7 @@ exports.on = function() {
 	routeRegistry.push({
 		key: key,
 		callback: callback,
-		callbacks: callbacks,
-		defer: defer
+		callbacks: callbacks
 	});
 };
 
