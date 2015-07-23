@@ -69,14 +69,21 @@ function open(name, args, openArgs, route, useNav) {
 
 	// Clean up controller on window close
 	$window.addEventListener('close', function() {
+		controller.trigger('close');
+
 		controller.off(); // Turn off Backbone Events
 		controller.destroy(); // Destroy by KrolllBridge
+
 		if (_.isFunction(controller.cleanup)) {
 			controller.cleanup();
 		}
 
 		controller = null;
 		$window = null;
+	});
+
+	$window.addEventListener('open', function() {
+		controller.trigger('open');
 	});
 
 	// Open the window

@@ -14,8 +14,10 @@ exports.config = _.extend({
 
 var Util = require('T/util');
 var Flow = require('T/flow');
+var Q = require('T/ext/q');
 
 var routeRegistry = [];
+
 
 /**
  * @property currentUrl
@@ -51,10 +53,15 @@ exports.stack = [];
  *
  * @param  {Function}	callback  		The callback
  */
-exports.on = function(key, callback) {
+exports.on = function() {
+	var callbacks = _.toArray(arguments);
+	var key = callbacks.shift();
+	var callback = callbacks.pop();
+
 	routeRegistry.push({
 		key: key,
 		callback: callback,
+		callbacks: callbacks
 	});
 };
 
@@ -94,40 +101,60 @@ exports.dispatch = function(url) {
 
 		if (_.isString(routeDefinition.key)) {
 
-			// Regular string equals
+			///////////////////////////
+			// Regular string equals //
+			///////////////////////////
+
 			run = (routeDefinition.key === callbackURL.path);
 
 		} else if (_.isRegExp(routeDefinition.key)) {
 
-			// Regular expression complex match
+			//////////////////////////////////////
+			// Regular expression complex match //
+			//////////////////////////////////////
+
 			matches = callbackURL.path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
 
 		} else if (_.isFunction(routeDefinition.key)) {
 
-			// Function match
+			////////////////////
+			// Function match //
+			////////////////////
+
 			matches = routeDefinition.key(callbackURL.path);
 			run = (matches !== undefined);
 
 		}
 
+		////////////
+		// Run if //
+		////////////
+
 		if (run === true) {
 			Ti.API.debug('Router: matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
 
-			var callback = routeDefinition.callback;
-			if (_.isFunction(callback)) {
+			if (_.isFunction(routeDefinition.callback)) {
 
 				exports.stack.push(url);
 				exports.currentUrl = url;
 				exports.currentRoute = routeDefinition;
 
-				callback.apply(callbackURL, matches);
+				console.log( _.isArray(routeDefinition.callbacks), routeDefinition.callbacks.toString() );
 
-			} else if (_.isObject(callback)) {
+				if (routeDefinition.callbacks.length > 0) {
+					routeDefinition.callbacks.reduce(Q.when, Q()).then(function() {
+						routeDefinition.callback.apply(callbackURL, matches);
+					});
+				} else {
+					routeDefinition.callback.apply(callbackURL, matches);
+				}
 
-				if (callback.alias != null) {
-					exports.dispatch(callback.alias);
+			} else if (_.isObject(routeDefinition.callback)) {
+
+				if (routeDefinition.callback.alias != null) {
+					exports.dispatch(routeDefinition.callback.alias);
 				}
 
 			}
