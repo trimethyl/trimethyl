@@ -54,14 +54,14 @@ exports.stack = [];
  * @param  {Function}	callback  		The callback
  */
 exports.on = function() {
-	var callbacks = _.toArray(arguments);
-	var key = callbacks.shift();
-	var callback = callbacks.pop();
+	var middlewares = _.toArray(arguments);
+	var key = middlewares.shift();
+	var callback = middlewares.pop();
 
 	routeRegistry.push({
 		key: key,
 		callback: callback,
-		callbacks: callbacks
+		middlewares: middlewares
 	});
 };
 
@@ -141,8 +141,8 @@ exports.dispatch = function(url) {
 				exports.currentUrl = url;
 				exports.currentRoute = routeDefinition;
 
-				if (routeDefinition.callbacks.length > 0) {
-					routeDefinition.callbacks.reduce(Q.when, Q()).then(function() {
+				if (routeDefinition.middlewares.length > 0) {
+					routeDefinition.middlewares.reduce(Q.when, Q()).then(function() {
 						routeDefinition.callback.apply(callbackURL, matches);
 					});
 				} else {

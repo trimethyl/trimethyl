@@ -112,7 +112,7 @@
 	"router":{
 		"name": "Router",
 		"description": "Manage your app flow with a routing system.",
-		"dependencies": ["util","flow"]
+		"dependencies": ["util","flow","ext/q"]
 	},
 	"sharer":{
 		"name": "Sharer",
