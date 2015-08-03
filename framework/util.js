@@ -335,9 +335,22 @@ exports.buildQuery = function(obj, prepend) {
  *
  * @return {String}
  */
+var APPDATA_DIRECTORY = null;
 exports.getAppDataDirectory = function() {
-	if (OS_ANDROID && Ti.Filesystem.isExternalStoragePresent()) return Ti.Filesystem.externalStorageDirectory;
-	return Ti.Filesystem.applicationSupportDirectory;
+	if (APPDATA_DIRECTORY === null) {
+		if (OS_IOS) {
+			APPDATA_DIRECTORY = Ti.Filesystem.applicationSupportDirectory;
+		} else if (OS_ANDROID) {
+			APPDATA_DIRECTORY = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent() ? 'externalStorageDirectory' : 'applicationDataDirectory' ];
+		} else {
+			APPDATA_DIRECTORY = Ti.Filesystem.applicationDataDirectory;
+		}
+		// Why this?
+		// Because sometimes this directory doesn't exists,
+		// so with this wrap we are sure that the directory will exists.
+		try { Ti.Filesystem.getFile(APPDATA_DIRECTORY).createDirectory(); } catch (err) {}
+	}
+	return APPDATA_DIRECTORY;
 };
 
 /**
@@ -457,7 +470,7 @@ exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
 			db.close();
 			DATABASE_DIRECTORY = path.join('/') + '/';
 		} else if (OS_ANDROID) {
-			DATABASE_DIRECTORY = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent ? 'externalStorageDirectory' : 'applicationDataDirectory' ] + '/databases';
+			DATABASE_DIRECTORY = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent() ? 'externalStorageDirectory' : 'applicationDataDirectory' ] + '/databases';
 			try { Ti.Filesystem.getFile(DATABASE_DIRECTORY).createDirectory(); } catch (err) {}
 		}
 	}
