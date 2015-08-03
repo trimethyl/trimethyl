@@ -558,29 +558,30 @@ exports.download = function(url, file, success, error, ondatastream) {
 		cache: false,
 		refresh: true,
 		format: 'blob',
-		error: error,
+		errorAlert: false,
 		ondatastream: ondatastream,
 	}).success(function(data) {
 		var fileStream = null;
 		if (file.nativePath) {
 			fileStream = file;
 		} else {
-			var APP_DATA_DIR = Util.getAppDataDirectory();
-			Ti.Filesystem.getFile(APP_DATA_DIR).createDirectory();
-			fileStream = Ti.Filesystem.getFile(APP_DATA_DIR, file);
+			fileStream = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
 		}
 
 		if (fileStream.exists()) fileStream.deleteFile();
 		if (fileStream.write(data)) {
-			if (_.isFunction(success)) success(fileStream);
+			if (_.isFunction(success)) {
+				success(fileStream);
+			}
 		} else {
+			Ti.API.error('HTTP: Writing failed while downloading <' + url + '>');
 			if (_.isFunction(error)) {
 				error({
 					message: L('unexpected_error', 'Unexpected error')
 				});
 			}
 		}
-	});
+	}).error(error);
 };
 
 /**
