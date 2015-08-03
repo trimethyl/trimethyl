@@ -46,7 +46,7 @@ SQLite.fromFile = function(path) {
 	if (OS_IOS) {
 		return new SQLite(name);
 	} else if (OS_ANDROID) {
-		return new SQLite(destination_file.resolve().replace('file://', ''));
+		return new SQLite(destination_file);
 	}
 };
 
@@ -64,7 +64,8 @@ SQLite.prototype.table = function(name) {
 		whereData: [],
 		select: null,
 		update: null,
-		updateData: []
+		updateData: [],
+		order: null
 	};
 	return this;
 };
@@ -162,6 +163,23 @@ SQLite.prototype.delete = function() {
 	return this;
 };
 
+
+/**
+ * @method orderBy
+ * Order the results in the select.
+ * @return {SQLite}
+ */
+SQLite.prototype.order = SQLite.prototype.orderBy = function(key, direction) {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	this.query.order = {
+		key: key,
+		direction: direction || 'ASC'
+	};
+
+	return this;
+};
+
 /**
  * @method truncate
  * Perform a truncate table.
@@ -186,24 +204,17 @@ SQLite.prototype.where = SQLite.prototype.andWhere = function() {
 	var args = _.toArray(arguments);
 	if (args.length === 1) {
 
+		/*
+		.where({
+			id: 2,
+			id_sub: 3
+		})
+		*/
 		if (_.isObject(args[0])) {
-
-			/*
-			.where({
-				id: 2,
-				id_sub: 3
-			})
-			*/
 			this.query.where = _.map(_.keys(args[0]), function(k) { return k + ' = ?'; });
 			this.query.whereData = _.values(args[0]);
-
 		} else if (_.iString(args[0])) {
-
-			/*
-			.where('id = 2')
-			*/
 			this.query.where.push(args[0]);
-
 		}
 
 	} else if (args.length === 2) {
@@ -241,7 +252,8 @@ SQLite.prototype.getExequery = function() {
 		return [
 			'SELECT ' + (this.query.select === null ? '*' : _.map(this.query.select, function(v, k){ return k + ' AS ' + v; }).join(',')) +
 			' FROM ' + this.query.table +
-			whereClause
+			whereClause +
+			(this.query.order === null ? '' : (' ORDER BY ' + this.query.order.key + ' ' + this.query.order.direction))
 		]
 		.concat(this.query.whereData);
 		break;
