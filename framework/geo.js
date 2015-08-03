@@ -250,8 +250,8 @@ exports.markerCluster = function(event, markers, keys) {
 		id: 'id'
 	});
 
-	var c = {};
-	var g = {};
+	var pins = {};
+	var group = {};
 	var isBackbone = (markers instanceof Backbone.Collection);
 
 	// latR, lngR represents the current degrees visible
@@ -267,63 +267,80 @@ exports.markerCluster = function(event, markers, keys) {
 	];
 
 	function removeOutOfBBFunction(m) {
-		var tmpLat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
-		var tmpLng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
-		if (tmpLat < boundingBox[2] && tmpLat > boundingBox[0] && tmpLng > boundingBox[3] && tmpLng < boundingBox[1]) {
-			c[m[keys.id]] = { latitude: tmpLat, longitude: tmpLng };
+		var tmp_lat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmp_lng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
+		if (tmp_lat < boundingBox[2] && tmp_lat > boundingBox[0] && tmp_lng > boundingBox[3] && tmp_lng < boundingBox[1]) {
+			pins[ m[keys.id] ] = {
+				latitude: tmp_lat,
+				longitude: tmp_lng
+			};
 		}
 	}
 
 	function createCObjFunction(m) {
-		var tmpLat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
-		var tmpLng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
-		c[m.id] = { latitude: tmpLat, longitude: tmpLng };
+		var tmp_lat = parseFloat( isBackbone === true ? m.get(keys.latitude) : m[keys.latitude] );
+		var tmp_lng = parseFloat( isBackbone === true ? m.get(keys.longitude) : m[keys.longitude] );
+		pins[ m[keys.id] ] = {
+			latitude: tmp_lat,
+			longitude: tmp_lng
+		};
 	}
 
 	// Start clustering
 	if (isBackbone === true) {
-		markers.map(exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
+		markers.each(exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	} else {
 		_.each(markers, exports.config.clusterRemoveOutOfBB === true ? removeOutOfBBFunction : createCObjFunction);
 	}
 
 	// Cycle over all markers, and group in {g} all nearest markers by {id}
-	var zoomToCluster = event.longitudeDelta > exports.config.clusterMaxDelta;
-	_.each(c, function(a, id){
-		_.each(c, function(b, jd){
+	var zoomToCluster = (event.longitudeDelta > exports.config.clusterMaxDelta);
+	_.each(pins, function(a, id) {
+		_.each(pins, function(b, jd) {
 			if (id == jd || zoomToCluster === false) return;
-			var dst = dist(lngR * Math.abs(a.latitude - b.latitude), lngR * Math.abs(a.longitude - b.longitude));
-			if (dst < exports.config.clusterPixelRadius) {
-				if ((id in g) === false) g[id] = [id];
-				g[id].push(jd);
-				delete c[jd];
+			if (a == null) return;
+			if (b == null) return;
+
+			var d = dist(
+				lngR * Math.abs(+a.latitude - b.latitude),
+				lngR * Math.abs(+a.longitude - b.longitude)
+			);
+			if (d < exports.config.clusterPixelRadius) {
+				group[id] = group[id] || [id];
+				group[id].push(jd);
+				delete pins[id];
+				delete pins[jd];
 			}
 		});
-		if ((id in g) === false) {
-			g[id] = [id];
-		}
-		delete c[id];
 	});
 
 	// cycle all over pin and calculate the average of group pin
-	_.each(g, function(a, id){
-		c[id] = { latitude: 0.0,  longitude: 0.0, count: _.keys(a).length };
-		_.each(a, function(b){
-			c[id].latitude += parseFloat(isBackbone === true ? markers.get(b).get(keys.latitude) : markers[b][keys.latitude]);
-			c[id].longitude += parseFloat(isBackbone === true ? markers.get(b).get(keys.longitude) : markers[b][keys.longitude]);
+	_.each(group, function(g, id){
+		var gpin = {
+			latitude: 0.0,
+			longitude: 0.0,
+			count: _.keys(g).length
+		};
+
+		_.each(g, function(gid) {
+			gpin.latitude += parseFloat(isBackbone === true ? markers.get(gid).get(keys.latitude) : markers[gid][keys.latitude]);
+			gpin.longitude += parseFloat(isBackbone === true ? markers.get(gid).get(keys.longitude) : markers[gid][keys.longitude]);
 		});
-		c[id].latitude = c[id].latitude / c[id].count;
-		c[id].longitude = c[id].longitude / c[id].count;
+
+		gpin.latitude = gpin.latitude / gpin.count;
+		gpin.longitude = gpin.longitude / gpin.count;
+		pins["g"+id] = gpin;
 	});
 
+	group = null; // GC
 
 	// Set all annotations
-	return _.map(c, function(a, id){
-		if (a.count > 1) {
+	return _.map(pins, function(pin, id){
+		if (pin.count > 1) {
 			return {
-				latitude: parseFloat(c[id].latitude.toFixed(2)),
-				longitude: parseFloat(c[id].longitude.toFixed(2)),
-				count: c[id].count
+				latitude: parseFloat(pin.latitude.toFixed(2)),
+				longitude: parseFloat(pin.longitude.toFixed(2)),
+				count: pin.count
 			};
 		} else {
 			// Ensure ID is a number
