@@ -46,7 +46,7 @@ SQLite.fromFile = function(path) {
 	if (OS_IOS) {
 		return new SQLite(name);
 	} else if (OS_ANDROID) {
-		return new SQLite(destination_file.resolve());
+		return new SQLite(destination_file.resolve().replace('file://', ''));
 	}
 };
 
