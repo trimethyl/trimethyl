@@ -105,6 +105,11 @@
 		"description": "Driver based on CloudPush of Appcelerator.",
 		"modules": ["ti.cloud"]
 	},
+	"notifications/parse":{
+		"name": "Notifications.Parse",
+		"description": "Driver for Parse.",
+		"dependencies": ["http"]
+	},
 	"prop":{
 		"name": "Prop",
 		"description": "Alias for Ti.App.Properties."
