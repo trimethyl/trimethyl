@@ -132,6 +132,8 @@ exports.install = function() {
  * Add a module to the app
  */
 exports.add = function(value) {
+	value = value.replace('.', '/');
+
 	if (!(value in getMap())) {
 		logger.error('Module <' + value + '> is not a valid Trimethyl module.');
 		process.exit();
@@ -152,6 +154,8 @@ exports.add = function(value) {
  * Remove a module to the app
  */
 exports.remove = function(value) {
+	value = value.replace('.', '/');
+
 	var config = readConfig();
 	var io = config.libs.indexOf(value);
 
