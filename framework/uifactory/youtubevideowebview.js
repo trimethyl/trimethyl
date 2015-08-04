@@ -48,7 +48,7 @@ module.exports = function(args) {
 	if (yt.width == null) yt.width = args.width;
 	if (yt.height == null) yt.height = args.height;
 
-	args.height += 5; // The height of the WebView must be just a little higher to prevent the scrolling inside
+	args.height = +args.height + 5; // The height of the WebView must be just a little higher to prevent the scrolling inside
 	var $this = Ti.UI.createWebView(args);
 
 	var html = '<!doctype html><html><head>';
