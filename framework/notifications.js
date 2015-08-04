@@ -130,7 +130,7 @@ exports.activate = function() {
 			Module = Ti.Network;
 			moduleOpt.types = [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ];
 		} else if (OS_ANDROID) {
-			Module = require("it.caffeina.gcm");
+			Module = require('it.caffeina.gcm');
 			moduleOpt.senderId = Ti.App.Properties.getString('gcm.senderid');
 		} else return;
 
@@ -197,7 +197,6 @@ exports.subscribe = function(channel, data) {
 	}
 
 	exports.activate()
-	.fail(defer.reject)
 	.then(function(deviceToken) {
 
 		exports.loadDriver(exports.config.driver).subscribe({
@@ -218,7 +217,8 @@ exports.subscribe = function(channel, data) {
 			}
 		});
 
-	});
+	})
+	.fail(defer.reject);
 
 	return defer.promise;
 };
