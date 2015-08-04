@@ -15,7 +15,16 @@ exports.config = _.extend({
 
 var HTTP = require('T/http');
 
+var deploy_type = (Ti.App.deployType === 'production' ? 'production' : 'development');
+var os_enum = (function() {
+	if (OS_IOS) return 1;
+	if (OS_ANDROID) return 2;
+	return 0;
+})();
+
 exports.subscribe = function(opt) {
+	if (exports.config.subscribeEndpoint == null) throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
+
 	HTTP.send({
 		url: exports.config.subscribeEndpoint,
 		method: 'POST',
@@ -23,11 +32,8 @@ exports.subscribe = function(opt) {
 			device_token: opt.deviceToken,
 			channel: opt.channel,
 			app_version: Ti.App.version,
-			app_deploytype: (Ti.App.deployType === 'production' ? 'production' : 'development'),
-			os: (function() {
-				if (OS_IOS) return 1;
-				if (OS_ANDROID) return 2;
-			})(),
+			app_deploytype: deploy_type,
+			os: os_enum,
 		}),
 		success: opt.success,
 		error: opt.error,
@@ -37,6 +43,8 @@ exports.subscribe = function(opt) {
 };
 
 exports.unsubscribe = function(opt) {
+	if (exports.config.unsubscribeEndpoint == null) throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
+
 	HTTP.send({
 		url: exports.config.unsubscribeEndpoint + '/' + opt.deviceToken,
 		method: 'POST',
