@@ -16,6 +16,9 @@
 module.exports = function(args) {
 	_.defaults(args, {
 
+		width: Alloy.Globals.SCREEN_WIDTH,
+		height: Alloy.Globals.SCREEN_WIDTH * (3/4),
+
 		/**
 		 * @property {String} videoId ID of Youtube video.
 		 */
@@ -45,6 +48,7 @@ module.exports = function(args) {
 	if (yt.width == null) yt.width = args.width;
 	if (yt.height == null) yt.height = args.height;
 
+	args.height += 5; // The height of the WebView must be just a little higher to prevent the scrolling inside
 	var $this = Ti.UI.createWebView(args);
 
 	var html = '<!doctype html><html><head>';
@@ -52,7 +56,7 @@ module.exports = function(args) {
 	html += '<style>html,body{padding:0;background:black;margin:0;overflow:hidden;}</style>';
 	html += '</head><body><div id="player"></div>';
 	html += '<script src="http://www.youtube.com/player_api"></script>';
-	html += '<script>function onYouTubePlayerAPIReady(){window.player=new YT.Player("player",'+JSON.stringify(yt)+');}</script>';
+	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",' + JSON.stringify(yt) + '); }</script>';
 	html += '</body></html>';
 	$this.html = html;
 
