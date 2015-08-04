@@ -12,17 +12,21 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? (Alloy.CFG.T.fb || Alloy.CFG.T.facebook) : {});
 
 var Util = require('T/util');
-var Facebook = require('facebook');
+var Facebook = Util.requireOrNull('facebook');
 
-// Old Facebook module require that the app-id is set at runtime
-Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid');
+if (Facebook) {
 
-if (!_.isEmpty(exports.config.permissions)) {
-	Facebook.setPermissions(exports.config.permissions);
-}
+	// Old Facebook module require that the app-id is set at runtime
+	Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid');
 
-if (_.isFunction(Facebook.initialize)) {
-	Facebook.initialize();
+	if (!_.isEmpty(exports.config.permissions)) {
+		Facebook.setPermissions(exports.config.permissions);
+	}
+
+	if (_.isFunction(Facebook.initialize)) {
+		Facebook.initialize();
+	}
+
 }
 
 module.exports = Facebook;

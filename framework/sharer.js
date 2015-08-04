@@ -385,7 +385,7 @@ exports.activity = function(args) {
 Init
 */
 
-var FB = require('T/fb');
+var FB = Util.requireOrNull('T/fb');
 if (FB != null) {
 	FB.addEventListener('shareCompleted', onSocialComplete);
 }
