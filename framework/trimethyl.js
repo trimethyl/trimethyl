@@ -19,6 +19,11 @@ Alloy.Globals.Trimethyl = {
 		}
 
 		return _.extend({}, interface, sub);
+	},
+
+	setScreenConstants: function() {
+		Alloy.Globals.SCREEN_WIDTH = OS_IOS ? Ti.Platform.displayCaps.platformWidth : Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
+		Alloy.Globals.SCREEN_HEIGHT = OS_IOS ? Ti.Platform.displayCaps.platformHeight : Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
 	}
 
 };
@@ -28,12 +33,13 @@ Alloy.Globals.Trimethyl = {
 // Alloy Globals Contants //
 ////////////////////////////
 
-Alloy.Globals.SCREEN_WIDTH = OS_IOS ? Ti.Platform.displayCaps.platformWidth : Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
-Alloy.Globals.SCREEN_HEIGHT = OS_IOS ? Ti.Platform.displayCaps.platformHeight : Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
+Alloy.Globals.setScreenConstants();
+
 Alloy.Globals.SCREEN_DENSITY = OS_ANDROID ? Ti.Platform.displayCaps.logicalDensityFactor : Titanium.Platform.displayCaps.dpi/160;
+Alloy.Globals.SCREEN_RETINA = Alloy.Globals.SCREEN_DENSITY == 2;
+
 Alloy.Globals.SIMULATOR = Ti.Platform.model === 'Simulator' || Ti.Platform.model.indexOf('sdk') !== -1;
 
-Alloy.Globals.SCREEN_RETINA = Alloy.Globals.SCREEN_DENSITY == 2;
 Alloy.Globals.IOS7 = OS_IOS && Ti.Platform.version.split('.')[0] == 7;
 Alloy.Globals.IOS8 = OS_IOS && Ti.Platform.version.split('.')[0] == 8;
 
@@ -52,6 +58,12 @@ if (!ENV_DEVELOPMENT) {
 		require('T/ga').exception(e.message + ' @ ' + e.source + ':' + e.line);
 	});
 }
+
+////////////////////////////////
+// Recalculate base constants //
+////////////////////////////////
+
+Ti.Gesture.addEventListener('orientationchange', Alloy.Globals.setScreenConstants);
 
 /////////////////////////////////////////////
 // Extend underscore with awesome features //
