@@ -19,7 +19,7 @@ exports.getScreenDensity = function() {
  * @return {Number} The width
  */
 exports.getScreenWidth = function() {
-	return Alloy.Globals.SCREEN_WIDTH;
+	return OS_IOS ? Ti.Platform.displayCaps.platformWidth : Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
 };
 
 /**
@@ -28,7 +28,7 @@ exports.getScreenWidth = function() {
  * @return {Number} The height
  */
 exports.getScreenHeight = function() {
-	return Alloy.Globals.SCREEN_HEIGHT;
+	return OS_IOS ? Ti.Platform.displayCaps.platformHeight : Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
 };
 
 /**
