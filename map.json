@@ -59,7 +59,7 @@
 	"fb":{
 		"name": "FB",
 		"description": "Proxy for Facebook SDK.",
-		"modules": ["com.facebook","facebook"]
+		"modules": ["facebook"]
 	},
 	"filesystem":{
 		"name": "Filesystem",

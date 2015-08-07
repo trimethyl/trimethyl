@@ -108,18 +108,6 @@ exports.createWindow = function(args) {
 
 **Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage of all APIs**.
 
-## Contributing
-
-How to get involved:
-
-1. [Star](https://github.com/CaffeinaLab/Trimethyl/stargazers) the project!
-2. Answer questions that come through [GitHub issues](https://github.com/CaffeinaLab/Trimethyl/issues?state=open)
-3. [Report a bug](https://github.com/CaffeinaLab/Trimethyl/issues/new) that you find
-
-Pull requests are **highly appreciated**.
-
-Solve a problem. Features are great, but even better is cleaning-up and fixing issues in the code that you discover.
-
 ## Copyright and license
 
-Copyright 2014 [Caffeina](http://caffeina.co) srl under the [Apache license](LICENSE.md).
+Copyright 2014 [Caffeina](http://caffeina.co) srl under the [MIT license](LICENSE).

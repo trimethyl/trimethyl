@@ -2,7 +2,26 @@ var fs = require('fs-extended');
 var path = require('path');
 var _ = require('underscore');
 var logger = require('./lib/logger');
+
 var CWD = process.cwd();
+
+var __tiapp = null;
+function readTiApp(callback) {
+	if (__tiapp != null) {
+		callback(__tiapp);
+		return;
+	}
+
+	(new require('xml2js')).Parser().parseString( fs.readFileSync( CWD + '/tiapp.xml' ), function(err, data) {
+		if (err) {
+			logger.error("Unable to parse tiapp.xml");
+			process.exit(1);
+		}
+
+		__tiapp = data;
+		callback(__tiapp);
+	});
+}
 
 function readConfig() {
 	var config = {
@@ -71,6 +90,10 @@ function compareVersions(a, b) {
 		else if (_a < _b) return -1;
 	}
 	return 0;
+}
+
+function checkNativeModule(name) {
+
 }
 
 /**

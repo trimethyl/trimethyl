@@ -12,7 +12,7 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
 
 var Util = require('T/util');
-var CACHE_DIR = Ti.Filesystem.applicationCacheDirectory + '/weballoy';
+var CACHE_DIR = Util.getAppDataDirectory() + '/weballoy';
 
 var lib_dir = [];
 var fonts = [];

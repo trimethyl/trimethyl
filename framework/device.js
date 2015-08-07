@@ -19,6 +19,7 @@ exports.getScreenDensity = function() {
  * @return {Number} The width
  */
 exports.getScreenWidth = function() {
+	// Don't return the constant because of orientationchange
 	return OS_IOS ? Ti.Platform.displayCaps.platformWidth : Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
 };
 
@@ -28,6 +29,7 @@ exports.getScreenWidth = function() {
  * @return {Number} The height
  */
 exports.getScreenHeight = function() {
+	// Don't return the constant because of orientationchange
 	return OS_IOS ? Ti.Platform.displayCaps.platformHeight : Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
 };
 

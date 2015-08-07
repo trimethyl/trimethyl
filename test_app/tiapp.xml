@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><ti:app xmlns:ti="http://ti.appcelerator.org">
+<?xml version="1.0" encoding="UTF-8"?>
+<ti:app xmlns:ti="http://ti.appcelerator.org">
 	<id>com.caffeinalab.trimethyl.tests</id>
 	<name>Trimethyl UT</name>
 	<version>1.0</version>
@@ -39,15 +40,6 @@
 	</ios>
 	<android xmlns:android="http://schemas.android.com/apk/res/android">
 	</android>
-	<mobileweb>
-		<precache>
-		</precache>
-		<splash>
-			<enabled>true</enabled>
-			<inline-css-images>true</inline-css-images>
-		</splash>
-		<theme>default</theme>
-	</mobileweb>
 	<modules>
 	</modules>
 	<deployment-targets>
@@ -58,6 +50,6 @@
 		<target device="mobileweb">true</target>
 	</deployment-targets>
 	<sdk-version>4.0.0.GA</sdk-version>
-<plugins><plugin version="1.0">ti.alloy</plugin>
+	<plugins><plugin version="1.0">ti.alloy</plugin>
 </plugins>
 </ti:app>
