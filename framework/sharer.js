@@ -148,10 +148,19 @@ exports.twitter = function(args) {
 	args = parseArgs(args);
 	require('T/ga').social('twitter', 'share', args.url);
 
+	var text = (args.tweetText || args.text);
+	if (args.url != null) {
+		if (text == null) {
+			text = args.url;
+		} else {
+			text = text + ' (' + args.url + ')';
+		}
+	}
+
 	// iOS Tweetbot App
 	if (OS_IOS) {
 		var tweetbotNativeURL = 'tweetbot:///post' + Util.buildQuery({
-			text: (args.tweetText || args.text) + (args.url ? ' (' + args.url + ')' : '')
+			text: text
 		});
 		if (Ti.Platform.canOpenURL(tweetbotNativeURL)) {
 			Ti.Platform.openURL(tweetbotNativeURL);
@@ -162,7 +171,7 @@ exports.twitter = function(args) {
 	// iOS Twitter App
 	if (OS_IOS) {
 		var twitterNativeURL = 'twitter://post' + Util.buildQuery({
-			message: (args.tweetText || args.text) + (args.url ? ' (' + args.url + ')' : '')
+			message: text
 		});
 		if (Ti.Platform.canOpenURL(twitterNativeURL)) {
 			Ti.Platform.openURL(twitterNativeURL);
@@ -173,7 +182,7 @@ exports.twitter = function(args) {
 	// Native iOS Dialog
 	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isTwitterSupported())) {
 		dkNappSocial.twitter({
-			text: (args.tweetText || args.text),
+			text: text,
 			image: args.image,
 			url: args.url
 		});
@@ -182,7 +191,7 @@ exports.twitter = function(args) {
 
 	// Fallback
 	Ti.Platform.openURL('http://www.twitter.com/intent/tweet' + Util.buildQuery({
-		 text: (args.tweetText || args.text),
+		 text: text,
 		 url: args.url
 	}));
 };
