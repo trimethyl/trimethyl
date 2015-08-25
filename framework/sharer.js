@@ -149,18 +149,15 @@ exports.twitter = function(args) {
 	require('T/ga').social('twitter', 'share', args.url);
 
 	var text = (args.tweetText || args.text);
+	var textWithUrl = text;
 	if (args.url != null) {
-		if (text == null) {
-			text = args.url;
-		} else {
-			text = text + ' (' + args.url + ')';
-		}
+		textWithUrl = text ? (text + ' (' + args.url + ')') : args.url;
 	}
 
 	// iOS Tweetbot App
 	if (OS_IOS) {
 		var tweetbotNativeURL = 'tweetbot:///post' + Util.buildQuery({
-			text: text
+			text: textWithUrl
 		});
 		if (Ti.Platform.canOpenURL(tweetbotNativeURL)) {
 			Ti.Platform.openURL(tweetbotNativeURL);
@@ -171,7 +168,7 @@ exports.twitter = function(args) {
 	// iOS Twitter App
 	if (OS_IOS) {
 		var twitterNativeURL = 'twitter://post' + Util.buildQuery({
-			message: text
+			message: textWithUrl
 		});
 		if (Ti.Platform.canOpenURL(twitterNativeURL)) {
 			Ti.Platform.openURL(twitterNativeURL);
