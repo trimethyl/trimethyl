@@ -196,6 +196,7 @@ exports.exception = exports.trackException;
  * @param {String} ua
  */
 exports.setTrackerUA = function(ua) {
+	Ti.API.debug('GA: Initialized with UA = ' + ua);
 	tracker = AnalyticsGoogle.getTracker(ua);
 };
 
