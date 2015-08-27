@@ -23,7 +23,7 @@ var helpers = {
 };
 
 function embedFile(f) {
-	var tiFile = Ti.Filesystem.getFile(Util.getResourcesDirectory() + '/' + f);
+	var tiFile = Ti.Filesystem.getFile(Util.getResourcesDirectory() + f);
 	if (tiFile.exists() === false) {
 		Ti.API.debug('Weballoy: File not found (' + f + ')');
 		return null;
