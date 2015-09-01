@@ -278,11 +278,8 @@ exports.unsubscribe = function(channel, data) {
  * @param {Number} x
  */
 exports.setBadge = function(x) {
-	if (OS_IOS) {
-		Ti.UI.iPhone.setAppBadge(Math.max(x,0));
-	} else if (OS_ANDROID) {
-		// TODO
-	}
+	var Module = OS_IOS ? Ti.UI.iPhone : require('it.caffeina.gcm');
+	Module.setAppBadge(Math.max(x,0));
 };
 
 /**
@@ -291,11 +288,8 @@ exports.setBadge = function(x) {
  * @return {Number}
  */
 exports.getBadge = function() {
-	if (OS_IOS) {
-		return Ti.UI.iPhone.getAppBadge();
-	} else if (OS_ANDROID) {
-		// TODO
-	}
+	var Module = OS_IOS ? Ti.UI.iPhone : require('it.caffeina.gcm');
+	return Module.getAppBadge();
 };
 
 /**
