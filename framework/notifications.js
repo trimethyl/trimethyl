@@ -363,7 +363,7 @@ function createInteractiveAction(opt) {
 }
 
 exports.addInteractiveNotificationCategory = function(id, dict, callback) {
-	if (!OS_IOS || Util.getIOSVersion() < 8) return;
+	if (!(OS_IOS && Util.getIOSVersion() >= 8)) return;
 
 	var actions = dict.map(createInteractiveAction);
 	var category = Ti.App.iOS.createUserNotificationCategory({
@@ -381,7 +381,7 @@ exports.addInteractiveNotificationCategory = function(id, dict, callback) {
 // Init //
 //////////
 
-if (OS_IOS) {
+if (OS_IOS && Util.getIOSVersion() >= 8) {
 
 	var switchInteractiveCategories = function(e) {
 		if (interactiveCategoriesCallbacks[e.category] != null) {
