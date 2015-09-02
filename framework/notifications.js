@@ -21,28 +21,12 @@ var Util = require('T/util');
 var Router = require('T/router');
 var Q = require('T/ext/q');
 
-// http://stackoverflow.com/questions/24748624/gcm-regid-validation-token-lengths-mismatch
+var interactiveCategories = [];
+var interactiveCategoriesCallbacks = {};
+
 function validateToken(token) {
 	return token != null && token != "undefined" && token != "null" && token.length >= 32;
 }
-
-
-/**
- * @method loadDriver
- */
-exports.loadDriver = function(name) {
-	return Alloy.Globals.Trimethyl.loadDriver('notifications', name, {
-		subscribe: function(opt) {},
-		unsubscribe: function(opt) {}
-	});
-};
-
-/**
- * @method event
- */
-exports.event = function(name, cb) {
-	Event.on('notifications.' + name, cb);
-};
 
 function onNotificationReceived(e) {
 	Ti.API.debug("Notifications: Received", e);
@@ -63,6 +47,26 @@ function onNotificationReceived(e) {
 
 	Event.trigger('notifications.received', e);
 }
+
+
+/**
+ * @method loadDriver
+ */
+exports.loadDriver = function(name) {
+	return Alloy.Globals.Trimethyl.loadDriver('notifications', name, {
+		subscribe: function(opt) {},
+		unsubscribe: function(opt) {}
+	});
+};
+
+
+/**
+ * @method event
+ */
+exports.event = function(name, cb) {
+	Event.on('notifications.' + name, cb);
+};
+
 
 /**
  * @method event
@@ -118,7 +122,12 @@ exports.activate = function() {
 
 		Ti.App.iOS.addEventListener('usernotificationsettings', userNotificationsCallback);
 		Ti.App.iOS.registerUserNotificationSettings({
-			types: [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ]
+			types: [
+				Ti.Network.NOTIFICATION_TYPE_BADGE,
+				Ti.Network.NOTIFICATION_TYPE_ALERT,
+				Ti.Network.NOTIFICATION_TYPE_SOUND
+			],
+			categories: interactiveCategories
 		});
 
 	} else {
@@ -127,11 +136,19 @@ exports.activate = function() {
 		var moduleOpt = {};
 
 		if (OS_IOS) {
+
 			Module = Ti.Network;
-			moduleOpt.types = [ Ti.Network.NOTIFICATION_TYPE_BADGE, Ti.Network.NOTIFICATION_TYPE_ALERT, Ti.Network.NOTIFICATION_TYPE_SOUND ];
+			moduleOpt.types = [
+				Ti.Network.NOTIFICATION_TYPE_BADGE,
+				Ti.Network.NOTIFICATION_TYPE_ALERT,
+				Ti.Network.NOTIFICATION_TYPE_SOUND
+			];
+
 		} else if (OS_ANDROID) {
+
 			Module = require('it.caffeina.gcm');
 			moduleOpt.senderId = Ti.App.Properties.getString('gcm.senderid');
+
 		} else return;
 
 		Module.registerForPushNotifications(_.extend(moduleOpt, {
@@ -327,9 +344,54 @@ exports.isAuthorized = function() {
 	return true;
 };
 
-/*
-Init
-*/
+
+///////////////////////////////
+// Interactive notifications //
+///////////////////////////////
+
+function createInteractiveAction(opt) {
+	if (opt.id == null) throw new Error('Notifications: interactive notifications must have and ID');
+	if (opt.title == null) throw new Error('Notifications: interactive notifications must have a title');
+
+	return Ti.App.iOS.createUserNotificationAction({
+		identifier: opt.id,
+		title: opt.title,
+		activationMode: Ti.App.iOS["USER_NOTIFICATION_ACTIVATION_MODE_" + (opt.openApplication == true ? "FOREGROUND" : "BACKGROUND")],
+		destructive: opt.destructive,
+		authenticationRequired: opt.authenticationRequired
+	});
+}
+
+exports.addInteractiveNotificationCategory = function(id, dict, callback) {
+	if (!OS_IOS || Util.getIOSVersion() < 8) return;
+
+	var actions = dict.map(createInteractiveAction);
+	var category = Ti.App.iOS.createUserNotificationCategory({
+		identifier: id,
+		actionsForDefaultContext: actions
+	});
+
+	// Add in the interactiveCategories array to register in the activate method
+	interactiveCategories.push(category);
+	interactiveCategoriesCallbacks[id] = callback;
+};
+
+
+//////////
+// Init //
+//////////
+
+if (OS_IOS) {
+
+	var switchInteractiveCategories = function(e) {
+		if (interactiveCategoriesCallbacks[e.category] != null) {
+			interactiveCategoriesCallbacks[e.category](e);
+		}
+	};
+
+	Ti.App.iOS.addEventListener('remotenotificationaction', switchInteractiveCategories);
+	Ti.App.iOS.addEventListener('localnotificationaction', switchInteractiveCategories);
+}
 
 if (exports.config.autoReset === true) {
 	exports.resetBadge();
