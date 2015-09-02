@@ -4,24 +4,8 @@ var _ = require('underscore');
 var logger = require('./lib/logger');
 
 var CWD = process.cwd();
-
-var __tiapp = null;
-function readTiApp(callback) {
-	if (__tiapp != null) {
-		callback(__tiapp);
-		return;
-	}
-
-	(new require('xml2js')).Parser().parseString( fs.readFileSync( CWD + '/tiapp.xml' ), function(err, data) {
-		if (err) {
-			logger.error("Unable to parse tiapp.xml");
-			process.exit(1);
-		}
-
-		__tiapp = data;
-		callback(__tiapp);
-	});
-}
+var trimethyl_map = require('./map.json');
+var package = require('./package.json');
 
 function readConfig() {
 	var config = {
@@ -40,11 +24,6 @@ function readConfig() {
 	return config;
 }
 
-var __map = null;
-function getMap() {
-	__map = __map || require('./map.json');
-	return __map;
-}
 
 function buildDependencies(libs, key, req, tabs) {
 	req = req || null;
@@ -61,7 +40,7 @@ function buildDependencies(libs, key, req, tabs) {
 		src_file = __dirname + '/framework/' + key + '.js';
 	}
 
-	var val = getMap()[key];
+	var val = trimethyl_map[key];
 	if (val == null) {
 		logger.error('Unable to find module "' + key + '"');
 		return;
@@ -101,7 +80,7 @@ function checkNativeModule(name) {
  * Copy the modules
  */
 exports.install = function() {
-	var current_version = require('./package.json').version;
+	var current_version = package.version;
 
 	// Get the configuration
 	var config = readConfig();
@@ -112,7 +91,7 @@ exports.install = function() {
 
 	if (_.isEmpty(config.libs)) {
 		// If a configuration is missing, copy all libs
-		config.libs = Object.keys(getMap());
+		config.libs = Object.keys(trimethyl_map);
 		logger.warn('Configuration missing, all libraries will be copied');
 	}
 
@@ -157,7 +136,7 @@ exports.install = function() {
 exports.add = function(value) {
 	value = value.replace('.', '/');
 
-	if (!(value in getMap())) {
+	if (!(value in trimethyl_map)) {
 		logger.error('Module <' + value + '> is not a valid Trimethyl module.');
 		process.exit();
 	}

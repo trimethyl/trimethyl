@@ -59,7 +59,7 @@
 	"fb":{
 		"name": "FB",
 		"description": "Proxy for Facebook SDK.",
-		"modules": ["facebook"]
+		"modules": ["facebook:iphone","facebook:android"]
 	},
 	"filesystem":{
 		"name": "Filesystem",
@@ -73,13 +73,13 @@
 	"ga":{
 		"name": "GA",
 		"description": "Google Analytics proxy.",
-		"modules": ["analytics.google"]
+		"modules": ["analytics.google:iphone","analytics.google:android"]
 	},
 	"geo":{
 		"name": "Geo",
 		"description": "Geographic API proxy and Map additional features like clustering.",
 		"dependencies": ["http","util","event","dialog"],
-		"modules": ["ti.map"]
+		"modules": ["ti.map:iphone","ti.map:android"]
 	},
 	"http":{
 		"name": "HTTP",
@@ -93,7 +93,8 @@
 	"notifications":{
 		"name": "Notifications",
 		"description": "Push notifications interface provided by different drivers.",
-		"dependencies": ["event","util","router","ext/q"]
+		"dependencies": ["event","util","router","ext/q"],
+		"modules": ["it.caffeina.gcm:android"]
 	},
 	"notifications/http":{
 		"name": "Notifications.HTTP",
@@ -103,7 +104,7 @@
 	"notifications/cloud":{
 		"name": "Notifications.Cloud",
 		"description": "Driver based on CloudPush of Appcelerator.",
-		"modules": ["ti.cloud"]
+		"modules": ["ti.cloud:commonjs"]
 	},
 	"notifications/parse":{
 		"name": "Notifications.Parse",
@@ -123,7 +124,7 @@
 		"name": "Sharer",
 		"description": "Share like a sharer, be social!",
 		"dependencies": ["fb","ga"],
-		"modules": ["bencoding.sms","dk.napp.social"]
+		"modules": ["bencoding.sms:iphone","dk.napp.social:iphone"]
 	},
 	"sounds":{
 		"name": "Sounds",

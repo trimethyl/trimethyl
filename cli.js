@@ -126,20 +126,30 @@ program.command('install').description('Install the framework files').action(fun
 				return install_modules_callback();
 			}
 
-			var module = info.modules.shift();
+			var module_def = info.modules.shift().split(':');
+			var module = module_def[0];
+			var platform = module_def[1];
 
-			if (_.find(app_tiapp.modules[0].module, function(m) { return (m == module || m._ == module); }) == null) {
+			if (platform != 'commonjs' && !tiapp.getDeploymentTarget(platform)) {
+				return;
+			}
+
+			if (null == _.find(tiapp.getModules(), function(m) {
+				return m.id == module && m.platform == platform;
+			})) {
 				prompt.get({
 					name: 'yesno',
-					message: ("<" + info.name + "> requires the native module <" + module + ">. Install it?").yellow,
+					message: ("<" + info.name + "> requires the native module <" + module + "> for the platform <" + platform + ">. Install it?").yellow,
 					validator: /y(es)?|n(o)?/,
 					warning: 'Must respond yes or no',
 					default: 'yes'
 				}, function (err, result) {
 					if (/y(es)?/i.test(result.yesno)) {
-						require('child_process').exec('gittio install ' + module, function(error, stdout, stderr) {
+						require('child_process').exec('gittio install ' + module + ' -p ' + platform, function(error, stdout, stderr) {
 							if (stderr) {
 								process.stdout.write(stderr.replace(/\[.+?\] /g, '').red);
+							} else {
+								process.stdout.write(stderr.replace(/\[.+?\] /g, '').gray);
 							}
 							installModules(install_modules_callback);
 						});
@@ -236,24 +246,14 @@ var app_config = require(CWD + '/app/config.json');
 
 // Tiapp.xml
 
-if (!fs.existsSync(CWD + '/tiapp.xml')) {
+var tiapp = require('tiapp.xml').load('./tiapp.xml');
+if (tiapp == null) {
 	process.stdout.write("Not a valid Titanium project.\n".red);
 	process.exit(1);
 }
 
-var app_tiapp = null;
-
-(new require('xml2js')).Parser().parseString(fs.readFileSync(CWD + '/tiapp.xml'), function(err, tiapp) {
-	if (err) {
-		process.stdout.write('tiapp.xml in unparsable.\n'.red);
-		process.exit(1);
-	}
-
-	app_tiapp = JSON.parse(JSON.stringify(tiapp))['ti:app'];
-
-	program.parse(process.argv);
-	if (program.args.length === 0 || typeof program.args[program.args.length - 1] === 'string') {
-		program.help();
-		return;
-	}
-});
+program.parse(process.argv);
+if (program.args.length === 0 || typeof program.args[program.args.length - 1] === 'string') {
+	program.help();
+	return;
+}
