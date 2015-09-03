@@ -24,6 +24,8 @@ var Q = require('T/ext/q');
 var interactiveCategories = [];
 var interactiveCategoriesCallbacks = {};
 
+var INTERACTIVE_NOTIFICATIONS_CAPABLE = (OS_IOS && Util.getIOSVersion() >= 8);
+
 function validateToken(token) {
 	return token != null && token != "undefined" && token != "null" && token.length >= 32;
 }
@@ -75,7 +77,7 @@ exports.event = function(name, cb) {
 exports.activate = function(callback) {
 	var defer = Q.defer();
 
-	if (OS_IOS && Util.getIOSVersion() >= 8) {
+	if (INTERACTIVE_NOTIFICATIONS_CAPABLE) {
 
 		var userNotificationsCallback = function(settings) {
 			Ti.App.iOS.removeEventListener('usernotificationsettings', userNotificationsCallback);
@@ -358,8 +360,14 @@ function createIntNotifAction(opt) {
 	});
 }
 
+/**
+ * @method addInteractiveNotificationCategory
+ * @param {String}   id       	The ID of the category. It must be unique.
+ * @param {Array}    dict     	An array of actions, with `id, title` (required) and `openApplication, destructive, authenticationRequired` (optional)
+ * @param {Function} callback 	The callback to invoke
+ */
 exports.addInteractiveNotificationCategory = function(id, dict, callback) {
-	if (!(OS_IOS && Util.getIOSVersion() >= 8)) return;
+	if (!INTERACTIVE_NOTIFICATIONS_CAPABLE) return;
 
 	var category = Ti.App.iOS.createUserNotificationCategory({
 		identifier: id,
@@ -376,7 +384,7 @@ exports.addInteractiveNotificationCategory = function(id, dict, callback) {
 // Init //
 //////////
 
-if (OS_IOS && Util.getIOSVersion() >= 8) {
+if (INTERACTIVE_NOTIFICATIONS_CAPABLE) {
 	Ti.App.iOS.addEventListener('remotenotificationaction', function(e) {
 		var func = interactiveCategoriesCallbacks[e.category];
 		if (_.isFunction(func)) {
