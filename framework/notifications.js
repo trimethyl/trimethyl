@@ -69,18 +69,10 @@ exports.event = function(name, cb) {
 
 
 /**
- * @method event
- */
-exports.event = function(name, cb) {
-	Event.on('notifications.'+name, cb);
-};
-
-
-/**
  * @method activate
  * @param  {Function} callback Callback invoked when success occur
  */
-exports.activate = function() {
+exports.activate = function(callback) {
 	var defer = Q.defer();
 
 	if (OS_IOS && Util.getIOSVersion() >= 8) {
@@ -95,7 +87,9 @@ exports.activate = function() {
 			}
 
 			Ti.Network.registerForPushNotifications({
+
 				callback: onNotificationReceived,
+
 				success: function(e) {
 					if ( ! validateToken(e.deviceToken)) {
 						Ti.API.error('Notifications: Retrieve device token failed');
@@ -152,7 +146,9 @@ exports.activate = function() {
 		} else return;
 
 		Module.registerForPushNotifications(_.extend(moduleOpt, {
+
 			callback: onNotificationReceived,
+
 			success: function(e) {
 				if ( ! validateToken(e.deviceToken)) {
 					Ti.API.error('Notifications: Retrieve device token failed');
@@ -349,7 +345,7 @@ exports.isAuthorized = function() {
 // Interactive notifications //
 ///////////////////////////////
 
-function createInteractiveAction(opt) {
+function createIntNotifAction(opt) {
 	if (opt.id == null) throw new Error('Notifications: interactive notifications must have and ID');
 	if (opt.title == null) throw new Error('Notifications: interactive notifications must have a title');
 
@@ -357,18 +353,17 @@ function createInteractiveAction(opt) {
 		identifier: opt.id,
 		title: opt.title,
 		activationMode: Ti.App.iOS["USER_NOTIFICATION_ACTIVATION_MODE_" + (opt.openApplication == true ? "FOREGROUND" : "BACKGROUND")],
-		destructive: opt.destructive,
-		authenticationRequired: opt.authenticationRequired
+		destructive: !!opt.destructive,
+		authenticationRequired: !!opt.authenticationRequired
 	});
 }
 
 exports.addInteractiveNotificationCategory = function(id, dict, callback) {
 	if (!(OS_IOS && Util.getIOSVersion() >= 8)) return;
 
-	var actions = dict.map(createInteractiveAction);
 	var category = Ti.App.iOS.createUserNotificationCategory({
 		identifier: id,
-		actionsForDefaultContext: actions
+		actionsForDefaultContext: dict.map(createIntNotifAction)
 	});
 
 	// Add in the interactiveCategories array to register in the activate method
@@ -382,15 +377,14 @@ exports.addInteractiveNotificationCategory = function(id, dict, callback) {
 //////////
 
 if (OS_IOS && Util.getIOSVersion() >= 8) {
-
-	var switchInteractiveCategories = function(e) {
-		if (interactiveCategoriesCallbacks[e.category] != null) {
-			interactiveCategoriesCallbacks[e.category](e);
+	Ti.App.iOS.addEventListener('remotenotificationaction', function(e) {
+		var func = interactiveCategoriesCallbacks[e.category];
+		if (_.isFunction(func)) {
+			func(e);
+		} else {
+			Ti.API.error('Notifications: remote notification with an unregistered category (' + e.category + ')');
 		}
-	};
-
-	Ti.App.iOS.addEventListener('remotenotificationaction', switchInteractiveCategories);
-	Ti.App.iOS.addEventListener('localnotificationaction', switchInteractiveCategories);
+	});
 }
 
 if (exports.config.autoReset === true) {
