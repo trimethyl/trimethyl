@@ -131,6 +131,7 @@ program.command('install').description('Install the framework files').action(fun
 			var platform = module_def[1];
 
 			if (platform != 'commonjs' && !tiapp.getDeploymentTarget(platform)) {
+				installModules(install_modules_callback);
 				return;
 			}
 
