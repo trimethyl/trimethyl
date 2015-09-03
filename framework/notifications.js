@@ -31,6 +31,16 @@ function validateToken(token) {
 }
 
 function onNotificationReceived(e) {
+	if (OS_ANDROID) {
+		if (_.isString(e.data)) {
+			try {
+				e.data = JSON.parse(e.data);
+			} catch (ex) {
+				e.data = {};
+			}
+		}
+	}
+
 	Ti.API.debug("Notifications: Received", e);
 
 	// Auto-reset the badge
