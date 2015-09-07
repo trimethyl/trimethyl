@@ -213,7 +213,7 @@ SQLite.prototype.where = SQLite.prototype.andWhere = function() {
 		if (_.isObject(args[0])) {
 			this.query.where = _.map(_.keys(args[0]), function(k) { return k + ' = ?'; });
 			this.query.whereData = _.values(args[0]);
-		} else if (_.iString(args[0])) {
+		} else if (_.isString(args[0])) {
 			this.query.where.push(args[0]);
 		}
 
