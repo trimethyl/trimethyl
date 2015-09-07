@@ -2,7 +2,7 @@
  * @class  	UIFactory.Label
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
- * Add support for very basic HTML in iOS.
+ * Add support for very basic HTML.
  *
  * For now, supports `<b><i><u><br><p>` tags.
  *
@@ -12,7 +12,7 @@
  *
  * ```
  * italic: {
- *		fontStyle: 'Italic'
+ *		fontStyle: 'italic'
  *	},
  *	bold: {
  *		fontFamily: 'Arial-Bold'
@@ -59,66 +59,60 @@ module.exports = function(args) {
 	args = args || {};
 	var $this = Ti.UI.createLabel(args);
 
-	if (OS_IOS) {
+	var fontTransform = _.extend({
+		italic: {
+			fontStyle: 'italic'
+		},
+		bold: {
+			fontWeight: 'bold'
+		}
+	}, args.fontTransform);
 
-		var fontTransform = _.extend({
-			italic: {
-				fontStyle: 'Italic'
+	/**
+	* @method setHtml
+	* @param {String} value
+	*/
+	$this.setHtml = function(value) {
+		var htmlToAttrMap = {
+			'u': {
+				type: Ti.UI.ATTRIBUTE_UNDERLINES_STYLE,
+				value: Ti.UI.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
 			},
-			bold: {
-				fontWeight: 'Bold'
+			'i': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.italic)
+			},
+			'b': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.bold)
 			}
-		}, args.fontTransform);
-
-		/**
-		 * @method setHtml
-		 * @param {String} value
-		 */
-		$this.setHtml = function(value) {
-			var htmlToAttrMap = {
-				'u': {
-					type: Ti.UI.iOS.ATTRIBUTE_UNDERLINES_STYLE,
-					value: Ti.UI.iOS.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
-				},
-				'i': {
-					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: _.extend({}, args.font, fontTransform.italic)
-				},
-				'b': {
-					type: Ti.UI.iOS.ATTRIBUTE_FONT,
-					value: _.extend({}, args.font, fontTransform.bold)
-				}
-			};
-
-			value = value.replace(/<br\/?>/g, '\n');
-			value = value.replace(/<p>/g, '').replace(/<\/p>/g, '\n\n');
-			var parseResult = simpleHTMLParser(value);
-
-			var attributedString = {
-				text: parseResult.text,
-				attributes: []
-			};
-
-			_.each(parseResult.style, function(v){
-				if (htmlToAttrMap[v.type] != null) {
-					attributedString.attributes.push(_.extend({}, htmlToAttrMap[v.type], {
-						range: [ v.start, v.length ]
-					}));
-				}
-			});
-
-			$this.setAttributedString(Ti.UI.iOS.createAttributedString(attributedString));
 		};
 
-	}
+		value = value.replace(/<br\/?>/g, '\n');
+		value = value.replace(/<p>/g, '').replace(/<\/p>/g, '\n\n');
+		var parseResult = simpleHTMLParser(value);
+
+		var attributedString = {
+			text: parseResult.text,
+			attributes: []
+		};
+
+		_.each(parseResult.style, function(v){
+			if (htmlToAttrMap[v.type] != null) {
+				attributedString.attributes.push(_.extend({}, htmlToAttrMap[v.type], {
+					range: [ v.start, v.length ]
+				}));
+			}
+		});
+
+		$this.setAttributedString(Ti.UI.createAttributedString(attributedString));
+	};
 
 	//////////////////////
 	// Parse arguments //
 	//////////////////////
 
-	if (OS_IOS) {
-		if (args.html != null) $this.setHtml(args.html);
-	}
+	if (args.html != null) $this.setHtml(args.html);
 
 	return $this;
 };
