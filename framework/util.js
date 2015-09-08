@@ -374,15 +374,51 @@ exports.dial = function(tel) {
 
 var XCU = {
 	key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
-	q: {
-		name: 'queryKey',
-		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-	},
-	parser: {
-		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-		loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	parser: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+	queryParser: function(params) {
+		var obj = {};
+
+		_.each(params.replace(/\+/g, ' ').split('&'), function (v,j) {
+			var param = v.split('=');
+			var key = decodeURIComponent(param[0]);
+			var val, cur = obj, i = 0;
+
+			var keys = key.split(']['), keys_last = keys.length - 1;
+
+			if (/\[/.test(keys[0]) && /\]$/.test(keys[keys_last])) {
+				keys[ keys_last ] = keys[ keys_last ].replace( /\]$/, '' );
+				keys = keys.shift().split('[').concat( keys );
+				keys_last = keys.length - 1;
+			} else {
+				keys_last = 0;
+			}
+
+			if (param.length === 2) {
+				val = decodeURIComponent(param[1]);
+
+				if (keys_last) {
+					for (; i <= keys_last; i++) {
+						key = keys[i] === '' ? cur.length : keys[i];
+						cur = cur[key] = i < keys_last ? cur[key] || ( keys[i+1] && isNaN( keys[i+1] ) ? {} : [] ) : val;
+					}
+				} else {
+					if (_.isArray(obj[key])) {
+						obj[key].push( val );
+					} else if ({}.hasOwnProperty.call(obj, key)) {
+						obj[key] = [ obj[key], val ];
+					} else {
+						obj[key] = val;
+					}
+				}
+			} else if (key) {
+				obj[key] = '';
+			}
+		});
+
+		return obj;
 	}
 };
+
 
 /**
  * @method parseAsXCallbackURL
@@ -390,18 +426,17 @@ var XCU = {
  * @return {XCallbackURL}
  */
 exports.parseAsXCallbackURL = function(str) {
-	var m = XCU.parser.strict.exec(str);
-	var i = XCU.key.length;
 	var uri = {};
 
+	var m = XCU.parser.exec(str);
+	var i = XCU.key.length;
 	while (i--) uri[XCU.key[i]] = m[i] || '';
-	uri[XCU.q.name] = {};
-	uri[XCU.key[12]].replace(XCU.q.parser, function($0, $1, $2) {
-		if ($1) uri[XCU.q.name][$1] = decodeURIComponent($2);
-	});
+
+	uri.queryKey = XCU.queryParser(uri.query);
 
 	return uri;
 };
+
 
 /**
  * @method hashJavascriptObject
