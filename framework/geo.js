@@ -167,7 +167,7 @@ exports.geocode = function(opt) {
  * @param {Object} opt
  */
 exports.reverseGeocode = function(opt) {
-	if (exports.config.useGoogleForGeocode) {
+	if (exports.config.geocodeUseGoogle) {
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
