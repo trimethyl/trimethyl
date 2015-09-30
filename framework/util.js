@@ -544,3 +544,17 @@ exports.compareVersions = function(a, b) {
 	}
 	return 0;
 };
+
+/**
+ * @method zeroPad
+ * @param  {String} num  The number
+ * @param  {Number} size The final size
+ * @return {String}
+ */
+exports.zeroPad = function(num, size) {
+	if (num == null) return num;
+
+	var result = num.toString();
+	while (result.length < (size || 2)) result = '0' + result;
+	return result;
+};
