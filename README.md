@@ -4,12 +4,12 @@ Trimethyl is a collection of very useful modules to work with **Appcelerator Tit
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
-![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
-![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
-
 #### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl/)
 
 #### [Check the Wiki](https://github.com/CaffeinaLab/Trimethyl/wiki)
+
+![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
+![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
