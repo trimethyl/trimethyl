@@ -56,7 +56,7 @@ function getHTML(opt) {
 
 	// Include head (styles)
 	var html = '<!DOCTYPE html><html><head><meta charset="utf-8" />';
-	html += '<meta name="viewport" content="width=device-width; initial-scale=1; minimum-scale=1; maximum-scale=1; user-scalable=no;" />';
+	html += '<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />';
 	html += '<style>body{-webkit-text-size-adjust:none;}</style>'; //iOS auto expand font BUG
 
 	// Install the global event handler for this specific WebView
