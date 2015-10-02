@@ -1,6 +1,0 @@
-build_settings:
-  verbose: false
-
-test:
-  shell:
-    command: "npm run hint"

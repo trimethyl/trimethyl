@@ -5,7 +5,6 @@ mkdir -p /tmp/trimethyl
 
 jsduck framework --output /tmp/trimethyl --title "Trimethyl API Documentation" --footer "Alloy+Titanium toolchain with superpowers" --exclude framework/ext &&
 
-open /tmp/trimethyl/index.html &&
 cd /tmp/trimethyl &&
 
 git init && git checkout -b gh-pages &&

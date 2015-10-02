@@ -256,7 +256,6 @@ SQLite.prototype.getExequery = function() {
 			(this.query.order === null ? '' : (' ORDER BY ' + this.query.order.key + ' ' + this.query.order.direction))
 		]
 		.concat(this.query.whereData);
-		break;
 
 		case 'update':
 		return [
@@ -266,7 +265,6 @@ SQLite.prototype.getExequery = function() {
 		]
 		.concat(this.query.updateData)
 		.concat(this.query.whereData);
-		break;
 
 		case 'delete':
 		return [
@@ -274,13 +272,11 @@ SQLite.prototype.getExequery = function() {
 			whereClause
 		]
 		.concat(this.query.whereData);
-		break;
 
 		case 'truncate':
 		return [
 			'TRUNCATE TABLE ' + this.query.table
 		];
-		break;
 
 	}
 };

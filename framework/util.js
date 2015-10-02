@@ -544,3 +544,28 @@ exports.compareVersions = function(a, b) {
 	}
 	return 0;
 };
+
+/**
+ * @method zeroPad
+ * Add leading zeros
+ * @param  {String} num  The number
+ * @param  {Number} size The final size
+ * @return {String}
+ */
+exports.zeroPad = function(num, size) {
+	if (num == null) return num;
+
+	var result = num.toString();
+	while (result.length < (size || 2)) result = '0' + result;
+	return result;
+};
+
+/**
+ * @method guid
+ * Get a UUID
+ * @return {String}
+ */
+exports.guid = function() {
+	function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
+	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+};

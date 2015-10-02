@@ -94,75 +94,58 @@ exports.dispatch = function(url) {
 
 	var run = false;
 	var matches = null;
+	var routeDefinition = null;
 
 	// Check the route to dispatch
 	for (var i in routeRegistry) {
-		var routeDefinition = routeRegistry[i];
+		routeDefinition = routeRegistry[i];
 
 		if (_.isString(routeDefinition.key)) {
-
-			///////////////////////////
-			// Regular string equals //
-			///////////////////////////
-
+			// Regular string equals
 			run = (routeDefinition.key === callbackURL.path);
-
 		} else if (_.isRegExp(routeDefinition.key)) {
-
-			//////////////////////////////////////
-			// Regular expression complex match //
-			//////////////////////////////////////
-
+			// Regular expression complex match
 			matches = callbackURL.path.match(routeDefinition.key);
 			run = !!(matches);
 			if (matches) matches.shift();
-
 		} else if (_.isFunction(routeDefinition.key)) {
-
-			////////////////////
-			// Function match //
-			////////////////////
-
+			// Function match
 			matches = routeDefinition.key(callbackURL.path);
 			run = (matches !== undefined);
-
 		}
 
-		////////////
-		// Run if //
-		////////////
-
-		if (run === true) {
-			Ti.API.debug('Router: matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
-
-			if (_.isFunction(routeDefinition.callback)) {
-
-				exports.stack.push(url);
-				exports.currentUrl = url;
-				exports.currentRoute = routeDefinition;
-
-				if (routeDefinition.middlewares.length > 0) {
-					routeDefinition.middlewares.reduce(Q.when, Q()).then(function() {
-						routeDefinition.callback.apply(callbackURL, matches);
-					});
-				} else {
-					routeDefinition.callback.apply(callbackURL, matches);
-				}
-
-			} else if (_.isObject(routeDefinition.callback)) {
-
-				if (routeDefinition.callback.alias != null) {
-					exports.dispatch(routeDefinition.callback.alias);
-				}
-
-			}
-
-			return true;
-		}
+		if (run === true) break;
 	}
 
-	Ti.API.warn('Router: no match for <' + url + '>');
-	return false;
+	if (run === true) {
+		Ti.API.debug('Router: matched on <' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
+
+		if (_.isFunction(routeDefinition.callback)) {
+
+			exports.stack.push(url);
+			exports.currentUrl = url;
+			exports.currentRoute = routeDefinition;
+
+			if (routeDefinition.middlewares.length > 0) {
+				routeDefinition.middlewares.reduce(Q.when, Q()).then(function() {
+					routeDefinition.callback.apply(callbackURL, matches);
+				});
+			} else {
+				routeDefinition.callback.apply(callbackURL, matches);
+			}
+
+		} else if (_.isObject(routeDefinition.callback)) {
+
+			if (routeDefinition.callback.alias != null) {
+				exports.dispatch(routeDefinition.callback.alias);
+			}
+
+		}
+	} else {
+		Ti.API.warn('Router: no match for <' + url + '>');
+	}
+
+	return run;
 };
 
 /**

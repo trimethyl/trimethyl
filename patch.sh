@@ -1,3 +1,10 @@
 #!/bin/sh
 
-npm version patch && git push && git push --tags && npm publish
+npm run test
+if [ $? -eq 0 ]; then
+	npm version patch &&
+	npm publish &&
+	git push &&
+	git push --tags &&
+	./gendoc.sh
+fi

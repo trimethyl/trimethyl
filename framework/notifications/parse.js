@@ -6,7 +6,7 @@
 var HTTP = require('T/http');
 
 var app_id = Ti.App.Properties.getString('parse.appid');
-var rest_api_key = Ti.App.Properties.getString('parse.restapikey');
+var client_key = Ti.App.Properties.getString('parse.clientkey');
 var gcm_sender_id = Ti.App.Properties.getString('gcm.senderid');
 
 var app_base = {
@@ -16,10 +16,19 @@ var app_base = {
 };
 
 exports.subscribe = function(opt) {
-	if (app_id == null) throw new Error("Notifications.Parse: Invalid Parse application ID. Set it in your tiapp.xml");
-	if (rest_api_key == null) throw new Error("Notifications.Parse: Invalid REST API key. Set it in your tiapp.xml");
+	if (app_id == null) {
+		Ti.API.error("Notifications.Parse: Invalid Parse application ID. Set it in your tiapp.xml");
+		throw new Error({ message: "Invalid Parse application ID" });
+	}
+	if (client_key == null) {
+		Ti.API.error("Notifications.Parse: Invalid Client API key. Set it in your tiapp.xml");
+		throw new Error({ message: "Invalid Client API key" });
+	}
 	if (OS_ANDROID) {
-		if (gcm_sender_id == null) throw new Error("Notifications.Parse: Invalid GCM sender ID. Set it in your tiapp.xml");
+		if (gcm_sender_id == null) {
+			Ti.API.error("Notifications.Parse: Invalid GCM sender ID. Set it in your tiapp.xml");
+			throw new Error({ message: "Invalid GCM sender ID." });
+		}
 	}
 
 	HTTP.send({
@@ -27,7 +36,7 @@ exports.subscribe = function(opt) {
 		method: 'POST',
 		headers: {
 			'X-Parse-Application-Id': app_id,
-			'X-Parse-REST-API-Key': rest_api_key,
+			'X-Parse-Client-Key': client_key,
 			'Content-Type': 'application/json'
 		},
 		data: JSON.stringify((function() {
@@ -55,10 +64,19 @@ exports.subscribe = function(opt) {
 };
 
 exports.unsubscribe = function(opt) {
-	if (app_id == null) throw new Error("Notifications.Parse: Invalid Parse application ID. Set it in your tiapp.xml");
-	if (rest_api_key == null) throw new Error("Notifications.Parse: Invalid REST API key. Set it in your tiapp.xml");
+	if (app_id == null) {
+		Ti.API.error("Notifications.Parse: Invalid Parse application ID. Set it in your tiapp.xml");
+		throw new Error({ message: "Invalid Parse application ID" });
+	}
+	if (client_key == null) {
+		Ti.API.error("Notifications.Parse: Invalid Client API key. Set it in your tiapp.xml");
+		throw new Error({ message: "Invalid Client API key" });
+	}
 	if (OS_ANDROID) {
-		if (gcm_sender_id == null) throw new Error("Notifications.Parse: Invalid GCM sender ID. Set it in your tiapp.xml");
+		if (gcm_sender_id == null) {
+			Ti.API.error("Notifications.Parse: Invalid GCM sender ID. Set it in your tiapp.xml");
+			throw new Error({ message: "Invalid GCM sender ID." });
+		}
 	}
 
 	HTTP.send({
@@ -66,7 +84,7 @@ exports.unsubscribe = function(opt) {
 		method: 'DELETE',
 		headers: {
 			'X-Parse-Application-Id': app_id,
-			'X-Parse-REST-API-Key': rest_api_key,
+			'X-Parse-Client-Key': client_key,
 			'Content-Type': 'application/json'
 		},
 		data: JSON.stringify((function() {
