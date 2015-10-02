@@ -255,18 +255,8 @@ exports.unsubscribe = function(channel, data) {
 		return defer.promise;
 	}
 
-	var deviceToken = exports.getStoredDeviceToken();
-	if (_.isEmpty(deviceToken)) {
-		Ti.API.error('Notifications: Error while getting deviceToken');
-		defer.reject({
-			missingToken: true
-		});
-
-		return defer.promise;
-	}
-
 	exports.loadDriver(exports.config.driver).unsubscribe({
-		deviceToken: deviceToken,
+		deviceToken: exports.getRemoteDeviceUUID(),
 		channel: channel,
 		data: data,
 		success: function(response) {
@@ -325,16 +315,26 @@ exports.incBadge = function(i) {
 };
 
 /**
+ * @deprecated Use getRemoteDeviceUUID instead
+ * @method getStoredDeviceToken
+ * @return {String}
+ */
+exports.getStoredDeviceToken = function() {
+	Ti.API.warn('Notifications: getStoredDeviceToken is deprecated, use getRemoteDeviceUUID instead');
+	return exports.getRemoteDeviceUUID();
+};
+
+
+/**
  * @method getRemoteDeviceUUID
  * Get the stored device token.
  * Don't rely on this method to check if notifications are active, use `isRemoteNotificationsEnabled()` instead
  * @return {String}
  */
-exports.getStoredDeviceToken = exports.getDeviceToken = exports.getRemoteDeviceUUID = function() {
+exports.getRemoteDeviceUUID = function() {
 	var Module = OS_IOS ? Ti.Network : require('it.caffeina.gcm');
 	return Module.remoteDeviceUUID;
 };
-
 
 /**
  * @method isRemoteNotificationsEnabled
