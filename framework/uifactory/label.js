@@ -85,6 +85,9 @@ module.exports = function(args) {
 			'b': {
 				type: Ti.UI.ATTRIBUTE_FONT,
 				value: _.extend({}, args.font, fontTransform.bold)
+			},
+			'a': {
+				type: Ti.UI.ATTRIBUTE_LINK
 			}
 		};
 
@@ -98,10 +101,20 @@ module.exports = function(args) {
 		};
 
 		_.each(parseResult.style, function(v){
+			// Replace href
+			var vh = /\s*href=\\?"([^\\"]+)\\?"/i.exec(v.type); // NOTE: this regexp doesn't allow backslashes (\) in the url
+			var href = null;
+			if (vh) {
+				v.type = v.type.replace(vh[0], '');
+				href = vh[1];
+			}
+
 			if (htmlToAttrMap[v.type] != null) {
 				attributedString.attributes.push(_.extend({}, htmlToAttrMap[v.type], {
 					range: [ v.start, v.length ]
-				}));
+				}, href ? {
+					value: href
+				} : {}));
 			}
 		});
 
