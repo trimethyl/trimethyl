@@ -325,14 +325,14 @@ exports.incBadge = function(i) {
 };
 
 /**
- * @method getStoredDeviceToken
+ * @method getRemoteDeviceUUID
  * Get the stored device token.
  * Don't rely on this method to check if notifications are active, use `isRemoteNotificationsEnabled()` instead
  * @return {String}
  */
-exports.getStoredDeviceToken = function() {
+exports.getStoredDeviceToken = exports.getDeviceToken = exports.getRemoteDeviceUUID = function() {
 	var Module = OS_IOS ? Ti.Network : require('it.caffeina.gcm');
-	return Module.remoteDeviceUDID;
+	return Module.remoteDeviceUUID;
 };
 
 
