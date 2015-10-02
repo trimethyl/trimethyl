@@ -38,6 +38,7 @@ Alloy.Globals.SIMULATOR = Ti.Platform.model === 'Simulator' || Ti.Platform.model
 
 Alloy.Globals.IOS7 = OS_IOS && Ti.Platform.version.split('.')[0] == 7;
 Alloy.Globals.IOS8 = OS_IOS && Ti.Platform.version.split('.')[0] == 8;
+Alloy.Globals.IOS9 = OS_IOS && Ti.Platform.version.split('.')[0] == 9;
 
 
 //////////////////////////

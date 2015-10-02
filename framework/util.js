@@ -229,6 +229,15 @@ exports.isIOS8 = function() {
 };
 
 /**
+ * @method isIOS9
+ * Check if is iOS 9
+ * @return {Boolean}
+ */
+exports.isIOS9 = function() {
+	return exports.getIOSVersion() === 9;
+};
+
+/**
  * Parse the initial arguments URL schema
  *
  * @return {String}
