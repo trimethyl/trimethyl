@@ -315,8 +315,8 @@ exports.incBadge = function(i) {
 };
 
 /**
- * @deprecated Use getRemoteDeviceUUID instead
  * @method getStoredDeviceToken
+ * Deprecated, use {@link #getRemoteDeviceUUID} instead
  * @return {String}
  */
 exports.getStoredDeviceToken = function() {
@@ -328,7 +328,7 @@ exports.getStoredDeviceToken = function() {
 /**
  * @method getRemoteDeviceUUID
  * Get the stored device token.
- * Don't rely on this method to check if notifications are active, use `isRemoteNotificationsEnabled()` instead
+ * Don't rely on this method to check if notifications are active, use {@link #isRemoteNotificationsEnabled} instead
  * @return {String}
  */
 exports.getRemoteDeviceUUID = function() {
