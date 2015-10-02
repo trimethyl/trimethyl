@@ -110,11 +110,7 @@ exports.activate = function(callback) {
 						});
 					}
 
-					Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
-
-					Ti.App.Properties.setString('notifications.token', e.deviceToken);
 					defer.resolve(e.deviceToken);
-
 					Event.trigger('notifications.activation.success');
 				},
 				error: function(err) {
@@ -169,11 +165,7 @@ exports.activate = function(callback) {
 					});
 				}
 
-				Ti.API.debug('Notifications: Device token is <' + e.deviceToken + '>');
-
-				Ti.App.Properties.setString('notifications.token', e.deviceToken);
 				defer.resolve(e.deviceToken);
-
 				Event.trigger('notifications.activation.success');
 			},
 			error: function(err) {
@@ -194,8 +186,6 @@ exports.activate = function(callback) {
  * Deactivate completely the notifications
  */
 exports.deactivate = function() {
-	Ti.App.Properties.removeProperty('notifications.token');
-
 	if (OS_IOS) {
 		Module = Ti.Network;
 	} else if (OS_ANDROID) {
@@ -336,20 +326,25 @@ exports.incBadge = function(i) {
 
 /**
  * @method getStoredDeviceToken
- * Get the stored device token. Don't rely on this method to check if notifications are active.
+ * Get the stored device token.
+ * Don't rely on this method to check if notifications are active, use `isRemoteNotificationsEnabled()` instead
  * @return {String}
  */
 exports.getStoredDeviceToken = function() {
-	return Ti.App.Properties.getString('notifications.token', null);
+	var Module = OS_IOS ? Ti.Network : require('it.caffeina.gcm');
+	return Module.remoteDeviceUDID;
 };
 
+
 /**
- * @method isAuthorized
- * Check if the notifications system is active and the user has given permissions.
+ * @method isRemoteNotificationsEnabled
+ * Check if the remote notifications has been registered once
+ * Use this method at startup in conjunction with `activate()`
  * @return {Boolean} [description]
  */
-exports.isAuthorized = function() {
-	return true;
+exports.isRemoteNotificationsEnabled = function() {
+	var Module = OS_IOS ? Ti.Network : require('it.caffeina.gcm');
+	return Module.remoteNotificationsEnabled;
 };
 
 
