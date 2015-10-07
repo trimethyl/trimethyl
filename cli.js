@@ -35,12 +35,15 @@ function buildDependencies(libs, key, req, tabs) {
 		process.exit();
 	}
 
+	var stat = fs.statSync(src_file).size;
+
 	libs[key] = _.extend({}, val, {
 		requiredBy: req,
 		tabs: tabs,
 		dst_file: dst_file,
 		src_file: src_file,
-		size: (fs.statSync(src_file).size / 1000).toFixed(2) + "KB"
+		stat: stat,
+		size: (stat / 1000).toFixed(2) + ' KB'
 	});
 
 	(val.dependencies || []).forEach(function(o) {
@@ -79,15 +82,7 @@ if (notifier.update) {
 	notifier.notify();
 }
 
-/////////////////////
-// Install command //
-/////////////////////
-
-program.command('install').description('Install the framework files').action(function() {
-	if (compareVersions(app_trimethyl_config.version, package.version) === 1) {
-		process.stdout.write(("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + "\n").yellow);
-	}
-
+function install() {
 	if (_.isEmpty(app_trimethyl_config.libs)) {
 		// If a configuration is missing, copy all libs
 		app_trimethyl_config.libs = Object.keys(trimethyl_map);
@@ -101,25 +96,16 @@ program.command('install').description('Install the framework files').action(fun
 	});
 	libs_to_copy = _.toArray(libs_to_copy);
 
-	// Ensure path extistence
-	if (!fs.existsSync(CWD + '/app/lib')) fs.mkdirSync(CWD + '/app/lib');
-	fs.deleteDirSync(CWD + '/app/lib/T');
-	fs.mkdirSync(CWD + '/app/lib/T');
+	var items = [];
 
 	// Star the chaining
-	(function copyLibs(copy_libs_callback) {
+	(function checkLibs(copy_libs_callback) {
 		if (libs_to_copy.length === 0) {
 			return copy_libs_callback();
 		}
 
 		var info = libs_to_copy.shift();
-		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '└' + new Array(3).join('─') : '';
-		process.stdout.write(tabs + 'Installing ' + info.name + ' (' + info.size + ')\n');
-
-		var dir_name = path.dirname(info.dst_file);
-		if (!fs.existsSync(dir_name)) fs.createDirSync(dir_name);
-
-		fs.copyFileSync(info.src_file, info.dst_file);
+		items.push(info);
 
 		(function installModules(install_modules_callback) {
 			if (info.modules == null || info.modules.length === 0) {
@@ -145,7 +131,7 @@ program.command('install').description('Install the framework files').action(fun
 					warning: 'Must respond yes or no',
 					default: 'yes'
 				}, function (err, result) {
-					if (/y(es)?/i.test(result.yesno)) {
+					if (result && /y(es)?/i.test(result.yesno)) {
 						require('child_process').exec('gittio install ' + module + ' -p ' + platform, function(error, stdout, stderr) {
 							if (stderr) {
 								process.stdout.write(stderr.replace(/\[.+?\] /g, '').red);
@@ -162,18 +148,64 @@ program.command('install').description('Install the framework files').action(fun
 				installModules(install_modules_callback);
 			}
 		})(function() {
-			copyLibs(copy_libs_callback);
+			checkLibs(copy_libs_callback);
 		});
 
 	})(function() {
 
+		installOnFileSystem(items);
+
 		app_trimethyl_config.version = package.version;
 		app_trimethyl_config.install_date = Date.now();
-
 		fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config));
-		process.stdout.write(('Version installed: ' + app_trimethyl_config.version + '\n').green);
 
+		process.stdout.write('\n');
+		process.stdout.write('Installed version: ' + ('v' + app_trimethyl_config.version).green + '\n');
+
+		var total_size = _.reduce(_.pluck(items, 'stat'), function(s,e) { return s + e; }, 0);
+		process.stdout.write('Occupied space: ' + ( (total_size / 1000).toFixed(2) + ' KB' ).green + '\n');
 	});
+}
+
+function installOnFileSystem(items) {
+	if (!fs.existsSync(CWD + '/app/lib')) {
+		fs.mkdirSync(CWD + '/app/lib');
+	}
+
+	fs.deleteDirSync(CWD + '/app/lib/T');
+	fs.mkdirSync(CWD + '/app/lib/T');
+
+	_.each(items, function(info) {
+		var dir_name = path.dirname(info.dst_file);
+		if (!fs.existsSync(dir_name)) fs.createDirSync(dir_name);
+
+		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '└' + new Array(3).join('─') : '';
+		process.stdout.write((tabs + 'Installing ' + info.name + ' (' + info.size + ')\n').grey);
+
+		fs.copyFileSync(info.src_file, info.dst_file);
+	});
+}
+
+/////////////////////
+// Install command //
+/////////////////////
+
+program.command('install').description('Install the framework files').action(function() {
+	if (compareVersions(app_trimethyl_config.version, package.version) === 1) {
+		prompt.get({
+			name: 'yesno',
+			message: ("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?\n").yellow,
+			validator: /y(es)?|n(o)?/,
+			warning: 'Must respond yes or no',
+			default: 'no'
+		}, function (err, result) {
+			if (result && /y(es)?/i.test(result.yesno)) {
+				install();
+			}
+		});
+	} else {
+		install();
+	}
 });
 
 //////////////////

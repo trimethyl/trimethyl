@@ -12,13 +12,13 @@ Alloy.CFG.T = Alloy.CFG.T || {};
 
 Alloy.Globals.Trimethyl = {
 
-	loadDriver: function(parent, child, interface) {
-		var sub = require('T/'+parent+'/'+child);
+	loadDriver: function(parent, child, intf) {
+		var sub = require('T/' + parent + '/' + child);
 		if (sub == null) {
 			Ti.API.warn("Trimethyl: Unable to load driver <" + child + "> of class <" + parent + ">");
 		}
 
-		return _.extend({}, interface, sub);
+		return _.extend({}, intf, sub);
 	}
 
 };
