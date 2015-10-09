@@ -7,9 +7,35 @@
 
 module.exports = function(args) {
 	_.defaults(args, {
+
+		/**
+		 * @property zoomScale
+		 * @type {Number}
+		 * The current zoom scale
+		 */
 		zoomScale: 1,
+
+		/**
+		 * @property minZoomScale
+		 * @type {Number}
+		 * The min zoom scale
+		 */
 		minZoomScale: 1,
-		maxZoomScale: 2
+
+		/**
+		 * @property maxZoomScale
+		 * @type {Number}
+		 * The max zoom scale
+		 */
+		maxZoomScale: 2,
+
+		/**
+		 * @property image
+		 * @type {String}
+		 * The image to show
+		 */
+		image: null
+
 	});
 
 	if (OS_IOS) {
