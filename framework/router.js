@@ -127,9 +127,15 @@ exports.dispatch = function(url) {
 			exports.currentRoute = routeDefinition;
 
 			if (routeDefinition.middlewares.length > 0) {
-				routeDefinition.middlewares.reduce(Q.when, Q()).then(function() {
+
+				routeDefinition.middlewares.reduce(Q.when, Q())
+				.then(function() {
 					routeDefinition.callback.apply(callbackURL, matches);
+				})
+				.catch(function(err) {
+					Ti.API.error('Router: error during route dispatcher', err);
 				});
+
 			} else {
 				routeDefinition.callback.apply(callbackURL, matches);
 			}
