@@ -195,6 +195,11 @@
 		"name": "UIFactory.YoutubeVideoWebView",
 		"description": "YoutubeVideoWebView façade"
 	},
+	"uifactory/zoomimageview":{
+		"name": "UIFactory.ZoomImageView",
+		"description": "ImageView with pinch-to-zoom",
+		"modules": ["org.iotashan.TiTouchImageView:android"]
+	},
 	"uiutil":{
 		"name": "UIUtil",
 		"description": "UI related utilities.",

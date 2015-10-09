@@ -82,13 +82,31 @@ if (notifier.update) {
 	notifier.notify();
 }
 
-function install() {
+function preInstall() {
 	if (_.isEmpty(app_trimethyl_config.libs)) {
-		// If a configuration is missing, copy all libs
-		app_trimethyl_config.libs = Object.keys(trimethyl_map);
-		process.stdout.write('Configuration missing, all libraries will be copied\n'.yellow);
+		prompt.get({
+			name: 'yesno',
+			message: (
+				("Installer has detected that this project doesn't have a valid configuration file.\n" +
+				"Configuration file defines the modules installed in the project.\n" +
+				"If you want to start using a configuration file just type ").yellow + "trimethyl add <your_first_module>".green + "\n" +
+				("Anyway, you can bypass that and install everything (this is a deprecated behaviour and it's discouraged). Install all modules?").red
+			),
+			validator: /y(es)?|n(o)?/,
+			warning: 'Must respond yes or no',
+			default: 'no'
+		}, function (err, result) {
+			if (result && /y(es)?/i.test(result.yesno)) {
+				app_trimethyl_config.libs = Object.keys(trimethyl_map);
+				install();
+			}
+		});
+	} else {
+		install();
 	}
+}
 
+function install() {
 	// Get the libraries to copy in /Resources
 	var libs_to_copy = {};
 	(["trimethyl"].concat( app_trimethyl_config.libs )).forEach(function(v) {
@@ -116,7 +134,7 @@ function install() {
 			var module = module_def[0];
 			var platform = module_def[1];
 
-			if (platform != 'commonjs' && !tiapp.getDeploymentTarget(platform)) {
+			if (platform !== 'commonjs' && !tiapp.getDeploymentTarget(platform)) {
 				installModules(install_modules_callback);
 				return;
 			}
@@ -164,6 +182,7 @@ function install() {
 
 		var total_size = _.reduce(_.pluck(items, 'stat'), function(s,e) { return s + e; }, 0);
 		process.stdout.write('Occupied space: ' + ( (total_size / 1000).toFixed(2) + ' KB' ).green + '\n');
+
 	});
 }
 
@@ -200,11 +219,11 @@ program.command('install').description('Install the framework files').action(fun
 			default: 'no'
 		}, function (err, result) {
 			if (result && /y(es)?/i.test(result.yesno)) {
-				install();
+				preInstall();
 			}
 		});
 	} else {
-		install();
+		preInstall();
 	}
 });
 
