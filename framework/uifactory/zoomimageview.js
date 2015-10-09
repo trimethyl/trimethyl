@@ -63,7 +63,7 @@ module.exports = function(args) {
 			};
 
 			$this.imageView = Ti.UI.createImageView({
-				defaultImage: null,
+				defaultImage: '',
 				image: args.image,
 				width: Alloy.Globals.SCREEN_WIDTH,
 				height: Ti.UI.SIZE
