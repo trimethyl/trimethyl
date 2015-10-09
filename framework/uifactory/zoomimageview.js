@@ -49,7 +49,7 @@ module.exports = function(args) {
 
 			// Double tab listener to zoom in
 			$this.addEventListener('doubletap', function(e) {
-				var m = ( $this.maxZoomScale - $this.minZoomScale ) / 2;
+				var m = ( $this.maxZoomScale + $this.minZoomScale ) / 2;
 				var upper = ( $this.zoomScale > m );
 				$this.setZoomScale(upper ? $this.minZoomScale : $this.maxZoomScale, { animated: true });
 			});
