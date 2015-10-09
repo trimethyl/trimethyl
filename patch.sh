@@ -5,6 +5,6 @@ if [ $? -eq 0 ]; then
 	npm version patch &&
 	npm publish &&
 	git push &&
-	git push --tags &&
+	git push --tags;
 	./gendoc.sh
 fi

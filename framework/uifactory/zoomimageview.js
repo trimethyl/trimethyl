@@ -62,7 +62,8 @@ module.exports = function(args) {
 				$this.imageView.image = image;
 			};
 
-			$this.imageView = $.UI.create('ImageView', {
+			$this.imageView = Ti.UI.createImageView({
+				defaultImage: null,
 				image: args.image,
 				width: Alloy.Globals.SCREEN_WIDTH,
 				height: Ti.UI.SIZE
