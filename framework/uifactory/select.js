@@ -161,11 +161,6 @@ var UIPickers = {
 			rightNavButton: buttons.done
 		});
 		$containerWindow.add($picker);
-		$containerWindow.addEventListener('close', function() {
-			if ($picker.canceled !== true) {
-				onValueSelected($this, $picker);
-			}
-		});
 
 		var $navigator = Ti.UI.iOS.createNavigationWindow({
 			window: $containerWindow,
