@@ -17,7 +17,6 @@ function fillPickerData($this, $picker) {
 		$picker.add(_.map($this.interfaceValues, function(o) {
 			return Ti.UI.createPickerRow(o);
 		}));
-
 		$picker.setSelectedRow(0, $this.interfaceIndex || 0, false);
 	}
 }
@@ -58,7 +57,7 @@ function createTiUIPicker($this) {
 		$picker.addEventListener('change', function(e) {
 			$picker.cdata = e;
 			if (OS_ANDROID) {
-				// This is the root of all evils - is $picker, $picker (not $this, $picker)
+				// This has been the root of all evils - is $picker, $picker (not $this, $picker)
 				onValueSelected($picker, $picker);
 			}
 		});
@@ -88,16 +87,13 @@ function createTiUIPicker($this) {
 
 // Get the two buttons in the toolbar
 function UIPickerButtons($this, $picker, closeCallback) {
-	var $doneBtn = Ti.UI.createButton({
-		title: L('done', 'Done')
-	});
-
+	var $doneBtn = Ti.UI.createButton({ title: L('done', 'Done') });
 	$doneBtn.addEventListener('click', function() {
 		onValueSelected($this, $picker);
 		closeCallback();
 	});
 
-	var $cancelBtn = Ti.UI.createButton({ title: L('cancel', 'Cancel'), });
+	var $cancelBtn = Ti.UI.createButton({ title: L('cancel', 'Cancel') });
 	$cancelBtn.addEventListener('click', function() {
 		$picker.canceled = true;
 		closeCallback();
@@ -139,7 +135,7 @@ var UIPickers = {
 		$containerView.add($picker);
 
 		var $pickerModal = Ti.UI.createWindow({
-			backgroundColor: '#4000'
+			backgroundColor: '#4000',
 		});
 		$pickerModal.add($containerView);
 		$pickerModal.open();
@@ -158,18 +154,19 @@ var UIPickers = {
 
 		var $containerWindow = Ti.UI.createWindow({
 			leftNavButton: buttons.cancel,
-			rightNavButton: buttons.done
+			rightNavButton: buttons.done,
+			title: $this.hintText,
+			navTintColor: $this.tintColor
 		});
 		$containerWindow.add($picker);
 
 		var $navigator = Ti.UI.iOS.createNavigationWindow({
 			window: $containerWindow,
-			tintColor: $this.tintColor
+			width: 320,
+			height: 216 + 40, // 216 is the default iOS iPad picker height
 		});
 
 		var $popover = Ti.UI.iPad.createPopover({
-			width: 320,
-			height: 216 + 40,
 			contentView: $navigator
 		});
 
@@ -196,10 +193,17 @@ var UIPickers = {
 
 };
 
-function dataPickerInterface(opt) {
+function dataPickerInterface(opt, $this) {
 	var self = {};
 
 	if (opt.type === 'plain') {
+
+		if ($this.permitNullValue) {
+			opt.values.unshift({
+				title: '',
+				value: null
+			});
+		}
 
 		self.interfaceValues = _.map(opt.values, function(v, index) {
 			var val = null;
@@ -244,7 +248,7 @@ function dataPickerInterface(opt) {
 }
 
 module.exports = function(args) {
-	_.defaults(args, {
+	args = _.defaults(args || {}, {
 
 		/**
 		 * @property {String} [dateFormat='D MMMM YYYY']
@@ -269,7 +273,14 @@ module.exports = function(args) {
 		 * @property {String} [type="plain"]
 		 * Type of the picker. Could be `plain`, `date`.
 		 */
-		type: 'plain'
+		type: 'plain',
+
+		/**
+		 * @property permitNullValue
+		 * Permit or not a default initial null value
+		 * @type {Boolean}
+		 */
+		permitNullValue: false
 
 	});
 
@@ -278,7 +289,7 @@ module.exports = function(args) {
 		values: args.values,
 		current: args.value || args.theValue, // theValue is deprecated
 		type: args.type
-	}));
+	}, args));
 
 	delete args.theValue;
 	delete args.value;
@@ -378,7 +389,7 @@ module.exports = function(args) {
 			values: values,
 			current: $this.interfaceValue,
 			type: $this.typeString
-		}));
+		}, $this));
 
 		if (OS_ANDROID) {
 			fillPickerData($this, $this);
