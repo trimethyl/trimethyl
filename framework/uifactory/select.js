@@ -28,7 +28,7 @@ function onValueSelected($this, $picker) {
 		if (e.row != null) {
 			$this.interfaceValue = e.row.value;
 			$this.interfaceIndex = e.row.index;
-			$this.interfaceTitle = e.row.title;
+			$this.interfaceTitle = e.row.value ? e.row.title : null;
 		}
 	} else if ($this.typeString === 'date') {
 		$this.interfaceValue = $picker.value;
@@ -200,7 +200,7 @@ function dataPickerInterface(opt, $this) {
 
 		if ($this.permitNullValue) {
 			opt.values.unshift({
-				title: '',
+				title: _.isString($this.permitNullValue) ? $this.permitNullValue : '',
 				value: null
 			});
 		}
