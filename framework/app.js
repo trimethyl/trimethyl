@@ -56,13 +56,14 @@ exports.start = function() {
  * @param  {Function} 	success_callback
  */
 exports.notifyUpdate = function(url, version_callback, success_callback) {
+	if (OS_ANDROID) return;
 	if (!Ti.Network.online) return;
 
 	if (url == null) {
 		if (OS_IOS) {
 			url = 'https://itunes.apple.com/lookup?bundleId=' + Ti.App.id;
 		} else if (OS_ANDROID) {
-			url = 'https://androidquery.appspot.com/api/market?app=' + Ti.App.id;
+			url = '';
 		} else {
 			return;
 		}
