@@ -1,0 +1,9 @@
+{
+	"--": "framework",
+	"--title": "Trimethyl API Documentation",
+	"--footer": "Alloy+Titanium toolchain with superpowers",
+	"--exclude": "framework/ext",
+	"--output": "/tmp/trimethyl",
+	"--guides": "jsduck-guides.json",
+	"--warnings": "-type_name"
+}

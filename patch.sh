@@ -6,5 +6,5 @@ if [ $? -eq 0 ]; then
 	npm publish &&
 	git push &&
 	git push --tags;
-	./gendoc.sh
+	./gen-doc.sh
 fi

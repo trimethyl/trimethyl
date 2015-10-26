@@ -183,7 +183,7 @@ SQLite.prototype.order = SQLite.prototype.orderBy = function(key, direction) {
 /**
  * @method truncate
  * Perform a truncate table.
- * @return {[SQLite}
+ * @return {SQLite}
  */
 SQLite.prototype.truncate = function() {
 	if (this.query === null) throw new Error('Start a query chain with .table() method');
@@ -240,7 +240,6 @@ SQLite.prototype.where = SQLite.prototype.andWhere = function() {
 
 /**
  * @method getExequery
- * @return {[type]} [description]
  */
 SQLite.prototype.getExequery = function() {
 	if (this.query === null) throw new Error('Start a query chain with .table() method');

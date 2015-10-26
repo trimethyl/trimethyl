@@ -1,4 +1,4 @@
-## Auth
+# Auth
 
 ## Authentication with a REST web server provided by local drivers
 

@@ -9,52 +9,62 @@ module.exports = function(args) {
 	_.defaults(args, {
 
 		/**
-		 * @property {Boolean} [displayHomeAsUp=false] **(Android only)** Set the property `displayHomeAsUp` and the relative close listener.
+		 * @property {Boolean} [displayHomeAsUp=false]
+		 * **(Android only)** Set the property `displayHomeAsUp` and the relative close listener.
 		 */
 		displayHomeAsUp: false,
 
 		/**
-		 * @property {Boolean} [backButtonDisabled=false] **(Android only)** Disable the hardware back button (do nothing on click)
+		 * @property {Boolean} [backButtonDisabled=false]
+		 * **(Android only)** Disable the hardware back button (do nothing on click)
 		 */
 		backButtonDisabled: false,
 
 		/**
-		 * @property {String} [deferredBackgroundImage=null] View {@link setDeferredBackgroundImage}
+		 * @property {String} [deferredBackgroundImage=null]
+		 * View {@link #setDeferredBackgroundImage}
 		 */
 		deferredBackgroundImage: null,
 
 		/**
-		 * @property {String} [backgroundCoverImage=null] View {@link setBackgroundCoverImage}
+		 * @property {String} [backgroundCoverImage=null]
+		 * View {@link #setBackgroundCoverImage}
 		 */
 		backgroundCoverImage: null,
 
 		/**
-		 * @property {Object} [activityProperties=null] View {@link setActivityProperties}
+		 * @property {Object} [activityProperties=null]
+		 * View {@link #setActivityProperties}
 		 */
 		activityProperties: null,
 
 		/**
-		 * @property {Object} [actionBarProperties=null] View {@link setActionBarProperties}
+		 * @property {Object} [actionBarProperties=null]
+		 * View {@link #setActionBarProperties}
 		 */
 		actionBarProperties: null,
 
 		/**
-		 * @property {Object} [rightNavButton=null] View {@link setRightNavButton}
+		 * @property {Object} [rightNavButton=null]
+		 * View {@link #setRightNavButton}
 		 */
 		rightNavButton: null,
 
 		/**
-		 * @property {Array} [activityButtons=null] View {@link addActivityButton}
+		 * @property {Array} [activityButtons=null]
+		 * View {@link #addActivityButton}
 		 */
 		activityButtons: null,
 
 		/**
-		 * @property {Object} [activityButton=null] View {@link setActivityButton}
+		 * @property {Object} [activityButton=null]
+		 * View {@link #setActivityButton}
 		 */
 		activityButton: null,
 
 		/**
-		 * @property {Boolean} [exitOnBack=null] Set an handler that kill the entire app when back button is closed
+		 * @property {Boolean} [exitOnBack=null]
+		 * Set an handler that kill the entire app when back button is closed
 		 */
 		exitOnBack: null
 

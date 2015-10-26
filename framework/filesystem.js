@@ -27,7 +27,7 @@ function recursiveIterator(file) {
  *
  * Returns `null` if the specified path does not point to an existing directory.
  *
- * @param {String}	the path of the directory
+ * @param {String} path
  */
 exports.listDirectoryRecursive = function(path) {
 	var file = Ti.Filesystem.getFile(path);
@@ -44,9 +44,9 @@ exports.listDirectoryRecursive = function(path) {
  *
  * Returns true if the operation was successful.
  *
- * @param {String}		the path of the file/directory to move
- * @param {String}		the destination path
- * @param {Boolean}		set to true to overwrite destination path
+ * @param {String} src		the path of the file/directory to move
+ * @param {String} dest		the destination path
+ * @param {Boolean} ow 		set to true to overwrite destination path
  * @returns {Boolean}
  */
 exports.move = function(src, dest, ow) {
@@ -66,6 +66,7 @@ exports.move = function(src, dest, ow) {
 /**
  * @method  getSize
  * Get the size of a directory in bytes
+ * @param {String} path
  * @return {Number}
  */
 exports.getSize = function(path) {

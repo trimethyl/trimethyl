@@ -18,7 +18,7 @@ var launchURL = null;
  * @method isFirstUse
  * Check if the first open of the app.
  *
- * Call @{@link #setFirstUse} to set the first use of the app.
+ * Call {@link #setFirstUse} to set the first use of the app.
  *
  * @return {Boolean}
  */
@@ -27,7 +27,7 @@ exports.isFirstUse = function() {
 };
 
 /**
- * @method setAppFirstUse
+ * @method setFirstUse
  * Set the app first usage date.
  *
  * Use in conjunction with {@link #isFirstUse}
