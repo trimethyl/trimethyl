@@ -1,7 +1,0 @@
-"Window":{
-	backgroundColor: '#fff'
-},
-"#main":{
-	layout: "vertical",
-	top: 20
-}
