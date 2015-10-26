@@ -86,17 +86,16 @@ function createTiUIPicker($this) {
 }
 
 // Get the two buttons in the toolbar
-function UIPickerButtons($this, $picker, closeCallback) {
+function UIPickerButtons($this, $picker, callbacks) {
 	var $doneBtn = Ti.UI.createButton({ title: L('done', 'Done') });
 	$doneBtn.addEventListener('click', function() {
 		onValueSelected($this, $picker);
-		closeCallback();
+		callbacks.done();
 	});
 
 	var $cancelBtn = Ti.UI.createButton({ title: L('cancel', 'Cancel') });
 	$cancelBtn.addEventListener('click', function() {
-		$picker.canceled = true;
-		closeCallback();
+		callbacks.cancel();
 	});
 
 	return {
@@ -110,8 +109,14 @@ var UIPickers = {
 	// Show the picker in a Window that slide in from the bottom
 	iphone: function($this) {
 		var $picker = createTiUIPicker($this);
-		var buttons = UIPickerButtons($this, $picker, function() {
-			$pickerModal.close();
+		var buttons = UIPickerButtons($this, $picker, {
+			cancel: function() {
+				$this.fireEvent('cancelled');
+				$pickerModal.close();
+			},
+			done: function() {
+				$pickerModal.close();
+			}
 		});
 
 		var $toolbar = Ti.UI.iOS.createToolbar({
@@ -148,8 +153,17 @@ var UIPickers = {
 	// Show the picker in a Popover Window attached to the Label
 	ipad: function($this) {
 		var $picker = createTiUIPicker($this);
-		var buttons = UIPickerButtons($this, $picker, function() {
-			$popover.hide();
+		var has_value = false;
+
+		var buttons = UIPickerButtons($this, $picker, {
+			cancel: function() {
+				has_value = false;
+				$popover.hide();
+			},
+			done: function() {
+				has_value = true;
+				$popover.hide();
+			}
 		});
 
 		var $containerWindow = Ti.UI.createWindow({
@@ -159,6 +173,12 @@ var UIPickers = {
 			navTintColor: $this.tintColor
 		});
 		$containerWindow.add($picker);
+
+		$containerWindow.addEventListener('close', function(e) {
+			if (!has_value) {
+				$this.fireEvent('cancelled');
+			}
+		});
 
 		var $navigator = Ti.UI.iOS.createNavigationWindow({
 			window: $containerWindow,
@@ -396,6 +416,14 @@ module.exports = function(args) {
 		}
 
 		$this.updateUI();
+	};
+
+	/**
+	 * @method open
+	 * Open the picker
+	 */
+	$this.open = function() {
+		UIPickers[ Ti.Platform.osname ]($this);
 	};
 
 	// Update the UI
