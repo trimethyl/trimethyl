@@ -1,4 +1,4 @@
-## HTTP
+# HTTP
 
 ### Make HTTP requests is a simple way.
 
@@ -49,7 +49,7 @@ The expiration time of cache depends from (in order of override):
 * The HTTP response header `X-Cache-Ttl: X`, with `X` as number of seconds
  
 
-## Examples
+### Examples
 
 #### Make a simple GET Request
 
