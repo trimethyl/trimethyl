@@ -57,7 +57,7 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 
 	} else {
 		sec = [ Ti.UI.createListSection({
-			items: _.compact( (C instanceof Backbone.Collection) ? C.map(opt.datasetCb) : _.map(C, opt.datasetCb) )
+			items: (C instanceof Backbone.Collection) ? C.map(opt.datasetCb) : _.map(C, opt.datasetCb)
 		}) ];
 	}
 
