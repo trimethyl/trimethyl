@@ -1,0 +1,9 @@
+"Label":{
+	font:{
+		fontSize: 12
+	},
+	left: 10,
+	right: 10,
+	top: 0,
+	textAlign: 'left'
+}

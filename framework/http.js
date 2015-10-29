@@ -112,17 +112,17 @@ HTTPRequest.prototype.getCachedResponse = function() {
 	if (this.method !== 'GET') return null;
 
 	var bypass = exports.config.bypassExpireWhenOffline && !Ti.Network.online;
-	var cachedData = Cache.get(this.hash, bypass);
-	if (cachedData == null) return null;
+	this.cachedData = Cache.get(this.hash, bypass);
+	if (this.cachedData == null) return null;
 
 	if (exports.config.log === true) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache hit up to ' + (cachedData.expire-Util.now()) + 's');
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
 	}
 
-	if (cachedData.info.format === 'blob') {
-		return cachedData.value;
+	if (this.cachedData.info.format === 'blob') {
+		return this.cachedData.value;
 	} else {
-		return extractHTTPText(cachedData.value.text, cachedData.info);
+		return extractHTTPText(this.cachedData.value.text, this.cachedData.info);
 	}
 };
 

@@ -1,6 +1,6 @@
 npm-debug.log
 node_modules/
 test_app/build/
-test_app/Resources
-test_app/platform
-test_app/features
+test-application/Resources
+test-application/platform
+test-application/features

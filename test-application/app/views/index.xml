@@ -1,0 +1,5 @@
+<Alloy>
+	<Window fullscreen="true">
+		<ScrollView id="sview" layout="vertical" />
+	</Window>
+</Alloy>
