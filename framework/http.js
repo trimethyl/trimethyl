@@ -57,6 +57,7 @@ function HTTPRequest(opt) {
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
 	this.headers = _.extend({}, exports.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
+	this.file = opt.file || null;
 
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
@@ -90,8 +91,12 @@ HTTPRequest.prototype.getDebugString = function() {
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
-	if (exports.config.useCache === false || this.opt.cache === false) return;
-	if (this.method !== 'GET') return;
+	if (exports.config.useCache === false || this.opt.cache === false || this.method !== 'GET') {
+		if (exports.config.log === true) {
+			Ti.API.debug('HTTP: <' + this.uniqueId + '> cannot write cache for this request');
+		}
+		return;
+	}
 
 	if (this.responseInfo.ttl <= 0) {
 		if (exports.config.log === true) {
@@ -107,13 +112,22 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 };
 
 HTTPRequest.prototype.getCachedResponse = function() {
-	if (exports.config.useCache === false) return null;
-	if (this.opt.cache === false || this.opt.refresh === true) return null;
-	if (this.method !== 'GET') return null;
+	if (exports.config.useCache === false || this.opt.cache === false || this.opt.refresh === true || this.method !== 'GET') {
+		if (exports.config.log === true) {
+			Ti.API.debug('HTTP: <' + this.uniqueId + '> cannot read cache for this request');
+		}
+		return;
+	}
 
 	var bypass = exports.config.bypassExpireWhenOffline && !Ti.Network.online;
 	this.cachedData = Cache.get(this.hash, bypass);
-	if (this.cachedData == null) return null;
+
+	if (this.cachedData == null) {
+		if (exports.config.log === true) {
+			Ti.API.debug('HTTP: <' + this.uniqueId + '> cache miss');
+		}
+		return;
+	}
 
 	if (exports.config.log === true) {
 		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
@@ -121,9 +135,9 @@ HTTPRequest.prototype.getCachedResponse = function() {
 
 	if (this.cachedData.info.format === 'blob') {
 		return this.cachedData.value;
-	} else {
-		return extractHTTPText(this.cachedData.value.text, this.cachedData.info);
 	}
+
+	return extractHTTPText(this.cachedData.value.text, this.cachedData.info);
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
@@ -146,7 +160,7 @@ HTTPRequest.prototype._getResponseInfo = function() {
 
 	if (this.client.responseText != null) {
 		info.format = 'text';
-		if (/application\/json/.test(headers.ContentType)) info.format = 'json';
+		if (/^application\/json/.test(headers.ContentType)) info.format = 'json';
 	}
 
 	// Always prefer X-Cache-Ttl over Expires
@@ -222,9 +236,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 			Ti.API.debug('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
 		}
 		this._maybeCacheResponse(data);
-
 		this.defer.resolve(data);
-
 	} else {
 		this.defer.reject({
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
@@ -233,7 +245,6 @@ HTTPRequest.prototype._onComplete = function(e) {
 			response: data
 		});
 	}
-
 };
 
 HTTPRequest.prototype._calculateHash = function() {
@@ -265,9 +276,17 @@ HTTPRequest.prototype.send = function() {
 	if (_.isFunction(this.opt.ondatastream)) client.ondatastream = this.opt.ondatastream;
 	if (_.isFunction(this.opt.ondatasend)) client.ondatasend = this.opt.ondatasend;
 
-	// Set headers
 	client.open(this.method, this.url);
 
+	// Set file receiver
+	if (this.file != null) {
+		if (exports.config.log === true) {
+			Ti.API.debug('HTTP: <' + this.uniqueId + '> using file receiver');
+		}
+		client.file = this.file;
+	}
+
+	// Set headers
 	_.each(this.headers, function(h, k) {
 		client.setRequestHeader(k, h);
 	});
@@ -288,23 +307,17 @@ HTTPRequest.prototype.resolve = function() {
 	if (cache != null) {
 		this.defer.resolve(cache);
 	} else {
-
 		if (Ti.Network.online) {
-
 			if (exports.config.log === true) {
 				Ti.API.debug('HTTP: <' + this.uniqueId + '> sending request...');
 			}
 			this.send();
-
 		} else {
-
 			Event.trigger('http.offline');
-
 			this.defer.reject({
 				offline: true,
 				message: L('network_offline', 'Check your connectivity.')
 			});
-
 		}
 	}
 };
@@ -316,19 +329,18 @@ HTTPRequest.prototype.abort = function() {
 	}
 };
 
-
 HTTPRequest.prototype.success = HTTPRequest.prototype.then = function(func) {
 	this.defer.promise.then(func);
 	return this;
 };
 
 HTTPRequest.prototype.error = HTTPRequest.prototype.fail = function(func) {
-	this.defer.promise.fail(func);
+	this.defer.promise.catch(func);
 	return this;
 };
 
 HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = function(func) {
-	this.defer.promise.fin(func);
+	this.defer.promise.finally(func);
 	return this;
 };
 
@@ -553,35 +565,26 @@ exports.postJSON = function(url, data, success, error) {
  * @return {HTTP.Request}
  */
 exports.download = function(url, file, success, error, ondatastream) {
+	var tiFile = null;
+	if (_.isString(file)) {
+		tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
+	} else {
+		tiFile = file;
+	}
+	if (tiFile.exists()) tiFile.deleteFile();
+
 	return send({
 		url: url,
 		cache: false,
 		refresh: true,
 		format: 'blob',
-		errorAlert: false,
+		file: tiFile,
 		ondatastream: ondatastream,
-	}).success(function(data) {
-		var fileStream = null;
-		if (file.nativePath) {
-			fileStream = file;
-		} else {
-			fileStream = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
+		error: error,
+		success: function() {
+			success(tiFile);
 		}
-
-		if (fileStream.exists()) fileStream.deleteFile();
-		if (fileStream.write(data)) {
-			if (_.isFunction(success)) {
-				success(fileStream);
-			}
-		} else {
-			Ti.API.error('HTTP: Writing failed while downloading <' + url + '>');
-			if (_.isFunction(error)) {
-				error({
-					message: L('unexpected_error', 'Unexpected error')
-				});
-			}
-		}
-	}).error(error);
+	});
 };
 
 /**

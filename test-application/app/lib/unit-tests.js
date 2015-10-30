@@ -30,24 +30,35 @@ exports.http_cache = function() {
 	});
 };
 
+exports.http_download = function() {
+	return Q.promise(function(resolve, reject) {
+		HTTP.download('https://unsplash.it/800/800', 'test.jpg', function(file) {
+			if (file == null || !file.exists()) return reject('File not exists');
+			resolve();
+		});
+	});
+};
+
 exports.http_refresh = function() {
 	return Q.promise(function(resolve, reject) {
 		var a = HTTP.send({
 			url: 'http://demo1916598.mockable.io/ttl-unit-test',
 			success: function() {
-				var b = HTTP.send({
-					url: 'http://demo1916598.mockable.io/ttl-unit-test',
-					refresh: true,
-					success: function() {
-						var c = HTTP.send({
-							url: 'http://demo1916598.mockable.io/ttl-unit-test',
-							success: function() {
-								if (a.cachedData.expire == c.cachedData.expire) return reject('Timestamps match');
-								resolve();
-							}
-						});
-					}
-				});
+				setTimeout(function() {
+					var b = HTTP.send({
+						url: 'http://demo1916598.mockable.io/ttl-unit-test',
+						refresh: true,
+						success: function() {
+							var c = HTTP.send({
+								url: 'http://demo1916598.mockable.io/ttl-unit-test',
+								success: function() {
+									if (a.cachedData.expire == c.cachedData.expire) return reject('Timestamps match');
+									resolve();
+								}
+							});
+						}
+					});
+				}, 1000);
 			}
 		});
 	});
