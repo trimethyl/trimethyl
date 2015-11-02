@@ -233,7 +233,9 @@ program.command('install').description('Install the framework files').action(fun
 
 program.command('list').description('List all Trimethyl available modules').action(function() {
 	_.each(trimethyl_map, function(m, k) {
-		process.stdout.write(m.name + " ("+k+") - " + m.description + "\n");
+		var dots = m.name.match(/\./g);
+		var tabs = new Array( dots ? dots.length*4 : 0 ).join(' ');
+		process.stdout.write( tabs + (m.name).green + " (" + k.yellow + ") - " + m.description + "\n");
 	});
 });
 
@@ -242,8 +244,6 @@ program.command('list').description('List all Trimethyl available modules').acti
 /////////////////
 
 program.command('add [name]').description('Add a Trimethyl module to your config').action(function(name) {
-	name = name.replace('.', '/');
-
 	if (!(name in trimethyl_map)) {
 		process.stdout.write(('<' + name + '> is not a valid Trimethyl module.').red);
 		process.exit();

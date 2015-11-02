@@ -8,6 +8,7 @@
 function NavigationWindow(args) {
 	this.windows = [];
 	this.window = args.window || null;
+	this.apiName = "Ti.UI.Android.NavigationWindow";
 }
 
 NavigationWindow.prototype.open = function(opt) {

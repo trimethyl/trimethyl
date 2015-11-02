@@ -72,7 +72,7 @@ function open(name, args, openArgs, route, useNav) {
 		controller.trigger('close');
 
 		controller.off(); // Turn off Backbone Events
-		controller.destroy(); // Destroy by KrolllBridge
+		controller.destroy(); // Destroy by Kroll Bridge
 
 		if (_.isFunction(controller.cleanup)) {
 			controller.cleanup();
@@ -88,7 +88,15 @@ function open(name, args, openArgs, route, useNav) {
 
 	// Open the window
 	if (useNav) {
-		Navigator.openWindow($window, openArgs);
+
+		if (/NavigationWindow/.test(Navigator.apiName)) {
+			Navigator.openWindow($window, openArgs);
+		} else if (Navigator.apiName === "Ti.UI.Tab") {
+			Navigator.open($window, openArgs);
+		} else {
+			throw new Error('Flow: incompatible navigator');
+		}
+
 	} else {
 		if (_.isFunction(controller.open)) {
 			controller.open(openArgs);
@@ -166,13 +174,13 @@ exports.openDirect = function(name, args, openArgs, route) {
  *
  * @param  {String} 	name 				The name of the controller
  * @param  {Object} 	[args]       	The arguments passed to the controller
- * @param  {Object} 	[openArgs]     The arguments passed to the `Navigator.openWindow`
- * @param  {String} 	[route]				Optional route that identify this controller
+ * @param  {Object} 	[openArgs]     The arguments passed to the `Navigator.openWindow` or `Tab.open`
+ * @param  {String} 	[route]			Optional route that identify this controller
  * @return {Alloy.Controller}    	The controller instance
  */
 exports.open = function(name, args, openArgs, route) {
 	if (Navigator === null) {
-		return Ti.API.warn('Flow: A Navigator is not defined yet');
+		throw new Error('Flow: A Navigator is not defined yet. You have to call Flow.setNavigationController upfront.');
 	}
 
 	return open(name, args, openArgs, route, true);
@@ -253,7 +261,7 @@ exports.getCurrentWindow = function() {
  *
  * ** This is required before opening windows **
  *
- * @param {Object} 	nav 			The instance of Ti.UI.iOS.NavigationWindow or compatible
+ * @param {Object} 	nav 			An instance of `NavigationWindow` or a `TabGroup`
  * @param {Boolean} 	[openNow] 	Specify if call instantly the open on the navigator
  */
 exports.setNavigationController = function(nav, openNow) {
