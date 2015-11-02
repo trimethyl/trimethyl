@@ -31,7 +31,8 @@
  */
 exports.process = function(opt) {
 	if (opt.blob == null) {
-		return Ti.API.error('Image: Blob is null or not instanceof Ti.Blob');
+		Ti.API.error('Image: Blob is null or not instanceof Ti.Blob');
+		return false;
 	}
 
 	var ratio = opt.retina === true ? Alloy.Globals.SCREEN_DENSITY : 1;
