@@ -56,34 +56,35 @@ exports.start = function() {
  * @param  {Function} 	success_callback
  */
 exports.notifyUpdate = function(url, version_callback, success_callback) {
-	if (OS_ANDROID) return;
 	if (!Ti.Network.online) return;
 
 	if (url == null) {
 		if (OS_IOS) {
 			url = 'https://itunes.apple.com/lookup?bundleId=' + Ti.App.id;
-		} else if (OS_ANDROID) {
-			url = '';
 		} else {
-			return;
+			return null;
 		}
 	}
 
 	version_callback = version_callback || function(response) {
 		if (OS_IOS) {
 			return (response.results && response.results[0]) ? response.results[0].version : null;
-		} else if (OS_ANDROID) {
-			return response.version || null;
+		} else {
+			return null;
 		}
 	};
 
 	success_callback = success_callback || function(response) {
-		Util.openInStore( OS_IOS ? response.results[0].trackId : Ti.App.id );
+		Util.openInStore((function() {
+			if (OS_IOS) return response.results[0].trackId;
+			else return null;
+		})() );
 	};
 
 	require('T/http').send({
 		url: url,
 		errorAlert: false,
+		cache: false,
 		format: 'json',
 		success: function(response) {
 			if (response == null || !_.isObject(response)) return;
