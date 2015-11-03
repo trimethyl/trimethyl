@@ -11,7 +11,6 @@
  * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
- * @property {Boolean} [config.logResponse=false]
  */
 exports.config = _.extend({
 	base: '',
@@ -19,8 +18,7 @@ exports.config = _.extend({
 	errorAlert: true,
 	headers: {},
 	useCache: true,
-	log: false,
-	logResponse: false
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
@@ -75,9 +73,7 @@ function HTTPRequest(opt) {
 	this.defer.promise.then(function() { self._onSuccess.apply(self, arguments); });
 	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
 
-	if (exports.config.log === true) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> created [' + this.getDebugString() + ']');
-	}
+	Ti.API.debug('HTTP: <' + this.uniqueId + '> [' + this.getDebugString() + ']');
 }
 
 HTTPRequest.prototype.toString = function() {
@@ -90,45 +86,29 @@ HTTPRequest.prototype.getDebugString = function() {
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (exports.config.useCache === false || this.opt.cache === false || this.method !== 'GET') {
-		if (exports.config.log === true) {
-			Ti.API.debug('HTTP: <' + this.uniqueId + '> cannot write cache for this request');
-		}
 		return;
 	}
 
 	if (this.responseInfo.ttl <= 0) {
-		if (exports.config.log === true) {
-			Ti.API.debug('HTTP: <' + this.uniqueId + '> is uncachable due TTL <= 0');
-		}
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> can\'t apply cache strategies');
 		return;
 	}
 
 	Cache.set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
-	if (exports.config.log === true) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> has been cached successfully for <' + this.responseInfo.ttl + 's>');
-	}
 };
 
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (exports.config.useCache === false || this.opt.cache === false || this.opt.refresh === true || this.method !== 'GET') {
-		if (exports.config.log === true) {
-			Ti.API.debug('HTTP: <' + this.uniqueId + '> cannot read cache for this request');
-		}
 		return;
 	}
 
 	this.cachedData = Cache.get(this.hash);
 
 	if (this.cachedData == null) {
-		if (exports.config.log === true) {
-			Ti.API.debug('HTTP: <' + this.uniqueId + '> cache miss');
-		}
 		return;
 	}
 
-	if (exports.config.log === true) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
-	}
+	Ti.API.debug('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
 
 	if (this.cachedData.info.format === 'blob') {
 		return this.cachedData.value;
@@ -190,7 +170,7 @@ HTTPRequest.prototype._onError = function(err) {
 };
 
 HTTPRequest.prototype._onSuccess = function() {
-	if (exports.config.logResponse === true) {
+	if (exports.config.log === true) {
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
 	}
 
@@ -229,9 +209,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	if (e.success) {
-		if (exports.config.log === true) {
-			Ti.API.debug('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
-		}
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
 		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
 	} else {
@@ -277,9 +255,6 @@ HTTPRequest.prototype.send = function() {
 
 	// Set file receiver
 	if (this.file != null) {
-		if (exports.config.log === true) {
-			Ti.API.debug('HTTP: <' + this.uniqueId + '> using file receiver');
-		}
 		client.file = this.file;
 	}
 
@@ -305,9 +280,6 @@ HTTPRequest.prototype.resolve = function() {
 		this.defer.resolve(cache);
 	} else {
 		if (Ti.Network.online) {
-			if (exports.config.log === true) {
-				Ti.API.debug('HTTP: <' + this.uniqueId + '> sending request...');
-			}
 			this.send();
 		} else {
 			Event.trigger('http.offline');

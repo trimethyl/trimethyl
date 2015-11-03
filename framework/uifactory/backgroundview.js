@@ -19,6 +19,7 @@ module.exports = function(args) {
 
 	var $img = Ti.UI.createImageView({
 		touchEnabled: false,
+		defaultImage: args.defaultImage || ''
 	});
 
 	$img.addEventListener('load', function(e) {
