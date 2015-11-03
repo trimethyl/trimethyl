@@ -110,3 +110,10 @@ exports.createImageLoadingView = function(args) {
 exports.createZoomImageView = function(args) {
 	return require('T/uifactory/zoomimageview')(args);
 };
+
+/**
+ * @method createZoomImageView
+ */
+exports.createBackgroundView = function(args) {
+	return require('T/uifactory/backgroundview')(args);
+};

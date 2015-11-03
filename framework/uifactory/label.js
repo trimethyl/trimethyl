@@ -72,7 +72,7 @@ module.exports = function(args) {
 	* @method setHtml
 	* @param {String} value
 	*/
-	$this.setHtml = function(value) {
+	$this.setHtml = function(value, parser) {
 		var htmlToAttrMap = {
 			'u': {
 				type: Ti.UI.ATTRIBUTE_UNDERLINES_STYLE,
@@ -82,7 +82,15 @@ module.exports = function(args) {
 				type: Ti.UI.ATTRIBUTE_FONT,
 				value: _.extend({}, args.font, fontTransform.italic)
 			},
+			'em': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.italic)
+			},
 			'b': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.bold)
+			},
+			'strong': {
 				type: Ti.UI.ATTRIBUTE_FONT,
 				value: _.extend({}, args.font, fontTransform.bold)
 			},
@@ -94,6 +102,10 @@ module.exports = function(args) {
 		value = value.replace(/<br\/?>/g, '\n');
 		value = value.replace(/<p>/g, '').replace(/<\/p>/g, '\n\n');
 		var parseResult = simpleHTMLParser(value);
+
+		if (_.isFunction(parser)) {
+			parseResult.text = parser( parseResult.text );
+		}
 
 		var attributedString = {
 			text: parseResult.text,
