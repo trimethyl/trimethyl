@@ -266,7 +266,13 @@ HTTPRequest.prototype.send = function() {
 	// Send the request over Internet
 	this.startTime = Date.now();
 	if (this.data != null) {
-		client.send(this.data);
+
+		if (this.opt.useRawBody == true) {
+			client.send( JSON.stringify(this.data) );
+		} else {
+			client.send( this.data );
+		}
+
 	} else {
 		client.send();
 	}

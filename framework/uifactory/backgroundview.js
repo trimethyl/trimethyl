@@ -8,42 +8,70 @@ module.exports = function(args) {
 		imageSize: 'cover'
 	});
 
-	var $this = Ti.UI.createScrollView(_.extend(args, {
-		scrollable: false
-	}));
+	var rect_size = null;
+	if (args.width == null || args.height == null) {
+		Ti.API.warn('UIFactory.BackgroundView: No fixed width / height, this feature will not work as expected');
+	} else {
+		rect_size = _.pick(args, 'width', 'height');
+	}
+
+	args.scrollingEnabled = false;
+	var $this = Ti.UI.createScrollView(args);
 
 	$this.setImage = function(src) {
 		$this.image = src;
+		$img.opacity = 0;
 		$img.image = src;
 	};
 
 	var $img = Ti.UI.createImageView({
 		touchEnabled: false,
-		defaultImage: args.defaultImage || ''
+		defaultImage: args.defaultImage || '',
+		width: Ti.UI.FILL,
+		height: Ti.UI.FILL
 	});
 
-	$img.addEventListener('load', function(e) {
-		var blob = $img.toBlob();
-		var img_size = { width: blob.width, height: blob.height };
-		var rect_size = $this.size;
-		var img_ratio = img_size.width / img_size.height;
-		var rect_ratio = rect_size.width / rect_size.height;
+	var relayout = function() {
+		rect_size = rect_size || _.pick($this.size, 'width', 'height');
+		if (rect_size.width == 0 || rect_size.height == 0) {
+			Ti.API.error('UIFactory.BackgroundView: Found invalid dimensions in relayout, please set fixed dimensions');
+			return;
+		}
+
+		var rect_r = rect_size.width / rect_size.height;
+
+		var img_size = _.pick($img.toBlob(), 'width', 'height');
+		var img_r = img_size.width / img_size.height;
+
+		var w, h;
+
+		if (
+		($this.imageSize === 'cover' && img_r > rect_r) ||
+		($this.imageSize === 'contain' && img_r < rect_r)
+		) {
+			w = rect_size.height * img_r;
+			h = rect_size.height;
+		} else if (
+		($this.imageSize === 'contain' && img_r > rect_r) ||
+		($this.imageSize === 'cover' && img_r < rect_r)
+		) {
+			w = rect_size.width;
+			h = rect_size.width / img_r;
+		}
+
+		$img.applyProperties({ width: w, height: h });
 
 		if ($this.imageSize === 'cover') {
-			if (img_ratio > rect_ratio) {
-				$img.applyProperties({ width: rect_size.height * img_ratio, height: rect_size.height });
-			} else {
-				$img.applyProperties({ width: rect_size.width, height: rect_size.width / img_ratio });
-			}
-		} else if ($this.imageSize === 'contain') {
-			if (img_ratio < rect_ratio) {
-				$img.applyProperties({ width: rect_size.height * img_ratio, height: rect_size.height });
-			} else {
-				$img.applyProperties({ width: rect_size.width, height: rect_size.width / img_ratio });
-			}
+			$this.setContentOffset({
+				x: ((w - rect_size.width) / 2) << 0,
+				y: ((h - rect_size.height) / 2) << 0
+			}, { animated: false });
 		}
-	});
 
+		$img.animate({ opacity: 1 });
+	};
+
+	$img.addEventListener('load', relayout);
 	$this.add( $img );
 
 	/////////////////////

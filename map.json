@@ -6,6 +6,10 @@
 	},
 
 	"app":{
+		"name": "Animator",
+		"description": "Animator helper"
+	},
+	"animator":{
 		"name": "App",
 		"description": "Application manager",
 		"dependencies": ["util","router","http","dialog"]
