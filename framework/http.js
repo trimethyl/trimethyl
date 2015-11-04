@@ -53,7 +53,6 @@ function HTTPRequest(opt) {
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
 	this.headers = _.extend({}, exports.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
-	this.file = opt.file || null;
 
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
@@ -254,8 +253,8 @@ HTTPRequest.prototype.send = function() {
 	client.open(this.method, this.url);
 
 	// Set file receiver
-	if (this.file != null) {
-		client.file = this.file;
+	if (this.opt.file != null) {
+		client.file = this.opt.file;
 	}
 
 	// Set headers
@@ -546,9 +545,13 @@ exports.download = function(url, file, success, error, ondatastream) {
 	} else {
 		tiFile = file;
 	}
-	if (tiFile.exists()) tiFile.deleteFile();
 
-	return send({
+	if (tiFile.exists()) {
+		Ti.API.warn('HTTP: Previous file ' + tiFile.nativePath + ' exists and has been deleted');
+		tiFile.deleteFile();
+	}
+
+	send({
 		url: url,
 		cache: false,
 		refresh: true,
@@ -557,7 +560,13 @@ exports.download = function(url, file, success, error, ondatastream) {
 		ondatastream: ondatastream,
 		error: error,
 		success: function() {
-			success(tiFile);
+			if (tiFile.exists()) {
+				success(tiFile);
+			} else {
+				error({
+					message: L('unable_to_write_file', 'Unable to write file')
+				});
+			}
 		}
 	});
 };
