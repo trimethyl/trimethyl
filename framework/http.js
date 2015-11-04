@@ -559,6 +559,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 		file: tiFile,
 		ondatastream: ondatastream,
 		error: error,
+		errorAlert: false,
 		success: function() {
 			if (tiFile.exists()) {
 				success(tiFile);
