@@ -7,12 +7,10 @@
  * @property config
  * @property {Boolean} 	[config.autoReset=true] 	Check if auto-reset the badge when app is open.
  * @property {String} 	[config.driver="http"] 		The driver to use.
- * @property {Boolean} 	[config.useRouter=true]		When a notification with a `{url:""}` parameter is received, auto-route using the Router class.
  * @type {Object}
  */
 exports.config = _.extend({
 	autoReset: true,
-	useRouter: true,
 	driver: 'http',
 }, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
 
@@ -46,15 +44,6 @@ function onNotificationReceived(e) {
 	// Auto-reset the badge
 	if (exports.config.autoReset === true) {
 		exports.resetBadge();
-	}
-
-	// Router
-	if (exports.config.useRouter === true) {
-		if (e.inBackground == true) {
-			if (e.data.url != null) {
-				Router.go(e.data.url);
-			}
-		}
 	}
 
 	Event.trigger('notifications.received', e);

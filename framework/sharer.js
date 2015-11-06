@@ -361,7 +361,7 @@ exports.activity = function(args) {
 
 	// iOS Activity native
 	if (OS_IOS && dkNappSocial != null) {
-		dkNappSocial[ Util.isIPad() ? 'activityPopover' : 'activityView' ]({
+		dkNappSocial[ Ti.Platform.osname === 'ipad' ? 'activityPopover' : 'activityView' ]({
 			text: args.text,
 			title: args.title,
 			image: args.image,
