@@ -31,4 +31,6 @@ function log(text, color, top) {
 
 })();
 
-$.index.open();
+$.nav.open();
+
+$.nav.openWindow( Alloy.createController('ui-select').getView() );
