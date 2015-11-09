@@ -3,6 +3,14 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/**
+ * @property config
+ * @property {String} [config.loginUrl=false] Override URL to login-in
+ */
+exports.config = _.extend({
+	loginUrl: false
+}, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.std : {});
+
 exports.login = function(opt) {
 	if (opt.data == null) {
 		throw new Error('Auth: set data when calling Auth.login');
