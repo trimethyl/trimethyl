@@ -79,7 +79,7 @@ exports.on = function() {
  *
  * @param  {String} url 		The route
  */
-exports.dispatch = function(url) {
+exports.dispatch = function(url, data) {
 	Ti.API.debug('Router: dispatching <' + url + '>');
 
 	var callbackURL = Util.parseAsXCallbackURL(url);
@@ -91,6 +91,8 @@ exports.dispatch = function(url) {
 			return false;
 		}
 	}
+
+	callbackURL.data = data;
 
 	var run = false;
 	var matches = null;

@@ -3,9 +3,26 @@
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-exports.UP_AND_DOWN = function(opt) {
+function noop() {}
+
+function simpleFromTo(view, a, b, callback) {
+	view.applyProperties(a);
+	_.defer(function(){
+		view.animate(b, _.isFunction(callback) ? callback : noop);
+	});
+}
+
+/**
+ * @method upAndDown
+ * @return {Function}
+ */
+exports.upAndDown = function(opt) {
 	var self = {};
-	self.run = true;
+	var run = true;
+
+	self.stop = function() {
+		run = false;
+	};
 
 	_.defaults(opt, {
 		duration: 1000,
@@ -14,64 +31,105 @@ exports.UP_AND_DOWN = function(opt) {
 
 	var index = 0;
 	(function loop() {
-		if (self.run === false) return;
+		if (run === false) return;
 
 		index = (index+1) % 2;
-		opt.view.animate({
-			transform: Ti.UI.create2DMatrix().translate(0, index ? opt.y : 0),
-			duration: opt.duration
-		}, loop);
+		_.defer(function(){
+			opt.view.animate({
+				transform: Ti.UI.create2DMatrix().translate(0, index ? opt.y : 0),
+				duration: opt.duration
+			}, loop);
+		});
 	})();
 
 	return self;
 };
 
-exports.FADE_IN = function(opt) {
+/**
+ * @method fadeIn
+ */
+exports.fadeIn = function(opt) {
 	_.defaults(opt, {
 		duration: 400
 	});
 
-	opt.view.opacity = 0;
-	opt.view.animate({
-		opacity: 1,
-		duration: opt.duration
-	}, function() {
-		if (_.isFunction(opt.callback)) opt.callback();
-	});
+	return simpleFromTo(opt.view,
+	{ opacity: 0 },
+	{ opacity: 1, duration: opt.duration },
+	opt.callback);
 };
 
-exports.FADE_OUT = function(opt) {
+/**
+ * @method fadeOut
+ */
+exports.fadeOut = function(opt) {
 	_.defaults(opt, {
 		duration: 400
 	});
 
-	opt.view.opacity = 1;
-	opt.view.animate({
-		opacity: 0,
-		duration: opt.duration
-	}, function() {
-		if (_.isFunction(opt.callback)) opt.callback();
+	return  simpleFromTo(opt.view,
+	{ opacity: 1 },
+	{ opacity: 0, duration: opt.duration },
+	opt.callback);
+};
+
+/**
+ * @method fadeInUp
+ */
+exports.fadeInUp = function(opt) {
+	_.defaults(opt, {
+		duration: 5000,
+		offset: 50
 	});
-};
 
-
-/**
- * @method start
- * @param  {Object} opt Options
- * @param  {Object} renderer An constant of Animator
- * @return {Object} An instance of renderer
- */
-exports.start = function(opt, renderer) {
-	return renderer(opt);
+	return simpleFromTo(opt.view,
+	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(0, -opt.offset) },
+	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	opt.callback);
 };
 
 /**
- * @method stop
- * @param  {Object} renderInstance
+ * @method fadeInDown
  */
-exports.stop = function(renderInstance) {
-	renderInstance.run = false;
-	if (_.isFunction(renderInstance.destroy)) {
-		renderInstance.destroy();
-	}
+exports.fadeInLeft = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return simpleFromTo(opt.view,
+	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(-opt.offset, 0) },
+	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	opt.callback);
 };
+
+/**
+ * @method fadeInBottom
+ */
+exports.fadeInBottom = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return simpleFromTo(opt.view,
+	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(0, opt.offset) },
+	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	opt.callback);
+};
+
+/**
+ * @method fadeInRight
+ */
+exports.fadeInRight = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return simpleFromTo(opt.view,
+	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(opt.offset, 0) },
+	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	opt.callback);
+};
+

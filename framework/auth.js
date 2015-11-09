@@ -74,8 +74,10 @@ function getStoredDriver(){
 function driverLogin(opt) {
 	var q = Q.defer();
 
+	var driver = exports.loadDriver(opt.driver);
+
 	var method = opt.stored === true ? 'storedLogin' : 'login';
-	exports.loadDriver(opt.driver)[ method ]({
+	driver[ method ]({
 		data: opt.data,
 		success: q.resolve,
 		error: q.reject
@@ -84,13 +86,15 @@ function driverLogin(opt) {
 	return q.promise;
 }
 
-function apiLogin(data) {
+function apiLogin(opt, dataFromDriver) {
 	var q = Q.defer();
 
+	var driver = exports.loadDriver(opt.driver);
+
 	HTTP.send({
-		url: exports.config.loginUrl,
+		url: driver.config.loginUrl || exports.config.loginUrl,
 		method: 'POST',
-		data: data,
+		data: dataFromDriver,
 		errorAlert: false,
 		success: q.resolve,
 		error: q.reject,
@@ -99,7 +103,7 @@ function apiLogin(data) {
 	return q.promise;
 }
 
-function fetchUserModel(info) {
+function fetchUserModel(opt, dataFromServer) {
 	var q = Q.defer();
 
 	Me = Alloy.createModel('user', {
@@ -132,14 +136,16 @@ exports.login = function(opt) {
 	driverLogin(opt)
 
 	.then(function(dataFromDriver) {
-		return apiLogin(_.extend(dataFromDriver, {
+		return apiLogin(opt, _.extend(dataFromDriver, {
 			method: opt.driver
 		}));
 	})
 
-	.then(fetchUserModel)
+	.then(function(dataFromServer) {
+		return fetchUserModel(opt, dataFromServer);
+	})
 
-	.then(function(){
+	.then(function(userDataFromServer) {
 		Ti.App.Properties.setObject('auth.me', Me.toJSON());
 		Ti.App.Properties.setString('auth.driver', opt.driver);
 	})
