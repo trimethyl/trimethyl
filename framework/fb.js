@@ -18,9 +18,6 @@ var Facebook = Util.requireOrNull('facebook');
 
 if (Facebook) {
 
-	// Old Facebook module require that the app-id is set at runtime
-	Facebook.appid = Ti.App.Properties.getString('ti.facebook.appid');
-
 	if (!_.isEmpty(exports.config.permissions)) {
 		Facebook.permissions = exports.config.permissions;
 	}
