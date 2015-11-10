@@ -82,6 +82,8 @@ Facebook.addEventListener('login', function(e) {
 	Ti.API.debug('Auth.Facebook: login fired', e);
 
 	// This is a security hack caused by iOS SDK that automatically trigger the login event
+	// We don't need that is event is triggered on startup: to detect login,
+	// just call `Auth.login({ driver: 'facebook' })`
 	if (_opt == null) {
 		return Ti.API.debug('Auth.Facebook: login prevented');
 	}
