@@ -22,18 +22,16 @@ if (OS_IOS) {
 	// if in a future update Facebook will fix this issue,
 	// its login event will be triggered before our function)
 	// we re-fire the event with the minimal data we have
-	Ti.App.addEventListener('resumed', function() {
-		_.defer(function() {
-			var currentSchema = Util.parseSchema();
-			if (/^fb\d+\:\/\/authorize/.test(currentSchema)) {
-				Facebook.fireEvent('login', {
-					manualFire: true,
-					success: Facebook.loggedIn,
-					accessToken: Facebook.accessToken
-				});
-			}
-		});
-	});
+	Ti.App.addEventListener('resumed', function() { _.defer(function() {
+		var currentSchema = Util.parseSchema();
+		if (/^fb\d+\:\/\/authorize/.test(currentSchema)) {
+			Facebook.fireEvent('login', {
+				manualFire: true,
+				success: Facebook.loggedIn,
+				accessToken: Facebook.accessToken
+			});
+		}
+	}); });
 }
 
 var _opt = null;
