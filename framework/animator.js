@@ -13,39 +13,6 @@ function simpleFromTo(view, a, b, callback) {
 }
 
 /**
- * @method upAndDown
- * @return {Function}
- */
-exports.upAndDown = function(opt) {
-	var self = {};
-	var run = true;
-
-	self.stop = function() {
-		run = false;
-	};
-
-	_.defaults(opt, {
-		duration: 1000,
-		y: 10
-	});
-
-	var index = 0;
-	(function loop() {
-		if (run === false) return;
-
-		index = (index+1) % 2;
-		_.defer(function(){
-			opt.view.animate({
-				transform: Ti.UI.create2DMatrix().translate(0, index ? opt.y : 0),
-				duration: opt.duration
-			}, loop);
-		});
-	})();
-
-	return self;
-};
-
-/**
  * @method fadeIn
  */
 exports.fadeIn = function(opt) {
@@ -133,3 +100,35 @@ exports.fadeInRight = function(opt) {
 	opt.callback);
 };
 
+/**
+ * @method upAndDown
+ * @return {Function}
+ */
+exports.upAndDown = function(opt) {
+	var self = {};
+	var run = true;
+
+	self.stop = function() {
+		run = false;
+	};
+
+	_.defaults(opt, {
+		duration: 1000,
+		y: 10
+	});
+
+	var index = 0;
+	(function loop() {
+		if (run === false) return;
+
+		index = (index+1) % 2;
+		_.defer(function(){
+			opt.view.animate({
+				transform: Ti.UI.create2DMatrix().translate(0, index ? opt.y : 0),
+				duration: opt.duration
+			}, loop);
+		});
+	})();
+
+	return self;
+};
