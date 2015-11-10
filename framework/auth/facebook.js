@@ -11,6 +11,7 @@ exports.config = _.extend({
 	loginUrl: false
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
 
+var Util = require('T/util');
 var FB = require('T/fb'); // Use FB as an accessor
 var Facebook = require('facebook'); // Use Facebook for the absolute module
 
