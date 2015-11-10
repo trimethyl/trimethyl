@@ -64,18 +64,23 @@ module.exports = function(args) {
 		var $eyeButton = Ti.UI.createButton({
 			image: args.passwordEyeImage || '/images/T/eye.png',
 			height: 40,
-			width: 40,
+			width: 60,
+			top: 0,
+			right: 0,
+			bottom: 0,
 			opacity: 0.2,
 			active: false,
 			tintColor: $this.color
 		});
-		$this.setRightButton($eyeButton);
-		$this.setRightButtonMode(Ti.UI.INPUT_BUTTONMODE_ALWAYS);
-
+		$this.applyProperties({
+			rightButtonPadding: 0,
+			rightButtonMode: Ti.UI.INPUT_BUTTONMODE_ALWAYS,
+			rightButton: $eyeButton
+		});
 		$eyeButton.addEventListener('click', function(){
 			$eyeButton.active = !$eyeButton.active;
 			$eyeButton.opacity = $eyeButton.active ? 1 : 0.2;
-			$this.setPasswordMask(!$eyeButton.active);
+			$this.passwordMask = !$eyeButton.active;
 		});
 	}
 
