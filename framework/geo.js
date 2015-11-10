@@ -19,10 +19,12 @@ exports.config = _.extend({
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
+
 var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
 var Dialog = require('T/dialog');
+
 
 /**
  * @method event
@@ -33,41 +35,81 @@ exports.event = function(name, cb) {
 
 
 /**
+ * @method authorizeLocationServices
+ * @param  {Object} opt
+ */
+exports.authorizeLocationServices = function(opt) {
+	opt = _.defaults(opt || {}, {
+		inBackground: false,
+		success: function(){},
+		error: function(){}
+	});
+
+	if (OS_ANDROID) {
+		
+		if (Ti.Geolocation.locationServicesEnabled) {
+			opt.success();
+		} else {
+			opt.error({ 
+				error: L('geo_ls_denied', 'Location services are disabled.'),
+				servicesDisabled: true
+			});
+		}
+
+	} else if (OS_IOS) {
+
+		var authToCheck = Ti.Geolocation[ opt.inBackground ? "AUTHORIZATION_ALWAYS" : "AUTHORIZATION_WHEN_IN_USE" ];
+
+		var checkAuthorization = function() {
+			var lsa = Ti.Geolocation.locationServicesAuthorization;
+			if (lsa === authToCheck) {
+				opt.success();
+			} else if (lsa === Ti.Geolocation.AUTHORIZATION_RESTRICTED) {
+				opt.error({ 
+					error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
+					servicesRestricted: true
+				});
+			} else {
+				opt.error({ 
+					error: L('geo_ls_denied', 'Location services are disabled.'),
+					servicesDisabled: true
+				});
+			}
+		};
+
+		Ti.Geolocation.addEventListener('authorization', checkAuthorization);
+
+		if (Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN) {
+			Ti.Geolocation.requestAuthorization(checkAuthorization);
+		} else {
+			checkAuthorization();
+		}
+
+	}
+};
+
+/**
  * @method getCurrentPosition
  * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
- *
- * A `geo.start` event is triggered at start, and a `geo.end` event is triggered on end
- *
  * @param {Object}	opt
  */
 exports.getCurrentPosition = function(opt) {
-	opt = opt || {};
+	opt = _.defaults(opt || {}, {
+		success: function(){},
+		error: function(){}
+	});
 
-	if (exports.isAuthorized() === false) {
-		if (_.isFunction(opt.complete)) opt.complete();
-		if (_.isFunction(opt.error)) opt.error({ servicesDisabled: true });
-		if (opt.silent !== true) {
-			Event.trigger('geo.disabled');
-		}
-
-		return false;
-	}
-
-	if (opt.silent !== true) {
-		Event.trigger('geo.start');
-	}
-
-	Ti.Geolocation.getCurrentPosition(function(e) {
-		if (_.isFunction(opt.complete)) opt.complete();
-		if (opt.silent !== true) {
-			Event.trigger('geo.end');
-		}
-
-		if (e.success === true && e.coords != null) {
-			if (_.isFunction(opt.success)) opt.success(e.coords);
-		} else {
-			if (_.isFunction(opt.error)) opt.error({});
-		}
+	exports.authorizeLocationServices({
+		success: function() {
+			Ti.Geolocation.getCurrentPosition(function(e) {
+				if (e.success && e.coords != null) {
+					opt.success(e.coords);
+				} else {
+					opt.error(e);
+				}
+			});
+		},
+		error: opt.error
 	});
 };
 
@@ -437,6 +479,7 @@ exports.isAuthorized = function() {
 exports.isDenied = function() {
 	return !Ti.Geolocation.locationServicesEnabled;
 };
+
 
 
 //////////
