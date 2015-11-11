@@ -167,7 +167,7 @@ exports.login = function(opt) {
 
 /**
  * @method isStoredLoginAvailable
- * Check if the Stored Login feature is available
+ * Check if the Stored login feature is available
  * @return {Boolean}
  */
 exports.isStoredLoginAvailable = function() {
@@ -179,31 +179,79 @@ exports.isStoredLoginAvailable = function() {
  * @method storedLogin
  * Login using stored driver
  * @param  {Object} opt
+ * @param  {Object} opt
  */
 exports.storedLogin = function(opt) {
-	if (Ti.Network.online) {
+	_.defaults(opt, {
+		success: function(){},
+		error: function(){}
+	});
 
+	if (exports.isStoredLoginAvailable()) {
 		exports.login(_.extend(opt || {}, {
 			stored: true,
 			driver: getStoredDriver()
 		}));
-
 	} else {
+		opt.error({});
+	}
+};
 
-		if (Ti.App.Properties.hasProperty('auth.me')) {
+/**
+ * @method isOfflineLoginAvailable
+ * Check if an offline login is available
+ * @return {Boolean} [description]
+ */
+exports.isOfflineLoginAvailable = function() {
+	return Ti.App.Properties.hasProperty('auth.me');
+};
 
-			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+/**
+ * @method offlineLogin
+ * Login using offline properties
+ * @param  {Object} opt
+ */
+exports.offlineLogin = function(opt) {
+	_.defaults(opt, {
+		success: function(){},
+		error: function(){}
+	});
 
-			Event.trigger('auth.success', { id: Me.id });
-			if (_.isFunction(opt.success)) {
-				opt.success({
-					id: Me.id
-				});
-			}
+	if (exports.isOfflineLoginAvailable()) {
+		Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+		var payload = {
+			id: Me.id,
+			offline: true
+		};
+		Event.trigger('auth.success', payload);
+		opt.success(payload);
+	} else {
+		opt.error({});
+	}
+};
 
+/**
+ * @method autoLogin
+ * This method will select the best behaviour and will login the user
+ * @param  {Object} opt
+ */
+exports.autoLogin = function(opt) {
+	_.defaults(opt, {
+		success: function(){},
+		error: function(){}
+	});
+
+	if (Ti.Network.online) {
+		if (exports.isStoredLoginAvailable()) {
+			exports.storedLogin(opt);
 		} else {
-			Event.trigger('auth.error', {});
-			if (_.isFunction(opt.error)) opt.error({});
+			opt.error();
+		}
+	} else {
+		if (exports.isOfflineLoginAvailable()) {
+			exports.offlineLogin(opt);
+		} else {
+			opt.error();
 		}
 	}
 };
