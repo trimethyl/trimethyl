@@ -107,7 +107,7 @@ function fetchUserModel(opt, dataFromServer) {
 	var q = Q.defer();
 
 	Me = Alloy.createModel('user', {
-		id: info.id || 'me'
+		id: dataFromServer.id || 'me'
 	});
 
 	Me.fetch({
