@@ -18,6 +18,22 @@ var Facebook = Util.requireOrNull('facebook');
 
 if (Facebook) {
 
+	// Hydratate module
+
+	Facebook.fetchUser = function(opt) {
+		opt = _.defaults(opt || {}, {
+			fields: 'name,email,first_name,last_name'
+		});
+
+		Facebook.requestWithGraphPath('me', { fields: opt.fields }, 'GET', function(e) {
+			if (e.success && e.result != null) {
+				if (_.isFunction(opt.success)) opt.success(JSON.parse(e.result));
+			} else {
+				if (_.isFunction(opt.error)) opt.error(e);
+			}
+		});
+	};
+
 	if (!_.isEmpty(exports.config.permissions)) {
 		Facebook.permissions = exports.config.permissions;
 	}
