@@ -18,6 +18,8 @@ var fonts = [];
 var TMP_DIR = Ti.Filesystem.tempDirectory + '/weballoy';
 
 function embedFile(f) {
+	if (_.isEmpty(f)) return null;
+
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
 	if ( ! file.exists()) {
 		Ti.API.debug('Weballoy: File not found (' + f + ')');
@@ -107,6 +109,7 @@ function getHTML(opt) {
 
 /**
  * Add an helper for the WebView
+ * The methods `embedCSS` and `embedJS` are automatically exposed
  * @param {String} 		name   The name of the helper
  * @param {Function} 	method The callback
  */
@@ -222,6 +225,9 @@ _.each(jsFiles, function(js) {
 	libDir.push('web/lib/' + js);
 });
 
+// Expose those properties in the helpers
+helpers.embedCSS = embedCSS;
+helpers.embedJS = embedJS;
 
 Ti.Filesystem.getFile(TMP_DIR).deleteDirectory(true);
 Ti.Filesystem.getFile(TMP_DIR).createDirectory();
