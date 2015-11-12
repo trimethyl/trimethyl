@@ -8,7 +8,7 @@ var Util = require('T/util');
 var CRUD_to_REST = {
 	'create': 'POST',
 	'read': 'GET',
-	'update': 'PUT',
+	'update': 'POST',
 	'delete': 'DELETE',
 	'patch': 'PATCH'
 };
@@ -49,7 +49,7 @@ exports.sync = function(method, model, opt) {
 
 		case 'create':
 
-		_.extend(httpOpt, { data: JSON.stringify(model.toJSON()) });
+		_.extend(httpOpt, { data: model.toJSON() });
 		HTTP.send(httpOpt).success(function(resp) {
 
 			if (resp != null && resp.id != null) {
@@ -89,9 +89,9 @@ exports.sync = function(method, model, opt) {
 		case 'update':
 
 		if (opt.patch) {
-			_.extend(httpOpt, { data: JSON.stringify(_.pick(model.attributes, _.keys(opt.changes))) });
+			_.extend(httpOpt, { data: _.pick(model.attributes, _.keys(opt.changes)) });
 		} else {
-			_.extend(httpOpt, { data: JSON.stringfiy(model.toJSON()) });
+			_.extend(httpOpt, { data: model.toJSON() });
 		}
 
 		HTTP.send(httpOpt).success(function(resp) {
