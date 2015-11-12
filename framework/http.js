@@ -11,6 +11,7 @@
  * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
+ * @property {Boolean} [config.useTitaniumDataEncoder=false] Use the default Titanium encoder for POST data instead of ours.
  */
 exports.config = _.extend({
 	base: '',
@@ -18,7 +19,8 @@ exports.config = _.extend({
 	errorAlert: true,
 	headers: {},
 	useCache: true,
-	log: false
+	log: false,
+	useTitaniumDataEncoder: false,
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
@@ -268,8 +270,10 @@ HTTPRequest.prototype.send = function() {
 
 		if (this.opt.useRawBody == true) {
 			client.send( JSON.stringify(this.data) );
-		} else {
+		} else if (exports.config.useTitaniumDataEncoder == true) {
 			client.send( this.data );
+		} else {
+			client.send( Util.buildQuery(this.data, '') );
 		}
 
 	} else {

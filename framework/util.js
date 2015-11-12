@@ -335,7 +335,7 @@ exports.buildQuery = function(obj, prepend) {
 	};
 
 	_.each(obj, builder);
-	return q.length === 0 ? '' : ((prepend || '?') + q.join('&'));
+	return q.length === 0 ? '' : ((prepend != null ? prepend : '?') + q.join('&'));
 };
 
 /**
