@@ -132,3 +132,56 @@ exports.upAndDown = function(opt) {
 
 	return self;
 };
+
+/**
+ * @method fallDownForGravity
+ * @return {Function}
+ */
+exports.fallDownForGravity = function(opt) {
+	var self = {};
+	var run = true;
+	var timeout = null;
+
+	self.stop = function() {
+		clearTimeout(timeout);
+		run = false;
+	};
+
+	_.defaults(opt, {
+		friction: 0.6,
+		potentialEnergy: 10,
+		y: 60,
+		callback: function(){}
+	});
+
+	var U = Number(opt.potentialEnergy);
+	var index = -1;
+	var y = null;
+
+	(function loop() {
+		if (run === false) return;
+
+		index++;
+		if (U === 0 && index % 2 === 0) {
+			opt.callback();
+			return;
+		}
+
+		_.defer(function() {
+			if (index % 2 === 1) {
+				U =  Math.floor( U - (U * opt.friction) );
+				y = opt.y - ((U / opt.potentialEnergy) * opt.y);
+			} else {
+				y = opt.y;
+			}
+			timeout = setTimeout(loop, 250);
+			opt.view.animate({
+				duration: 250,
+				curve: Titanium.UI[ "ANIMATION_CURVE_EASE_" + (index % 2 === 0 ? "IN" : "OUT") ],
+				transform: Ti.UI.create2DMatrix().translate(0, y)
+			});
+		});
+	})();
+
+	return self;
+};
