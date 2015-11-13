@@ -11,7 +11,7 @@
  * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
- * @property {Boolean} [config.useTitaniumDataEncoder=false] Use the default Titanium encoder for POST data instead of ours.
+ * @property {Boolean} [config.jsonEncoding=false] Force to use JSON encoding POST data.
  */
 exports.config = _.extend({
 	base: '',
@@ -19,8 +19,7 @@ exports.config = _.extend({
 	errorAlert: true,
 	headers: {},
 	useCache: true,
-	log: false,
-	useTitaniumDataEncoder: false,
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
@@ -56,13 +55,30 @@ function HTTPRequest(opt) {
 	this.headers = _.extend({}, exports.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
 
+	console.log(opt.data);
+
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
-		if (this.method === 'GET' && _.isObject(opt.data)) {
-			var exQuery = /\?.*/.test(this.url);
-			this.url = this.url + Util.buildQuery(opt.data, exQuery ? '&' : '?');
+		if (this.method === 'GET') {
+			if (typeof opt.data === 'object') {
+				var exQuery = /\?.*/.test(this.url);
+				this.url = this.url + Util.buildQuery(opt.data, exQuery ? '&' : '?');
+			}
 		} else {
-			this.data = opt.data;
+			if (opt.data.apiName === 'Ti.Blob' || opt.data.apiName === 'Ti.Filesystem.File') {
+				this.headers['Content-Type'] = 'multipart/form-data';
+				this.data = opt.data;
+			} else if (typeof opt.data === 'object') {
+				if (exports.config.jsonEncoding == true || opt.jsonEncoding == true) {
+					this.headers['Content-Type'] = 'application/json';
+					this.data = JSON.stringify(opt.data);
+				} else {
+					this.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+					this.data = Util.buildQuery(opt.data, '');
+				}
+			} else {
+				this.data = opt.data;
+			}
 		}
 	}
 
@@ -74,7 +90,9 @@ function HTTPRequest(opt) {
 	this.defer.promise.then(function() { self._onSuccess.apply(self, arguments); });
 	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
 
-	Ti.API.debug('HTTP: <' + this.uniqueId + '> [' + this.getDebugString() + ']');
+	if (!ENV_PRODUCTION) {
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> [' + this.getDebugString() + ']');
+	}
 }
 
 HTTPRequest.prototype.toString = function() {
@@ -82,7 +100,7 @@ HTTPRequest.prototype.toString = function() {
 };
 
 HTTPRequest.prototype.getDebugString = function() {
-	return this.method + ' ' + this.url + (this.data ? ' ' + JSON.stringify(this.data) : '');
+	return this.method + ' ' + this.url + ' ' + (this.data || '');
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
@@ -267,15 +285,7 @@ HTTPRequest.prototype.send = function() {
 	// Send the request over Internet
 	this.startTime = Date.now();
 	if (this.data != null) {
-
-		if (this.opt.useRawBody == true) {
-			client.send( JSON.stringify(this.data) );
-		} else if (exports.config.useTitaniumDataEncoder == true) {
-			client.send( this.data );
-		} else {
-			client.send( Util.buildQuery(this.data, '') );
-		}
-
+		client.send(this.data);
 	} else {
 		client.send();
 	}
