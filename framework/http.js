@@ -55,8 +55,6 @@ function HTTPRequest(opt) {
 	this.headers = _.extend({}, exports.getHeaders(), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
 
-	console.log(opt.data);
-
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
 		if (this.method === 'GET') {
