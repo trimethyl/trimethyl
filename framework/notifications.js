@@ -19,6 +19,16 @@ var Util = require('T/util');
 var Router = require('T/router');
 var Q = require('T/ext/q');
 
+var cachedDeviceToken = null;
+
+/**
+ * @property onReceived
+ * A callback called when a notification is received
+ */
+exports.onReceived = function(e) {
+	Ti.API.info("Notifications: Received", e);
+};
+
 var interactiveCategories = [];
 var interactiveCategoriesCallbacks = {};
 
@@ -39,13 +49,12 @@ function onNotificationReceived(e) {
 		}
 	}
 
-	Ti.API.debug("Notifications: Received", e);
-
 	// Auto-reset the badge
 	if (exports.config.autoReset === true) {
 		exports.resetBadge();
 	}
 
+	if (_.isFunction(exports.onReceived)) exports.onReceived(e);
 	Event.trigger('notifications.received', e);
 }
 
@@ -60,7 +69,6 @@ exports.loadDriver = function(name) {
 	});
 };
 
-
 /**
  * @method event
  */
@@ -68,13 +76,18 @@ exports.event = function(name, cb) {
 	Event.on('notifications.' + name, cb);
 };
 
-
 /**
  * @method activate
  * @param  {Function} callback Callback invoked when success occur
  */
 exports.activate = function(callback) {
 	var defer = Q.defer();
+
+	if (cachedDeviceToken != null) {
+		Ti.API.warn("Notifications: multiple call to activate, will return cached remote device UDID");
+		defer.resolve(cachedDeviceToken);
+		return defer.promise;
+	}
 
 	if (INTERACTIVE_NOTIFICATIONS_CAPABLE) {
 
@@ -88,9 +101,7 @@ exports.activate = function(callback) {
 			}
 
 			Ti.Network.registerForPushNotifications({
-
 				callback: onNotificationReceived,
-
 				success: function(e) {
 					if ( ! validateToken(e.deviceToken)) {
 						Ti.API.error('Notifications: Retrieve device token failed');
@@ -98,6 +109,9 @@ exports.activate = function(callback) {
 							invalidToken: true
 						});
 					}
+
+					// Set a flag to prevent that future calls to registerForPush will trigger multiple notifications
+					cachedDeviceToken = e.deviceToken;
 
 					defer.resolve(e.deviceToken);
 					Event.trigger('notifications.activation.success');
@@ -143,9 +157,7 @@ exports.activate = function(callback) {
 		} else return;
 
 		Module.registerForPushNotifications(_.extend(moduleOpt, {
-
 			callback: onNotificationReceived,
-
 			success: function(e) {
 				if ( ! validateToken(e.deviceToken)) {
 					Ti.API.error('Notifications: Retrieve device token failed');
@@ -153,6 +165,9 @@ exports.activate = function(callback) {
 						invalidToken: true
 					});
 				}
+
+				// Set a flag to prevent that future calls to registerForPush will trigger multiple notifications
+				cachedDeviceToken = e.deviceToken;
 
 				defer.resolve(e.deviceToken);
 				Event.trigger('notifications.activation.success');
