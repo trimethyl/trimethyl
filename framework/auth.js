@@ -72,55 +72,49 @@ function getStoredDriver(){
 }
 
 function driverLogin(opt) {
-	var q = Q.defer();
-
-	var driver = exports.loadDriver(opt.driver);
-
-	var method = opt.stored === true ? 'storedLogin' : 'login';
-	driver[ method ]({
-		data: opt.data,
-		success: q.resolve,
-		error: q.reject
+	return Q.promise(function(resolve, reject) {
+		var driver = exports.loadDriver(opt.driver);
+		var method = opt.stored === true ? 'storedLogin' : 'login';
+		driver[ method ]({
+			data: opt.data,
+			success: resolve,
+			error: reject
+		});
 	});
-
-	return q.promise;
 }
 
 function apiLogin(opt, dataFromDriver) {
-	var q = Q.defer();
-
-	var driver = exports.loadDriver(opt.driver);
-
-	HTTP.send({
-		url: driver.config.loginUrl || exports.config.loginUrl,
-		method: 'POST',
-		data: dataFromDriver,
-		errorAlert: false,
-		success: q.resolve,
-		error: q.reject,
+	return Q.promise(function(resolve, reject) {
+		var driver = exports.loadDriver(opt.driver);
+		HTTP.send({
+			url: driver.config.loginUrl || exports.config.loginUrl,
+			method: 'POST',
+			data: dataFromDriver,
+			errorAlert: false,
+			success: resolve,
+			error: reject,
+		});
 	});
-
-	return q.promise;
 }
 
 function fetchUserModel(opt, dataFromServer) {
-	var q = Q.defer();
+	return Q.promise(function(resolve, reject) {
 
-	Me = Alloy.createModel('user', {
-		id: dataFromServer.id || 'me'
+		Me = Alloy.createModel('user', {
+			id: dataFromServer.id || 'me'
+		});
+
+		Me.fetch({
+			http: {
+				refresh: true,
+				cache: false,
+				errorAlert: false
+			},
+			success: resolve,
+			error: reject
+		});
+
 	});
-
-	Me.fetch({
-		http: {
-			refresh: true,
-			cache: false,
-			errorAlert: false
-		},
-		success: q.resolve,
-		error: q.reject
-	});
-
-	return q.promise;
 }
 
 /**
@@ -136,13 +130,13 @@ exports.login = function(opt) {
 	driverLogin(opt)
 
 	.then(function(dataFromDriver) {
-		return apiLogin(opt, _.extend(dataFromDriver, {
+		return apiLogin(opt, _.extend({}, dataFromDriver, {
 			method: opt.driver
 		}));
 	})
 
 	.then(function(dataFromServer) {
-		return fetchUserModel(opt, dataFromServer);
+		return fetchUserModel(opt, dataFromServer || {});
 	})
 
 	.then(function(userDataFromServer) {
@@ -159,9 +153,9 @@ exports.login = function(opt) {
 		}
 	})
 
-	.fail(function(e) {
-		Event.trigger('auth.error', e);
-		if (_.isFunction(opt.error)) opt.error(e);
+	.fail(function(err) {
+		Event.trigger('auth.error', err);
+		if (_.isFunction(opt.error)) opt.error(err);
 	});
 };
 

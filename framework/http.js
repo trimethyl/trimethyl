@@ -11,7 +11,7 @@
  * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Boolean} [config.errorAlert=true] Global error alert handling.
  * @property {Boolean} [config.log=false]
- * @property {Boolean} [config.jsonEncoding=false] Force to use JSON encoding POST data.
+ * @property {Boolean} [config.bodyEncodingInJSON=false] Force to encoding in JSON of body data is the input is a JS object.
  */
 exports.config = _.extend({
 	base: '',
@@ -19,7 +19,8 @@ exports.config = _.extend({
 	errorAlert: true,
 	headers: {},
 	useCache: true,
-	log: false
+	log: false,
+	bodyEncodingInJSON: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var Event = require('T/event');
@@ -67,7 +68,7 @@ function HTTPRequest(opt) {
 				this.headers['Content-Type'] = 'multipart/form-data';
 				this.data = opt.data;
 			} else if (typeof opt.data === 'object') {
-				if (exports.config.jsonEncoding == true || opt.jsonEncoding == true) {
+				if (exports.config.bodyEncodingInJSON == true || opt.bodyEncodingInJSON == true) {
 					this.headers['Content-Type'] = 'application/json';
 					this.data = JSON.stringify(opt.data);
 				} else {

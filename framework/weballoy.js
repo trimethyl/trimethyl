@@ -21,10 +21,7 @@ function embedFile(f) {
 	if (_.isEmpty(f)) return null;
 
 	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
-	if ( ! file.exists()) {
-		Ti.API.debug('Weballoy: File not found (' + f + ')');
-		return null;
-	}
+	if ( ! file.exists()) return null;
 
 	return file;
 }
