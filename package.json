@@ -1,7 +1,7 @@
 {
   "name": "trimethyl",
   "description": "Alloy+Titanium toolchain with superpowers",
-  "version": "3.8.9",
+  "version": "3.9.0",
   "author": "Flavio De Stefano <flavio.destefano@caffeinalab.com>",
   "contributors": [
     {
@@ -31,7 +31,8 @@
   },
   "scripts": {
     "test": "jshint framework --exclude framework/ext",
-    "gendoc": "./gen-doc.sh"
+    "gendoc": "./gendoc.sh",
+    "patch": "./publisher.sh patch"
   },
   "bin": {
     "trimethyl": "./cli.js"
