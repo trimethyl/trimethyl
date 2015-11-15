@@ -30,7 +30,8 @@
     "url": "https://github.com/CaffeinaLab/Trimethyl/issues"
   },
   "scripts": {
-    "test": "jshint framework --exclude framework/ext"
+    "test": "jshint framework --exclude framework/ext",
+    "gendoc": "./gen-doc.sh"
   },
   "bin": {
     "trimethyl": "./cli.js"
