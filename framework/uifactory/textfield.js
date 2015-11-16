@@ -81,6 +81,7 @@ module.exports = function(args) {
 			$eyeButton.active = !$eyeButton.active;
 			$eyeButton.opacity = $eyeButton.active ? 1 : 0.2;
 			$this.passwordMask = !$eyeButton.active;
+			$this.value = _.clone($this.value); // this fix a strange font-change behaviour
 		});
 	}
 
