@@ -68,6 +68,10 @@ module.exports = function(args) {
 		}
 	}, args.fontTransform);
 
+	$this.addEventListener('link', function(e) {
+		Ti.Platform.openURL(e.url);
+	});
+
 	/**
 	* @method setHtml
 	* @param {String} value
