@@ -99,11 +99,12 @@ HTTPRequest.prototype.toString = function() {
 };
 
 HTTPRequest.prototype.getDebugString = function() {
-	return this.method + ' ' + this.url + ' ' + (this.data || '');
+	return this.method + ' ' + this.url + (this.data ? (' ' + this.data) : '');
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (exports.config.useCache === false || this.opt.cache === false || this.method !== 'GET') {
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> can\'t apply cache strategies upfront');
 		return;
 	}
 
@@ -176,7 +177,7 @@ HTTPRequest.prototype._onError = function(err) {
 	var self = this;
 	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
 
-	if (exports.config.errorAlert && this.opt.errorAlert !== false) {
+	if (!err.offline && exports.config.errorAlert === true && this.opt.errorAlert !== false) {
 		Util.errorAlert(err, function() {
 			if (_.isFunction(self.opt.error)) self.opt.error(err);
 		});
@@ -184,7 +185,7 @@ HTTPRequest.prototype._onError = function(err) {
 	}
 
 	if (_.isFunction(self.opt.error)) self.opt.error(err);
-	if (_.isFunction(this.opt.complete)) this.opt.complete(e);
+	if (_.isFunction(self.opt.complete)) self.opt.complete(e);
 };
 
 HTTPRequest.prototype._onSuccess = function() {
@@ -228,8 +229,10 @@ HTTPRequest.prototype._onComplete = function(e) {
 
 	if (e.success) {
 		Ti.API.debug('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
+
 		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
+
 	} else {
 		this.defer.reject({
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
@@ -321,12 +324,12 @@ HTTPRequest.prototype.success = HTTPRequest.prototype.then = function(func) {
 	return this;
 };
 
-HTTPRequest.prototype.error = HTTPRequest.prototype.fail = function(func) {
+HTTPRequest.prototype.error = HTTPRequest.prototype.fail = HTTPRequest.prototype.catch = function(func) {
 	this.defer.promise.catch(func);
 	return this;
 };
 
-HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = function(func) {
+HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = HTTPRequest.prototype.finally = function(func) {
 	this.defer.promise.finally(func);
 	return this;
 };
