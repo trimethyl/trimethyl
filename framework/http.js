@@ -601,3 +601,19 @@ exports.exportCookiesToSystem = function(domain) {
 		Ti.Network.addSystemCookie(c);
 	});
 };
+
+
+//////////
+// Init //
+//////////
+
+headers['X-Ti-Version']  = Ti.version;
+headers['X-Platform'] = Util.getPlatformFullName();
+
+headers['X-App-Id'] = Ti.App.id;
+headers['X-App-Version'] = Ti.App.version;
+headers['X-App-DeployType'] = Ti.App.deployType;
+
+if (OS_IOS) {
+	headers['X-App-InstallId'] = Ti.App.installId;
+}

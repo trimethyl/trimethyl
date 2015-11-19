@@ -50,7 +50,7 @@ exports.login = function(opt) {
 };
 
 exports.logout = function() {
-	Ti.App.Properties.removeProperty('auth.facebook.data', data);
+	Ti.App.Properties.removeProperty('auth.facebook.data');
 	Facebook.logout();
 };
 

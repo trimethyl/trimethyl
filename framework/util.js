@@ -575,6 +575,14 @@ exports.zeroPad = function(num, size) {
  * @return {String}
  */
 exports.guid = function() {
-	function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
-	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+	return Ti.Platform.createUUID();
+};
+
+/**
+ * @method getPlatform
+ * Get the full platform name
+ * @return {String}
+ */
+exports.getPlatformFullName = function() {
+	return Ti.Platform.model + ' - ' + Ti.Platform.osname + ' ' + Ti.Platform.version + ' (' + Ti.Platform.ostype + ') - ' + Ti.Platform.locale;
 };
