@@ -19,21 +19,23 @@ var launchURL = null;
  * Check if the first open of the app.
  *
  * Call {@link #setFirstUse} to set the first use of the app.
- *
+ * @param {String} prefix A prefix to apply
  * @return {Boolean}
  */
-exports.isFirstUse = function() {
-	return !Ti.App.Properties.hasProperty('app.firstuse');
+exports.isFirstUse = function(prefix) {
+	prefix = prefix || '';
+	return !Ti.App.Properties.hasProperty('app.firstuse' + prefix);
 };
 
 /**
  * @method setFirstUse
  * Set the app first usage date.
- *
+ * @param {String} prefix A prefix to apply
  * Use in conjunction with {@link #isFirstUse}
  */
-exports.setFirstUse = function() {
-	Ti.App.Properties.setString('app.firstuse', Util.now());
+exports.setFirstUse = function(prefix) {
+	prefix = prefix || '';
+	Ti.App.Properties.setString('app.firstuse' + prefix, Util.now());
 };
 
 /**
