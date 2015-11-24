@@ -307,19 +307,21 @@ module.exports = function(args) {
 		columns: [],
 
 		/**
-		 * @property {Object} [value]
+		 * @property {Object} [columnsValues=null]
 		 * Values of the columns
 		 */
 		columnsValues: null,
 
 		/**
-		 * @property {Array} [values=[]]
+		 * @property {Array} [values=null]
+		 * @deprecated Use columns instead
 		 * Shorthand for a single-columns values
 		 */
 		values: null,
 
 		/**
-		 * @property {Object} [value]
+		 * @property {Object} [value=null]
+		 * @deprecated Use columnsValues instead
 		 * Shorthand for a single-columns columnsValues
 		 */
 		value: null,
