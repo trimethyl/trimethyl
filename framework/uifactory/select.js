@@ -4,32 +4,48 @@
  */
 
 var Moment = require('alloy/moment');
+var Util = require('T/util');
+
+var Data = {};
 
 function fillPickerData($this, $picker) {
-	if (OS_ANDROID && $picker.columns != null && $picker.columns[0] != null) {
-		var col = $picker.columns[0];
-		for (var i = col.rowCount; i >= 0; i--) {
-			col.removeRow( col.rows[i] );
-		}
+	if (OS_ANDROID) {
+		_.each($picker.columns, function(col) {
+			for (var i = col.rowCount; i >= 0; i--) {
+				col.removeRow( col.rows[i] );
+			}
+		});
 	}
 
-	if ($this != null && $this.interfaceValues != null && $this.interfaceValues.length > 0) {
-		$picker.add(_.map($this.interfaceValues, function(o) {
-			return Ti.UI.createPickerRow(o);
-		}));
-		$picker.setSelectedRow(0, $this.interfaceIndex || 0, false);
+	if ($this != null) {
+		var pickerColumns = Data[ $this._uid ].interfaceValues.map(function(rows, columnIndex) {
+			var $col = Ti.UI.createPickerColumn();
+			rows.forEach(function(value) {
+				$col.addRow( Ti.UI.createPickerRow(value) );
+			});
+			return $col;
+		});
+		$picker.columns = pickerColumns;
+		Data[ $this._uid ].interfaceValues.forEach(function(rows, columnIndex) {
+			$picker.setSelectedRow(columnIndex, Data[ $this._uid ].interfaceIndex[columnIndex] || 0, false);
+		});
 	}
+
+	Data[ $this._uid ].eventsOnChange = [];
 }
 
 function onValueSelected($this, $picker) {
-	var e = $picker.cdata || {};
-
 	if ($this.typeString === 'plain') {
-		if (e.row != null) {
-			$this.interfaceValue = e.row.value;
-			$this.interfaceIndex = e.row.index;
-			$this.interfaceTitle = e.row.value ? e.row.title : null;
-		}
+
+		Data[ $this._uid ].eventsOnChange.forEach(function(e, columnIndex) {
+			Ti.API.error('------------', e, columnIndex);
+			if (e != null) {
+				Data[ $this._uid ].interfaceValue[columnIndex] = e.value;
+				Data[ $this._uid ].interfaceIndex[columnIndex] = e.index;
+				Data[ $this._uid ].interfaceTitle[columnIndex] = e.value ? e.title : null;
+			}
+		});
+
 	} else if ($this.typeString === 'date') {
 		$this.interfaceValue = $picker.value;
 	}
@@ -55,7 +71,8 @@ function createTiUIPicker($this) {
 		fillPickerData($this, $picker);
 
 		$picker.addEventListener('change', function(e) {
-			$picker.cdata = e;
+			Data[ $this._uid ].eventsOnChange[e.columnIndex] = e.row;
+
 			if (OS_ANDROID) {
 				// This has been the root of all evils - is $picker, $picker (not $this, $picker)
 				onValueSelected($picker, $picker);
@@ -77,7 +94,7 @@ function createTiUIPicker($this) {
 		}
 
 		$picker.addEventListener('change', function(e) {
-			$picker.cdata = e;
+			$picker.eventsOnChange = e;
 		});
 
 	}
@@ -213,56 +230,56 @@ var UIPickers = {
 
 };
 
-function dataPickerInterface(opt, $this) {
+
+function dataPickerInterface(type, opt) {
 	var self = {};
 
-	if (opt.type === 'plain') {
+	if (type === 'plain') {
 
-		if ($this.permitNullValue) {
-			opt.values.unshift({
-				title: _.isString($this.permitNullValue) ? $this.permitNullValue : '',
-				value: null
+		self.interfaceValues = opt.columns.map(function(column, columnIndex) {
+			return column.map(function(row, rowIndex) {
+				var val = null;
+				var current = opt.columnsValues != null ? opt.columnsValues[columnIndex] : null;
+				if (_.isObject(row)) {
+					val = _.extend({}, row, {
+						index: rowIndex,
+						selected: (current != null && _.isEqual(current, val.value))
+					});
+				} else {
+					val = {
+						title: row.toString(),
+						value: row,
+						index: rowIndex,
+						selected: (current != null && current == row)
+					};
+				}
+				return val;
 			});
-		}
+		});
 
-		self.interfaceValues = _.map(opt.values, function(v, index) {
-			var val = null;
-			if (_.isObject(v)) {
-				val = _.extend({}, v, { index: index });
-				if (opt.current != null && _.isEqual(opt.current, val.value)) {
-					val.selected = true;
-				}
+		Ti.API.error('JOHHHHN', self.interfaceValues);
+
+		self.interfaceValue = [];
+		self.interfaceIndex = [];
+		self.interfaceTitle = [];
+
+		_.each(self.interfaceValues, function(rows, columnIndex) {
+			var row = _.findWhere(rows, { selected: true });
+
+			if (row != null) {
+				self.interfaceValue[columnIndex] = row.value;
+				self.interfaceIndex[columnIndex] = row.index;
+				self.interfaceTitle[columnIndex] = row.title;
 			} else {
-				val = {
-					title: v.toString(),
-					value: v,
-					index: index,
-				};
-				if (opt.current != null && opt.current == v) {
-					val.selected = true;
-				}
+				self.interfaceValue[columnIndex] = null;
+				self.interfaceIndex[columnIndex] = null;
+				self.interfaceTitle[columnIndex] = null;
 			}
-			return val;
 		});
 
-		var row = _.findWhere(self.interfaceValues, {
-			selected: true
-		});
-
-		if (row != null) {
-			self.interfaceValue = row.value;
-			self.interfaceIndex = row.index;
-			self.interfaceTitle = row.title;
-		} else {
-			self.interfaceValue = null;
-			self.interfaceIndex = null;
-			self.interfaceTitle = null;
-		}
-
-	} else if (opt.type === 'date') {
-		self.interfaceValue = opt.current || new Date();
+	} else if (type === 'date') {
+		//self.dateValue = opt.current || new Date();
 	}
-
 
 	return self;
 }
@@ -276,16 +293,28 @@ module.exports = function(args) {
 		dateFormat: 'D MMMM YYYY',
 
 		/**
-		 * @property {Array} [values=[]]
-		 * An array containing the values.
-		 * You can specify an entry like `{ value: '1', title: 'One' }` to define different title/values.
-		 * Alternatively, just delcare an entry with a primitive value.
+		 * @property {Array} [columns=[]]
+		 * An array containing arrays of values.
+		 * For each entry you can specify an entry like `{ value: '1', title: 'One' }` to define different title/values.
+		 * Alternatively, just declare an entry with a primitive value.
 		 */
-		values: [],
+		columns: [],
 
 		/**
 		 * @property {Object} [value]
-		 * Value of the picker
+		 * Values of the columns
+		 */
+		columnsValues: null,
+
+		/**
+		 * @property {Array} [values=[]]
+		 * Shorthand for a single-columns values
+		 */
+		values: null,
+
+		/**
+		 * @property {Object} [value]
+		 * Shorthand for a single-columns columnsValues
 		 */
 		value: null,
 
@@ -295,23 +324,25 @@ module.exports = function(args) {
 		 */
 		type: 'plain',
 
-		/**
-		 * @property permitNullValue
-		 * Permit or not a default initial null value
-		 * @type {Boolean}
-		 */
-		permitNullValue: false
+		current: null
 
 	});
 
-	// Create a unique interface
-	_.extend(args, dataPickerInterface({
-		values: args.values,
-		current: args.value || args.theValue, // theValue is deprecated
-		type: args.type
-	}, args));
+	if (args.values != null) {
+		args.columns = [ args.values ];
+		args.columnsValues = [ args.value ];
+	}
 
-	delete args.theValue;
+	args._uid = _.uniqueId();
+
+	// Create a unique interface
+	Data[ args._uid ] = dataPickerInterface(args.type, {
+		columnsValues: args.columnsValues,
+		columns: args.columns
+	});
+
+	delete args.columns;
+	delete args.columnsValues;
 	delete args.value;
 	delete args.values;
 
@@ -357,18 +388,24 @@ module.exports = function(args) {
 
 	$this.updateUI = function() {
 		$this.fireEvent('change', {
-			value: $this.interfaceValue,
+			value: $this.getValue(),
 			source: $this
 		});
 
 		if ($this.typeString === 'plain') {
+
+			Ti.API.error('intftext', Data[ $this._uid ].interfaceTitle);
+
 			if (OS_IOS) {
-				$this.text = $this.interfaceTitle || $this.hintText || '';
+				$this.text = Data[ $this._uid ].interfaceTitle.join(' ') || $this.hintText || '';
 			} else {
-				this.setSelectedRow(0, $this.interfaceIndex || 0, false);
+				Data[ $this._uid ].interfaceIndex.forEach(function(rowIndex, columnIndex) {
+					this.setSelectedRow(columnIndex, rowIndex, false);
+				});
 			}
+
 		} else if ($this.typeString === 'date') {
-			$this.text = $this.interfaceValue ? Moment($this.interfaceValue).format($this.dateFormat) : ($this.hintText || '');
+			// $this.text = $this.interfaceValue ? Moment($this.interfaceValue).format($this.dateFormat) : ($this.hintText || '');
 		}
 	};
 
@@ -378,22 +415,26 @@ module.exports = function(args) {
 	 * @return {Object}
 	 */
 	$this.getValue = function() {
-		return $this.interfaceValue;
+		var interfaceValues = Data[ $this._uid ].interfaceValues;
+		if (interfaceValues.length === 1) return interfaceValues[0];
+		return interfaceValues;
 	};
 
 	/**
 	 * @method  setValue
 	 * Set the current value
 	 */
-	$this.setValue = function(value) {
-		$this.interfaceValue = value;
+	$this.setValue = function(values) {
+		Data[ $this._uid ].interfaceValue = value;
 
 		if ($this.typeString === 'plain') {
-			var row = _.findWhere($this.interfaceValues, { value: value });
-			if (row != null) {
-				$this.interfaceIndex = row.index;
-				$this.interfaceTitle = row.title;
-			}
+			Data[ $this._uid ].interfaceValues.forEach(function(rows, columnIndex) {
+				var row = _.findWhere(rows, { value: values[columnIndex] });
+				if (row != null) {
+					Data[ $this._uid ].interfaceIndex[columnIndex] = row.index;
+					Data[ $this._uid ].interfaceTitle[columnIndex] = row.title;
+				}
+			});
 		}
 
 		$this.updateUI();
@@ -405,11 +446,19 @@ module.exports = function(args) {
 	 * Set the values for the picker
 	 */
 	$this.setValues = function(values) {
-		_.extend($this, dataPickerInterface({
-			values: values,
-			current: $this.interfaceValue,
-			type: $this.typeString
-		}, $this));
+		$this.setColumns([ values ]);
+	};
+
+	/**
+	 * @method setColumns
+	 * @param {Array} columns The columns
+	 * Set the columns for the picker
+	 */
+	$this.setColumns = function(columns) {
+		_.extend(Data[ args._uid ], dataPickerInterface($this.typeString, {
+			columnsValues: $this.columnsValues,
+			columns: columns
+		}));
 
 		if (OS_ANDROID) {
 			fillPickerData($this, $this);

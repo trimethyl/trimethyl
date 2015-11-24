@@ -1,5 +1,7 @@
 <Alloy>
-	<Window fullscreen="true">
-		<ScrollView id="sview" layout="vertical" />
-	</Window>
+	<NavigationWindow id="nav">
+		<Window fullscreen="true" title="main">
+			<ScrollView id="sview" layout="vertical" />
+		</Window>
+	</NavigationWindow>
 </Alloy>
