@@ -1,6 +1,7 @@
 <Alloy>
 	<NavigationWindow id="nav">
-		<Window fullscreen="true" title="main">
+		<Window title="Trimethyl">
+			<RightNavButton><Button title="UI Tests" id="uiTestsBtn" /></RightNavButton>
 			<ScrollView id="sview" layout="vertical" />
 		</Window>
 	</NavigationWindow>

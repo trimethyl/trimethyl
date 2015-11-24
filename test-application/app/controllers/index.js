@@ -31,6 +31,11 @@ function log(text, color, top) {
 
 })();
 
-$.nav.open();
+$.uiTestsBtn.addEventListener('click', function(e) {
+	T('dialog').option('UI Tests', [
+		{ title: 'Select', callback: function() { $.nav.openWindow(Alloy.createController('ui-select').getView()); } },
+		{ title: 'Cancel', cancel: true }
+	]);
+});
 
-$.nav.openWindow( Alloy.createController('ui-select').getView() );
+$.nav.open();

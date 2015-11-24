@@ -18,7 +18,7 @@ function fillPickerData($this, $picker) {
 	}
 
 	if ($this != null) {
-		var pickerColumns = Data[ $this._uid ].interfaceValues.map(function(rows, columnIndex) {
+		var pickerColumns = Data[ $this._uid ].values.map(function(rows, columnIndex) {
 			var $col = Ti.UI.createPickerColumn();
 			rows.forEach(function(value) {
 				$col.addRow( Ti.UI.createPickerRow(value) );
@@ -26,8 +26,12 @@ function fillPickerData($this, $picker) {
 			return $col;
 		});
 		$picker.columns = pickerColumns;
-		Data[ $this._uid ].interfaceValues.forEach(function(rows, columnIndex) {
-			$picker.setSelectedRow(columnIndex, Data[ $this._uid ].interfaceIndex[columnIndex] || 0, false);
+
+		// Wait for visible custom event, 'cause "On iOS, this method must be called after the picker is rendered."
+		$picker.addEventListener('visible', function(e) {
+			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
+				$picker.setSelectedRow(columnIndex, Data[ $this._uid ].indexes[columnIndex] || 0, false);
+			});
 		});
 	}
 
@@ -38,16 +42,15 @@ function onValueSelected($this, $picker) {
 	if ($this.typeString === 'plain') {
 
 		Data[ $this._uid ].eventsOnChange.forEach(function(e, columnIndex) {
-			Ti.API.error('------------', e, columnIndex);
 			if (e != null) {
-				Data[ $this._uid ].interfaceValue[columnIndex] = e.value;
-				Data[ $this._uid ].interfaceIndex[columnIndex] = e.index;
-				Data[ $this._uid ].interfaceTitle[columnIndex] = e.value ? e.title : null;
+				Data[ $this._uid ].value[columnIndex] = e.value;
+				Data[ $this._uid ].indexes[columnIndex] = e.index;
+				Data[ $this._uid ].titles[columnIndex] = e.value ? e.title : null;
 			}
 		});
 
 	} else if ($this.typeString === 'date') {
-		$this.interfaceValue = $picker.value;
+		Data[ $this._uid ].value = $picker.value;
 	}
 
 	if (OS_IOS) {
@@ -83,7 +86,7 @@ function createTiUIPicker($this) {
 
 		if (OS_IOS) {
 			$picker = Ti.UI.createPicker({
-				value: $this.interfaceValue,
+				value: $this.getValue(),
 				minDate: $this.minDate,
 				maxDate: $this.maxDate,
 				width: Ti.UI.FILL,
@@ -92,10 +95,6 @@ function createTiUIPicker($this) {
 		} else if (OS_ANDROID) {
 			// no case
 		}
-
-		$picker.addEventListener('change', function(e) {
-			$picker.eventsOnChange = e;
-		});
 
 	}
 
@@ -160,6 +159,11 @@ var UIPickers = {
 			backgroundColor: '#4000',
 		});
 		$pickerModal.add($containerView);
+
+		$pickerModal.addEventListener('open', function(e) {
+			$picker.fireEvent('visible');
+		});
+
 		$pickerModal.open();
 
 		$containerView.animate({
@@ -191,6 +195,10 @@ var UIPickers = {
 		});
 		$containerWindow.add($picker);
 
+		$containerWindow.addEventListener('open', function(e) {
+			$picker.fireEvent('visible');
+		});
+
 		$containerWindow.addEventListener('close', function(e) {
 			if (!has_value) {
 				$this.fireEvent('cancelled');
@@ -218,11 +226,9 @@ var UIPickers = {
 				typeString: Ti.UI.PICKER_TYPE_DATE,
 			})
 		).showDatePickerDialog({
-			value: $this.interfaceValue,
+			value: $this.getValue(),
 			callback: function(e) {
 				if (e.value == null || e.cancel !== false) return;
-
-				$this.interfaceValue = e.value;
 				$this.updateUI();
 			}
 		});
@@ -236,14 +242,14 @@ function dataPickerInterface(type, opt) {
 
 	if (type === 'plain') {
 
-		self.interfaceValues = opt.columns.map(function(column, columnIndex) {
+		self.values = opt.columns.map(function(column, columnIndex) {
 			return column.map(function(row, rowIndex) {
 				var val = null;
 				var current = opt.columnsValues != null ? opt.columnsValues[columnIndex] : null;
 				if (_.isObject(row)) {
 					val = _.extend({}, row, {
 						index: rowIndex,
-						selected: (current != null && _.isEqual(current, val.value))
+						selected: (current != null && _.isEqual(current, (_.isObject(val) ? val.value : val) ))
 					});
 				} else {
 					val = {
@@ -257,28 +263,28 @@ function dataPickerInterface(type, opt) {
 			});
 		});
 
-		Ti.API.error('JOHHHHN', self.interfaceValues);
+		self.value = [];
+		self.indexes = [];
+		self.titles = [];
 
-		self.interfaceValue = [];
-		self.interfaceIndex = [];
-		self.interfaceTitle = [];
-
-		_.each(self.interfaceValues, function(rows, columnIndex) {
+		_.each(self.values, function(rows, columnIndex) {
 			var row = _.findWhere(rows, { selected: true });
 
 			if (row != null) {
-				self.interfaceValue[columnIndex] = row.value;
-				self.interfaceIndex[columnIndex] = row.index;
-				self.interfaceTitle[columnIndex] = row.title;
+				self.value[columnIndex] = row.value;
+				self.indexes[columnIndex] = row.index;
+				self.titles[columnIndex] = row.title;
 			} else {
-				self.interfaceValue[columnIndex] = null;
-				self.interfaceIndex[columnIndex] = null;
-				self.interfaceTitle[columnIndex] = null;
+				self.value[columnIndex] = null;
+				self.indexes[columnIndex] = null;
+				self.titles[columnIndex] = null;
 			}
 		});
 
 	} else if (type === 'date') {
-		//self.dateValue = opt.current || new Date();
+
+		self.value = opt.value || new Date();
+
 	}
 
 	return self;
@@ -322,9 +328,7 @@ module.exports = function(args) {
 		 * @property {String} [type="plain"]
 		 * Type of the picker. Could be `plain`, `date`.
 		 */
-		type: 'plain',
-
-		current: null
+		type: 'plain'
 
 	});
 
@@ -337,8 +341,14 @@ module.exports = function(args) {
 
 	// Create a unique interface
 	Data[ args._uid ] = dataPickerInterface(args.type, {
+
+		// For plain
 		columnsValues: args.columnsValues,
-		columns: args.columns
+		columns: args.columns,
+
+		// For date
+		value: args.value
+
 	});
 
 	delete args.columns;
@@ -387,25 +397,27 @@ module.exports = function(args) {
 	}
 
 	$this.updateUI = function() {
+		var val = $this.getValue();
+
 		$this.fireEvent('change', {
-			value: $this.getValue(),
+			value: val,
 			source: $this
 		});
 
 		if ($this.typeString === 'plain') {
 
-			Ti.API.error('intftext', Data[ $this._uid ].interfaceTitle);
-
 			if (OS_IOS) {
-				$this.text = Data[ $this._uid ].interfaceTitle.join(' ') || $this.hintText || '';
+				$this.text = Data[ $this._uid ].titles.join(' ') || $this.hintText || '';
 			} else {
-				Data[ $this._uid ].interfaceIndex.forEach(function(rowIndex, columnIndex) {
+				Data[ $this._uid ].indexes.forEach(function(rowIndex, columnIndex) {
 					this.setSelectedRow(columnIndex, rowIndex, false);
 				});
 			}
 
 		} else if ($this.typeString === 'date') {
-			// $this.text = $this.interfaceValue ? Moment($this.interfaceValue).format($this.dateFormat) : ($this.hintText || '');
+
+			$this.text = val ? Moment(val).format($this.dateFormat) : ($this.hintText || '');
+
 		}
 	};
 
@@ -415,9 +427,11 @@ module.exports = function(args) {
 	 * @return {Object}
 	 */
 	$this.getValue = function() {
-		var interfaceValues = Data[ $this._uid ].interfaceValues;
-		if (interfaceValues.length === 1) return interfaceValues[0];
-		return interfaceValues;
+		var v = Data[ $this._uid ].value;
+		if ($this.typeString === 'plain') {
+			if (v != null && v.length === 1) return v[0];
+		}
+		return v;
 	};
 
 	/**
@@ -425,14 +439,14 @@ module.exports = function(args) {
 	 * Set the current value
 	 */
 	$this.setValue = function(values) {
-		Data[ $this._uid ].interfaceValue = value;
+		Data[ $this._uid ].value = value;
 
 		if ($this.typeString === 'plain') {
-			Data[ $this._uid ].interfaceValues.forEach(function(rows, columnIndex) {
+			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
 				var row = _.findWhere(rows, { value: values[columnIndex] });
 				if (row != null) {
-					Data[ $this._uid ].interfaceIndex[columnIndex] = row.index;
-					Data[ $this._uid ].interfaceTitle[columnIndex] = row.title;
+					Data[ $this._uid ].indexes[columnIndex] = row.index;
+					Data[ $this._uid ].titles[columnIndex] = row.title;
 				}
 			});
 		}
