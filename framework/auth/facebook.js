@@ -12,8 +12,7 @@ exports.config = _.extend({
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
 
 var Util = require('T/util');
-var FB = require('T/fb'); // Use FB as an accessor
-var Facebook = require('facebook'); // Use Facebook for the absolute module
+var _FB = require('T/fb'); // Use FB as an accessor
 
 if (OS_IOS) {
 	// It seems that iOS (sometimes) doesn't trigger the login event
@@ -26,10 +25,10 @@ if (OS_IOS) {
 	Ti.App.addEventListener('resumed', function() { _.defer(function() {
 		var currentSchema = Util.parseSchema();
 		if (/^fb\d+\:\/\/authorize/.test(currentSchema)) {
-			Facebook.fireEvent('login', {
+			_FB.fireEvent('login', {
 				manualFire: true,
-				success: Facebook.loggedIn,
-				accessToken: Facebook.accessToken
+				success: _FB.loggedIn,
+				accessToken: _FB.accessToken
 			});
 		}
 	}); });
@@ -40,18 +39,18 @@ var localOptions = null;
 exports.login = function(opt) {
 	localOptions = opt; // store globally
 
-	if (Facebook.loggedIn) {
+	if (_FB.loggedIn) {
 		localOptions.success({
-			access_token: Facebook.accessToken
+			access_token: _FB.accessToken
 		});
 	} else {
-		Facebook.authorize();
+		_FB.authorize();
 	}
 };
 
 exports.logout = function() {
 	Ti.App.Properties.removeProperty('auth.facebook.data');
-	Facebook.logout();
+	_FB.logout();
 };
 
 exports.isStoredLoginAvailable = function() {
@@ -66,7 +65,7 @@ exports.storedLogin = function(opt) {
 Init
 */
 
-Facebook.addEventListener('login', function(e) {
+_FB.addEventListener('login', function(e) {
 	Ti.API.debug('Auth.Facebook: login fired', e);
 
 	// This is a security hack caused by iOS SDK that automatically trigger the login event
@@ -79,16 +78,16 @@ Facebook.addEventListener('login', function(e) {
 	if (e.success) {
 
 		Ti.App.Properties.setObject('auth.facebook.data', {
-			accessToken: Facebook.accessToken,
-			expirationDate: Facebook.expirationDate
+			accessToken: _FB.accessToken,
+			expirationDate: _FB.expirationDate
 		});
 
 		localOptions.success({
-			access_token: Facebook.accessToken
+			access_token: _FB.accessToken
 		});
 
 	} else {
-		Facebook.logout();
+		_FB.logout();
 		localOptions.error({
 			message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')
 		});

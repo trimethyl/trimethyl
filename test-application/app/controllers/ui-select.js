@@ -2,7 +2,7 @@ var args = arguments[0] || {};
 
 var selectA = T('uifactory').createSelect({
 	columns: [
-		[1,2,3,4],
+		[1,2,{title:'3',value:3},4],
 		[
 		{title:'alpha',value:'a'},
 		'b',

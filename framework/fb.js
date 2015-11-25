@@ -14,18 +14,18 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? (Alloy.CFG.T.fb || Alloy.CFG.T.facebook) : {});
 
 var Util = require('T/util');
-var Facebook = Util.requireOrNull('facebook');
+var _FB = Util.requireOrNull('facebook');
 
-if (Facebook) {
+if (_FB) {
 
 	// Hydratate module
 
-	Facebook.fetchUser = function(opt) {
+	_FB.fetchUser = function(opt) {
 		opt = _.defaults(opt || {}, {
 			fields: 'name,email,first_name,last_name'
 		});
 
-		Facebook.requestWithGraphPath('me', { fields: opt.fields }, 'GET', function(e) {
+		_FB.requestWithGraphPath('me', { fields: opt.fields }, 'GET', function(e) {
 			if (e.success && e.result != null) {
 				if (_.isFunction(opt.success)) opt.success(JSON.parse(e.result));
 			} else {
@@ -35,13 +35,17 @@ if (Facebook) {
 	};
 
 	if (!_.isEmpty(exports.config.permissions)) {
-		Facebook.permissions = exports.config.permissions;
+		_FB.permissions = exports.config.permissions;
 	}
 
-	if (_.isFunction(Facebook.initialize)) {
-		Facebook.initialize(+exports.config.timeout);
+	if (_.isFunction(_FB.initialize)) {
+		_FB.initialize(+exports.config.timeout);
 	}
+
+} else {
+
+	Ti.API.error('FB: Facebook native module not found');
 
 }
 
-module.exports = Facebook;
+module.exports = _FB;
