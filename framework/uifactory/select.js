@@ -438,28 +438,18 @@ module.exports = function(args) {
 
 	/**
 	 * @method  setValue
+	 * @param {Object} value
 	 * Set the current value
+	 * Shorthand for setColumnsValues with a single columns picker
 	 */
-	$this.setValue = function(values) {
-		Data[ $this._uid ].value = value;
-
-		if ($this.typeString === 'plain') {
-			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
-				var row = _.findWhere(rows, { value: values[columnIndex] });
-				if (row != null) {
-					Data[ $this._uid ].indexes[columnIndex] = row.index;
-					Data[ $this._uid ].titles[columnIndex] = row.title;
-				}
-			});
-		}
-
-		$this.updateUI();
+	$this.setValue = function(value) {
+		$this.setColumnsValues([ value ]);
 	};
 
 	/**
 	 * @method setValues
-	 * @param {Array} values The values
-	 * Set the values for the picker
+	 * @param {Array} values
+	 * Shorthand for setColumns with a single columns picker
 	 */
 	$this.setValues = function(values) {
 		$this.setColumns([ values ]);
@@ -478,6 +468,26 @@ module.exports = function(args) {
 
 		if (OS_ANDROID) {
 			fillPickerData($this, $this);
+		}
+
+		$this.updateUI();
+	};
+
+	/**
+	 * @method setColumnsValues
+	 * @param {Array} columnsValues
+	 */
+	$this.setColumnsValues = function(columnsValues) {
+		Data[ $this._uid ].value = columnsValues;
+
+		if ($this.typeString === 'plain') {
+			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
+				var row = _.findWhere(rows, { value: columnsValues[columnIndex] });
+				if (row != null) {
+					Data[ $this._uid ].indexes[columnIndex] = row.index;
+					Data[ $this._uid ].titles[columnIndex] = row.title;
+				}
+			});
 		}
 
 		$this.updateUI();

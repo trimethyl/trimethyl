@@ -61,3 +61,13 @@ selectDate.addEventListener('change', function(e) {
 });
 
 $.win.add( selectDate );
+
+var btn = Ti.UI.createButton({
+	title: 'Test setValue'
+});
+btn.addEventListener('click', function(e) {
+	selectA.setColumnsValues([ 2,'b' ]);
+	selectB.setValue('cow');
+});
+
+$.win.add(btn);
