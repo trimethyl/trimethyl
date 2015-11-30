@@ -25,7 +25,8 @@ function fillPickerData($this, $picker) {
 			});
 			return $col;
 		});
-		$picker.columns = pickerColumns;
+
+		if (OS_IOS || pickerColumns.length > 0) $picker.columns = pickerColumns;
 
 		// Wait for visible custom event, 'cause "On iOS, this method must be called after the picker is rendered."
 		$picker.addEventListener('visible', function(e) {
@@ -412,7 +413,7 @@ module.exports = function(args) {
 				$this.text = Data[ $this._uid ].titles.join(' ') || $this.hintText || '';
 			} else {
 				Data[ $this._uid ].indexes.forEach(function(rowIndex, columnIndex) {
-					this.setSelectedRow(columnIndex, rowIndex, false);
+					$this.setSelectedRow(columnIndex, rowIndex, false);
 				});
 			}
 
