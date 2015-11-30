@@ -25,7 +25,6 @@ module.exports = function(args) {
 	};
 
 	var $img = Ti.UI.createImageView({
-		touchEnabled: false,
 		defaultImage: args.defaultImage || '',
 		width: Ti.UI.FILL,
 		height: Ti.UI.FILL
