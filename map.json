@@ -5,11 +5,11 @@
 		"description": "Boostrap for Trimethyl"
 	},
 
-	"app":{
+	"animator":{
 		"name": "Animator",
 		"description": "Animator helper"
 	},
-	"animator":{
+	"app":{
 		"name": "App",
 		"description": "Application manager",
 		"dependencies": ["util","router","http","dialog"]
@@ -93,6 +93,10 @@
 	"image":{
 		"name": "Image",
 		"description": "Image manipulation features."
+	},
+	"matrix":{
+		"name": "Matrix",
+		"description": "Matrix helper"
 	},
 	"notifications":{
 		"name": "Notifications",

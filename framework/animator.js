@@ -3,6 +3,8 @@
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Matrix = require('T/matrix');
+
 function noop() {}
 
 function simpleFromTo(view, a, b, callback) {
@@ -178,7 +180,7 @@ exports.fallDownForGravity = function(opt) {
 			opt.view.animate({
 				duration: 250,
 				curve: Titanium.UI[ "ANIMATION_CURVE_EASE_" + (index % 2 === 0 ? "IN" : "OUT") ],
-				transform: Ti.UI.create2DMatrix().translate(0, y)
+				transform: Matrix.i().t(0, y).matrix
 			});
 		});
 	})();
