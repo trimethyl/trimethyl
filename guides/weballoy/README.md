@@ -4,28 +4,28 @@
 
 The unique method `WebAlloy.createView` create a WebView with static html inside.
 
-To work with WebAlloy, you have to replicate the exact structure of an Alloy MVC pattern (*views/controllers/styles*) in the `/app/web` directory.
+To work with WebAlloy, you have to replicate the exact structure of an Alloy MVC pattern (*views/controllers/styles*) in the `/app/assets/web` directory.
 
 ## Globals files
 
-##### `/app/web/app.css`
+##### `/app/assets/web/app.css`
 Global CSS included in each view.
 
-##### `/app/web/app.jslocal`
+##### `/app/assets/web/app.jslocal`
 Global JS included in each view.
 
-##### `/app/web/lib/**.jslocal`
+##### `/app/assets/web/lib/**.jslocal`
 Put your jslocal files here, they are automatically appended at the end of the HTML.
 
 ## MVC specific files
 
-##### `/app/web/views/foo.tpl`
+##### `/app/assets/web/views/foo.tpl`
 HTML/TPL (underscore templating system) file that is parsed and written in the static HTML.
 
-##### `/app/web/controllers/foo.jslocal` (opt.)
+##### `/app/assets/web/controllers/foo.jslocal` (opt.)
 Javascript file included in the specific controller.
 
-##### `/app/web/styles/foo.css` (opt.)
+##### `/app/assets/web/styles/foo.css` (opt.)
 CSS file included in the specific controller.
 
 When you have replicated this structure, you can just call:
@@ -87,7 +87,7 @@ WebAlloy.createView({
 });
 ```
 
-In the controller `/app/web/controllers/foo.js` file, you have the `WebAlloy` object with the `run` method:
+In the controller `/app/assets/web/controllers/foo.js` file, you have the `WebAlloy` object with the `run` method:
 
 ```javascript
 WebAlloy.run('close');
