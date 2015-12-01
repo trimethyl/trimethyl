@@ -31,6 +31,8 @@ function log(text, color, top) {
 
 })();
 
+$.window.setActivityButton( $.uiTestsBtn );
+
 $.uiTestsBtn.addEventListener('click', function(e) {
 	T('dialog').option('UI Tests', [
 		{ title: 'Select', callback: function() { $.nav.openWindow(Alloy.createController('ui-select').getView()); } },

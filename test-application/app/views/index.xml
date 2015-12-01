@@ -1,6 +1,6 @@
 <Alloy>
-	<NavigationWindow id="nav">
-		<Window title="Trimethyl">
+	<NavigationWindow module="T/uifactory" id="nav">
+		<Window module="T/uifactory" id="window" title="Trimethyl">
 			<RightNavButton><Button title="UI Tests" id="uiTestsBtn" /></RightNavButton>
 			<ScrollView id="sview" layout="vertical" />
 		</Window>

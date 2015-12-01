@@ -5,28 +5,22 @@
 
 var Moment = require('alloy/moment');
 var Util = require('T/util');
+var Dialog = require('T/dialog');
 
 var Data = {};
 
+function getPickerColumn(rows) {
+	var $col = Ti.UI.createPickerColumn();
+	rows.forEach(function(value) {
+		$col.addRow( Ti.UI.createPickerRow(value) );
+	});
+	return $col;
+}
+
 function fillPickerData($this, $picker) {
-	if (OS_ANDROID) {
-		_.each($picker.columns, function(col) {
-			for (var i = col.rowCount; i >= 0; i--) {
-				col.removeRow( col.rows[i] );
-			}
-		});
-	}
-
 	if ($this != null) {
-		var pickerColumns = Data[ $this._uid ].values.map(function(rows, columnIndex) {
-			var $col = Ti.UI.createPickerColumn();
-			rows.forEach(function(value) {
-				$col.addRow( Ti.UI.createPickerRow(value) );
-			});
-			return $col;
-		});
-
-		if (OS_IOS || pickerColumns.length > 0) $picker.columns = pickerColumns;
+		var pickerColumns = Data[ $this._uid ].values.map(getPickerColumn);
+		if (pickerColumns.length > 0) $picker.columns = pickerColumns;
 
 		// Wait for visible custom event, 'cause "On iOS, this method must be called after the picker is rendered."
 		$picker.addEventListener('visible', function(e) {
@@ -54,8 +48,8 @@ function onValueSelected($this, $picker) {
 		Data[ $this._uid ].value = $picker.value;
 	}
 
-	if (OS_IOS) {
-		if (_.isFunction($this.updateUI)) $this.updateUI();
+	if (_.isFunction($this.updateUI)) {
+		$this.updateUI();
 	}
 }
 
@@ -64,38 +58,24 @@ function createTiUIPicker($this) {
 
 	if ($this.typeString === 'plain') {
 
-		if (OS_IOS) {
-			$picker = Ti.UI.createPicker({
-				width: Ti.UI.FILL,
-			});
-		} else if (OS_ANDROID) {
-			$picker = Ti.UI.createPicker($this);
-		}
-
+		$picker = Ti.UI.createPicker({
+			width: Ti.UI.FILL,
+		});
 		fillPickerData($this, $picker);
 
 		$picker.addEventListener('change', function(e) {
 			Data[ $this._uid ].eventsOnChange[e.columnIndex] = e.row;
-
-			if (OS_ANDROID) {
-				// This has been the root of all evils - is $picker, $picker (not $this, $picker)
-				onValueSelected($picker, $picker);
-			}
 		});
 
 	} else if ($this.typeString === 'date') {
 
-		if (OS_IOS) {
-			$picker = Ti.UI.createPicker({
-				value: $this.getValue(),
-				minDate: $this.minDate,
-				maxDate: $this.maxDate,
-				width: Ti.UI.FILL,
-				type: Ti.UI.PICKER_TYPE_DATE,
-			});
-		} else if (OS_ANDROID) {
-			// no case
-		}
+		$picker = Ti.UI.createPicker({
+			value: $this.getValue(),
+			minDate: $this.minDate,
+			maxDate: $this.maxDate,
+			width: Ti.UI.FILL,
+			type: Ti.UI.PICKER_TYPE_DATE,
+		});
 
 	}
 
@@ -128,7 +108,7 @@ var UIPickers = {
 		var $picker = createTiUIPicker($this);
 		var buttons = UIPickerButtons($this, $picker, {
 			cancel: function() {
-				$this.fireEvent('cancelled');
+				$this.fireEvent('cancel');
 				$pickerModal.close();
 			},
 			done: function() {
@@ -202,7 +182,7 @@ var UIPickers = {
 
 		$containerWindow.addEventListener('close', function(e) {
 			if (!has_value) {
-				$this.fireEvent('cancelled');
+				$this.fireEvent('cancel');
 			}
 		});
 
@@ -222,17 +202,119 @@ var UIPickers = {
 	},
 
 	android: function($this) {
-		Ti.UI.createPicker(
+		if ($this.typeString === 'plain') {
+
+			var $dialog = null;
+
+			if (Data[ $this._uid ].values.length === 1) {
+
+				// Implement an OptionDialog
+
+				$dialog = Ti.UI.createOptionDialog({
+					selectedIndex: Data[ $this._uid ].indexes[0],
+					buttonNames: [ L('cancel'), L('done'), ],
+					cancel: 0,
+					options: Data[ $this._uid ].values[0].map(function(e) { return String(e.title); })
+				});
+
+				$dialog.addEventListener('click', function(e) {
+					if (e.cancel) {
+						$this.fireEvent('cancel');
+						return;
+					}
+
+					var row  = Data[ $this._uid ].values[0][e.index];
+					if (row != null) {
+						Data[ $this._uid ].value[0] = row.value;
+						Data[ $this._uid ].indexes[0] = e.index;
+						Data[ $this._uid ].titles[0] = row.value ? row.title : null;
+					}
+
+					$this.updateUI();
+				});
+
+				$dialog.show();
+
+			} else {
+
+				// AlertDialog with AndroidView with TiUIPicker
+
+				var $dialogPickers = [];
+				$dialog = Ti.UI.createAlertDialog({
+					buttonNames: [ L('cancel'), L('done'), ],
+					cancel: 0,
+					androidView: (function() {
+						var $a = Ti.UI.createView();
+
+						var $wrap = Ti.UI.createView({
+							layout: 'horizontal',
+							width: '80%',
+							top: 20,
+							height: 80
+						});
+
+						var percent = Math.floor( 100 / Data[ $this._uid ].values.length ) + '%';
+						Data[ $this._uid ].values.forEach(function(column, columnIndex) {
+							var $picker = Ti.UI.createPicker({
+								width: percent,
+								height: 60,
+								columns: [ getPickerColumn(column) ]
+							});
+							$picker.setSelectedRow(0, Data[ $this._uid].indexes[columnIndex] || 0);
+
+							$picker.addEventListener('change', function(e) {
+								$picker._rowIndex = e.rowIndex;
+							});
+
+							$dialogPickers.push($picker);
+							$wrap.add($picker);
+						});
+
+						$a.add( $wrap );
+						return $a;
+					})()
+				});
+
+				$dialog.addEventListener('click', function(e) {
+					if (e.cancel) {
+						$this.fireEvent('cancel');
+						return;
+					}
+
+					$dialogPickers.forEach(function($p, columnIndex) {
+						if ($p._rowIndex > -1) {
+							var row  = Data[ $this._uid ].values[columnIndex][$p._rowIndex];
+							if (row != null) {
+								Data[ $this._uid ].value[columnIndex] = row.value;
+								Data[ $this._uid ].indexes[columnIndex] = $p._rowIndex;
+								Data[ $this._uid ].titles[columnIndex] = row.value ? row.title : null;
+							}
+						}
+					});
+
+					$this.updateUI();
+				});
+
+			}
+
+			$dialog.show();
+
+		} else if ($this.typeString === 'date') {
+
+			Ti.UI.createPicker(
 			_.extend({}, _.pick($this, 'minDate', 'maxDate'), {
 				typeString: Ti.UI.PICKER_TYPE_DATE,
 			})
-		).showDatePickerDialog({
-			value: $this.getValue(),
-			callback: function(e) {
-				if (e.value == null || e.cancel !== false) return;
-				$this.updateUI();
-			}
-		});
+			).showDatePickerDialog({
+				value: $this.getValue(),
+				callback: function(e) {
+					if (e.value == null || e.cancel !== false) return;
+					Data[ $this._uid ].value = e.value;
+					$this.updateUI();
+				}
+			});
+
+		}
 	}
 
 };
@@ -283,9 +365,7 @@ function dataPickerInterface(type, opt) {
 		});
 
 	} else if (type === 'date') {
-
 		self.value = opt.value || new Date();
-
 	}
 
 	return self;
@@ -365,39 +445,15 @@ module.exports = function(args) {
 	// Start UI
 
 	var $this = null;
+	_.defaults(args, {
+		height: 48,
+		width: Ti.UI.FILL
+	});
 
-	if (OS_IOS) {
-
-		// in iOS case, $this is a Label
-		_.defaults(args, {
-			height: 48,
-			width: Ti.UI.FILL
-		});
-
-		$this = Ti.UI.createLabel(args);
-
-		$this.addEventListener('click', function(){
-			UIPickers[ Ti.Platform.osname ]($this);
-		});
-
-	} else if (OS_ANDROID) {
-
-		if (args.typeString === 'plain') {
-
-			// Android Ti.UI.Picker just work
-			$this = createTiUIPicker(args);
-
-		} else if (args.typeString === 'date') {
-
-			// While Ti.UI.Picker Date is only modal
-			$this = Ti.UI.createLabel(args);
-
-			$this.addEventListener('click', function(){
-				UIPickers.android($this);
-			});
-
-		}
-	}
+	$this = Ti.UI.createLabel(args);
+	$this.addEventListener('click', function(){
+		UIPickers[ Ti.Platform.osname ]($this);
+	});
 
 	$this.updateUI = function() {
 		var val = $this.getValue();
@@ -408,19 +464,9 @@ module.exports = function(args) {
 		});
 
 		if ($this.typeString === 'plain') {
-
-			if (OS_IOS) {
-				$this.text = Data[ $this._uid ].titles.join(' ') || $this.hintText || '';
-			} else {
-				Data[ $this._uid ].indexes.forEach(function(rowIndex, columnIndex) {
-					$this.setSelectedRow(columnIndex, rowIndex, false);
-				});
-			}
-
+			$this.text = Data[ $this._uid ].titles.join(' ') || $this.hintText || '';
 		} else if ($this.typeString === 'date') {
-
 			$this.text = val ? Moment(val).format($this.dateFormat) : ($this.hintText || '');
-
 		}
 	};
 
@@ -466,11 +512,6 @@ module.exports = function(args) {
 			columnsValues: $this.columnsValues,
 			columns: columns
 		}));
-
-		if (OS_ANDROID) {
-			fillPickerData($this, $this);
-		}
-
 		$this.updateUI();
 	};
 
