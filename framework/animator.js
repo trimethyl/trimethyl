@@ -52,8 +52,8 @@ exports.fadeInUp = function(opt) {
 	});
 
 	return simpleFromTo(opt.view,
-	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(0, -opt.offset) },
-	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	{ opacity: 0, transform: Matrix.i().t(0, -opt.offset) },
+	{ opacity: 1, transform: Matrix.i(), duration: opt.duration },
 	opt.callback);
 };
 
@@ -67,8 +67,8 @@ exports.fadeInLeft = function(opt) {
 	});
 
 	return simpleFromTo(opt.view,
-	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(-opt.offset, 0) },
-	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	{ opacity: 0, transform: Matrix.i().t(-opt.offset, 0) },
+	{ opacity: 1, transform: Matrix.i(), duration: opt.duration },
 	opt.callback);
 };
 
@@ -82,8 +82,8 @@ exports.fadeInBottom = function(opt) {
 	});
 
 	return simpleFromTo(opt.view,
-	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(0, opt.offset) },
-	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	{ opacity: 0, transform: Matrix.i().t(0, opt.offset) },
+	{ opacity: 1, transform: Matrix.i(), duration: opt.duration },
 	opt.callback);
 };
 
@@ -97,8 +97,8 @@ exports.fadeInRight = function(opt) {
 	});
 
 	return simpleFromTo(opt.view,
-	{ opacity: 0, transform: Ti.UI.create2DMatrix().translate(opt.offset, 0) },
-	{ opacity: 1, transform: Ti.UI.create2DMatrix(), duration: opt.duration },
+	{ opacity: 0, transform: Matrix.i().t(opt.offset, 0) },
+	{ opacity: 1, transform: Matrix.i(), duration: opt.duration },
 	opt.callback);
 };
 
@@ -126,7 +126,7 @@ exports.upAndDown = function(opt) {
 		index = (index+1) % 2;
 		_.defer(function(){
 			opt.view.animate({
-				transform: Ti.UI.create2DMatrix().translate(0, index ? opt.y : 0),
+				transform: Matrix.i().t(0, index ? opt.y : 0),
 				duration: opt.duration
 			}, loop);
 		});
