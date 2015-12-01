@@ -27,7 +27,8 @@ module.exports = function(args) {
 	var $img = Ti.UI.createImageView({
 		defaultImage: args.defaultImage || '',
 		width: Ti.UI.FILL,
-		height: Ti.UI.FILL
+		height: Ti.UI.FILL,
+		touchEnabled: OS_IOS ? false : true
 	});
 
 	var relayout = function() {
