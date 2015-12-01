@@ -68,6 +68,13 @@ Init
 _FB.addEventListener('login', function(e) {
 	Ti.API.debug('Auth.Facebook: login fired', e);
 
+	if (e.success) {
+		Ti.App.Properties.setObject('auth.facebook.data', {
+			accessToken: _FB.accessToken,
+			expirationDate: _FB.expirationDate
+		});
+	}
+
 	// This is a security hack caused by iOS SDK that automatically trigger the login event
 	// We don't need that is event is triggered on startup: to detect login,
 	// just call `Auth.login({ driver: 'facebook' })`
@@ -76,16 +83,9 @@ _FB.addEventListener('login', function(e) {
 	}
 
 	if (e.success) {
-
-		Ti.App.Properties.setObject('auth.facebook.data', {
-			accessToken: _FB.accessToken,
-			expirationDate: _FB.expirationDate
-		});
-
 		localOptions.success({
 			access_token: _FB.accessToken
 		});
-
 	} else {
 		_FB.logout();
 		localOptions.error({
