@@ -483,7 +483,9 @@ module.exports = function(args) {
 
 		if ($this.typeString === 'plain') {
 			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
-				var row = _.findWhere(rows, { value: columnsValues[columnIndex] });
+				var row = _.find(rows, function(row) {
+					return _.isEqual(row.value, columnsValues[columnIndex]);
+				});
 				if (row != null) {
 					Data[ $this._uid ].indexes[columnIndex] = row.index;
 					Data[ $this._uid ].titles[columnIndex] = row.title;
