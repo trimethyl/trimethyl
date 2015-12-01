@@ -226,5 +226,6 @@ _.each(jsFiles, function(js) {
 helpers.embedCSS = embedCSS;
 helpers.embedJS = embedJS;
 
-Ti.Filesystem.getFile(TMP_DIR).deleteDirectory(true);
-Ti.Filesystem.getFile(TMP_DIR).createDirectory();
+var webAlloyDir = Ti.Filesystem.getFile(TMP_DIR);
+if (webAlloyDir.exists()) webAlloyDir.deleteDirectory(true);
+webAlloyDir.createDirectory();
