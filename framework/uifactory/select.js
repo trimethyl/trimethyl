@@ -283,7 +283,7 @@ var UIPickers = {
 					}
 
 					$dialogPickers.forEach(function($p, columnIndex) {
-						if ($p._rowIndex > -1) {
+						if ($p._rowIndex != null && $p._rowIndex > -1) {
 							Data[ $this._uid ].indexes[columnIndex] = $p._rowIndex;
 
 							var row  = Data[ $this._uid ].values[columnIndex][$p._rowIndex];
