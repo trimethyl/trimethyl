@@ -30,17 +30,20 @@ function fillPickerData($this, $picker) {
 		});
 	}
 
-	Data[ $this._uid ].eventsOnChange = [];
+	Data[ $this._uid ].eventsIndexes = [];
 }
 
 function onValueSelected($this, $picker) {
 	if ($this.typeString === 'plain') {
 
-		Data[ $this._uid ].eventsOnChange.forEach(function(e, columnIndex) {
-			if (e != null) {
-				Data[ $this._uid ].value[columnIndex] = e.value;
-				Data[ $this._uid ].indexes[columnIndex] = e.index;
-				Data[ $this._uid ].titles[columnIndex] = e.value ? e.title : null;
+		Data[ $this._uid ].eventsIndexes.forEach(function(rowIndex, columnIndex) {
+			if (rowIndex > -1) {
+				var row  = Data[ $this._uid ].values[columnIndex][rowIndex];
+				if (row != null) {
+					Data[ $this._uid ].value[columnIndex] = row.value;
+					Data[ $this._uid ].indexes[columnIndex] = rowIndex;
+					Data[ $this._uid ].titles[columnIndex] = row.value ? row.title : null;
+				}
 			}
 		});
 
@@ -64,7 +67,7 @@ function createTiUIPicker($this) {
 		fillPickerData($this, $picker);
 
 		$picker.addEventListener('change', function(e) {
-			Data[ $this._uid ].eventsOnChange[e.columnIndex] = e.row;
+			Data[ $this._uid ].eventsIndexes[e.columnIndex] = e.rowIndex;
 		});
 
 	} else if ($this.typeString === 'date') {
