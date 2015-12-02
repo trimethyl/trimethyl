@@ -1,4 +1,7 @@
 var HTTP = T('http');
+var SQLite = T('sqlite');
+
+var G = {};
 
 exports.http_json_parsing = function() {
 	return Q.promise(function(resolve, reject) {
@@ -39,27 +42,52 @@ exports.http_download = function() {
 	});
 };
 
-exports.http_refresh = function() {
+exports.sqlite_open = function() {
 	return Q.promise(function(resolve, reject) {
-		var a = HTTP.send({
-			url: 'http://demo1916598.mockable.io/ttl-unit-test',
-			success: function() {
-				setTimeout(function() {
-					var b = HTTP.send({
-						url: 'http://demo1916598.mockable.io/ttl-unit-test',
-						refresh: true,
-						success: function() {
-							var c = HTTP.send({
-								url: 'http://demo1916598.mockable.io/ttl-unit-test',
-								success: function() {
-									if (a.cachedData.expire == c.cachedData.expire) return reject('Timestamps match');
-									resolve();
-								}
-							});
-						}
-					});
-				}, 1000);
-			}
-		});
+		G.db = new SQLite('test');
+		resolve();
+	});
+};
+
+exports.sqlite_execute = function() {
+	return Q.promise(function(resolve, reject) {
+		G.db.execute('DROP TABLE IF EXISTS x');
+		G.db.execute('CREATE TABLE x (id INTEGER PRIMARY KEY, text TEXT)');
+		resolve();
+	});
+};
+
+exports.sqlite_insert = function() {
+	return Q.promise(function(resolve, reject) {
+		G.db.table('x').insert({ id: 1, text: 'trimethyl' }).exec();
+		G.db.table('x').insert({ id: 2, text: 'alloy' }).exec();
+		resolve();
+	});
+};
+
+exports.sqlite_select_val = function() {
+	return Q.promise(function(resolve, reject) {
+		var val = G.db.table('x').select('text').where({ id: 1 }).val();
+		if (val != 'trimethyl') reject('Value is not what expected: ' + val);
+		resolve();
+	});
+};
+
+exports.sqlite_select_all = function() {
+	return Q.promise(function(resolve, reject) {
+		var rows = G.db.table('x').select('text').orderBy('id').all();
+		if (rows[0].text != 'trimethyl' || rows[1].text != 'alloy') reject('Values are not what expected');
+		resolve();
+	});
+};
+
+exports.sqlite_should_throw_errors = function() {
+	return Q.promise(function(resolve, reject) {
+		try {
+			G.db.table('notexists').select().all();
+			reject();
+		} catch (ex) {
+			resolve();
+		}
 	});
 };

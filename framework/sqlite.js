@@ -65,7 +65,9 @@ SQLite.prototype.table = function(name) {
 		select: null,
 		update: null,
 		updateData: [],
-		order: null
+		order: null,
+		insert: null,
+		insertData: []
 	};
 	return this;
 };
@@ -239,6 +241,27 @@ SQLite.prototype.where = SQLite.prototype.andWhere = function() {
 };
 
 /**
+ * @method insert
+ * Insert values
+ * @return {SQLite}
+ */
+SQLite.prototype.insert = function(obj) {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	/*
+	.insert({
+		value: 2,
+		other_value: 3
+	})
+	*/
+	this.query.method = 'insert';
+	this.query.insert = _.keys(obj);
+	this.query.insertData = _.values(obj);
+
+	return this;
+};
+
+/**
  * @method getExequery
  */
 SQLite.prototype.getExequery = function() {
@@ -276,6 +299,14 @@ SQLite.prototype.getExequery = function() {
 		return [
 			'TRUNCATE TABLE ' + this.query.table
 		];
+
+		case 'insert':
+		return [
+			'INSERT INTO ' + this.query.table +
+			'(' + this.query.insert.join(',') + ') ' +
+			'VALUES (' + this.query.insert.map(function(){ return '?'; }) + ')'
+		]
+		.concat(this.query.insertData);
 
 	}
 };
