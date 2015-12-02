@@ -38,11 +38,12 @@ function onValueSelected($this, $picker) {
 
 		Data[ $this._uid ].eventsIndexes.forEach(function(rowIndex, columnIndex) {
 			if (rowIndex > -1) {
+				Data[ $this._uid ].indexes[columnIndex] = rowIndex;
+
 				var row  = Data[ $this._uid ].values[columnIndex][rowIndex];
 				if (row != null) {
 					Data[ $this._uid ].value[columnIndex] = row.value;
-					Data[ $this._uid ].indexes[columnIndex] = rowIndex;
-					Data[ $this._uid ].titles[columnIndex] = row.value ? row.title : null;
+					Data[ $this._uid ].titles[columnIndex] = row.title;
 				}
 			}
 		});
@@ -218,7 +219,7 @@ var UIPickers = {
 					buttonNames: [ L('cancel'), L('done'), ],
 					cancel: 0,
 					options: Data[ $this._uid ].values[0].map(function(e) {
-						return e.title ? String(e.title) : L('no_value');
+						return String(e.title);
 					})
 				});
 
@@ -228,11 +229,12 @@ var UIPickers = {
 						return;
 					}
 
+					Data[ $this._uid ].indexes[0] = e.index;
+
 					var row  = Data[ $this._uid ].values[0][e.index];
 					if (row != null) {
 						Data[ $this._uid ].value[0] = row.value;
-						Data[ $this._uid ].indexes[0] = e.index;
-						Data[ $this._uid ].titles[0] = row.value ? row.title : null;
+						Data[ $this._uid ].titles[0] = row.title;
 					}
 
 					$this.updateUI();
@@ -288,11 +290,12 @@ var UIPickers = {
 
 					$dialogPickers.forEach(function($p, columnIndex) {
 						if ($p._rowIndex > -1) {
+							Data[ $this._uid ].indexes[columnIndex] = $p._rowIndex;
+
 							var row  = Data[ $this._uid ].values[columnIndex][$p._rowIndex];
 							if (row != null) {
 								Data[ $this._uid ].value[columnIndex] = row.value;
-								Data[ $this._uid ].indexes[columnIndex] = $p._rowIndex;
-								Data[ $this._uid ].titles[columnIndex] = row.value ? row.title : null;
+								Data[ $this._uid ].titles[columnIndex] = row.title;
 							}
 						}
 					});
@@ -313,7 +316,7 @@ var UIPickers = {
 			).showDatePickerDialog({
 				value: $this.getValue(),
 				callback: function(e) {
-					if (e.value == null || e.cancel !== false) return;
+					if (e.value == null || e.cancel) return;
 					Data[ $this._uid ].value = e.value;
 					$this.updateUI();
 				}
@@ -347,6 +350,7 @@ function dataPickerInterface(type, opt) {
 						selected: (current != null && current == row)
 					};
 				}
+				if (_.isEmpty(val.title)) val.title = L('no_value');
 				return val;
 			});
 		});
@@ -364,8 +368,8 @@ function dataPickerInterface(type, opt) {
 				self.titles[columnIndex] = row.title;
 			} else {
 				self.value[columnIndex] = null;
-				self.indexes[columnIndex] = null;
-				self.titles[columnIndex] = null;
+				self.indexes[columnIndex] = -1;
+				self.titles[columnIndex] = L('no_value');
 			}
 		});
 
