@@ -217,7 +217,9 @@ var UIPickers = {
 					selectedIndex: Data[ $this._uid ].indexes[0],
 					buttonNames: [ L('cancel'), L('done'), ],
 					cancel: 0,
-					options: Data[ $this._uid ].values[0].map(function(e) { return String(e.title); })
+					options: Data[ $this._uid ].values[0].map(function(e) {
+						return e.title ? String(e.title) : L('no_value');
+					})
 				});
 
 				$dialog.addEventListener('click', function(e) {
