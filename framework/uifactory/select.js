@@ -25,7 +25,7 @@ function fillPickerData($this, $picker) {
 		// Wait for visible custom event, 'cause "On iOS, this method must be called after the picker is rendered."
 		$picker.addEventListener('visible', function(e) {
 			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
-				$picker.setSelectedRow(columnIndex, Data[ $this._uid ].indexes[columnIndex] || 0, false);
+				$picker.setSelectedRow(columnIndex, Data[ $this._uid ].indexes[columnIndex], false);
 			});
 		});
 	}
@@ -267,7 +267,7 @@ var UIPickers = {
 								height: 60,
 								columns: [ getPickerColumn(column) ]
 							});
-							$picker.setSelectedRow(0, Data[ $this._uid].indexes[columnIndex] || 0);
+							$picker.setSelectedRow(0, Data[ $this._uid].indexes[columnIndex]);
 
 							$picker.addEventListener('change', function(e) {
 								$picker._rowIndex = e.rowIndex;
@@ -367,9 +367,9 @@ function dataPickerInterface(type, opt) {
 				self.indexes[columnIndex] = row.index;
 				self.titles[columnIndex] = row.title;
 			} else {
-				self.value[columnIndex] = null;
-				self.indexes[columnIndex] = -1;
-				self.titles[columnIndex] = L('no_value');
+				self.value[columnIndex] = rows[0].value;
+				self.indexes[columnIndex] = 0;
+				self.titles[columnIndex] = rows[0].title;
 			}
 		});
 
