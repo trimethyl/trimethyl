@@ -16,6 +16,7 @@ module.exports = function(args) {
 	}
 
 	args.scrollingEnabled = false;
+	args.scrollType = 'vertical';
 	var $this = Ti.UI.createScrollView(args);
 
 	$this.setImage = function(src) {

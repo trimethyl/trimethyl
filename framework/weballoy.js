@@ -144,6 +144,10 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
+	// On Android, sometimes, this directory doesn't not exists
+	// And, creating on init doesn't work.
+	Ti.Filesystem.getFile(TMP_DIR).createDirectory();
+
 	var tmpFile = Ti.Filesystem.getFile(TMP_DIR, args.uniqid + '.html');
 	tmpFile.write(getHTML(args));
 
@@ -226,6 +230,5 @@ _.each(jsFiles, function(js) {
 helpers.embedCSS = embedCSS;
 helpers.embedJS = embedJS;
 
-var webAlloyDir = Ti.Filesystem.getFile(TMP_DIR);
-if (webAlloyDir.exists()) webAlloyDir.deleteDirectory(true);
-webAlloyDir.createDirectory();
+// Clear
+Ti.Filesystem.getFile(TMP_DIR).deleteDirectory(true);
