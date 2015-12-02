@@ -216,15 +216,14 @@ var UIPickers = {
 
 				$dialog = Ti.UI.createOptionDialog({
 					selectedIndex: Data[ $this._uid ].indexes[0],
-					buttonNames: [ L('cancel'), L('done'), ],
-					cancel: 0,
+					buttonNames: [ L('done'), L('cancel') ],
 					options: Data[ $this._uid ].values[0].map(function(e) {
 						return String(e.title);
 					})
 				});
 
 				$dialog.addEventListener('click', function(e) {
-					if (e.cancel) {
+					if (e.cancel === true || (e.button === true && e.index === 1)) {
 						$this.fireEvent('cancel');
 						return;
 					}
@@ -248,23 +247,23 @@ var UIPickers = {
 
 				var $dialogPickers = [];
 				$dialog = Ti.UI.createAlertDialog({
-					buttonNames: [ L('cancel'), L('done'), ],
-					cancel: 0,
+					buttonNames: [ L('done'), L('cancel') ],
 					androidView: (function() {
-						var $a = Ti.UI.createView();
-
-						var $wrap = Ti.UI.createView({
-							layout: 'horizontal',
-							width: '80%',
-							top: 20,
-							height: 80
+						var $a = Ti.UI.createView({
+							height: Ti.UI.SIZE
 						});
 
-						var percent = Math.floor( 100 / Data[ $this._uid ].values.length ) + '%';
+						var len = Data[ $this._uid ].values.length;
+						var $wrap = Ti.UI.createView({
+							layout: 'vertical',
+							width: '80%'
+						});
+
 						Data[ $this._uid ].values.forEach(function(column, columnIndex) {
 							var $picker = Ti.UI.createPicker({
-								width: percent,
 								height: 60,
+								width: '100%',
+								top: 15,
 								columns: [ getPickerColumn(column) ]
 							});
 							$picker.setSelectedRow(0, Data[ $this._uid].indexes[columnIndex]);
@@ -283,7 +282,7 @@ var UIPickers = {
 				});
 
 				$dialog.addEventListener('click', function(e) {
-					if (e.cancel) {
+					if (e.cancel || (e.button === true && e.index === 1)) {
 						$this.fireEvent('cancel');
 						return;
 					}
@@ -350,7 +349,9 @@ function dataPickerInterface(type, opt) {
 						selected: (current != null && current == row)
 					};
 				}
-				if (_.isEmpty(val.title)) val.title = L('no_value');
+				if (_.isEmpty(val.title)) {
+					val.title = L('no_value');
+				}
 				return val;
 			});
 		});
@@ -473,7 +474,14 @@ module.exports = function(args) {
 		});
 
 		if ($this.typeString === 'plain') {
-			$this.text = Data[ $this._uid ].titles.join(' ') || $this.hintText || '';
+
+			var are_null_values = _.every(Data[ $this._uid ].value, function(e) { return e == null; });
+			if (are_null_values && $this.hintText != null) {
+				$this.text = $this.hintText;
+			} else {
+				$this.text = Data[ $this._uid ].titles.join(' ');
+			}
+
 		} else if ($this.typeString === 'date') {
 			$this.text = val ? Moment(val).format($this.dateFormat) : ($this.hintText || '');
 		}

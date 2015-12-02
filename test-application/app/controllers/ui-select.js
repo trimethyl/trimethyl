@@ -26,12 +26,13 @@ $.win.add( selectA );
 
 var selectB = T('uifactory').createSelect({
 	values: [
+		{ title: 'null value', value: null },
 		{ title: 'Frog', value: 'frog' },
 		'dog',
 		'cow'
 	],
-	value: 'cow',
 	left: 20,
+	hintText: 'Test',
 	right: 20,
 	top: 20,
 	color: '#000',
