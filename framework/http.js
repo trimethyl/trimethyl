@@ -572,7 +572,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 		cache: false,
 		refresh: true,
 		format: 'blob',
-		file: tiFile,
+		file: tiFile.resolve(),
 		ondatastream: ondatastream,
 		error: error,
 		errorAlert: false,

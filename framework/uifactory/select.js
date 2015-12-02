@@ -33,30 +33,6 @@ function fillPickerData($this, $picker) {
 	Data[ $this._uid ].eventsIndexes = [];
 }
 
-function onValueSelected($this, $picker) {
-	if ($this.typeString === 'plain') {
-
-		Data[ $this._uid ].eventsIndexes.forEach(function(rowIndex, columnIndex) {
-			if (rowIndex > -1) {
-				Data[ $this._uid ].indexes[columnIndex] = rowIndex;
-
-				var row  = Data[ $this._uid ].values[columnIndex][rowIndex];
-				if (row != null) {
-					Data[ $this._uid ].value[columnIndex] = row.value;
-					Data[ $this._uid ].titles[columnIndex] = row.title;
-				}
-			}
-		});
-
-	} else if ($this.typeString === 'date') {
-		Data[ $this._uid ].value = $picker.value;
-	}
-
-	if (_.isFunction($this.updateUI)) {
-		$this.updateUI();
-	}
-}
-
 function createTiUIPicker($this) {
 	var $picker = null;
 
@@ -90,7 +66,26 @@ function createTiUIPicker($this) {
 function UIPickerButtons($this, $picker, callbacks) {
 	var $doneBtn = Ti.UI.createButton({ title: L('done', 'Done') });
 	$doneBtn.addEventListener('click', function() {
-		onValueSelected($this, $picker);
+
+		if ($this.typeString === 'plain') {
+
+			Data[ $this._uid ].eventsIndexes.forEach(function(rowIndex, columnIndex) {
+				if (rowIndex > -1) {
+					Data[ $this._uid ].indexes[columnIndex] = rowIndex;
+
+					var row  = Data[ $this._uid ].values[columnIndex][rowIndex];
+					if (row != null) {
+						Data[ $this._uid ].value[columnIndex] = row.value;
+						Data[ $this._uid ].titles[columnIndex] = row.title;
+					}
+				}
+			});
+
+		} else if ($this.typeString === 'date') {
+			Data[ $this._uid ].value = $picker.value;
+		}
+
+		$this.updateUI();
 		callbacks.done();
 	});
 
@@ -461,22 +456,25 @@ module.exports = function(args) {
 	});
 
 	$this = Ti.UI.createLabel(args);
+
 	$this.addEventListener('click', function(){
-		UIPickers[ Ti.Platform.osname ]($this);
+		$this.open();
 	});
 
-	$this.updateUI = function() {
+	$this.updateUI = function(trigger) {
 		var val = $this.getValue();
 
-		$this.fireEvent('change', {
-			value: val,
-			source: $this
-		});
+		if (trigger !== false) {
+			$this.fireEvent('change', {
+				value: val,
+				source: $this
+			});
+		}
 
 		if ($this.typeString === 'plain') {
 
-			var are_null_values = _.every(Data[ $this._uid ].value, function(e) { return e == null; });
-			if (are_null_values && $this.hintText != null) {
+			var areNullValues = _.every(Data[ $this._uid ].value, function(e) { return e == null; });
+			if (areNullValues && $this.hintText != null) {
 				$this.text = $this.hintText;
 			} else {
 				$this.text = Data[ $this._uid ].titles.join(' ');
@@ -520,15 +518,25 @@ module.exports = function(args) {
 	};
 
 	/**
+	 * @method getDataInterface
+	 * @param {Object}
+	 * Get the internal data interface
+	 */
+	$this.getDataInterface = function() {
+		return Data[ $this._uid ];
+	};
+
+	/**
 	 * @method setColumns
 	 * @param {Array} columns The columns
 	 * Set the columns for the picker
 	 */
 	$this.setColumns = function(columns) {
-		_.extend(Data[ args._uid ], dataPickerInterface($this.typeString, {
+		_.extend(Data[ $this._uid ], dataPickerInterface($this.typeString, {
 			columnsValues: $this.columnsValues,
 			columns: columns
 		}));
+
 		$this.updateUI();
 	};
 
@@ -541,13 +549,20 @@ module.exports = function(args) {
 
 		if ($this.typeString === 'plain') {
 			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
+
 				var row = _.find(rows, function(row) {
 					return _.isEqual(row.value, columnsValues[columnIndex]);
 				});
+
 				if (row != null) {
 					Data[ $this._uid ].indexes[columnIndex] = row.index;
 					Data[ $this._uid ].titles[columnIndex] = row.title;
+				} else {
+					Ti.API.warn('UIFactory.Select: can\'t find this value in the list');
+					Data[ $this._uid ].indexes[columnIndex] = -1;
+					Data[ $this._uid ].titles[columnIndex] = '';
 				}
+
 			});
 		}
 
@@ -563,7 +578,7 @@ module.exports = function(args) {
 	};
 
 	// Update the UI
-	$this.updateUI();
+	$this.updateUI(false);
 
 	return $this;
 };

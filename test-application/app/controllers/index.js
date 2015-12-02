@@ -24,7 +24,7 @@ function log(text, color, top) {
 	},
 	function(err) {
 		Ti.API.error(err);
-		log('REJECTED: ' + err.toString(), 'red');
+		log('REJECTED: ' + (err.message ? err.message : err.toString()), 'red');
 		next();
 	}
 	);

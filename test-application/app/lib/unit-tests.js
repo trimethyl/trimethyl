@@ -35,7 +35,7 @@ exports.http_download = function() {
 		HTTP.download('https://unsplash.it/800/800', 'test.jpg', function(file) {
 			if (file == null || !file.exists()) return reject('File not exists');
 			resolve();
-		});
+		}, reject);
 	});
 };
 
