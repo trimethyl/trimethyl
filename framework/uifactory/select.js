@@ -70,7 +70,7 @@ function UIPickerButtons($this, $picker, callbacks) {
 		if ($this.typeString === 'plain') {
 
 			Data[ $this._uid ].eventsIndexes.forEach(function(rowIndex, columnIndex) {
-				if (rowIndex > -1) {
+				if (rowIndex != null && rowIndex > -1) {
 					Data[ $this._uid ].indexes[columnIndex] = rowIndex;
 
 					var row  = Data[ $this._uid ].values[columnIndex][rowIndex];
