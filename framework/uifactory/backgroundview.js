@@ -22,7 +22,6 @@ module.exports = function(args) {
 	$this.setImage = function(src) {
 		$this.image = src;
 		$img.opacity = 0;
-		$img.image = src;
 	};
 
 	var $img = Ti.UI.createImageView({
@@ -60,7 +59,7 @@ module.exports = function(args) {
 			h = rect_size.width / img_r;
 		}
 
-		$img.applyProperties({ width: w, height: h });
+		$img.applyProperties({ width: w , height: h });
 
 		if ($this.imageSize === 'cover') {
 			$this.setContentOffset({
