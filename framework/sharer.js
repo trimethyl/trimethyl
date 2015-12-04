@@ -57,7 +57,7 @@ function parseArgs(args) {
 	if (args.removeIcons === 'ALL') args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
 
 	if (args.text != null && args.url != null) {
-		args.fullText = args.text + ' (' + args.url + ')';
+		args.fullText = args.text + ' ' + args.url;
 	} else if (args.text != null) {
 		args.fullText = args.text;
 	} else if (args.url != null) {
