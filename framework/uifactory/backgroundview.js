@@ -20,7 +20,7 @@ module.exports = function(args) {
 	var $this = Ti.UI.createScrollView(args);
 
 	$this.setImage = function(src) {
-		$this.image = src;
+		$img.image = src;
 		$img.opacity = 0;
 	};
 
