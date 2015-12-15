@@ -251,7 +251,7 @@ var UIPickers = {
 						var len = Data[ $this._uid ].values.length;
 						var $wrap = Ti.UI.createView({
 							layout: len <= 3 ? 'horizontal' : 'vertical',
-							width: len <= 3 ? '10%' : '80%'
+							width: len <= 3 ? '100%' : '80%'
 						});
 
 						Data[ $this._uid ].values.forEach(function(column, columnIndex) {
