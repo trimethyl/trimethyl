@@ -250,14 +250,14 @@ var UIPickers = {
 
 						var len = Data[ $this._uid ].values.length;
 						var $wrap = Ti.UI.createView({
-							layout: 'vertical',
-							width: '80%'
+							layout: len <= 3 ? 'horizontal' : 'vertical',
+							width: len <= 3 ? '10%' : '80%'
 						});
 
 						Data[ $this._uid ].values.forEach(function(column, columnIndex) {
 							var $picker = Ti.UI.createPicker({
 								height: 60,
-								width: '100%',
+								width: len <= 3 ? (Math.floor(100/len)+'%') : '100%',
 								top: 15,
 								columns: [ getPickerColumn(column) ]
 							});
