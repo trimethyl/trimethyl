@@ -124,3 +124,37 @@ exports.util_build_query = function() {
 		resolve();
 	});
 };
+
+exports.util_parse_as_x_callback_url = function() {
+	return Q.promise(function(resolve, reject) {
+		var actual = Util.parseAsXCallbackURL('trimethyltest://tester:passtest@caffeina:26000/test?first=this&second="that"&third={what:"dunno"}');
+		var expected = {
+			query: "first=this&second=\"that\"&third={what:\"dunno\"}",
+			file: "test",
+			directory: "/",
+			path: "/test",
+			relative: "/test?first=this&second=\"that\"&third={what:\"dunno\"}",
+			host: "caffeina",
+			port: "26000",
+			user: "tester",
+			userInfo: "tester:passtest",
+			password: "passtest",
+			authority: "tester:passtest@caffeina:26000",
+			protocol: "trimethyltest",
+			source: "trimethyltest://tester:passtest@caffeina:26000/test?first=this&second=\"that\"&third={what:\"dunno\"}",
+			queryKey: {
+				first: "this",
+				second: "\"that\"",
+				third: "{what:\"dunno\"}"
+			}
+		};
+
+		if (actual == null) return reject('Value is not what expected: ' + actual);
+
+		for (var key in expected) {
+			if (!_.isEqual(actual[key], expected[key])) return reject('Value property ' + key + ' is not what expected: ' + actual[key]);
+		}
+
+		resolve();
+	});
+};
