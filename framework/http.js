@@ -193,7 +193,7 @@ HTTPRequest.prototype._onSuccess = function() {
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
 	}
 
-	if (OS_ANDROID) {
+	if (OS_ANDROID && this.client != null) {
 		if ((this.client.status >= 300 && this.client.status < 400) && this.client.location != this.url) {
 			Ti.API.trace('HTTP: <' + this.uniqueId + '> following redirect to ' + this.client.location);
 
