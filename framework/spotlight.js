@@ -81,9 +81,11 @@ exports.populateFromCollection = function(collection_name) {
 //////////
 
 if (exports.config.autoRoute) {
-	Ti.App.iOS.addEventListener('continueactivity', function(e) {
-		if (e.activityType !== 'com.apple.corespotlightitem') return;
-		if (_.isEmpty(e.searchableItemActivityIdentifier)) return;
-		Router.go(e.searchableItemActivityIdentifier);
-	});
+	if (OS_IOS) {
+		Ti.App.iOS.addEventListener('continueactivity', function(e) {
+			if (e.activityType !== 'com.apple.corespotlightitem') return;
+			if (_.isEmpty(e.searchableItemActivityIdentifier)) return;
+			Router.go(e.searchableItemActivityIdentifier);
+		});
+	}
 }
