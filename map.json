@@ -138,6 +138,11 @@
 		"name": "Sounds",
 		"description": "Proxy for Ti.Media.Sound."
 	},
+	"spotlight":{
+		"name": "Spotlight",
+		"description": "Spotlight helpers for iOS",
+		"dependencies":["util"]
+	},
 	"sqlite":{
 		"name": "SQLite",
 		"description": "JavaScript SQLite abstraction layer."
