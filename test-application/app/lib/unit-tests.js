@@ -149,10 +149,14 @@ exports.util_parse_as_x_callback_url = function() {
 			}
 		};
 
-		if (actual == null) return reject('Value is not what expected: ' + actual);
+		if (actual == null) {
+			return reject('Value is null');
+		}
 
 		for (var key in expected) {
-			if (!_.isEqual(actual[key], expected[key])) return reject('Value property ' + key + ' is not what expected: ' + actual[key]);
+			if (!_.isEqual(actual[key], expected[key])) {
+				return reject('Value property ' + key + ' is not what expected: ' + actual[key]);
+			}
 		}
 
 		resolve();

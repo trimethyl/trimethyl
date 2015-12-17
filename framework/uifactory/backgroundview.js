@@ -39,10 +39,13 @@ module.exports = function(args) {
 		}
 
 		var rect_r = rect_size.width / rect_size.height;
+		var blob = $img.toBlob();
+		if (blob == null) return;
 
-		var img_size = _.pick($img.toBlob(), 'width', 'height');
+		var img_size = _.pick(blob, 'width', 'height');
+		blob = null;
+
 		var img_r = img_size.width / img_size.height;
-
 		var w, h;
 
 		if (
