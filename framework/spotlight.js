@@ -16,6 +16,12 @@ var Util = require('T/util');
 exports.populateFromCollection = function(collection_name) {
 	var defer = Q.defer();
 
+	if (OS_ANDROID) {
+		Ti.API.warn('Spotlight: Android not supported yet');
+		defer.reject();
+		return defer.promise;
+	}
+
 	if (Util.getIOSVersion() < 9) {
 		Ti.API.warn('Spotlight: iOS version not supported', Util.getIOSVersion());
 		defer.reject();
