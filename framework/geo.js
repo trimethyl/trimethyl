@@ -46,15 +46,29 @@ exports.authorizeLocationServices = function(opt) {
 	});
 
 	if (OS_ANDROID) {
-		
-		if (Ti.Geolocation.locationServicesEnabled) {
-			opt.success();
-		} else {
-			opt.error({ 
-				error: L('geo_ls_denied', 'Location services are disabled.'),
-				servicesDisabled: true
+
+		// The documentation for Android is lying:
+		// Ti.Geolocation.locationServicesEnabled will be false even if
+		// the service is available but the app has no location permissions!
+		// We have to call hasLocationPermissions() first...
+
+		if (Ti.Geolocation.hasLocationPermissions() !== true) {
+			Ti.Geolocation.requestLocationPermissions(null, function(res) {
+				if (res.success !== true) opt.error({
+					error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
+					servicesRestricted: true
+				});
+				else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
+					error: L('geo_ls_restricted', 'Location services are disabled.'),
+					servicesDisabled: true
+				});
+				else opt.success();
 			});
-		}
+		} else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
+			error: L('geo_ls_restricted', 'Location services are disabled.'),
+			servicesDisabled: true
+		});
+		else opt.success();
 
 	} else if (OS_IOS) {
 
@@ -467,17 +481,18 @@ exports.getRegionBounds = function(array, mulGap) {
  * @return {Boolean}
  */
 exports.isAuthorized = function() {
-	return Ti.Geolocation.locationServicesEnabled;
+	return Ti.Geolocation.locationServicesEnabled &&
+	(Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_ALWAYS) || Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE));
 };
 
 /**
  * @method isDenied
- * Check if the the app is denied from using the location services in iOS.
+ * Check if the the app is denied from using the location services.
  * Returns false for every other platform.
  * @return {Boolean}
  */
 exports.isDenied = function() {
-	return !Ti.Geolocation.locationServicesEnabled;
+	return !exports.isAuthorized();
 };
 
 
