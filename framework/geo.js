@@ -45,61 +45,30 @@ exports.authorizeLocationServices = function(opt) {
 		error: function(){}
 	});
 
-	if (OS_ANDROID) {
+	var authToCheck = Ti.Geolocation[ opt.inBackground ? "AUTHORIZATION_ALWAYS" : "AUTHORIZATION_WHEN_IN_USE" ];
 
-		// The documentation for Android is lying:
-		// Ti.Geolocation.locationServicesEnabled will be false even if
-		// the service is available but the app has no location permissions!
-		// We have to call hasLocationPermissions() first...
+	// The documentation for Android is lying:
+	// Ti.Geolocation.locationServicesEnabled will be false even if
+	// the service is available but the app has no location permissions!
+	// We have to call hasLocationPermissions() first...
 
-		if (Ti.Geolocation.hasLocationPermissions() !== true) {
-			Ti.Geolocation.requestLocationPermissions(null, function(res) {
-				if (res.success !== true) opt.error({
-					error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
-					servicesRestricted: true
-				});
-				else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
-					error: L('geo_ls_restricted', 'Location services are disabled.'),
-					servicesDisabled: true
-				});
-				else opt.success();
+	if (Ti.Geolocation.hasLocationPermissions(authToCheck) !== true) {
+		Ti.Geolocation.requestLocationPermissions(authToCheck, function(res) {
+			if (res.success !== true) opt.error({
+				error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
+				servicesRestricted: true
 			});
-		} else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
-			error: L('geo_ls_restricted', 'Location services are disabled.'),
-			servicesDisabled: true
+			else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
+				error: L('geo_ls_restricted', 'Location services are disabled.'),
+				servicesDisabled: true
+			});
+			else opt.success();
 		});
-		else opt.success();
-
-	} else if (OS_IOS) {
-
-		var authToCheck = Ti.Geolocation[ opt.inBackground ? "AUTHORIZATION_ALWAYS" : "AUTHORIZATION_WHEN_IN_USE" ];
-
-		var checkAuthorization = function() {
-			var lsa = Ti.Geolocation.locationServicesAuthorization;
-			if (lsa === authToCheck) {
-				opt.success();
-			} else if (lsa === Ti.Geolocation.AUTHORIZATION_RESTRICTED) {
-				opt.error({ 
-					error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
-					servicesRestricted: true
-				});
-			} else {
-				opt.error({ 
-					error: L('geo_ls_denied', 'Location services are disabled.'),
-					servicesDisabled: true
-				});
-			}
-		};
-
-		Ti.Geolocation.addEventListener('authorization', checkAuthorization);
-
-		if (Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN) {
-			Ti.Geolocation.requestAuthorization(checkAuthorization);
-		} else {
-			checkAuthorization();
-		}
-
-	}
+	} else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
+		error: L('geo_ls_restricted', 'Location services are disabled.'),
+		servicesDisabled: true
+	});
+	else opt.success();
 };
 
 /**
@@ -131,7 +100,7 @@ exports.getCurrentPosition = function(opt) {
 /**
  * @method startNavigator
  * Open Apple Maps on iOS, Google Maps on Android and route from user location to defined location
- * @param  {Number} lat  		Desination latitude
+ * @param  {Number} lat  		Destination latitude
  * @param  {Number} lng  		Destination longitude
  * @param  {String} [mode] 	GPS mode used (walking,driving)
  */
@@ -481,8 +450,8 @@ exports.getRegionBounds = function(array, mulGap) {
  * @return {Boolean}
  */
 exports.isAuthorized = function() {
-	return Ti.Geolocation.locationServicesEnabled &&
-	(Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_ALWAYS) || Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE));
+	return !!Ti.Geolocation.locationServicesEnabled &&
+	!!(Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_ALWAYS) || Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE));
 };
 
 /**

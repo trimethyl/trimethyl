@@ -564,37 +564,49 @@ exports.postJSON = function(url, data, success, error) {
  * @return {HTTP.Request}
  */
 exports.download = function(url, file, success, error, ondatastream) {
-	var tiFile = null;
-	if (_.isString(file)) {
-		tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
-	} else {
-		tiFile = file;
-	}
-
-	if (tiFile.exists()) {
-		Ti.API.warn('HTTP: Previous file ' + tiFile.nativePath + ' exists and has been deleted');
-		tiFile.deleteFile();
-	}
-
-	send({
-		url: url,
-		cache: false,
-		refresh: true,
-		format: 'blob',
-		file: tiFile.resolve(),
-		ondatastream: ondatastream,
-		error: error,
-		errorAlert: false,
-		success: function() {
-			if (tiFile.exists()) {
-				success(tiFile);
-			} else {
-				error({
-					message: L('unable_to_write_file', 'Unable to write file')
-				});
-			}
+	var doDownload = function() {
+		var tiFile = null;
+		if (_.isString(file)) {
+			tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
+		} else {
+			tiFile = file;
 		}
-	});
+
+		if (tiFile.exists()) {
+			Ti.API.warn('HTTP: Previous file ' + tiFile.nativePath + ' exists and has been deleted');
+			tiFile.deleteFile();
+		}
+
+		send({
+			url: url,
+			cache: false,
+			refresh: true,
+			format: 'blob',
+			file: tiFile.resolve(),
+			ondatastream: ondatastream,
+			error: error,
+			errorAlert: false,
+			success: function() {
+				if (tiFile.exists()) {
+					success(tiFile);
+				} else {
+					error({
+						message: L('unable_to_write_file', 'Unable to write file')
+					});
+				}
+			}
+		});
+	};
+
+	if (OS_IOS) doDownload();
+	else {
+		Ti.Media.requestCameraPermissions(function(res) {
+			if (res.success === true) doDownload();
+			else error({
+				message: L('missing_permission_write_file', 'Missing permission to write file')
+			});
+		});
+	}
 };
 
 /**
