@@ -53,20 +53,41 @@ exports.authorizeLocationServices = function(opt) {
 	// We have to call hasLocationPermissions() first...
 
 	if (Ti.Geolocation.hasLocationPermissions(authToCheck) !== true) {
-		Ti.Geolocation.requestLocationPermissions(authToCheck, function(res) {
-			if (res.success !== true) opt.error({
-				error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
-				servicesRestricted: true
+		if (OS_IOS) {
+			// Theres a bug in Ti.Geolocation.requestLocationPermissions in iOS:
+			// the callback is not always called, see https://jira.appcelerator.org/browse/TIMOB-20002
+
+			if (Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN) {
+				Ti.Geolocation.addEventListener('authorization', function onAuthChange() {
+					Ti.Geolocation.removeEventListener('authorization', onAuthChange);
+
+					exports.authorizeLocationServices(opt);
+				});
+				Ti.Geolocation.requestLocationPermissions(authToCheck, function() {});
+			} else {
+				opt.error({
+					error: L('geo_ls_restricted', 'Location services unavailable.'),
+					status: Ti.Geolocation.locationServicesAuthorization
+				});
+			}
+		} else {
+			Ti.Geolocation.requestLocationPermissions(authToCheck, function(res) {
+				if (res.success !== true) {
+					opt.error({
+						error: L('geo_ls_restricted', 'Location services unavailable.'),
+						status: Ti.Geolocation.locationServicesAuthorization
+					});
+				} else if (Ti.Geolocation.locationServicesEnabled !== true) {
+					opt.error({
+						error: L('geo_ls_restricted', 'Location services unavailable.'),
+						status: Ti.Geolocation.locationServicesAuthorization
+					});
+				} else opt.success();
 			});
-			else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
-				error: L('geo_ls_restricted', 'Location services are disabled.'),
-				servicesDisabled: true
-			});
-			else opt.success();
-		});
+		}
 	} else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
-		error: L('geo_ls_restricted', 'Location services are disabled.'),
-		servicesDisabled: true
+		error: L('geo_ls_restricted', 'Location services unavailable.'),
+		status: Ti.Geolocation.locationServicesAuthorization
 	});
 	else opt.success();
 };
