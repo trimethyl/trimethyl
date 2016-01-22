@@ -545,7 +545,7 @@ module.exports = function(args) {
 	 * @param {Array} columnsValues
 	 */
 	$this.setColumnsValues = function(columnsValues) {
-		Data[ $this._uid ].value = columnsValues;
+		Data[ $this._uid ].value = columnsValues[0];
 
 		if ($this.typeString === 'plain') {
 			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {

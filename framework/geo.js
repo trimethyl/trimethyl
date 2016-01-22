@@ -45,47 +45,51 @@ exports.authorizeLocationServices = function(opt) {
 		error: function(){}
 	});
 
-	if (OS_ANDROID) {
-		
-		if (Ti.Geolocation.locationServicesEnabled) {
-			opt.success();
-		} else {
-			opt.error({ 
-				error: L('geo_ls_denied', 'Location services are disabled.'),
-				servicesDisabled: true
-			});
-		}
+	var authToCheck = Ti.Geolocation[ opt.inBackground ? "AUTHORIZATION_ALWAYS" : "AUTHORIZATION_WHEN_IN_USE" ];
 
-	} else if (OS_IOS) {
+	// The documentation for Android is lying:
+	// Ti.Geolocation.locationServicesEnabled will be false even if
+	// the service is available but the app has no location permissions!
+	// We have to call hasLocationPermissions() first...
 
-		var authToCheck = Ti.Geolocation[ opt.inBackground ? "AUTHORIZATION_ALWAYS" : "AUTHORIZATION_WHEN_IN_USE" ];
+	if (Ti.Geolocation.hasLocationPermissions(authToCheck) !== true) {
+		if (OS_IOS) {
+			// Theres a bug in Ti.Geolocation.requestLocationPermissions in iOS:
+			// the callback is not always called, see https://jira.appcelerator.org/browse/TIMOB-20002
 
-		var checkAuthorization = function() {
-			var lsa = Ti.Geolocation.locationServicesAuthorization;
-			if (lsa === authToCheck) {
-				opt.success();
-			} else if (lsa === Ti.Geolocation.AUTHORIZATION_RESTRICTED) {
-				opt.error({ 
-					error: L('geo_ls_restricted', 'Location services are disabled for this app.'),
-					servicesRestricted: true
+			if (Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN) {
+				Ti.Geolocation.addEventListener('authorization', function onAuthChange() {
+					Ti.Geolocation.removeEventListener('authorization', onAuthChange);
+
+					exports.authorizeLocationServices(opt);
 				});
+				Ti.Geolocation.requestLocationPermissions(authToCheck, function() {});
 			} else {
-				opt.error({ 
-					error: L('geo_ls_denied', 'Location services are disabled.'),
-					servicesDisabled: true
+				opt.error({
+					error: L('geo_ls_restricted', 'Location services unavailable.'),
+					status: Ti.Geolocation.locationServicesAuthorization
 				});
 			}
-		};
-
-		Ti.Geolocation.addEventListener('authorization', checkAuthorization);
-
-		if (Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN) {
-			Ti.Geolocation.requestAuthorization(checkAuthorization);
 		} else {
-			checkAuthorization();
+			Ti.Geolocation.requestLocationPermissions(authToCheck, function(res) {
+				if (res.success !== true) {
+					opt.error({
+						error: L('geo_ls_restricted', 'Location services unavailable.'),
+						status: Ti.Geolocation.locationServicesAuthorization
+					});
+				} else if (Ti.Geolocation.locationServicesEnabled !== true) {
+					opt.error({
+						error: L('geo_ls_restricted', 'Location services unavailable.'),
+						status: Ti.Geolocation.locationServicesAuthorization
+					});
+				} else opt.success();
+			});
 		}
-
-	}
+	} else if (Ti.Geolocation.locationServicesEnabled !== true) opt.error({
+		error: L('geo_ls_restricted', 'Location services unavailable.'),
+		status: Ti.Geolocation.locationServicesAuthorization
+	});
+	else opt.success();
 };
 
 /**
@@ -117,7 +121,7 @@ exports.getCurrentPosition = function(opt) {
 /**
  * @method startNavigator
  * Open Apple Maps on iOS, Google Maps on Android and route from user location to defined location
- * @param  {Number} lat  		Desination latitude
+ * @param  {Number} lat  		Destination latitude
  * @param  {Number} lng  		Destination longitude
  * @param  {String} [mode] 	GPS mode used (walking,driving)
  */
@@ -467,17 +471,18 @@ exports.getRegionBounds = function(array, mulGap) {
  * @return {Boolean}
  */
 exports.isAuthorized = function() {
-	return Ti.Geolocation.locationServicesEnabled;
+	return !!Ti.Geolocation.locationServicesEnabled &&
+	!!(Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_ALWAYS) || Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE));
 };
 
 /**
  * @method isDenied
- * Check if the the app is denied from using the location services in iOS.
+ * Check if the the app is denied from using the location services.
  * Returns false for every other platform.
  * @return {Boolean}
  */
 exports.isDenied = function() {
-	return !Ti.Geolocation.locationServicesEnabled;
+	return !exports.isAuthorized();
 };
 
 
