@@ -223,9 +223,9 @@ var UIPickers = {
 						return;
 					}
 
-					Data[ $this._uid ].indexes[0] = e.index;
+					Data[ $this._uid ].indexes[0] = e.source.selectedIndex;
 
-					var row  = Data[ $this._uid ].values[0][e.index];
+					var row  = Data[ $this._uid ].values[0][e.source.selectedIndex];
 					if (row != null) {
 						Data[ $this._uid ].value[0] = row.value;
 						Data[ $this._uid ].titles[0] = row.title;
