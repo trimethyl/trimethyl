@@ -5,8 +5,12 @@
 
 /**
  * @property config
+ * @property {Boolean} [config.autoRouteWithUniversalLink=true] Auto route with Universal link
+ * @property {Boolean} [config.autoRouteWithDeepLink=true] Auto route with Dep link on resume. You can always call `App.start()` to re-route.
  */
 exports.config = _.extend({
+	autoRouteWithUniversalLink: true,
+	autoRouteWithDeepLink: true,
 }, Alloy.CFG.T ? Alloy.CFG.T.app : {});
 
 var Util = require('T/util');
@@ -42,10 +46,10 @@ exports.setFirstUse = function(prefix) {
  * @method start
  */
 exports.start = function() {
-	if (launchURL != null) {
-		Ti.API.info('App: Started with schema <' + launchURL + '>');
-		Router.go(launchURL);
-		launchURL = null;
+	var url = Util.parseSchema();
+	if (url != null) {
+		Ti.API.info('App: Started with schema <' + url + '>');
+		Router.go(url);
 	}
 };
 
@@ -125,13 +129,31 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 // Init //
 //////////
 
-Ti.App.addEventListener('resumed', function() {
-	var launchURL = Util.parseSchema();
-	if (launchURL != null) {
-		Ti.API.info('App: Resumed with schema <' + launchURL + '>');
-		Router.go(launchURL);
-		launchURL = null;
+if (exports.config.autoRouteWithDeepLink) {
+
+	// The "resume" event is to handle all incoming deep links
+	Ti.App.addEventListener('resumed', function() {
+		var launchURL = Util.parseSchema();
+		if (launchURL != null) {
+			Ti.API.info('App: Resumed with schema <' + launchURL + '>');
+			Router.go(launchURL);
+			launchURL = null;
+		}
+	});
+
+}
+
+if (OS_IOS) {
+
+	if (exports.config.autoRouteWithUniversalLink) {
+		// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
+		Ti.App.iOS.addEventListener('continueactivity', function(e) {
+			if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
+			if (_.isEmpty(e.webpageURL)) return;
+			Router.go(e.webpageURL);
+		});
 	}
-});
+
+}
 
 launchURL = Util.parseSchema();
