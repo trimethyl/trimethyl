@@ -598,13 +598,17 @@ exports.download = function(url, file, success, error, ondatastream) {
 		});
 	};
 
-	if (OS_IOS) doDownload();
-	else {
+	if (OS_IOS) {
+		doDownload();
+	} else if (OS_ANDROID) {
 		Ti.Media.requestCameraPermissions(function(res) {
-			if (res.success === true) doDownload();
-			else error({
-				message: L('missing_permission_write_file', 'Missing permission to write file')
-			});
+			if (res.success === false) {
+				return error({
+					message: L('missing_permission_write_file', 'Missing permission to write file')
+				});
+			}
+
+			doDownload();
 		});
 	}
 };
