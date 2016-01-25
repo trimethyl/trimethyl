@@ -566,7 +566,9 @@ exports.postJSON = function(url, data, success, error) {
 exports.download = function(url, file, success, error, ondatastream) {
 	var doDownload = function() {
 		var tiFile = null;
-		if (_.isString(file)) {
+		if (file == null) {
+			tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), _.uniqueId('http_'));
+		} else if (_.isString(file)) {
 			tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
 		} else {
 			tiFile = file;
