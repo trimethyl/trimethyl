@@ -14,6 +14,13 @@ exports.config = _.extend({
 var Util = require('T/util');
 var _FB = require('T/fb'); // Use FB as an accessor
 
+function storeData() {
+	Ti.App.Properties.setObject('auth.facebook.data', {
+		accessToken: _FB.accessToken,
+		expirationDate: _FB.expirationDate
+	});
+}
+
 if (OS_IOS) {
 	// It seems that iOS (sometimes) doesn't trigger the login event
 	// This is very bad, and this below is an hack, but it works:
@@ -40,6 +47,7 @@ exports.login = function(opt) {
 	localOptions = opt; // store globally
 
 	if (_FB.loggedIn) {
+		storeData();
 		localOptions.success({
 			access_token: _FB.accessToken
 		});
@@ -69,10 +77,7 @@ _FB.addEventListener('login', function(e) {
 	Ti.API.debug('Auth.Facebook: login fired', e);
 
 	if (e.success) {
-		Ti.App.Properties.setObject('auth.facebook.data', {
-			accessToken: _FB.accessToken,
-			expirationDate: _FB.expirationDate
-		});
+		storeData();
 	}
 
 	// This is a security hack caused by iOS SDK that automatically trigger the login event
