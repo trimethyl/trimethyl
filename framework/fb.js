@@ -6,11 +6,9 @@
 /**
  * @property config
  * @property {Array} [config.permissions=[]] Array of permissions
- * @property {Number} [config.timeout] Request timeout
  */
 exports.config = _.extend({
 	permissions: [],
-	timeout: 20000
 }, Alloy.CFG.T ? (Alloy.CFG.T.fb || Alloy.CFG.T.facebook) : {});
 
 var Util = require('T/util');
@@ -39,7 +37,7 @@ if (_FB) {
 	}
 
 	if (_.isFunction(_FB.initialize)) {
-		_FB.initialize(+exports.config.timeout);
+		_FB.initialize();
 	}
 
 } else {
