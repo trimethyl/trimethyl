@@ -9,16 +9,16 @@
  * @property {Number}  [config.timeout=30000] Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
  * @property {Object}  [config.headers={}] Global headers for all requests.
  * @property {Object}  [config.useCache=true] Global cache flag.
- * @property {Boolean} [config.errorAlert=true] Global error alert handling.
- * @property {Boolean} [config.log=false]
+ * @property {Object}  [config.offlineCache=false] Global offline cache.
+ * @property {Boolean} [config.log=false] Log the requests.
  * @property {Boolean} [config.bodyEncodingInJSON=false] Force to encoding in JSON of body data is the input is a JS object.
  */
 exports.config = _.extend({
 	base: '',
 	timeout: 30000,
-	errorAlert: true,
 	headers: {},
 	useCache: true,
+	offlineCache: false,
 	log: false,
 	bodyEncodingInJSON: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
@@ -130,7 +130,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 
 HTTPRequest.prototype._getResponseInfo = function() {
 	if (this.client == null || this.client.readyState <= 1) {
-		throw new Error('HTTP: Client is null or not ready');
+		throw new Error('HTTP.Request: Client is null or not ready');
 	}
 
 	var headers = {
@@ -166,13 +166,6 @@ HTTPRequest.prototype._getResponseInfo = function() {
 HTTPRequest.prototype._onError = function(err) {
 	var self = this;
 	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
-
-	if (!err.offline && exports.config.errorAlert === true && this.opt.errorAlert !== false) {
-		Util.errorAlert(err, function() {
-			if (_.isFunction(self.opt.error)) self.opt.error(err);
-		});
-		return;
-	}
 
 	if (_.isFunction(self.opt.error)) self.opt.error(err);
 	if (_.isFunction(self.opt.complete)) self.opt.complete(e);
@@ -290,20 +283,39 @@ HTTPRequest.prototype.send = function() {
 	this.client = client;
 };
 
-HTTPRequest.prototype.resolve = function() {
-	var cache = this.getCachedResponse();
-	if (cache != null) {
-		this.defer.resolve(cache);
-	} else {
-		if (Ti.Network.online) {
-			this.send();
+HTTPRequest.prototype.resolve = function() {	
+	var cache = null;
+
+	if (Ti.Network.online) {
+
+		cache = this.getCachedResponse();
+		if (cache != null) {
+			this.defer.resolve(cache);
 		} else {
-			Event.trigger('http.offline');
+			this.send();
+		}
+
+	} else {
+
+		Event.trigger('http.offline');
+
+		if (exports.config.offlineCache === true || this.opt.offlineCache === true) {
+			cache = this.getCachedResponse();
+			if (cache != null) {
+				this.defer.resolve();
+			} else {
+				this.defer.reject({
+					offline: true,
+					message: L('network_offline', 'Check your connectivity.')
+				});
+			}
+		} else {
 			this.defer.reject({
 				offline: true,
 				message: L('network_offline', 'Check your connectivity.')
 			});
 		}
+
 	}
 };
 
@@ -573,7 +585,6 @@ exports.download = function(url, file, success, error, ondatastream) {
 			file: tiFile.resolve(),
 			ondatastream: ondatastream,
 			error: error,
-			errorAlert: false,
 			success: function() {
 				if (tiFile.exists()) {
 					success(tiFile);
