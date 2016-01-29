@@ -130,9 +130,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 
 HTTPRequest.prototype._getResponseInfo = function() {
 	if (this.client == null || this.client.readyState <= 1) {
-		return {
-			broken: true
-		};
+		throw new Error('HTTP: Client is null or not ready');
 	}
 
 	var headers = {
@@ -210,14 +208,10 @@ HTTPRequest.prototype._onComplete = function(e) {
 		});
 	}
 
-	this.responseInfo = this._getResponseInfo();
-
-	// If the readyState is not DONE, trigger error, because
-	// client.onload is the function to be called upon a SUCCESSFULL response.
-	if (this.responseInfo.broken) {
-		this.defer.reject({
-			broken: true
-		});
+	try {
+		this.responseInfo = this._getResponseInfo();
+	} catch (ex) {
+		this.defer.reject({ broken: true });
 		return;
 	}
 
