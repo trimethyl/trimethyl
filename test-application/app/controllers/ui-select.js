@@ -72,3 +72,119 @@ btn.addEventListener('click', function(e) {
 });
 
 $.win.add(btn);
+
+/////////////////////
+// Automated tests //
+/////////////////////
+
+$.win.add($.UI.create('Label', {
+	top: 20,
+	left: 20,
+	right: 20,
+	height: 30,
+	font: {
+		fontSize: 20
+	},
+	text: 'AUTOMATED TESTS'
+}));
+
+// Set/Get test
+var selectC = T('uifactory').createSelect({
+	left: 20,
+	hintText: 'Set/Get Test',
+	right: 20,
+	top: 20,
+	color: '#000',
+	borderColor: '#888',
+	backgroundColor: '#eee',
+	columns: [
+		[{title: 'uno', value: 1},2,{title:'three',value:3},4],
+		[
+		{title:'alpha',value:'a'},
+		'b',
+		'c',
+		{title:'gamma',value:'g'}
+		]
+	],
+});
+
+var set_get_result = $.UI.create('Label', {
+	top: 10,
+	left: 20,
+	right: 20,
+	height: 30,
+	font: {
+		fontSize: 20
+	},
+	text: 'Set/Get result:'
+});
+
+$.win.add(selectC);
+$.win.add(set_get_result);
+
+var values = [2,'g'];
+selectC.setColumnsValues(values);
+var current_values = selectC.getValue();
+
+if (_.isEqual(values, current_values)) {
+	set_get_result.applyProperties({
+		color: '#0f0',
+		text: 'Set/Get result: OK'
+	});
+} else {
+	set_get_result.applyProperties({
+		color: '#f00',
+		text: 'Set/Get result: FAIL'
+	});
+}
+
+// Set invalid value
+var selectD = T('uifactory').createSelect({
+	left: 20,
+	hintText: 'Set Invalid Test',
+	right: 20,
+	top: 20,
+	color: '#000',
+	borderColor: '#888',
+	backgroundColor: '#eee',
+	columns: [
+		[{title: 'uno', value: 1},2,{title:'three',value:3},4],
+		[
+		{title:'alpha',value:'a'},
+		'b',
+		'c',
+		{title:'gamma',value:'g'}
+		]
+	],
+});
+
+var set_invalid_result = $.UI.create('Label', {
+	top: 10,
+	left: 20,
+	right: 20,
+	height: 30,
+	font: {
+		fontSize: 20
+	},
+	text: 'Set Invalid result:'
+});
+
+$.win.add(selectD);
+$.win.add(set_invalid_result);
+
+var invalid_values = [2,'z'];
+var expected_values = [2, null];
+selectD.setColumnsValues(invalid_values);
+var current_invalid_values = selectD.getValue();
+
+if (_.isEqual(expected_values, current_invalid_values)) {
+	set_invalid_result.applyProperties({
+		color: '#0f0',
+		text: 'Set Invalid result: OK'
+	});
+} else {
+	set_invalid_result.applyProperties({
+		color: '#f00',
+		text: 'Set Invalid result: FAIL'
+	});
+}
