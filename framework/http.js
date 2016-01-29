@@ -82,16 +82,12 @@ function HTTPRequest(opt) {
 	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
 
 	if (!ENV_PRODUCTION) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> [' + this.getDebugString() + ']');
+		Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
 	}
 }
 
 HTTPRequest.prototype.toString = function() {
 	return this.hash;
-};
-
-HTTPRequest.prototype.getDebugString = function() {
-	return this.method + ' ' + this.url + (this.data ? (' ' + this.data) : '');
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
