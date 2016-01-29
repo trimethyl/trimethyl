@@ -64,17 +64,9 @@ function HTTPRequest(opt) {
 				this.url = this.url + Util.buildQuery(opt.data, exQuery ? '&' : '?');
 			}
 		} else {
-			if (opt.data.apiName === 'Ti.Blob' || opt.data.apiName === 'Ti.Filesystem.File') {
-				this.headers['Content-Type'] = 'multipart/form-data';
-				this.data = opt.data;
-			} else if (typeof opt.data === 'object') {
-				if (exports.config.bodyEncodingInJSON == true || opt.bodyEncodingInJSON == true) {
-					this.headers['Content-Type'] = 'application/json';
-					this.data = JSON.stringify(opt.data);
-				} else {
-					this.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-					this.data = Util.buildQuery(opt.data, '');
-				}
+			if (exports.config.bodyEncodingInJSON == true || opt.bodyEncodingInJSON == true) {
+				this.headers['Content-Type'] = 'application/json';
+				this.data = JSON.stringify(opt.data);
 			} else {
 				this.data = opt.data;
 			}
