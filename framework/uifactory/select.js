@@ -545,9 +545,9 @@ module.exports = function(args) {
 	 * @param {Array} columnsValues
 	 */
 	$this.setColumnsValues = function(columnsValues) {
-		Data[ $this._uid ].value[0] = columnsValues[0];
-
 		if ($this.typeString === 'plain') {
+			Data[ $this._uid ].value[0] = columnsValues[0];
+
 			Data[ $this._uid ].values.forEach(function(rows, columnIndex) {
 
 				var row = _.find(rows, function(row) {
@@ -555,15 +555,19 @@ module.exports = function(args) {
 				});
 
 				if (row != null) {
+					Data[ $this._uid ].value[columnIndex] = row.value;
 					Data[ $this._uid ].indexes[columnIndex] = row.index;
 					Data[ $this._uid ].titles[columnIndex] = row.title;
 				} else {
 					Ti.API.warn('UIFactory.Select: can\'t find this value in the list');
+					Data[ $this._uid ].value[columnIndex] = null;
 					Data[ $this._uid ].indexes[columnIndex] = -1;
 					Data[ $this._uid ].titles[columnIndex] = '';
 				}
 
 			});
+		} else {
+			Data[ $this._uid ].value = columnsValues[0];
 		}
 
 		$this.updateUI();
