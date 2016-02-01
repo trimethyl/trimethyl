@@ -91,13 +91,15 @@ HTTPRequest.prototype.toString = function() {
 };
 
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
-	if (exports.config.useCache === false || this.opt.cache === false || this.method !== 'GET') {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> can\'t apply cache strategies upfront');
+	if (this.method !== 'GET') return;
+
+	if (exports.config.useCache === false || this.opt.cache === false) {
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache has been disabled');
 		return;
 	}
 
 	if (this.responseInfo.ttl <= 0) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> can\'t apply cache strategies');
+		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache is not applicable');
 		return;
 	}
 

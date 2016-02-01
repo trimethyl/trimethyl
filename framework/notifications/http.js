@@ -31,6 +31,7 @@ exports.subscribe = function(opt) {
 		data: _.extend({}, opt.data, {
 			device_token: opt.deviceToken,
 			channel: opt.channel,
+			app_id: Ti.App.id,
 			app_version: Ti.App.version,
 			app_deploytype: deploy_type,
 			os: os_enum,
