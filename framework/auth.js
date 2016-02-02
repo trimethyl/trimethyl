@@ -90,7 +90,6 @@ function apiLogin(opt, dataFromDriver) {
 			url: driver.config.loginUrl || exports.config.loginUrl,
 			method: 'POST',
 			data: dataFromDriver,
-			errorAlert: false,
 			success: resolve,
 			error: reject,
 		});
@@ -108,7 +107,6 @@ function fetchUserModel(opt, dataFromServer) {
 			http: {
 				refresh: true,
 				cache: false,
-				errorAlert: false
 			},
 			success: resolve,
 			error: reject
