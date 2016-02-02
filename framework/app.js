@@ -89,7 +89,6 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 
 	require('T/http').send({
 		url: url,
-		errorAlert: false,
 		cache: false,
 		format: 'json',
 		success: function(response) {

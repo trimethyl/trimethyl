@@ -37,7 +37,6 @@ exports.populateFromCollection = function(collection_name) {
 		collection.fetch({
 			http: {
 				silent: true,
-				errorAlert: false
 			},
 			success: function() {
 

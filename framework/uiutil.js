@@ -118,7 +118,6 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 				format: 'blob',
 				cache: false,
 				refresh: true,
-				errorAlert: false,
 				silent: true
 			}).success(function(data) {
 				onBlobReady(data);
