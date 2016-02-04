@@ -5,18 +5,18 @@
 
 /**
  * @property config
- * @property {Boolean} [config.autoRouteWithUniversalLink=true] Auto route with Universal link
- * @property {Boolean} [config.autoRouteWithDeepLink=true] Auto route with Dep link on resume. You can always call `App.start()` to re-route.
+ * @property {Boolean} [config.enqueueRouteWithUniversalLink=true] 	Auto enqueue route with Universal link
+ * @property {Boolean} [config.enqueueRouteWithDeepLink=true] 			Auto enqueue route with deep link
  */
 exports.config = _.extend({
-	autoRouteWithUniversalLink: true,
-	autoRouteWithDeepLink: true,
+	enqueueRouteWithUniversalLink: true,
+	enqueueRouteWithDeepLink: true,
 }, Alloy.CFG.T ? Alloy.CFG.T.app : {});
 
 var Util = require('T/util');
 var Router = require('T/router');
 
-var launchURL = null;
+exports.start = function() { Ti.API.error('App: method start() is DEPRECATED!'); };
 
 /**
  * @method isFirstUse
@@ -40,17 +40,6 @@ exports.isFirstUse = function(prefix) {
 exports.setFirstUse = function(prefix) {
 	prefix = prefix || '';
 	Ti.App.Properties.setString('app.firstuse' + prefix, Util.now());
-};
-
-/**
- * @method start
- */
-exports.start = function() {
-	var url = Util.parseSchema();
-	if (url != null) {
-		Ti.API.info('App: Started with schema <' + url + '>');
-		Router.go(url);
-	}
 };
 
 /**
@@ -128,31 +117,38 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 // Init //
 //////////
 
-if (exports.config.autoRouteWithDeepLink) {
-
-	// The "resume" event is to handle all incoming deep links
-	Ti.App.addEventListener('resumed', function() {
-		var launchURL = Util.parseSchema();
-		if (launchURL != null) {
-			Ti.API.info('App: Resumed with schema <' + launchURL + '>');
-			Router.go(launchURL);
-			launchURL = null;
-		}
-	});
-
-}
-
 if (OS_IOS) {
 
-	if (exports.config.autoRouteWithUniversalLink) {
+	if (exports.config.enqueueRouteWithDeepLink) {
+		// The "resume" event is to handle all incoming deep links
+		Ti.App.addEventListener('resumed', function() {
+			var url = Util.parseSchema();
+			Ti.API.info('App: Resumed with schema <' + url + '>');
+			
+			if (url != null) {
+				Router.go(url);
+			}
+		});
+	}
+
+	if (exports.config.enqueueRouteWithUniversalLink) {
 		// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
 		Ti.App.iOS.addEventListener('continueactivity', function(e) {
 			if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
-			if (_.isEmpty(e.webpageURL)) return;
-			Router.go(e.webpageURL);
+			if (e.webpageURL != null) {
+				Router.enqueue(e.webpageURL);
+			}
 		});
 	}
 
 }
 
-launchURL = Util.parseSchema();
+var url = Util.parseSchema();
+
+if (url != null) {
+	Ti.API.info('App: Started with schema <' + url + '>');
+
+	if (exports.config.enqueueRouteWithDeepLink) {
+		Router.enqueue(url);
+	}
+}

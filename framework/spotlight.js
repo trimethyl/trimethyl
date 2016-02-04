@@ -5,13 +5,14 @@
 
 /**
  * @property config
- * @property {String} [config.autoRoute=true]	Auto route from the searchableItemActivityIdentifier parameter
+ * @property {String} [config.enqueueRoute=true]	Enqueue route from the searchableItemActivityIdentifier parameter
  */
- exports.config = _.extend({
- 	autoRoute: true
- }, Alloy.CFG.T ? Alloy.CFG.T.spotlight : {});
+exports.config = _.extend({
+ 	enqueueRoute: true
+}, Alloy.CFG.T ? Alloy.CFG.T.spotlight : {});
 
- var Util = require('T/util');
+var Util = require('T/util');
+var Router = require('T/router');
 
 /**
  * @method populateFromCollection
@@ -30,8 +31,8 @@
  		return defer.promise;
  	}
 
- 	if (Util.getIOSVersion() < 9) {
- 		Ti.API.warn('Spotlight: iOS version not supported', Util.getIOSVersion());
+ 	if (!_.isFunction(Ti.App.iOS.createSearchableIndex)) {
+ 		Ti.API.warn('Spotlight: Searchable index not found');
  		defer.reject();
  		return defer.promise;
  	}
@@ -76,16 +77,18 @@
 // Init //
 //////////
 
-if (exports.config.autoRoute) {
-	if (OS_IOS) {
+if (OS_IOS) {
+	
+	if (exports.config.enqueueRoute) {
 		Ti.App.iOS.addEventListener('continueactivity', function(e) {
 			if (e.activityType !== 'com.apple.corespotlightitem') return;
 
 			var data = Util.parseJSON(e.searchableItemActivityIdentifier);
-			Ti.API.trace('Spotlight: continue activity', data);
+			Ti.API.trace('Spotlight: continue activity data', data);
 			if (data != null && data.route != null) {
-				Router.go(data.route);
+				Router.enqueue(data.route);
 			}
 		});
 	}
+
 }

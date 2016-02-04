@@ -11,13 +11,25 @@ exports.config = _.extend({
 	protocol: null
 }, Alloy.CFG.T ? Alloy.CFG.T.router : {});
 
-
 var Util = require('T/util');
 var Flow = require('T/flow');
 var Q = require('T/ext/q');
 
 var routeRegistry = [];
 
+/**
+ * @property queue
+ * The route queue
+ * @type {Array}
+ */
+exports.queue = [];
+
+/**
+ * @property bypassQueue
+ * Set this property to `true` to dispatch the enqueued url instantly.
+ * @type {Boolean}
+ */
+exports.bypassQueue = false;
 
 /**
  * @property currentUrl
@@ -130,7 +142,9 @@ exports.dispatch = function(url, data) {
 
 			if (routeDefinition.middlewares.length > 0) {
 
-				routeDefinition.middlewares.reduce(Q.when, Q())
+				routeDefinition.middlewares.reduce(function(soFar, f) {
+					return soFar.then( f.bind(callbackURL) );
+				}, Q(matches))
 				.then(function() {
 					routeDefinition.callback.apply(callbackURL, matches);
 				})
@@ -162,6 +176,41 @@ exports.dispatch = function(url, data) {
  * Alias for {@link #dispatch}
  */
 exports.go = exports.dispatch;
+
+/**
+ * @method enqueue
+ * @param  {String} url The route
+ */
+exports.enqueue = function(url) {
+	Ti.API.debug('Router: enqueuing <' + url + '>');
+
+	if (exports.bypassQueue) {
+		exports.dispatch(url);
+	} else {
+		exports.queue.push(url);
+	}
+};
+
+/**
+ * @method appendToQueue
+ * @param  {Array} array
+ */
+exports.appendToQueue = function(array) {
+	exports.queue = exports.queue.concat(array);
+};
+
+/**
+ * @method dispatchQueue
+ * @return {String} The last element in the queue
+ */
+exports.dispatchQueue = function(bypassFromNow) {
+	var e = null;
+	while ((e = exports.queue.shift()) != null) {
+		Ti.API.debug('Router: dequeuing <' + e + '>');
+		exports.dispatch(e);
+	}
+	exports.bypassQueue = !!bypassFromNow;
+};
 
 /**
  * Make an alias route
