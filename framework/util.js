@@ -88,7 +88,7 @@ exports.tryOpenURLs = function(urls) {
 					throw new Error();
 				}
 			} else if (OS_ANDROID) {
-				Ti.Platform.openURL(urls[i]);
+				if (!Ti.Platform.openURL(urls[i])) throw new Error();
 			}
 
 			return true;
@@ -139,11 +139,16 @@ exports.openFacebookProfile = function(fb_id) {
  * @param  {String} tw_username 	Twitter screen name
  */
 exports.openTwitterProfile = function(tw_username) {
-	return exports.tryOpenURLs([
-		'tweetbot:///user_profile/' + tw_username,
-		'twitter://user?screen_name=' + tw_username,
-		'http://www.twitter.com/' + tw_username
-	]);
+	if (OS_IOS) {
+		return exports.tryOpenURLs([
+			'tweetbot:///user_profile/' + tw_username,
+			'twitter://user?screen_name=' + tw_username,
+			'http://www.twitter.com/' + tw_username
+		]);
+	} else {
+		// There's a bug in the Twitter app for Android that blocks requests if the app is still closed
+		return Ti.Platform.openURL('http://www.twitter.com/' + tw_username);
+	}
 };
 
 /**
@@ -167,6 +172,18 @@ exports.openTwitterStatus = function(tw_username, status_id) {
 exports.openYoutubeProfile = function(ytid) {
 	return Ti.Platform.openURL('https://www.youtube.com/user/' + ytid);
 };
+
+/**
+ * @method  openInstagramProfile
+ * Open an Instagram profile in the Instagram application
+ * @param  {String} ig_username 	The user's id
+ */
+exports.openInstagramProfile = function(ig_username) {
+	return exports.tryOpenURLs([
+		'instagram://user?username=' + ig_username,
+		'http://www.instagram.com/' + ig_username
+	]);
+}
 
 /**
  * Get the Facebook avatar from the graph
