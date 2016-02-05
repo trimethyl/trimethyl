@@ -4,14 +4,14 @@ exports.config = _.extend({
 
 var LOGGER_METHODS = ['trace', 'debug', 'warn', 'error', 'info', 'timestamp'];
 
-var strategies_ctrl = [];
+var outputs_ctrl = [];
 
 function _write() {
 	var level = Array.prototype.shift.call(arguments);
 
-	strategies_ctrl.forEach(function(strategy) {
+	outputs_ctrl.forEach(function(output) {
 		try {
-			strategy.write(level, arguments);
+			output.write(level, arguments);
 		} catch(err) {
 			Ti.API.warn(err);
 		}
@@ -33,9 +33,9 @@ LOGGER_METHODS.forEach(function(level) {
 	};
 });
 
-// Load all the strategies
-exports.config.strategies.forEach(function(strategy) {
-	strategies_ctrl.push(Alloy.Globals.Trimethyl.loadDriver('logger', name, {
-		write: function() { throw 'The strategy ' + name + ' must implement the method write()' }
+// Load all the outputs
+exports.config.outputs.forEach(function(output) {
+	outputs_ctrl.push(Alloy.Globals.Trimethyl.loadDriver('logger', output, {
+		write: function() { throw 'The output ' + output + ' must implement the method write()' }
 	}));
 });
