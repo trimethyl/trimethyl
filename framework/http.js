@@ -94,12 +94,12 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (this.method !== 'GET') return;
 
 	if (exports.config.useCache === false || this.opt.cache === false) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache has been disabled');
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache has been disabled');
 		return;
 	}
 
 	if (this.responseInfo.ttl <= 0) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> cache is not applicable');
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache is not applicable');
 		return;
 	}
 
@@ -117,7 +117,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 		return;
 	}
 
-	Ti.API.debug('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
+	Ti.API.trace('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
 
 	if (this.cachedData.info.format === 'blob') {
 		return this.cachedData.value;
@@ -214,7 +214,7 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	if (e.success) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
 
 		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
