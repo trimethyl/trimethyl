@@ -6,12 +6,11 @@ var LOGGER_METHODS = ['trace', 'debug', 'warn', 'error', 'info', 'timestamp'];
 
 var outputs_ctrl = [];
 
-function _write() {
-	var level = Array.prototype.shift.call(arguments);
-
+function _write(args) {
+	// Invoke the write() method for all the outputs
 	outputs_ctrl.forEach(function(output) {
 		try {
-			output.write(level, arguments);
+			output.write.apply(null, args);
 		} catch(err) {
 			Ti.API.warn(err);
 		}
@@ -28,14 +27,16 @@ exports.loadDriver = function(name) {
 // Create the interface
 LOGGER_METHODS.forEach(function(level) {
 	exports[level] = function() {
-		Array.prototype.unshift.call(arguments, level);
-		_write.apply(null, arguments);
+		var args = Array.prototype.slice.call(arguments);
+		Array.prototype.unshift.call(args, level);
+
+		_write(args);
 	};
 });
 
 // Load all the outputs
 exports.config.outputs.forEach(function(output) {
 	outputs_ctrl.push(Alloy.Globals.Trimethyl.loadDriver('logger', output, {
-		write: function() { throw 'The output ' + output + ' must implement the method write()' }
+		write: function() { throw 'The output ' + output + ' must implement the method write()'; }
 	}));
 });

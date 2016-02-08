@@ -94,6 +94,15 @@
 		"name": "Image",
 		"description": "Image manipulation features."
 	},
+	"logger":{
+		"name": "Logger",
+		"description": "Writes messages to the console or other outputs.",
+		"dependencies": ["logger/api"]
+	},
+	"logger/api":{
+		"name": "Logger.Api",
+		"description": "Logs messages to the console, using the standard Ti.API methods."
+	},
 	"matrix":{
 		"name": "Matrix",
 		"description": "Matrix helper"
