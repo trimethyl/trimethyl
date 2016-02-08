@@ -32,7 +32,7 @@ exports.onReceived = function(e) {
 var interactiveCategories = [];
 var interactiveCategoriesCallbacks = {};
 
-var INTERACTIVE_NOTIFICATIONS_CAPABLE = (OS_IOS && Util.getIOSVersion() >= 8);
+var INTERACTIVE_NOTIFICATIONS_CAPABLE = (OS_IOS && _.isFunction(Ti.App.iOS.createUserNotificationAction));
 
 function validateToken(token) {
 	return token != null && token != "undefined" && token != "null" && token.length >= 32;
