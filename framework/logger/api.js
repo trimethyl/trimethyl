@@ -1,3 +1,7 @@
+/**
+ * @class  	Logger.Api
+ * @author  Andrea Jonus <andrea.jonus@caffeina.com>
+ */
 
 var logLevels = ['info', 'error', 'debug', 'trace', 'warn'];
 
@@ -23,6 +27,12 @@ function _parse(args) {
 	return parse_values;
 }
 
+
+/**
+ * @method write
+ * @param {String} level A severity level. See http://docs.appcelerator.com/platform/latest/#!/api/Titanium.API-method-log for a list of supported levels.
+ * @param message The message's parts
+ */
 exports.write = function() {
 	var level = Array.prototype.shift.call(arguments);
 
