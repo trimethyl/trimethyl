@@ -234,7 +234,8 @@
 	"util":{
 		"name": "Util",
 		"description": "Simply, utilities.",
-		"dependencies": ["dialog"]
+		"dependencies": ["dialog"],
+		"modules": ["ti.safaridialog:iphone"]
 	},
 	"weballoy":{
 		"name": "WebAlloy",
