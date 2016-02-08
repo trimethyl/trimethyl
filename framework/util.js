@@ -183,7 +183,7 @@ exports.openInstagramProfile = function(ig_username) {
 		'instagram://user?username=' + ig_username,
 		'http://www.instagram.com/' + ig_username
 	]);
-}
+};
 
 /**
  * Get the Facebook avatar from the graph
