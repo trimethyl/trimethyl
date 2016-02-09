@@ -3,16 +3,13 @@ var fs = require('fs-extended');
 var path = require('path');
 var _ = require('underscore');
 var program = require('commander');
+var inquirer = require('inquirer');
+var prompt = require('prompt');
 
 var CWD = process.cwd();
 
 var trimethyl_map = require('./map.json');
 var package = require('./package.json');
-
-var prompt = require('prompt');
-prompt.message = '';
-prompt.delimiter = '';
-prompt.start();
 
 function buildDependencies(libs, key, req, tabs) {
 	req = req || null;
@@ -82,24 +79,32 @@ if (notifier.update) {
 	notifier.notify();
 }
 
+function writeConfig() {
+	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config));
+}
+
+function addModule(name) {
+	app_trimethyl_config.libs.push(name);
+	app_trimethyl_config.libs = _.uniq(app_trimethyl_config.libs);
+}
+
 function preInstall() {
 	if (_.isEmpty(app_trimethyl_config.libs)) {
-		prompt.get({
-			name: 'yesno',
-			message: (
-				("Installer has detected that this project doesn't have a valid configuration file.\n" +
-				"Configuration file defines the modules installed in the project.\n" +
-				"If you want to start using a configuration file just type ").yellow + "trimethyl add <your_first_module>".green + "\n" +
-				("Anyway, you can bypass that and install everything (this is a deprecated behaviour and it's discouraged). Install all modules?").red
-			),
-			validator: /y(es)?|n(o)?/,
-			warning: 'Must respond yes or no',
-			default: 'no'
-		}, function (err, result) {
-			if (result && /y(es)?/i.test(result.yesno)) {
-				app_trimethyl_config.libs = Object.keys(trimethyl_map);
-				install();
+		inquirer.prompt([{
+			type: 'checkbox',
+			name: 'modules',
+			message: "Select the modules you want to install:",
+			choices: _.map(trimethyl_map, function(e, k) { return { name: e.name, value: k }; })
+		}], function (ans) {
+			if (_.isEmpty(ans.modules)) {
+				process.stdout.write("Please select at least one module.".red);
+				process.exit(1);
 			}
+
+			ans.modules.forEach(function(e) { addModule(e); });
+			writeConfig();
+
+			install();
 		});
 	} else {
 		install();
@@ -142,24 +147,32 @@ function install() {
 			if (null == _.find(tiapp.getModules(), function(m) {
 				return m.id == module && m.platform == platform;
 			})) {
-				prompt.get({
-					name: 'yesno',
-					message: ("<" + info.name + "> requires the native module <" + module + "> for the platform <" + platform + ">. Install it?").yellow,
-					validator: /y(es)?|n(o)?/,
-					warning: 'Must respond yes or no',
-					default: 'yes'
-				}, function (err, result) {
-					if (result && /y(es)?/i.test(result.yesno)) {
+				inquirer.prompt([{
+					type: 'expand',
+					name: 'result',
+					message: "<" + info.name + "> requires the native module <" + module + "> for the platform <" + platform + ">",
+					choices: [
+						{ key: 'a', name: 'Add to the "tiapp.xml"', value: 'add' },
+						{ key: 'i', name: 'Install via Gittio', value: 'install' },
+						{ key: 's', name: 'Skip', value: 'skip' },
+						{ key: 'e', name: 'Exit', value: 'exit' }
+					]
+				}], function (ans) {
+					if (ans.result === 'add') {
+						tiapp.setModule(module, { platform: platform });
+						tiapp.write();
+						installModules(install_modules_callback);
+
+					} else if (ans.result === 'install') {
 						require('child_process').exec('gittio install ' + module + ' -p ' + platform, function(error, stdout, stderr) {
-							if (stderr) {
-								process.stdout.write(stderr.replace(/\[.+?\] /g, '').red);
-							} else {
-								process.stdout.write(stderr.replace(/\[.+?\] /g, '').gray);
-							}
+							if (stderr) process.stdout.write(stderr.replace(/\[.+?\] /g, '').red);
+							else process.stdout.write(stderr.replace(/\[.+?\] /g, '').gray);
 							installModules(install_modules_callback);
 						});
-					} else {
+
+					} else if (ans.result === 'skip') {
 						installModules(install_modules_callback);
+
 					}
 				});
 			} else {
@@ -171,14 +184,15 @@ function install() {
 
 	})(function() {
 
+		process.stdout.write("\n");
+
 		installOnFileSystem(items);
 
 		app_trimethyl_config.version = package.version;
-		app_trimethyl_config.install_date = Date.now();
-		fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config));
+		app_trimethyl_config.install_date = Date.now();	
+		writeConfig();
 
-		process.stdout.write('\n');
-		process.stdout.write('Installed version: ' + ('v' + app_trimethyl_config.version).green + '\n');
+		process.stdout.write('\nInstalled version: ' + ('v' + app_trimethyl_config.version).green + '\n');
 
 		var total_size = _.reduce(_.pluck(items, 'stat'), function(s,e) { return s + e; }, 0);
 		process.stdout.write('Occupied space: ' + ( (total_size / 1000).toFixed(2) + ' KB' ).green + '\n');
@@ -196,7 +210,9 @@ function installOnFileSystem(items) {
 
 	_.each(items, function(info) {
 		var dir_name = path.dirname(info.dst_file);
-		if (!fs.existsSync(dir_name)) fs.createDirSync(dir_name);
+		if (!fs.existsSync(dir_name)) {
+			fs.createDirSync(dir_name);
+		}
 
 		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '└' + new Array(3).join('─') : '';
 		process.stdout.write((tabs + 'Installing ' + info.name + ' (' + info.size + ')\n').grey);
@@ -209,16 +225,15 @@ function installOnFileSystem(items) {
 // Install command //
 /////////////////////
 
-program.command('install').description('Install the framework files').action(function() {
+program.command('install').alias('i').description('Install the framework files').action(function() {
 	if (compareVersions(app_trimethyl_config.version, package.version) === 1) {
-		prompt.get({
-			name: 'yesno',
-			message: ("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?\n").yellow,
-			validator: /y(es)?|n(o)?/,
-			warning: 'Must respond yes or no',
-			default: 'no'
-		}, function (err, result) {
-			if (result && /y(es)?/i.test(result.yesno)) {
+		inquirer.prompt([{
+			type: 'confirm',
+			name: 'result',
+			message: "You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?".yellow,
+			default: false
+		}], function(ans) {
+			if (ans.result) {
 				preInstall();
 			}
 		});
@@ -231,7 +246,7 @@ program.command('install').description('Install the framework files').action(fun
 // List command //
 //////////////////
 
-program.command('list').description('List all Trimethyl available modules').action(function() {
+program.command('list').alias('ls').description('List all Trimethyl available modules').action(function() {
 	_.each(trimethyl_map, function(m, k) {
 		var dots = m.name.match(/\./g);
 		var tabs = new Array( dots ? dots.length*4 : 0 ).join(' ');
@@ -243,24 +258,21 @@ program.command('list').description('List all Trimethyl available modules').acti
 // Add command //
 /////////////////
 
-program.command('add [name]').description('Add a Trimethyl module to your config').action(function(name) {
+program.command('add [name]').alias('a').description('Add a Trimethyl module to your config').action(function(name) {
 	if (!(name in trimethyl_map)) {
 		process.stdout.write(('<' + name + '> is not a valid Trimethyl module.').red);
 		process.exit();
 	}
 
-	app_trimethyl_config.libs.push(name);
-	app_trimethyl_config.libs = _.uniq(app_trimethyl_config.libs);
-
-	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config));
-	process.stdout.write('trimethyl.json file written successfully\n'.green);
+	addModule(name);
+	writeConfig();
 });
 
 ////////////////////
 // Remove command //
 ////////////////////
 
-program.command('remove [name]').description('Remove a Trimethyl module to your config').action(function(name) {
+program.command('remove [name]').alias('r').description('Remove a Trimethyl module to your config').action(function(name) {
 	name = name.replace('.', '/');
 
 	var io = app_trimethyl_config.libs.indexOf(name);
@@ -270,8 +282,7 @@ program.command('remove [name]').description('Remove a Trimethyl module to your 
 	}
 
 	app_trimethyl_config.libs.splice(io, 1);
-	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config));
-	process.stdout.write('trimethyl.json file written successfully'.green);
+	writeConfig();
 });
 
 ///////////
@@ -291,7 +302,7 @@ if (fs.existsSync(CWD + '/trimethyl.json')) {
 // Alloy.js
 
 if (!fs.existsSync(CWD + '/app/config.json')) {
-	process.stdout.write("Not a valid Alloy project.\n".red);
+	process.stdout.write("This is not a valid Alloy project.\n".red);
 	process.exit(1);
 }
 var app_config = require(CWD + '/app/config.json');
@@ -300,7 +311,7 @@ var app_config = require(CWD + '/app/config.json');
 
 var tiapp = require('tiapp.xml').load('./tiapp.xml');
 if (tiapp == null) {
-	process.stdout.write("Not a valid Titanium project.\n".red);
+	process.stdout.write("This is not a valid Titanium project.\n".red);
 	process.exit(1);
 }
 
