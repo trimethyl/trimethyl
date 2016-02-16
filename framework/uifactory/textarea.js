@@ -71,6 +71,10 @@ module.exports = function(args) {
 
 	} else {
 
+		$this.setRealValue = function(v){
+			$this.value = v;
+		};
+
 		$this.getRealValue = function(){
 			return $this.value;
 		};
