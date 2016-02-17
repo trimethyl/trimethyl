@@ -5,10 +5,12 @@
 
 /**
  * @property config
- * @property {String} config.protocol  Force all protocol different from this to be discarded
+ * @property {String} config.protocol  			Force all protocol different from this to be discarded
+ * @property {Boolean} config.blockOnSameRoute 	Block the routing system if the route is the same
  */
 exports.config = _.extend({
-	protocol: null
+	protocol: null,
+	blockOnSameRoute: true
 }, Alloy.CFG.T ? Alloy.CFG.T.router : {});
 
 var Util = require('T/util');
@@ -93,6 +95,11 @@ exports.on = function() {
  */
 exports.dispatch = function(url, data) {
 	Ti.API.debug('Router: dispatching <' + url + '>');
+
+	if (exports.config.blockOnSameRoute == true && exports.currentUrl === url) {
+		Ti.API.warn('Router: blocked because is the same route');
+		return;
+	}
 
 	var callbackURL = Util.parseAsXCallbackURL(url);
 	callbackURL.path = callbackURL.path.replace(/\/$/g, '');
