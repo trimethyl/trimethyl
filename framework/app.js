@@ -16,6 +16,22 @@ exports.config = _.extend({
 var Util = require('T/util');
 var Router = require('T/router');
 
+/**
+ * @method universalLinkToRoute
+ * @param  {String} url
+ */
+exports.universalLinkToRoute = function(url) { return url };
+
+/**
+ * @method deepLinkToRoute
+ * @param  {String} url
+ */
+exports.deepLinkToRoute = function(url) { return url; }
+
+/**
+ * @deprecated
+ * @method start
+ */
 exports.start = function() { Ti.API.error('App: method start() is DEPRECATED!'); };
 
 /**
@@ -126,7 +142,7 @@ if (OS_IOS) {
 			Ti.API.info('App: Resumed with schema <' + url + '>');
 			
 			if (url != null) {
-				Router.go(url);
+				Router.go( exports.deepLinkToRoute(url) );
 			}
 		});
 	}
@@ -136,7 +152,7 @@ if (OS_IOS) {
 		Ti.App.iOS.addEventListener('continueactivity', function(e) {
 			if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
 			if (e.webpageURL != null) {
-				Router.enqueue(e.webpageURL);
+				Router.enqueue( exports.universalLinkToRoute(e.webpageURL) );
 			}
 		});
 	}
@@ -149,6 +165,6 @@ if (url != null) {
 	Ti.API.info('App: Started with schema <' + url + '>');
 
 	if (exports.config.enqueueRouteWithDeepLink) {
-		Router.enqueue(url);
+		Router.enqueue( exports.deepLinkToRoute(url) );
 	}
 }
