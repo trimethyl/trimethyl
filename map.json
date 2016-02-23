@@ -77,7 +77,7 @@
 	"ga":{
 		"name": "GA",
 		"description": "Google Analytics proxy.",
-		"modules": ["analytics.google:iphone","analytics.google:android"]
+		"modules": ["ti.ga:iphone","ti.ga:android"]
 	},
 	"geo":{
 		"name": "Geo",
