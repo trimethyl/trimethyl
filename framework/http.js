@@ -86,7 +86,7 @@ function HTTPRequest(opt) {
 	this.defer.promise.fin(function() { self._onFinally.apply(self, arguments); });
 
 	if (!ENV_PRODUCTION) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
+		Ti.API.trace('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
 	}
 }
 
@@ -245,7 +245,10 @@ HTTPRequest.prototype.send = function() {
 	var self = this;
 
 	var promise = Q();
-	_.each(filters, function(filter) {
+	_.each(filters, function(filter, name) {
+		if (self.opt.suppressFilters == true) return;
+		if (_.isArray(self.opt.suppressFilters) && self.opt.suppressFilters.indexOf(name) >= 0) return;
+		
 		promise = promise.then( filter.bind(null, self) );
 	});
 
@@ -258,6 +261,8 @@ HTTPRequest.prototype.send = function() {
 
 HTTPRequest.prototype._send = function() {
 	var self = this;
+
+	Ti.API.debug('HTTP: <' + this.uniqueId + '> sending...');
 
 	var client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,

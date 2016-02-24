@@ -28,7 +28,7 @@ var Me = null; // User model object
 
 var OAuth = {
 
-	baseDomain: '',
+	isRequestingToken: false,
 
 	getClientID: function() {
 		return Ti.App.Properties.getString('oauth.clientid') || 'app';
@@ -42,15 +42,16 @@ var OAuth = {
 		Ti.App.Properties.setString('oauth.access_token', data.access_token);
 		Ti.App.Properties.setString('oauth.refresh_token', data.refresh_token);
 		Ti.App.Properties.setString('oauth.expiration', Util.now() + data.expires_in);
-
-		OAuth.baseDomain = Util.getDomainFromURL(HTTP.config.base);
-		HTTP.addFilter('oauth', OAuth.httpFilter);
 	},
 
 	httpFilter: function(httpRequest) {
-		if (httpRequest.domain !== OAuth.baseDomain) {
-			return null;
-		}
+		if (OAuth.isRequestingToken) return;
+
+		OAuth.baseDomain = OAuth.baseDomain || Util.getDomainFromURL(HTTP.config.base);
+		if (httpRequest.domain !== OAuth.baseDomain) return;
+
+		var access_token = OAuth.getAccessToken();
+		if (access_token == null) return;
 
 		if (OAuth.isAccessTokenExpired()) {
 
@@ -62,29 +63,39 @@ var OAuth = {
 			};
 
 			return Q.promise(function(resolve, reject) {
+				OAuth.isRequestingToken = true;
+
 				HTTP.send({
 					url: exports.config.oAuthAccessTokenURL,
 					method: 'POST',
 					data: oAuthPostData,
+					suppressFilters: ['oauth'],
 					success: function(data) {
 						Ti.App.PropertiestoreCredentials(data);
-						Q.when(OAuth.httpFilter(httpRequest), resolve, reject);
+						Q.when(OAuth.httpFilter(httpRequest), function() {
+							OAuth.isRequestingToken = false;
+							resolve();
+						}, function() {
+							OAuth.isRequestingToken = false;
+							reject();
+						});
 					},
-					error: reject
+					error: function() {
+						OAuth.isRequestingToken = false;
+						reject();
+					}
 				});
 			});
 
 		}
 		
-		httpRequest.headers['Authorization'] = 'Bearer ' + OAuth.getAccessToken();		
+		httpRequest.headers['Authorization'] = 'Bearer ' + access_token;
 	},
 
 	resetCredentials: function() {
 		Ti.App.Properties.removeProperty('oauth.access_token');
 		Ti.App.Properties.removeProperty('oauth.refresh_token');
 		Ti.App.Properties.removeProperty('oauth.expiration');
-
-		HTTP.removeFilter('oauth');
 	},
 
 	getAccessToken: function() {
@@ -92,12 +103,16 @@ var OAuth = {
 	},
 
 	getRefreshToken: function() {
-		return Ti.App.Properties.getString('oauth.refresh_token');
+		return Ti.App.Properties.getString('oauth.refresh_token', null);
 	},
 
 	isAccessTokenExpired: function() {
+		return OAuth.getRemainingAccessTokenExpirationTime() <= 0;
+	},
+
+	getRemainingAccessTokenExpirationTime: function() {
 		var expire = +Ti.App.Properties.getString('oauth.expiration');
-		return (Util.now() >= expire);
+		return expire - Util.now();
 	}
 
 };
@@ -186,6 +201,8 @@ function apiLogin(opt, dataFromDriver) {
 //////////////////////
 
 function fetchUserModel(opt, dataFromServer) {
+	dataFromServer = dataFromServer || {};
+
 	return Q.promise(function(resolve, reject) {
 
 		Me = Alloy.createModel('user', {
@@ -197,7 +214,10 @@ function fetchUserModel(opt, dataFromServer) {
 				refresh: true,
 				cache: false,
 			},
-			success: resolve,
+			success: function() {
+				Ti.App.Properties.setObject('auth.me', Me.toJSON());
+				resolve();
+			},
 			error: reject
 		});
 
@@ -274,17 +294,18 @@ exports.login = function(opt) {
 	})
 
 	.then(function(dataFromServer) {
-		return fetchUserModel(opt, dataFromServer || {});
+		return fetchUserModel(opt, dataFromServer);
 	})
 
 	.then(function(userDataFromServer) {
-		Ti.App.Properties.setObject('auth.me', Me.toJSON());
 		Ti.App.Properties.setString('auth.driver', opt.driver);
-	})
 
-	.then(function(){
-		Event.trigger('auth.success', { id: Me.id });
-		opt.success({ id: Me.id });
+		var payload = {
+			id: Me.id
+		};
+
+		Event.trigger('auth.success', payload);
+		opt.success(payload);
 	})
 
 	.fail(function(err) {
@@ -376,11 +397,38 @@ exports.autoLogin = function(opt) {
 	});
 
 	if (Ti.Network.online) {
-		if (exports.isStoredLoginAvailable()) {
-			exports.storedLogin(opt);
+		
+		var driver = getStoredDriverString();
+		if (exports.config.useOAuth == true && driver === 'bypass') {
+
+			fetchUserModel()
+			.then(function() {
+				Ti.App.Properties.setString('auth.driver', 'bypass');
+		
+				var payload = {
+					id: Me.id,
+					oauth: true
+				};
+
+				Event.trigger('auth.success', payload);
+				opt.success(payload);
+
+			})
+			.fail(function(err) {
+				Event.trigger('auth.error', err);
+				opt.error(err);
+			});
+
 		} else {
-			opt.error();
+
+			if (exports.isStoredLoginAvailable()) {
+				exports.storedLogin(opt);
+			} else {
+				opt.error();
+			}
+
 		}
+
 	} else {
 		if (exports.isOfflineLoginAvailable()) {
 			exports.offlineLogin(opt);
@@ -419,3 +467,8 @@ exports.logout = function(callback) {
 
 	if (_.isFunction(callback)) callback();
 };
+
+
+if (exports.config.useOAuth == true) {
+	HTTP.addFilter('oauth', OAuth.httpFilter);
+}
