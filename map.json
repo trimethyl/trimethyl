@@ -17,7 +17,11 @@
 	"auth":{
 		"name": "Auth",
 		"description": "Authentication with a REST web server provided by local drivers.",
-		"dependencies": ["http","event","ext/q"]
+		"dependencies": ["http","event","ext/q","auth/bypass"]
+	},
+	"auth/bypass":{
+		"name": "Auth.Bypass",
+		"description": "Bypass driver."
 	},
 	"auth/facebook":{
 		"name": "Auth.Facebook",
