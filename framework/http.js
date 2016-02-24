@@ -85,9 +85,7 @@ function HTTPRequest(opt) {
 	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
 	this.defer.promise.fin(function() { self._onFinally.apply(self, arguments); });
 
-	if (!ENV_PRODUCTION) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
-	}
+	Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
 }
 
 HTTPRequest.prototype.toString = function() {
@@ -254,8 +252,9 @@ HTTPRequest.prototype.send = function() {
 
 	promise
 	.then(self._send.bind(self))
-	.fail(function(err) {
-		Ti.API.error('HTTP: <' + self.uniqueId + '> send prevented by filters', err);
+	.fail(function(ex) {
+		Ti.API.error('HTTP: <' + self.uniqueId + '> filter rejection', ex);
+		self.defer.reject(ex);
 	})
 };
 

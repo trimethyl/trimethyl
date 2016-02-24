@@ -82,6 +82,7 @@ var OAuth = {
 					},
 					error: function() {
 						OAuth.isRequestingToken = false;
+						OAuth.resetCredentials();
 						reject();
 					}
 				});
@@ -112,6 +113,8 @@ var OAuth = {
 
 	getRemainingAccessTokenExpirationTime: function() {
 		var expire = +Ti.App.Properties.getString('oauth.expiration');
+		if (expire == 0) return -1;
+
 		return expire - Util.now();
 	}
 
@@ -164,6 +167,7 @@ function serverLoginWithOAuth(opt, dataFromDriver) {
 			url: exports.config.oAuthAccessTokenURL,
 			method: 'POST',
 			data: _.extend({}, oAuthPostData, dataFromDriver),
+			suppressFilters: ['oauth'],
 			success: function(data) {
 				OAuth.storeCredentials(data);
 				resolve(data);
@@ -401,23 +405,28 @@ exports.autoLogin = function(opt) {
 		var driver = getStoredDriverString();
 		if (exports.config.useOAuth == true && driver === 'bypass') {
 
-			fetchUserModel()
-			.then(function() {
-				Ti.App.Properties.setString('auth.driver', 'bypass');
-		
-				var payload = {
-					id: Me.id,
-					oauth: true
-				};
+			if (OAuth.getAccessToken() != null) {
+			
+				fetchUserModel()
+				.then(function() {
 
-				Event.trigger('auth.success', payload);
-				opt.success(payload);
+					var payload = {
+						id: Me.id,
+						oauth: true
+					};
 
-			})
-			.fail(function(err) {
-				Event.trigger('auth.error', err);
-				opt.error(err);
-			});
+					Event.trigger('auth.success', payload);
+					opt.success(payload);
+
+				})
+				.fail(function(err) {
+					Event.trigger('auth.error', err);
+					opt.error(err);
+				});
+
+			} else {
+				opt.error();
+			}
 
 		} else {
 

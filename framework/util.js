@@ -494,7 +494,7 @@ exports.hashJavascriptObject = function(obj) {
  * @method getErrorMessage
  * An error parser that parse a String/Object
  */
-exports.getErrorMessage = function(obj) {
+exports.getErrorMessage = function(obj, def) {
 	if (_.isObject(obj)) {
 		if (_.isString(obj.message)) {
 			return obj.message;
@@ -506,6 +506,9 @@ exports.getErrorMessage = function(obj) {
 	} else if (!_.isEmpty(obj)) {
 		return obj.toString();
 	}
+
+	if (def != null) return def;
+	
 	return L('unexpected_error', 'Unexpected error');
 };
 
