@@ -31,11 +31,11 @@ var OAuth = {
 	baseDomain: '',
 
 	getClientID: function() {
-		return OAuth.S.getString('oauth.clientid') || 'app';
+		return Ti.App.Properties.getString('oauth.clientid') || 'app';
 	},
 
 	getClientSecret: function() {
-		return OAuth.S.getString('oauth.clientsecret') || 'app-secret';
+		return Ti.App.Properties.getString('oauth.clientsecret') || 'app-secret';
 	},
 
 	storeCredentials: function(data) {
