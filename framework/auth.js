@@ -5,17 +5,205 @@
 
 /**
  * @property config
- * @property {String} [config.loginUrl="/login"] 	URL to login-in
+ * @property {String} [config.loginUrl="/login"] 		URL to login-in
+ * @property {Boolean} [config.useOAuth=false] 			Use OAuth method to authenticate
+ * @property {String} [config.oAuthAccessTokenURL] 	OAuth endpoint to retrieve access token
  */
 exports.config = _.extend({
 	loginUrl: '/login',
+	useOAuth: false,
+	oAuthAccessTokenURL: '/oauth/access_token'
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
 var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
+var Cache = require('T/cache');
 
 var Me = null; // User model object
+
+///////////
+// OAuth //
+///////////
+
+var OAuth = {
+
+	baseDomain: '',
+
+	getClientID: function() {
+		return OAuth.S.getString('oauth.clientid') || 'app';
+	},
+
+	getClientSecret: function() {
+		return OAuth.S.getString('oauth.clientsecret') || 'app-secret';
+	},
+
+	storeCredentials: function(data) {
+		Ti.App.Properties.setString('oauth.access_token', data.access_token);
+		Ti.App.Properties.setString('oauth.refresh_token', data.refresh_token);
+		Ti.App.Properties.setString('oauth.expiration', Util.now() + data.expires_in);
+
+		OAuth.baseDomain = Util.getDomainFromURL(HTTP.config.base);
+		HTTP.addFilter('oauth', OAuth.httpFilter);
+	},
+
+	httpFilter: function(httpRequest) {
+		if (httpRequest.domain !== OAuth.baseDomain) {
+			return null;
+		}
+
+		if (OAuth.isAccessTokenExpired()) {
+
+			var oAuthPostData = {
+				client_id: OAuth.getClientID(),
+				client_secret: OAuth.getClientSecret(),
+				grant_type: 'refresh_token',
+				refresh_token: OAuth.getRefreshToken()
+			};
+
+			return Q.promise(function(resolve, reject) {
+				HTTP.send({
+					url: exports.config.oAuthAccessTokenURL,
+					method: 'POST',
+					data: oAuthPostData,
+					success: function(data) {
+						Ti.App.PropertiestoreCredentials(data);
+						Q.when(OAuth.httpFilter(httpRequest), resolve, reject);
+					},
+					error: reject
+				});
+			});
+
+		}
+		
+		httpRequest.headers['Authorization'] = 'Bearer ' + OAuth.getAccessToken();		
+	},
+
+	resetCredentials: function() {
+		Ti.App.Properties.removeProperty('oauth.access_token');
+		Ti.App.Properties.removeProperty('oauth.refresh_token');
+		Ti.App.Properties.removeProperty('oauth.expiration');
+
+		HTTP.removeFilter('oauth');
+	},
+
+	getAccessToken: function() {
+		return Ti.App.Properties.getString('oauth.access_token', null);
+	},
+
+	getRefreshToken: function() {
+		return Ti.App.Properties.getString('oauth.refresh_token');
+	},
+
+	isAccessTokenExpired: function() {
+		var expire = +Ti.App.Properties.getString('oauth.expiration');
+		return (Util.now() >= expire);
+	}
+
+};
+
+exports.OAuth = OAuth;
+
+
+////////////
+// Driver //
+////////////
+
+function getStoredDriverString() {
+	var hasDriver = Ti.App.Properties.hasProperty('auth.driver');
+	var hasMe = Ti.App.Properties.hasProperty('auth.me');
+	if (hasDriver && hasMe) {
+		return Ti.App.Properties.getString('auth.driver');
+	}
+}
+
+function driverLogin(opt) {
+	var driver = exports.loadDriver(opt.driver);
+	var method = opt.stored === true ? 'storedLogin' : 'login';
+
+	return Q.promise(function(resolve, reject) {
+		driver[ method ]({
+			data: opt.data,
+			success: resolve,
+			error: reject
+		});
+	});
+}
+
+
+///////////////////////
+// Server side login //
+///////////////////////
+
+function serverLoginWithOAuth(opt, dataFromDriver) {
+	var oAuthPostData = {
+		client_id: OAuth.getClientID(),
+		client_secret: OAuth.getClientSecret(),
+		grant_type: 'password',
+		username: '-',
+		password: '-'
+	};
+
+	return Q.promise(function(resolve, reject) {
+		HTTP.send({
+			url: exports.config.oAuthAccessTokenURL,
+			method: 'POST',
+			data: _.extend({}, oAuthPostData, dataFromDriver),
+			success: function(data) {
+				OAuth.storeCredentials(data);
+				resolve(data);
+			},
+			error: reject,
+		});
+	});
+}
+
+function serverLoginWithCookie(opt, dataFromDriver) {
+	return Q.promise(function(resolve, reject) {
+		HTTP.send({
+			url: opt.loginUrl,
+			method: 'POST',
+			data: dataFromDriver,
+			success: resolve,
+			error: reject,
+		});
+	});
+}
+
+function apiLogin(opt, dataFromDriver) {
+	var driver = exports.loadDriver(opt.driver);
+	opt.loginUrl = driver.config.loginUrl || exports.config.loginUrl;
+
+	if (exports.config.useOAuth == true) {
+		return serverLoginWithOAuth(opt, dataFromDriver);
+	} else {
+		return serverLoginWithCookie(opt, dataFromDriver);
+	}
+}
+
+//////////////////////
+// Fetch user model //
+//////////////////////
+
+function fetchUserModel(opt, dataFromServer) {
+	return Q.promise(function(resolve, reject) {
+
+		Me = Alloy.createModel('user', {
+			id: dataFromServer.id || 'me'
+		});
+
+		Me.fetch({
+			http: {
+				refresh: true,
+				cache: false,
+			},
+			success: resolve,
+			error: reject
+		});
+
+	});
+}
+
 
 /**
  * @method loadDriver
@@ -64,67 +252,19 @@ exports.getUserID = function(){
 	return Me.id;
 };
 
-function getStoredDriver(){
-	if (!Ti.App.Properties.hasProperty('auth.driver') || !Ti.App.Properties.hasProperty('auth.me')) {
-		return null;
-	}
-	return Ti.App.Properties.getString('auth.driver');
-}
-
-function driverLogin(opt) {
-	return Q.promise(function(resolve, reject) {
-		var driver = exports.loadDriver(opt.driver);
-		var method = opt.stored === true ? 'storedLogin' : 'login';
-		driver[ method ]({
-			data: opt.data,
-			success: resolve,
-			error: reject
-		});
-	});
-}
-
-function apiLogin(opt, dataFromDriver) {
-	return Q.promise(function(resolve, reject) {
-		var driver = exports.loadDriver(opt.driver);
-		HTTP.send({
-			url: driver.config.loginUrl || exports.config.loginUrl,
-			method: 'POST',
-			data: dataFromDriver,
-			success: resolve,
-			error: reject,
-		});
-	});
-}
-
-function fetchUserModel(opt, dataFromServer) {
-	return Q.promise(function(resolve, reject) {
-
-		Me = Alloy.createModel('user', {
-			id: dataFromServer.id || 'me'
-		});
-
-		Me.fetch({
-			http: {
-				refresh: true,
-				cache: false,
-			},
-			success: resolve,
-			error: reject
-		});
-
-	});
-}
-
 /**
  * @method login
  * Login using selected driver
  * @param  {Object} opt
  */
 exports.login = function(opt) {
-	if (_.isEmpty(opt.driver)) {
-		throw new Error('Please set a driver');
-	}
+	opt = _.defaults(opt || {}, {
+		success: function(){},
+		error: function(){}
+	});
 
+	if (_.isEmpty(opt.driver)) throw new Error('Please set a driver');
+	
 	driverLogin(opt)
 
 	.then(function(dataFromDriver) {
@@ -144,16 +284,12 @@ exports.login = function(opt) {
 
 	.then(function(){
 		Event.trigger('auth.success', { id: Me.id });
-		if (_.isFunction(opt.success)) {
-			opt.success({
-				id: Me.id
-			});
-		}
+		opt.success({ id: Me.id });
 	})
 
 	.fail(function(err) {
 		Event.trigger('auth.error', err);
-		if (_.isFunction(opt.error)) opt.error(err);
+		opt.error(err);
 	});
 };
 
@@ -163,8 +299,10 @@ exports.login = function(opt) {
  * @return {Boolean}
  */
 exports.isStoredLoginAvailable = function() {
-	var driver = getStoredDriver();
-	return !_.isEmpty(driver) && exports.loadDriver(driver).isStoredLoginAvailable();
+	var driver = getStoredDriverString();
+	if (driver == null) return false;
+
+	return exports.loadDriver(driver).isStoredLoginAvailable();
 };
 
 /**
@@ -174,7 +312,7 @@ exports.isStoredLoginAvailable = function() {
  * @param  {Object} opt
  */
 exports.storedLogin = function(opt) {
-	_.defaults(opt, {
+	opt = _.defaults(opt || {}, {
 		success: function(){},
 		error: function(){}
 	});
@@ -182,7 +320,7 @@ exports.storedLogin = function(opt) {
 	if (exports.isStoredLoginAvailable()) {
 		exports.login(_.extend(opt || {}, {
 			stored: true,
-			driver: getStoredDriver()
+			driver: getStoredDriverString()
 		}));
 	} else {
 		opt.error({});
@@ -204,19 +342,23 @@ exports.isOfflineLoginAvailable = function() {
  * @param  {Object} opt
  */
 exports.offlineLogin = function(opt) {
-	_.defaults(opt, {
+	opt = _.defaults(opt || {}, {
 		success: function(){},
 		error: function(){}
 	});
 
 	if (exports.isOfflineLoginAvailable()) {
+
 		Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+
 		var payload = {
 			id: Me.id,
 			offline: true
 		};
+
 		Event.trigger('auth.success', payload);
 		opt.success(payload);
+
 	} else {
 		opt.error({});
 	}
@@ -228,7 +370,7 @@ exports.offlineLogin = function(opt) {
  * @param  {Object} opt
  */
 exports.autoLogin = function(opt) {
-	_.defaults(opt, {
+	opt = _.defaults(opt || {}, {
 		success: function(){},
 		error: function(){}
 	});
@@ -257,7 +399,7 @@ exports.logout = function(callback) {
 		id: exports.getUserID()
 	});
 
-	var driver = getStoredDriver();
+	var driver = getStoredDriverString();
 	if (driver != null) {
 		exports.loadDriver(driver).logout();
 	}
@@ -267,8 +409,13 @@ exports.logout = function(callback) {
 	Ti.App.Properties.removeProperty('auth.me');
 	Ti.App.Properties.removeProperty('auth.driver');
 
-	require('T/cache').purge();
-	HTTP.resetCookies();
+	Cache.purge();
+
+	if (exports.config.useOAuth == true) {
+		OAuth.resetCredentials();
+	} else {
+		HTTP.resetCookies();
+	}
 
 	if (_.isFunction(callback)) callback();
 };

@@ -218,10 +218,9 @@ exports.openInStore = function(appid) {
  * @return {String}     Clean domain
  */
 exports.getDomainFromURL = function(url) {
-	var matches = url.match(/https?\:\/\/([^\/]*)/i);
+	var matches = url.match(/^.+\:\/\/([^\/]+)/);
 	if (matches == null || matches[1] == null) return '';
-
-	return matches[1].replace('www.', '');
+	return matches[1];
 };
 
 /**
