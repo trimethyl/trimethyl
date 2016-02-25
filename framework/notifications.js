@@ -204,8 +204,9 @@ exports.deactivate = function() {
  * Subscribe for that channel
  * @param {String} channel 	Channel name
  * @param {Object} data 		Additional data
+ * @param {Object} [opt={}] 	Additional options
  */
-exports.subscribe = function(channel, data) {
+exports.subscribe = function(channel, data, opt) {
 	var defer = Q.defer();
 
 	if (!Ti.Network.online) {
@@ -218,7 +219,7 @@ exports.subscribe = function(channel, data) {
 	exports.activate()
 	.then(function(deviceToken) {
 
-		exports.loadDriver(exports.config.driver).subscribe({
+		exports.loadDriver(exports.config.driver).subscribe(_.extend({}, opt, {
 			deviceToken: deviceToken,
 			channel: channel,
 			data: data,
@@ -234,7 +235,7 @@ exports.subscribe = function(channel, data) {
 
 				defer.reject(err);
 			}
-		});
+		}));
 
 	})
 	.fail(defer.reject);
