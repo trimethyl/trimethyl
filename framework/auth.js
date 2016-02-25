@@ -346,7 +346,7 @@ exports.storedLogin = function(opt) {
 			driver: getStoredDriverString()
 		}));
 	} else {
-		opt.error({});
+		opt.error();
 	}
 };
 
