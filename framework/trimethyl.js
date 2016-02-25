@@ -28,6 +28,8 @@ Alloy.Globals.Trimethyl = {
 // Alloy Globals Contants //
 ////////////////////////////
 
+Alloy.Globals.noop = function() {};
+
 Alloy.Globals.SCREEN_WIDTH = OS_IOS ? Ti.Platform.displayCaps.platformWidth : Ti.Platform.displayCaps.platformWidth/Ti.Platform.displayCaps.logicalDensityFactor;
 Alloy.Globals.SCREEN_HEIGHT = OS_IOS ? Ti.Platform.displayCaps.platformHeight : Ti.Platform.displayCaps.platformHeight/Ti.Platform.displayCaps.logicalDensityFactor;
 
@@ -39,7 +41,6 @@ Alloy.Globals.SIMULATOR = Ti.Platform.model === 'Simulator' || Ti.Platform.model
 Alloy.Globals.IOS7 = OS_IOS && Ti.Platform.version.split('.')[0] == 7;
 Alloy.Globals.IOS8 = OS_IOS && Ti.Platform.version.split('.')[0] == 8;
 Alloy.Globals.IOS9 = OS_IOS && Ti.Platform.version.split('.')[0] == 9;
-
 
 //////////////////////////
 // Global App Listeners //

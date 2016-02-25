@@ -23,7 +23,9 @@ var os_enum = (function() {
 })();
 
 exports.subscribe = function(opt) {
-	if (exports.config.subscribeEndpoint == null) throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
+	if (exports.config.subscribeEndpoint == null) {
+		throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
+	}
 
 	HTTP.send({
 		url: exports.config.subscribeEndpoint,
@@ -38,13 +40,16 @@ exports.subscribe = function(opt) {
 		}),
 		success: opt.success,
 		error: opt.error,
+		suppressFilters: opt.suppressFilters,
 		errorAlert: false,
 		silent: true
 	});
 };
 
 exports.unsubscribe = function(opt) {
-	if (exports.config.unsubscribeEndpoint == null) throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
+	if (exports.config.unsubscribeEndpoint == null) {
+		throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
+	}
 
 	HTTP.send({
 		url: exports.config.unsubscribeEndpoint + '/' + opt.deviceToken,
@@ -54,6 +59,7 @@ exports.unsubscribe = function(opt) {
 		}),
 		success: opt.success,
 		error: opt.error,
+		suppressFilters: opt.suppressFilters,
 		errorAlert: false,
 		silent: true
 	});
