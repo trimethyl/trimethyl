@@ -77,16 +77,16 @@ var OAuth = {
 						Q.when(OAuth.httpFilter(httpRequest), function() {
 							OAuth.isRequestingToken = false;
 							resolve();
-						}, function() {
+						}, function(err) {
 							OAuth.isRequestingToken = false;
-							reject();
+							reject(err);
 						});
 				
 					},
-					error: function() {
+					error: function(err) {
 						OAuth.isRequestingToken = false;
 						OAuth.resetCredentials();
-						reject();
+						reject(err);
 					}
 				});
 			});
