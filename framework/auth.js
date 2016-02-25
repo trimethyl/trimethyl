@@ -287,10 +287,9 @@ exports.getUserID = function(){
 exports.login = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: function(){},
-		error: function(){}
+		error: function(){},
+		driver: 'bypass'
 	});
-
-	if (_.isEmpty(opt.driver)) throw new Error('Please set a driver');
 	
 	driverLogin(opt)
 
@@ -480,6 +479,10 @@ exports.logout = function(callback) {
 	if (_.isFunction(callback)) callback();
 };
 
+
+//////////
+// Init //
+//////////
 
 if (exports.config.useOAuth == true) {
 	HTTP.addFilter('oauth', OAuth.httpFilter);
