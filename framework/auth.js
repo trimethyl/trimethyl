@@ -71,7 +71,9 @@ var OAuth = {
 					data: oAuthPostData,
 					suppressFilters: ['oauth'],
 					success: function(data) {
-						Ti.App.PropertiestoreCredentials(data);
+
+						OAuth.storeCredentials(data);
+						
 						Q.when(OAuth.httpFilter(httpRequest), function() {
 							OAuth.isRequestingToken = false;
 							resolve();
@@ -79,6 +81,7 @@ var OAuth = {
 							OAuth.isRequestingToken = false;
 							reject();
 						});
+				
 					},
 					error: function() {
 						OAuth.isRequestingToken = false;
