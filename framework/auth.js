@@ -208,14 +208,8 @@ function apiLogin(opt, dataFromDriver) {
 //////////////////////
 
 function fetchUserModel(opt, dataFromServer) {
-	dataFromServer = dataFromServer || {};
-
 	return Q.promise(function(resolve, reject) {
-
-		Me = Alloy.createModel('user', {
-			id: dataFromServer.id || 'me'
-		});
-
+		Me = Alloy.createModel('user', { id: 'me' });
 		Me.fetch({
 			http: {
 				refresh: true,
@@ -227,7 +221,6 @@ function fetchUserModel(opt, dataFromServer) {
 			},
 			error: reject
 		});
-
 	});
 }
 
@@ -303,7 +296,7 @@ exports.login = function(opt) {
 		return fetchUserModel(opt, dataFromServer);
 	})
 
-	.then(function(userDataFromServer) {
+	.then(function() {
 		Ti.App.Properties.setString('auth.driver', opt.driver);
 
 		var payload = {
