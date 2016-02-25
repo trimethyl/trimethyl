@@ -70,12 +70,12 @@ exports.event = exports.trackEvent;
  * Track a screen
  * @param  {String} name 	The screen name
  */
-exports.trackScreen = function(screenName) {
+exports.trackScreen = function(name) {
 	if (tracker === null) return;
 	var obj;
 
 	try {
-		tracker.addScreenView(screeName);
+		tracker.addScreenView(name);
 	} catch (err) {
 		Ti.API.error('GA: Error while calling method ScreenView', err);
 	}
@@ -194,8 +194,7 @@ exports.setTrackerUA = function(ua) {
 	Ti.API.debug('GA: Initialized with UA = ' + ua);
 	tracker = AnalyticsGoogle.createTracker({
 		trackingId: ua,
-		useSecure: true,
-		debug: ENV_DEVELOPMENT
+		useSecure: true
 	});
 };
 
