@@ -208,8 +208,9 @@ function apiLogin(opt, dataFromDriver) {
 //////////////////////
 
 function fetchUserModel(opt, dataFromServer) {
+	dataFromServer = dataFromServer || {};
 	return Q.promise(function(resolve, reject) {
-		Me = Alloy.createModel('user', { id: 'me' });
+		Me = Alloy.createModel('user', { id: dataFromServer.id || 'me' });
 		Me.fetch({
 			http: {
 				refresh: true,
