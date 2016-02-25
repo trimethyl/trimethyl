@@ -280,8 +280,8 @@ exports.getUserID = function(){
  */
 exports.login = function(opt) {
 	opt = _.defaults(opt || {}, {
-		success: function(){},
-		error: function(){},
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop,
 		driver: 'bypass'
 	});
 	
@@ -334,8 +334,8 @@ exports.isStoredLoginAvailable = function() {
  */
 exports.storedLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
-		success: function(){},
-		error: function(){}
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
 	});
 
 	if (exports.isStoredLoginAvailable()) {
@@ -364,8 +364,8 @@ exports.isOfflineLoginAvailable = function() {
  */
 exports.offlineLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
-		success: function(){},
-		error: function(){}
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
 	});
 
 	if (exports.isOfflineLoginAvailable()) {
@@ -392,8 +392,8 @@ exports.offlineLogin = function(opt) {
  */
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
-		success: function(){},
-		error: function(){}
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
 	});
 
 	if (Ti.Network.online) {
