@@ -20,13 +20,13 @@ var Router = require('T/router');
  * @method universalLinkToRoute
  * @param  {String} url
  */
-exports.universalLinkToRoute = function(url) { return url };
+exports.universalLinkToRoute = function(url) { return url; };
 
 /**
  * @method deepLinkToRoute
  * @param  {String} url
  */
-exports.deepLinkToRoute = function(url) { return url; }
+exports.deepLinkToRoute = function(url) { return url; };
 
 /**
  * @deprecated
