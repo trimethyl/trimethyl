@@ -194,8 +194,7 @@ exports.setTrackerUA = function(ua) {
 	Ti.API.debug('GA: Initialized with UA = ' + ua);
 	tracker = AnalyticsGoogle.createTracker({
 		trackingId: ua,
-		useSecure: true,
-		debug: ENV_DEVELOPMENT
+		useSecure: true
 	});
 };
 
