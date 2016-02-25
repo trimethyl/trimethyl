@@ -58,7 +58,9 @@ module.exports = function(args) {
 		 */
 		$this.setRealValue = function(v){
 			$this.value = v;
-			$this.color = $this.realColor;
+			onTextAreaBlur({
+				source: $this
+			})
 		};
 
 		$this.getHintText = function() {
@@ -83,7 +85,7 @@ module.exports = function(args) {
 
 
 	//////////////////////
- 	// Parse arguments //
+	// Parse arguments //
 	//////////////////////
 
 	if (OS_IOS && args.useDoneToolbar === true) {
@@ -99,15 +101,15 @@ module.exports = function(args) {
 		});
 	}
 
- 	if (OS_IOS && args.hintText != null) {
- 		$this.realColor = args.color || '#000';
- 		$this.hintText = args.hintText;
+	if (OS_IOS && args.hintText != null) {
+		$this.realColor = args.color || '#000';
+		$this.hintText = args.hintText;
 
- 		$this.addEventListener('focus', onTextAreaFocus);
- 		$this.addEventListener('blur', onTextAreaBlur);
+		$this.addEventListener('focus', onTextAreaFocus);
+		$this.addEventListener('blur', onTextAreaBlur);
 
- 		onTextAreaBlur({ source: $this });
- 	}
+		onTextAreaBlur({ source: $this });
+	}
 
 	return $this;
 };
