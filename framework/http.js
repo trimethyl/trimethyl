@@ -82,8 +82,8 @@ function HTTPRequest(opt) {
 	// Fill the defer, we will manage the callbacks through it
 	this.defer = Q.defer();
 	this.defer.promise.then(function() { self._onSuccess.apply(self, arguments); });
-	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
-	this.defer.promise.fin(function() { self._onFinally.apply(self, arguments); });
+	this.defer.promise.catch(function() { self._onError.apply(self, arguments); });
+	this.defer.promise.finally(function() { self._onFinally.apply(self, arguments); });
 
 	Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
 }
@@ -163,14 +163,9 @@ HTTPRequest.prototype._getResponseInfo = function() {
 	return info;
 };
 
-HTTPRequest.prototype._onError = function(err) {
-	var self = this;
-	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
-
-	if (_.isFunction(this.opt.error)) this.opt.error(err);
-};
-
 HTTPRequest.prototype._onSuccess = function() {
+	Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
+
 	if (exports.config.log === true) {
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
 	}
@@ -184,11 +179,24 @@ HTTPRequest.prototype._onSuccess = function() {
 		}
 	}
 
-	if (_.isFunction(this.opt.success)) this.opt.success.apply(this, arguments);
+	if (_.isFunction(this.opt.success)) {
+		this.opt.success.apply(this, arguments);
+	}
 };
 
+HTTPRequest.prototype._onError = function(err) {
+	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
+
+	if (_.isFunction(this.opt.error)) {
+		this.opt.error.apply(this, arguments);
+	}
+};
+
+
 HTTPRequest.prototype._onFinally = function() {
-	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
+	if (_.isFunction(this.opt.complete)) {
+		this.opt.complete.apply(this, arguments);
+	}
 }
 
 HTTPRequest.prototype._whenComplete = function(e) {
@@ -218,18 +226,19 @@ HTTPRequest.prototype._whenComplete = function(e) {
 	}
 
 	if (e.success) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
-
+		
 		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
 
 	} else {
+		
 		this.defer.reject({
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
 			error: e.error,
 			code: this.client.status,
 			response: data
 		});
+	
 	}
 };
 
@@ -351,17 +360,17 @@ HTTPRequest.prototype.abort = function() {
 };
 
 HTTPRequest.prototype.success = HTTPRequest.prototype.then = function(func) {
-	this.defer.promise.then(func);
+	this.opt.success = func;
 	return this;
 };
 
 HTTPRequest.prototype.error = HTTPRequest.prototype.fail = HTTPRequest.prototype.catch = function(func) {
-	this.defer.promise.catch(func);
+	this.opt.error = func;
 	return this;
 };
 
 HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = HTTPRequest.prototype.finally = function(func) {
-	this.defer.promise.finally(func);
+	this.opt.complete = func;
 	return this;
 };
 

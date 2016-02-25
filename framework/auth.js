@@ -220,7 +220,9 @@ function fetchUserModel(opt, dataFromServer) {
 				Ti.App.Properties.setObject('auth.me', Me.toJSON());
 				resolve();
 			},
-			error: reject
+			error: function(model, err) {
+				reject(err);
+			}
 		});
 	});
 }
@@ -381,7 +383,7 @@ exports.offlineLogin = function(opt) {
 		opt.success(payload);
 
 	} else {
-		opt.error({});
+		opt.error();
 	}
 };
 
