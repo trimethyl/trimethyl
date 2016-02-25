@@ -9,6 +9,12 @@ var Dialog = require('T/dialog');
 
 var Data = {};
 
+var PICKER_WIDTH_IPHONE = Alloy.Globals.SCREEN_WIDTH;
+var PICKER_HEIGHT_IPHONE = 216;
+
+var PICKER_WIDTH_IPAD = 320;
+var PICKER_HEIGHT_IPAD = 216;
+
 function getPickerColumn(rows) {
 	var $col = Ti.UI.createPickerColumn();
 	rows.forEach(function(value) {
@@ -33,14 +39,12 @@ function fillPickerData($this, $picker) {
 	Data[ $this._uid ].eventsIndexes = [];
 }
 
-function createTiUIPicker($this) {
+function createTiUIPicker($this, opt) {
 	var $picker = null;
 
 	if ($this.typeString === 'plain') {
 
-		$picker = Ti.UI.createPicker({
-			width: Ti.UI.FILL,
-		});
+		$picker = Ti.UI.createPicker(opt || {});
 		fillPickerData($this, $picker);
 
 		$picker.addEventListener('change', function(e) {
@@ -49,13 +53,12 @@ function createTiUIPicker($this) {
 
 	} else if ($this.typeString === 'date') {
 
-		$picker = Ti.UI.createPicker({
+		$picker = Ti.UI.createPicker(_.extend({}, opt, {
 			value: $this.getValue(),
 			minDate: $this.minDate,
 			maxDate: $this.maxDate,
-			width: Ti.UI.FILL,
 			type: Ti.UI.PICKER_TYPE_DATE,
-		});
+		}));
 
 	}
 
@@ -104,7 +107,11 @@ var UIPickers = {
 
 	// Show the picker in a Window that slide in from the bottom
 	iphone: function($this) {
-		var $picker = createTiUIPicker($this);
+		var $picker = createTiUIPicker($this, {
+			width: PICKER_WIDTH_IPHONE,
+			height: PICKER_HEIGHT_IPHONE
+		});
+
 		var buttons = UIPickerButtons($this, $picker, {
 			cancel: function() {
 				$this.fireEvent('cancel');
@@ -153,7 +160,9 @@ var UIPickers = {
 
 	// Show the picker in a Popover Window attached to the Label
 	ipad: function($this) {
-		var $picker = createTiUIPicker($this);
+		var $picker = createTiUIPicker($this, {
+			width: PICKER_WIDTH_IPAD
+		});
 		var has_value = false;
 
 		var buttons = UIPickerButtons($this, $picker, {
@@ -187,8 +196,8 @@ var UIPickers = {
 
 		var $navigator = Ti.UI.iOS.createNavigationWindow({
 			window: $containerWindow,
-			width: 320,
-			height: 216 + 40, // 216 is the default iOS iPad picker height
+			width: PICKER_WIDTH_IPAD,
+			height: PICKER_HEIGHT_IPAD + 40, // 40 is the toolbar height
 		});
 
 		var $popover = Ti.UI.iPad.createPopover({
