@@ -11,15 +11,17 @@ exports.config = _.extend({
 	outputs: ['api']
 }, Alloy.CFG.T ? Alloy.CFG.T.logger : {});
 
+var CLASS_NAME = 'Logger:';
 var LOGGER_METHODS = ['trace', 'debug', 'warn', 'error', 'info'];
 
-function _write(args) {
+function _write() {
+	var args = arguments;
 	// Invoke the write() method for all the outputs
 	exports.config.outputs.forEach(function(output) {
 		try {
 			exports[toUpperCamelCase(output)].write.apply(null, args);
 		} catch(err) {
-			Ti.API.warn(err);
+			Ti.API.warn(CLASS_NAME, err);
 		}
 	});
 }
@@ -60,10 +62,10 @@ exports.loadDriver = function(name) {
 LOGGER_METHODS.forEach(function(level) {
 	// Create the interface
 	exports[level] = function() {
-		var args = Array.prototype.slice.call(arguments);
-		Array.prototype.unshift.call(args, level);
+		//var args = Array.prototype.slice.call(arguments);
+		Array.prototype.unshift.call(arguments, level);
 
-		_write(args);
+		_write.apply(null, arguments);
 	};
 });
 
