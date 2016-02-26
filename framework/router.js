@@ -5,10 +5,10 @@
 
 /**
  * @property config
- * @property {String} config.protocol  Force all protocol different from this to be discarded
+ * @property {String} config.protocol  			Force all protocol different from this to be discarded
  */
 exports.config = _.extend({
-	protocol: null
+	protocol: null,
 }, Alloy.CFG.T ? Alloy.CFG.T.router : {});
 
 var Util = require('T/util');

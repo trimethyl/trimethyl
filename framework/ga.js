@@ -10,13 +10,12 @@
  * @type {Object}
  */
 exports.config = _.extend({
-	ua: null,
-	dryRun: false
+	ua: null
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
 var Util = require('T/util');
 
-var AnalyticsGoogle = Util.requireOrNull('analytics.google');
+var AnalyticsGoogle = Util.requireOrNull('ti.ga');
 var tracker = null;
 
 function track(method, what) {
@@ -24,7 +23,7 @@ function track(method, what) {
 	if (_.isEmpty(what)) return;
 
 	try {
-		tracker['track' + method](what);
+		tracker['add' + method](what);
 	} catch (err) {
 		Ti.API.error('GA: Error while calling method ' + method, err);
 	}
@@ -71,19 +70,15 @@ exports.event = exports.trackEvent;
  * Track a screen
  * @param  {String} name 	The screen name
  */
-exports.trackScreen = function(screenName) {
+exports.trackScreen = function(name) {
 	if (tracker === null) return;
 	var obj;
 
-	if (_.isObject(obj)) {
-		obj = screenName;
-	} else {
-		obj = {
-			screenName: screenName
-		};
+	try {
+		tracker.addScreenView(name);
+	} catch (err) {
+		Ti.API.error('GA: Error while calling method ScreenView', err);
 	}
-
-	track('Screen', obj);
 };
 
 /**
@@ -116,7 +111,7 @@ exports.trackSocial = function(net, act, tar){
 		};
 	}
 
-	track('Social', obj);
+	track('SocialNetwork', obj);
 };
 
 /**
@@ -197,7 +192,10 @@ exports.exception = exports.trackException;
  */
 exports.setTrackerUA = function(ua) {
 	Ti.API.debug('GA: Initialized with UA = ' + ua);
-	tracker = AnalyticsGoogle.getTracker(ua);
+	tracker = AnalyticsGoogle.createTracker({
+		trackingId: ua,
+		useSecure: true
+	});
 };
 
 
@@ -208,8 +206,7 @@ exports.setTrackerUA = function(ua) {
 if (exports.config.ua != null && AnalyticsGoogle != null) {
 
 	exports.setTrackerUA( exports.config.ua );
-	AnalyticsGoogle.trackUncaughtExceptions = true;
-	AnalyticsGoogle.dryRun = !!exports.config.dryRun;
+	AnalyticsGoogle.setTrackUncaughtExceptions();
 
 } else {
 	Ti.API.error('GA: initialization failed');

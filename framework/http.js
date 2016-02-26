@@ -52,8 +52,11 @@ function HTTPRequest(opt) {
 		this.url = exports.config.base.replace(/\/$/, '') + '/' + opt.url.replace(/^\//, '');
 	}
 
+	this.domain = Util.getDomainFromURL(this.url);
 	this.method = opt.method != null ? opt.method.toUpperCase() : 'GET';
-	this.headers = _.extend({}, exports.getHeaders(), opt.headers);
+
+	// Construct headers: global + per-domain + local
+	this.headers = _.extend({}, exports.getHeaders(), exports.getHeaders(this.domain), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
 
 	// Rebuild the URL if is a GET and there's data
@@ -79,11 +82,10 @@ function HTTPRequest(opt) {
 	// Fill the defer, we will manage the callbacks through it
 	this.defer = Q.defer();
 	this.defer.promise.then(function() { self._onSuccess.apply(self, arguments); });
-	this.defer.promise.fail(function() { self._onError.apply(self, arguments); });
+	this.defer.promise.catch(function() { self._onError.apply(self, arguments); });
+	this.defer.promise.finally(function() { self._onFinally.apply(self, arguments); });
 
-	if (!ENV_PRODUCTION) {
-		Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
-	}
+	Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
 }
 
 HTTPRequest.prototype.toString = function() {
@@ -161,15 +163,9 @@ HTTPRequest.prototype._getResponseInfo = function() {
 	return info;
 };
 
-HTTPRequest.prototype._onError = function(err) {
-	var self = this;
-	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
-
-	if (_.isFunction(self.opt.error)) self.opt.error(err);
-	if (_.isFunction(self.opt.complete)) self.opt.complete(e);
-};
-
 HTTPRequest.prototype._onSuccess = function() {
+	Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
+
 	if (exports.config.log === true) {
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
 	}
@@ -183,11 +179,27 @@ HTTPRequest.prototype._onSuccess = function() {
 		}
 	}
 
-	if (_.isFunction(this.opt.success)) this.opt.success.apply(this, arguments);
-	if (_.isFunction(this.opt.complete)) this.opt.complete.apply(this, arguments);
+	if (_.isFunction(this.opt.success)) {
+		this.opt.success.apply(this, arguments);
+	}
 };
 
-HTTPRequest.prototype._onComplete = function(e) {
+HTTPRequest.prototype._onError = function(err) {
+	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
+
+	if (_.isFunction(this.opt.error)) {
+		this.opt.error.apply(this, arguments);
+	}
+};
+
+
+HTTPRequest.prototype._onFinally = function() {
+	if (_.isFunction(this.opt.complete)) {
+		this.opt.complete.apply(this, arguments);
+	}
+}
+
+HTTPRequest.prototype._whenComplete = function(e) {
 	this.endTime = Date.now();
 	exports.removeFromQueue(this);
 
@@ -214,18 +226,19 @@ HTTPRequest.prototype._onComplete = function(e) {
 	}
 
 	if (e.success) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
-
+		
 		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
 
 	} else {
+		
 		this.defer.reject({
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
 			error: e.error,
 			code: this.client.status,
 			response: data
 		});
+	
 	}
 };
 
@@ -234,15 +247,37 @@ HTTPRequest.prototype._calculateHash = function() {
 	return 'http_' + Ti.Utils.md5HexDigest(hash);
 };
 
+
 HTTPRequest.prototype.send = function() {
 	var self = this;
+
+	var promise = Q();
+	_.each(filters, function(filter, name) {
+		if (self.opt.suppressFilters == true) return;
+		if (_.isArray(self.opt.suppressFilters) && self.opt.suppressFilters.indexOf(name) >= 0) return;
+		
+		promise = promise.then( filter.bind(null, self) );
+	});
+
+	promise
+	.then(self._send.bind(self))
+	.fail(function(ex) {
+		Ti.API.error('HTTP: <' + self.uniqueId + '> filter rejection', ex);
+		self.defer.reject(ex);
+	})
+};
+
+HTTPRequest.prototype._send = function() {
+	var self = this;
+
+	Ti.API.debug('HTTP: <' + this.uniqueId + '> sending...');
 
 	var client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
 		cache: false,
 	});
 
-	client.onload = client.onerror = function(e) { self._onComplete(e); };
+	client.onload = client.onerror = function(e) { self._whenComplete(e); };
 
 	// Add this request to the queue
 	exports.addToQueue(this);
@@ -325,17 +360,17 @@ HTTPRequest.prototype.abort = function() {
 };
 
 HTTPRequest.prototype.success = HTTPRequest.prototype.then = function(func) {
-	this.defer.promise.then(func);
+	this.opt.success = func;
 	return this;
 };
 
 HTTPRequest.prototype.error = HTTPRequest.prototype.fail = HTTPRequest.prototype.catch = function(func) {
-	this.defer.promise.catch(func);
+	this.opt.error = func;
 	return this;
 };
 
 HTTPRequest.prototype.complete = HTTPRequest.prototype.fin = HTTPRequest.prototype.finally = function(func) {
-	this.defer.promise.finally(func);
+	this.opt.complete = func;
 	return this;
 };
 
@@ -343,6 +378,25 @@ HTTPRequest.prototype.getPromise = function() {
 	return this.defer.promise;
 };
 
+
+var filters = {};
+
+/**
+ * @method addFilter
+ * @param {String} 	name 	The name of the middleware
+ * @param {Function} func  The function
+ */
+exports.addFilter = function(name, func) {
+	filters[name] = func;
+};
+
+/**
+ * @method removeFilter
+ * @param {String} 	name 	The name of the middleware
+ */
+exports.removeFilter = function(name, func) {
+	delete filters[name];
+};
 
 /**
  * @method event
@@ -361,40 +415,64 @@ exports.getUniqueId = function() {
 };
 
 var headers = _.clone(exports.config.headers);
+var headersPerDomain = {};
 
 /**
  * @method getHeaders
  * @return {Object}
  */
-exports.getHeaders = function() {
-	return headers;
+exports.getHeaders = function(domain) {
+	if (domain == null) {
+		return headers;
+	} else {
+		return headersPerDomain[domain] || {};
+	}
 };
 
 /**
  * @method addHeader
  * Add a global header for all requests
- * @param {String} key 		The header key
- * @param {String} value 	The header value
+ * @param {String} key 					The header key
+ * @param {String} value 				The header value
+ * @param {String} [domain=null]		Optional domain
  */
-exports.addHeader = function(key, value) {
-	headers[key] = value;
+exports.addHeader = function(key, value, domain) {
+	if (domain == null) {
+		headers[key] = value;
+	} else {
+		headersPerDomain[domain] = headersPerDomain[domain] || {};
+		headersPerDomain[domain][key] = value;
+	}
 };
 
 /**
  * @method removeHeader
  * Remove a global header
- * @param {String} key 		The header key
+ * @param {String} key 					The header key
+ * @param {String} [domain=null] 	Optional domain
  */
-exports.removeHeader = function(key) {
-	delete headers[key];
+exports.removeHeader = function(key, domain) {
+	if (domain == null) {
+		delete headers[key];
+	} else {
+		if (headersPerDomain[domain] != null) {
+			delete headersPerDomain[domain][key];
+		}
+	}
 };
 
 /**
  * @method resetHeaders
  * Reset all globals headers
+ * @param {String} [domain=null]		Optional domain
  */
-exports.resetHeaders = function() {
-	headers = {};
+exports.resetHeaders = function(domain) {
+	if (domain == null) {
+		headers = {};
+		headersPerDomain = {};
+	} else {
+		headersPerDomain[domain] = {};
+	}
 };
 
 
@@ -434,7 +512,6 @@ exports.addToQueue = function(request) {
 exports.removeFromQueue = function(request) {
 	delete queue[request.hash];
 };
-
 
 /**
  * @method resetCookies

@@ -218,10 +218,9 @@ exports.openInStore = function(appid) {
  * @return {String}     Clean domain
  */
 exports.getDomainFromURL = function(url) {
-	var matches = url.match(/https?\:\/\/([^\/]*)/i);
+	var matches = url.match(/^.+\:\/\/([^\/]+)/);
 	if (matches == null || matches[1] == null) return '';
-
-	return matches[1].replace('www.', '');
+	return matches[1];
 };
 
 /**
@@ -495,7 +494,7 @@ exports.hashJavascriptObject = function(obj) {
  * @method getErrorMessage
  * An error parser that parse a String/Object
  */
-exports.getErrorMessage = function(obj) {
+exports.getErrorMessage = function(obj, def) {
 	if (_.isObject(obj)) {
 		if (_.isString(obj.message)) {
 			return obj.message;
@@ -507,6 +506,9 @@ exports.getErrorMessage = function(obj) {
 	} else if (!_.isEmpty(obj)) {
 		return obj.toString();
 	}
+
+	if (def != null) return def;
+	
 	return L('unexpected_error', 'Unexpected error');
 };
 

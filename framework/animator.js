@@ -5,12 +5,11 @@
 
 var Matrix = require('T/matrix');
 
-function noop() {}
-
 function simpleFromTo(view, a, b, callback) {
+	callback = callback || Alloy.Globals.noop;
 	view.applyProperties(a);
 	_.defer(function(){
-		view.animate(b, _.isFunction(callback) ? callback : noop);
+		view.animate(b, callback);
 	});
 }
 
