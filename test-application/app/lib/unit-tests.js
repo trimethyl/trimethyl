@@ -2,6 +2,7 @@ var HTTP = T('http');
 var SQLite = T('sqlite');
 var Router = T('router');
 var Util = T('util');
+var Logger = T('logger');
 
 var G = {};
 
@@ -157,6 +158,25 @@ exports.util_parse_as_x_callback_url = function() {
 			if (!_.isEqual(actual[key], expected[key])) {
 				return reject('Value property ' + key + ' is not what expected: ' + actual[key]);
 			}
+		}
+
+		resolve();
+	});
+};
+
+exports.logger_methods = function() {
+	return Q.promise(function(resolve, reject) {
+
+		try {
+
+			Logger.trace('Single string');
+			Logger.info('Multiple', 'Strings');
+			Logger.debug('Undefined, null and object', null, undefined, { 0: 'an', 1: 'object' });
+			Logger.warn('Objects and array', { first: { type: "animal", name: "tapir" }, second: { type: "mineral", name: "quartz" } }, [1,7,9,0, null]);
+			Logger.error('Model', Alloy.createModel('test-model', { name: 'meerkat', type: 'animal', quantity: 1, organic: true }));
+
+		} catch(err) {
+			reject(err);
 		}
 
 		resolve();

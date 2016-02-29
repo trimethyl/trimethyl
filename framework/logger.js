@@ -11,18 +11,24 @@ exports.config = _.extend({
 	outputs: ['api']
 }, Alloy.CFG.T ? Alloy.CFG.T.logger : {});
 
+var CLASS_NAME = 'Logger:';
 var LOGGER_METHODS = ['trace', 'debug', 'warn', 'error', 'info'];
 
-var outputs_ctrl = [];
-
-function _write(args) {
+function _write() {
+	var args = arguments;
 	// Invoke the write() method for all the outputs
-	outputs_ctrl.forEach(function(output) {
+	exports.config.outputs.forEach(function(output) {
 		try {
-			output.write.apply(null, args);
+			exports[toUpperCamelCase(output)].write.apply(null, args);
 		} catch(err) {
-			Ti.API.warn(err);
+			Ti.API.warn(CLASS_NAME, err);
 		}
+	});
+}
+
+function toUpperCamelCase(str) {
+	return str.substr(0,1).toUpperCase() + str.substr(1).toLowerCase().replace(/_([a-z])/g, function() {
+		return arguments[1].toUpperCase();
 	});
 }
 
@@ -56,16 +62,16 @@ exports.loadDriver = function(name) {
 LOGGER_METHODS.forEach(function(level) {
 	// Create the interface
 	exports[level] = function() {
-		var args = Array.prototype.slice.call(arguments);
-		Array.prototype.unshift.call(args, level);
+		//var args = Array.prototype.slice.call(arguments);
+		Array.prototype.unshift.call(arguments, level);
 
-		_write(args);
+		_write.apply(null, arguments);
 	};
 });
 
 // Load all the outputs
 exports.config.outputs.forEach(function(output) {
-	outputs_ctrl.push(Alloy.Globals.Trimethyl.loadDriver('logger', output, {
+	exports[toUpperCamelCase(output)] = Alloy.Globals.Trimethyl.loadDriver('logger', output, {
 		write: function() { throw 'The output ' + output + ' must implement the method write()'; }
-	}));
+	});
 });
