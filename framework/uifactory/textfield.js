@@ -34,7 +34,7 @@ module.exports = function(args) {
 		break;
 
 		case 'email':
-		args.keyboardType = Ti.UI.KEYBOARD_EMAIL;
+		args.keyboardType = Ti.UI.KEYBOARD_TYPE_EMAIL;
 		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
 		args.autocorrect = false;
 		break;
