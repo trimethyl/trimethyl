@@ -5,12 +5,10 @@
 
 /**
  * @property config
- * @property {String} 	config.ua 			UA of Google Analitycs
  * @property {Boolean} 	config.dryRun		Enable debug mode. This will prevent sending data to Google Analytics.
  * @type {Object}
  */
 exports.config = _.extend({
-	ua: null
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
 var Util = require('T/util');
@@ -198,16 +196,28 @@ exports.setTrackerUA = function(ua) {
 	});
 };
 
-
 //////////
 // Init //
 //////////
 
-if (exports.config.ua != null && AnalyticsGoogle != null) {
+var ua = null;
 
-	exports.setTrackerUA( exports.config.ua );
-	AnalyticsGoogle.setTrackUncaughtExceptions();
-
+if (Ti.App.Properties.hasProperty('ga.ua')) {
+	ua = Ti.App.Properties.getString('ga.ua', null);
 } else {
-	Ti.API.error('GA: initialization failed');
+	if (exports.config.ua != null) {
+		Ti.API.warn('GA: Setting UA in the config.json is DEPRECATED, set it in the tiapp.xml');
+		ua = exports.config.ua; 
+	}
+}
+
+if (ua != null) {
+	if (AnalyticsGoogle != null) {
+		exports.setTrackerUA(ua);
+		AnalyticsGoogle.setTrackUncaughtExceptions();
+	} else {
+		Ti.API.error('GA: initialization failed, unable to find module');
+	}
+} else {
+	Ti.API.warn('GA: initialization failed, invalid UA');
 }

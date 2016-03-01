@@ -395,8 +395,24 @@ exports.offlineLogin = function(opt) {
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
-		error: Alloy.Globals.noop
+		error: Alloy.Globals.noop,
+		timeout: 10000
 	});
+
+	var success = opt.success;
+	var error = opt.error;
+
+	var errorTimeout = setTimeout(error, opt.timeout);
+
+	opt.success = function() {
+		clearTimeout(errorTimeout);
+		success.apply(null, arguments);
+	};
+
+	opt.error = function() {
+		clearTimeout(errorTimeout);
+		error.apply(null, arguments);
+	};
 
 	if (Ti.Network.online) {
 		

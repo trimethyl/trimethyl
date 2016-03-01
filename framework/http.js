@@ -95,13 +95,18 @@ HTTPRequest.prototype.toString = function() {
 HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (this.method !== 'GET') return;
 
-	if (exports.config.useCache === false || this.opt.cache === false) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache has been disabled');
+	if (exports.config.useCache === false) {
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache has been disabled globally');
+		return;
+	}
+
+	if (this.opt.cache === false) {
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> set cache has been disabled for this request');
 		return;
 	}
 
 	if (this.responseInfo.ttl <= 0) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache is not applicable');
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> set cache is not applicable');
 		return;
 	}
 
@@ -109,15 +114,25 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 };
 
 HTTPRequest.prototype.getCachedResponse = function() {
-	if (exports.config.useCache === false || this.opt.cache === false || this.opt.refresh === true || this.method !== 'GET') {
-		return;
+	if (this.method !== 'GET') return null;
+
+	if (exports.config.useCache === false) {
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache has been disabled globally');
+		return null;
+	}
+
+	if (this.opt.cache === false || this.opt.refresh === true) {
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> get cache has been disabled for this request');
+		return null;
 	}
 
 	this.cachedData = Cache.get(this.hash);
-
 	if (this.cachedData == null) {
-		return;
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache is missing');
+		return null;
 	}
+
+	// We got cache
 
 	Ti.API.trace('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
 
@@ -164,7 +179,11 @@ HTTPRequest.prototype._getResponseInfo = function() {
 };
 
 HTTPRequest.prototype._onSuccess = function() {
-	Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime-this.startTime) + 'ms)');
+	if (this.endTime != null) {
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime - this.startTime) + 'ms)');
+	} else {
+		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success');
+	}
 
 	if (exports.config.log === true) {
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
