@@ -82,20 +82,8 @@ exports.facebook = function(args) {
 	args = parseArgs(args);
 	require('T/ga').social('facebook', 'share', args.url);
 
-	// Native iOS dialog
-	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
-		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
-	) {
-		dkNappSocial.facebook({
-			text: args.text,
-			image: args.image,
-			url: args.url
-		});
-		return true;
-	}
-
 	// SDK
-	if (FB != null && FB.canPresentShareDialog === true) {
+	if (OS_IOS && FB != null) {
 		FB.presentShareDialog({
 			url: args.url,
 			title: args.title,
