@@ -82,8 +82,20 @@ exports.facebook = function(args) {
 	args = parseArgs(args);
 	require('T/ga').social('facebook', 'share', args.url);
 
+	// Native iOS dialog
+	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
+		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
+	) {
+		dkNappSocial.facebook({
+			text: args.text,
+			image: args.image,
+			url: args.url
+		});
+		return true;
+	}
+
 	// SDK
-	if (OS_IOS && FB != null) {
+	if (FB != null && FB.canPresentShareDialog) {
 		FB.presentShareDialog({
 			url: args.url,
 			title: args.title,
@@ -105,16 +117,6 @@ exports.facebook = function(args) {
 
 			return true;
 		} catch (err) {}
-	}
-
-	// SDK Web
-	if (FB != null) {
-		FB.presentWebShareDialog({
-			url: args.url,
-			title: args.title,
-			description: args.description
-		});
-		return;
 	}
 
 	// Fallback
@@ -142,6 +144,16 @@ exports.twitter = function(args) {
 		textWithUrl = text ? (text + ' (' + args.url + ')') : args.url;
 	}
 
+	// Native iOS Dialog
+	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isTwitterSupported())) {
+		dkNappSocial.twitter({
+			text: text,
+			image: args.image,
+			url: args.url
+		});
+		return true;
+	}
+
 	// iOS Tweetbot App
 	if (OS_IOS) {
 		var tweetbotNativeURL = 'tweetbot:///post' + Util.buildQuery({
@@ -162,16 +174,6 @@ exports.twitter = function(args) {
 			Ti.Platform.openURL(twitterNativeURL);
 			return true;
 		}
-	}
-
-	// Native iOS Dialog
-	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isTwitterSupported())) {
-		dkNappSocial.twitter({
-			text: text,
-			image: args.image,
-			url: args.url
-		});
-		return true;
 	}
 
 	// Fallback
