@@ -60,7 +60,7 @@ module.exports = function(args) {
 			$this.value = v;
 			onTextAreaBlur({
 				source: $this
-			})
+			});
 		};
 
 		$this.getHintText = function() {

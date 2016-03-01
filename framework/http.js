@@ -216,7 +216,7 @@ HTTPRequest.prototype._onFinally = function() {
 	if (_.isFunction(this.opt.complete)) {
 		this.opt.complete.apply(this, arguments);
 	}
-}
+};
 
 HTTPRequest.prototype._whenComplete = function(e) {
 	this.endTime = Date.now();
@@ -283,7 +283,7 @@ HTTPRequest.prototype.send = function() {
 	.fail(function(ex) {
 		Ti.API.error('HTTP: <' + self.uniqueId + '> filter rejection', ex);
 		self.defer.reject(ex);
-	})
+	});
 };
 
 HTTPRequest.prototype._send = function() {
