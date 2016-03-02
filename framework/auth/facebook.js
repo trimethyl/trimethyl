@@ -42,11 +42,18 @@ exports.logout = function() {
 };
 
 exports.isStoredLoginAvailable = function() {
-	return Ti.App.Properties.hasProperty('auth.facebook.data');
+	return _FB.loggedIn || Ti.App.Properties.hasProperty('auth.facebook.data');
 };
 
 exports.storedLogin = function(opt) {
-	exports.login(opt);
+	if (_FB.loggedIn) {
+		storeData();
+		opt.success({
+			access_token: _FB.accessToken
+		});
+	} else {
+		opt.error();
+	}
 };
 
 /*
