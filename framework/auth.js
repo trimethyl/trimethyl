@@ -59,7 +59,8 @@ var OAuth = {
 				client_id: OAuth.getClientID(),
 				client_secret: OAuth.getClientSecret(),
 				grant_type: 'refresh_token',
-				refresh_token: OAuth.getRefreshToken()
+				refresh_token: OAuth.getRefreshToken(),
+				access_token: OAuth.getAccessToken()
 			};
 
 			return Q.promise(function(resolve, reject) {
