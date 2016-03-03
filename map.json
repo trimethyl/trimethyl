@@ -164,6 +164,10 @@
 		"name": "UIFactory",
 		"description": "Façade for new/XP UI elements."
 	},
+	"uifactory/actionbutton":{
+		"name": "UIFactory.ActionButton",
+		"description": "Button façade"
+	},
 	"uifactory/backgroundview":{
 		"name": "UIFactory.BackgroundView",
 		"description": "A view with the ability to set background images in cover/contain"

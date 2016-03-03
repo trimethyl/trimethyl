@@ -112,8 +112,15 @@ exports.createZoomImageView = function(args) {
 };
 
 /**
- * @method createZoomImageView
+ * @method createBackgroundView
  */
 exports.createBackgroundView = function(args) {
 	return require('T/uifactory/backgroundview')(args);
+};
+
+/**
+ * @method createActionButton
+ */
+exports.createActionButton = function(args) {
+	return require('T/uifactory/actionbutton')(args);
 };
