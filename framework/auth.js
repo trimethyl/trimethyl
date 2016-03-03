@@ -47,7 +47,7 @@ var OAuth = {
 	},
 
 	resetCredentials: function() {
-		Ti.API.error('Auth: resetting OAuth credentials');
+		Ti.API.trace('Auth: resetting OAuth credentials');
 
 		Ti.App.Properties.removeProperty('oauth.access_token');
 		Ti.App.Properties.removeProperty('oauth.refresh_token');
@@ -193,7 +193,10 @@ function serverLoginWithCookie(opt, dataFromDriver) {
 			url: opt.loginUrl,
 			method: 'POST',
 			data: dataFromDriver,
-			success: resolve,
+			success: function(data) {
+				HTTP.exportCookiesToSystem();
+				resolve(data);
+			},
 			error: reject,
 		});
 	});
