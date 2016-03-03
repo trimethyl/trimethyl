@@ -106,7 +106,7 @@ var OAuth = {
 
 		}
 		
-		httpRequest.headers['Authorization'] = 'Bearer ' + access_token;
+		httpRequest.headers.Authorization = 'Bearer ' + access_token;
 	},
 
 	getAccessToken: function() {
