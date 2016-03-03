@@ -485,21 +485,29 @@ exports.logout = function(callback) {
 		exports.loadDriver(driver).logout();
 	}
 
-	Me = null;
+	HTTP.send({
+		url: '/logout',
+		method: 'POST',
+		timeout: 3000,
+		complete: function() {
+			Me = null;
 
-	Ti.App.Properties.removeProperty('auth.me');
-	Ti.App.Properties.removeProperty('auth.driver');
+			Ti.App.Properties.removeProperty('auth.me');
+			Ti.App.Properties.removeProperty('auth.driver');
 
-	Cache.purge();
+			Cache.purge();
 
-	if (exports.config.useOAuth == true) {
-		OAuth.resetCredentials();
-	} else {
-		HTTP.resetCookies();
-	}
+			if (exports.config.useOAuth == true) {
+				OAuth.resetCredentials();
+			} else {
+				Ti.Network.removeHTTPCookiesForDomain(Util.getDomainFromURL(HTTP.config.base));
+			}
 
-	if (_.isFunction(callback)) callback();
+			if (_.isFunction(callback)) callback();
+		}
+	});
 };
+
 
 
 //////////

@@ -537,7 +537,7 @@ exports.removeFromQueue = function(request) {
  * Reset the cookies for all requests
  */
 exports.resetCookies = function() {
-	Ti.Network.createHTTPClient().clearCookies(exports.config.base);
+	Ti.Network.removeAllHTTPCookies();
 };
 
 
