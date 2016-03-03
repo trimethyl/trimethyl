@@ -186,6 +186,7 @@ HTTPRequest.prototype._onSuccess = function() {
 	}
 
 	if (exports.config.log === true) {
+		// Log response from server
 		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
 	}
 
@@ -289,7 +290,6 @@ HTTPRequest.prototype.send = function() {
 HTTPRequest.prototype._send = function() {
 	var self = this;
 
-	Ti.API.debug('HTTP: <' + this.uniqueId + '> sending...');
 
 	var client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
