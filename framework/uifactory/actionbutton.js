@@ -13,12 +13,17 @@ module.exports = function(args) {
 
 	/**
 	 * @method showLoader
+	 * @param {String} loadingTitle	The new optional title to show
 	 * Show the loader and hide the left image
 	 */
-	$this.showLoader = function() {
+	$this.showLoader = function(loadingTitle) {
 		$this.loaderView.show();
 		$this.imageView.opacity = 0;
 		$this.touchEnabled = false;
+		
+		$this.oldTitle = $this.title;
+		$this.setTitle(loadingTitle);
+
 		$this.labelView.animate({ 
 			left: $this.imageOffset*2 + $this.imageSize 
 		});
@@ -32,6 +37,10 @@ module.exports = function(args) {
 		$this.loaderView.hide();
 		$this.imageView.opacity =1;
 		$this.touchEnabled = true;
+
+		if ($this.oldTitle == null) $this.setTitle( $this.oldTitle );
+		$this.oldTitle = null;
+		
 		$this.labelView.animate({ 
 			left: $this.imageOffset + ($this.image == null ? 0 : ($this.imageSize + $this.imageOffset/2)) 
 		});
