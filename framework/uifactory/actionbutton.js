@@ -31,14 +31,19 @@ module.exports = function(args) {
 
 	/**
 	 * @method hideLoader
+	 * @param {String} newTitle	The new title to apply
 	 * Hide the loader and show the left image
 	 */
-	$this.hideLoader = function() {
+	$this.hideLoader = function(newTitle) {
 		$this.loaderView.hide();
 		$this.imageView.opacity =1;
 		$this.touchEnabled = true;
 
-		if ($this.oldTitle != null) $this.setTitle( $this.oldTitle );
+		if (newTitle != null) {
+			$this.setTitle( newTitle );
+		} else if ($this.oldTitle != null) {
+			$this.setTitle( $this.oldTitle );
+		}
 		$this.oldTitle = null;
 
 		$this.labelView.animate({ 
