@@ -38,9 +38,9 @@ module.exports = function(args) {
 		$this.imageView.opacity =1;
 		$this.touchEnabled = true;
 
-		if ($this.oldTitle == null) $this.setTitle( $this.oldTitle );
+		if ($this.oldTitle != null) $this.setTitle( $this.oldTitle );
 		$this.oldTitle = null;
-		
+
 		$this.labelView.animate({ 
 			left: $this.imageOffset + ($this.image == null ? 0 : ($this.imageSize + $this.imageOffset/2)) 
 		});
