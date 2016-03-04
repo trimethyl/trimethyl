@@ -11,43 +11,75 @@ module.exports = function(args) {
 
 	var $this = Ti.UI.createView(args);
 
+	/**
+	 * @method showLoader
+	 * Show the loader and hide the left image
+	 */
 	$this.showLoader = function() {
 		$this.loaderView.show();
 		$this.imageView.opacity = 0;
 		$this.touchEnabled = false;
 		$this.labelView.animate({ 
-			left: args.imageOffset*2 + args.imageSize 
+			left: $this.imageOffset*2 + $this.imageSize 
 		});
 	};
 
+	/**
+	 * @method hideLoader
+	 * Hide the loader and show the left image
+	 */
 	$this.hideLoader = function() {
 		$this.loaderView.hide();
 		$this.imageView.opacity =1;
 		$this.touchEnabled = true;
 		$this.labelView.animate({ 
-			left: args.imageOffset + (args.image == null ? 0 : (args.imageSize + args.imageOffset/2)) 
+			left: $this.imageOffset + ($this.image == null ? 0 : ($this.imageSize + $this.imageOffset/2)) 
 		});
 	};
 
+	/**
+	 * @method setTitle
+	 * @param {String} title
+	 * Set the title for the button
+	 */
+	$this.setTitle = function(title) {
+		$this.title = title;
+		$this.labelView.text = $this.title;
+	};
+
+	/**
+	 * @method setImage
+	 * @param {String} image
+	 * Set the left image for the button
+	 */
+	$this.setImage = function(image) {
+		$this.image = image;
+		$this.imageView.image = image;
+	};
+
+	//////////
+	// Init //
+	//////////
+
 	$this.loaderView = Ti.UI.createActivityIndicator({
-		left: args.imageOffset,
-		width: args.imageSize
+		left: $this.imageOffset,
+		width: $this.imageSize
 	});
 	$this.add( $this.loaderView );
 
 	$this.imageView = Ti.UI.createImageView({
-		image: args.image,
-		left: args.imageOffset,
-		width: args.imageSize
+		image: $this.image,
+		left: $this.imageOffset,
+		width: $this.imageSize
 	});
 	$this.add( $this.imageView );
 
 	$this.labelView = Ti.UI.createLabel({
-		left: args.imageOffset + (args.image == null ? 0 : (args.imageSize + args.imageOffset/2)),
-		right: args.imageOffset,
-		text: args.title,
-		font: args.font,
-		color: args.color,
+		left: $this.imageOffset + ($this.image == null ? 0 : ($this.imageSize + $this.imageOffset/2)),
+		right: $this.imageOffset,
+		text: $this.title,
+		font: $this.font,
+		color: $this.color,
 		textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER
 	});
 	$this.add( $this.labelView );
