@@ -11,6 +11,9 @@ exports.config = _.extend({
 
 
 var Util = require('T/util');
+var GA = require('T/ga');
+var Dialog = require('T/dialog');
+
 var globalCallback = null; // Handle all callbacks
 
 function onSocialComplete(e) {
@@ -80,7 +83,7 @@ function parseArgs(args) {
  */
 exports.facebook = function(args) {
 	args = parseArgs(args);
-	require('T/ga').social('facebook', 'share', args.url);
+	GA.social('facebook', 'share', args.url);
 
 	// Native iOS dialog
 	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
@@ -136,7 +139,7 @@ exports.facebook = function(args) {
  */
 exports.twitter = function(args) {
 	args = parseArgs(args);
-	require('T/ga').social('twitter', 'share', args.url);
+	GA.social('twitter', 'share', args.url);
 
 	var text = (args.tweetText || args.text);
 	var textWithUrl = text;
@@ -191,7 +194,7 @@ exports.twitter = function(args) {
  */
 exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
-	require('T/ga').social('email', 'sent', args.url);
+	GA.social('email', 'sent', args.url);
 
 	var $dialog = Ti.UI.createEmailDialog({
 		subject: args.subject || args.title,
@@ -228,7 +231,7 @@ exports.email = exports.mail = function(args) {
  */
 exports.googleplus = function(args) {
 	args = parseArgs(args);
-	require('T/ga').social('googleplus', 'share', args.url);
+	GA.social('googleplus', 'share', args.url);
 
 	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
 		url: args.url
@@ -243,12 +246,12 @@ exports.googleplus = function(args) {
  */
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
-	require('T/ga').social('whatsapp', 'share', args.url);
+	GA.social('whatsapp', 'share', args.url);
 
 	// Native protocol binding
 	if (OS_IOS) {
 		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
-			require('T/dialog').confirmYes(
+			Dialog.confirmYes(
 				L('app_not_installed', 'App not installed'),
 				String.format(L('app_install_question', 'You must install %s to proceed.'), 'Whatsapp'),
 			function() {
@@ -272,11 +275,26 @@ exports.whatsapp = function(args) {
 
 			return true;
 		} catch (err) {
-			require('T/dialog').confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
+			Dialog.confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
 				Util.openInStore('com.whatsapp');
 			}, L('install_app', 'Install app'));
 		}
 	}
+};
+
+/**
+ * @method telegram
+ * Share via Telegram
+ * @param {Object} args
+ */
+exports.telegram = function(args) {
+	args = parseArgs(args);
+	GA.social('telegram', 'share', args.url);
+
+	Ti.Platform.openURL('https://telegram.me/share/url' + Util.buildQuery({
+		url: args.url,
+		text: args.text
+	}));
 };
 
 
@@ -287,7 +305,7 @@ exports.whatsapp = function(args) {
  */
 exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
-	require('T/ga').social('message', 'sent', args.url);
+	GA.social('message', 'sent', args.url);
 
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {
