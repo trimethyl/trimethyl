@@ -35,7 +35,7 @@ var PARSERS = {
 
 		return arg;
 	}
-}
+};
 
 function _parse(args) {
 	var parse_values = args;
@@ -56,7 +56,7 @@ function _parse(args) {
 		}
 
 		if (exports.config.parseMode != null) {
-			messages[i] = PARSERS[exports.config.parseMode](messages[i])
+			messages[i] = PARSERS[exports.config.parseMode](messages[i]);
 		}
 	});
 
@@ -87,7 +87,7 @@ exports.write = function() {
 			if (response.ok === true) {
 				Ti.API.info(CLASS_NAME + ' message successfully sent to ' + exports.config.chatId);
 			} else {
-				Ti.API.error(CLASS_NAME + ' message send failed:', response)
+				Ti.API.error(CLASS_NAME + ' message send failed:', response);
 			}
 		},
 		error: function (err) {
