@@ -144,7 +144,7 @@
 	"sharer":{
 		"name": "Sharer",
 		"description": "Share like a sharer, be social!",
-		"dependencies": ["fb","ga"],
+		"dependencies": ["fb","ga","util","dialog"],
 		"modules": ["bencoding.sms:iphone","dk.napp.social:iphone"]
 	},
 	"sounds":{

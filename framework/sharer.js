@@ -236,6 +236,8 @@ exports.googleplus = function(args) {
 	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
 		url: args.url
 	}));
+
+	return true;
 };
 
 
@@ -295,6 +297,8 @@ exports.telegram = function(args) {
 		url: args.url,
 		text: args.text
 	}));
+
+	return true;
 };
 
 
