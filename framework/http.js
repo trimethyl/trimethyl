@@ -694,10 +694,10 @@ exports.download = function(url, file, success, error, ondatastream) {
 	if (OS_IOS) {
 		doDownload();
 	} else if (OS_ANDROID) {
-		if (Ti.Media.hasCameraPermissions() === true) {
+		if (Ti.Filesystem.hasStoragePermissions() === true) {
 			doDownload();
 		} else {
-			Ti.Media.requestCameraPermissions(function(e) {
+			Ti.Filesystem.requestStoragePermissions(function(e) {
 				if (e.success === false) {
 					return error({
 						message: L('missing_permission_write_file', 'Missing permission to write file')
