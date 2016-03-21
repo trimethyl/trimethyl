@@ -94,7 +94,8 @@ module.exports = function(args) {
 		text: $this.title,
 		font: $this.font,
 		color: $this.color,
-		textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER
+		textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
+		overrideCurrentAnimation: true
 	});
 	$this.add( $this.labelView );
 
