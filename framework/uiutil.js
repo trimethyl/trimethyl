@@ -90,7 +90,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
 
 	var onBlobReady = function(blob) {
-		if (Ti.Filesystem.hasStoragePermissions() === true) {
+		if (OS_IOS || Ti.Filesystem.hasStoragePermissions() === true) {
 			// Cache the file to avoid future calls
 			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
 
