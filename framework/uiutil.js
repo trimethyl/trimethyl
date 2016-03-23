@@ -90,20 +90,32 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
 
 	var onBlobReady = function(blob) {
-		Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
+		if (Ti.Filesystem.hasStoragePermissions() === true) {
+			// Cache the file to avoid future calls
+			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
 
-		var cachedFileStatus = Image.process({
-			blob: blob,
-			width: w,
-			height: h,
-			retina: true,
-			file: cachedFile
-		});
+			var cachedFileStatus = Image.process({
+				blob: blob,
+				width: w,
+				height: h,
+				retina: true,
+				file: cachedFile
+			});
 
-		if (cachedFileStatus != false && cachedFileStatus.nativePath) {
-			callback(cachedFileStatus.nativePath);
+			if (cachedFileStatus != false && cachedFileStatus.nativePath) {
+				callback(cachedFileStatus.nativePath);
+			} else {
+				Ti.API.error('UIUtil: Can\'t write cover file for url <' + url + '>');
+			}
 		} else {
-			Ti.API.error('UIUtil: Can\'t write cover file for url <' + url + '>');
+			// fall back to the original file
+			// TODO this is needed because of a bug in how Titanium handles storage permissions:
+			// applicationCacheDirectory and other directories shouldn't need storage permissions, but they do.
+			// This will be fixed in Titanium 5.4.0. Maybe.
+			// See: https://jira.appcelerator.org/browse/TIMOB-20440
+			Ti.API.error('UIUtil: Missing storage permissions, using original file <' + url + '>');
+
+			callback(url);
 		}
 	};
 
