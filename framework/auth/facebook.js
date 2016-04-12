@@ -6,9 +6,11 @@
 /**
  * @property config
  * @property {String} [config.loginUrl=false] Override URL to login-in
+ * @property {String} [config.tokenName="access_token"] The name of the Facebook access token as returned by this module
  */
 exports.config = _.extend({
-	loginUrl: false
+	loginUrl: false,
+	tokenName: 'access_token'
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
 
 var Util = require('T/util');
@@ -28,9 +30,9 @@ exports.login = function(opt) {
 
 	if (_FB.loggedIn) {
 		storeData();
-		localOptions.success({
-			access_token: _FB.accessToken
-		});
+		var res = {};
+		res[exports.config.tokenName] = _FB.accessToken;
+		localOptions.success(res);
 	} else {
 		_FB.authorize();
 	}
@@ -48,9 +50,9 @@ exports.isStoredLoginAvailable = function() {
 exports.storedLogin = function(opt) {
 	if (_FB.loggedIn) {
 		storeData();
-		opt.success({
-			access_token: _FB.accessToken
-		});
+		var res = {};
+		res[exports.config.tokenName] = _FB.accessToken;
+		opt.success(res);
 	} else {
 		opt.error();
 	}
@@ -78,9 +80,9 @@ _FB.addLoginListener(function(e) {
 	} else {
 
 		if (e.success) {
-			localOptions.success({
-				access_token: _FB.accessToken
-			});
+			var res = {};
+			res[exports.config.tokenName] = _FB.accessToken;
+			localOptions.success(res);
 		} else {
 			localOptions.error({
 				message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')
