@@ -84,8 +84,16 @@ _FB.addLoginListener(function(e) {
 			res[exports.config.tokenName] = _FB.accessToken;
 			localOptions.success(res);
 		} else {
+			var msg = L('unexpected_error', 'Unexpected error');
+
+			if (e.error && e.error.indexOf('OTHER:') !== 0) {
+				msg = e.error;
+			} else if (e.cancelled) {
+				msg = L('login_cancelled', 'Login cancelled');
+			}
+
 			localOptions.error({
-				message: (e.error && e.error.indexOf('OTHER:') !== 0) ? e.error : L('unexpected_error', 'Unexpected error')
+				message: msg
 			});
 		}
 
