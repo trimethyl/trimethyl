@@ -67,7 +67,8 @@
 	"fb":{
 		"name": "FB",
 		"description": "Proxy for Facebook SDK.",
-		"modules": ["facebook:iphone","facebook:android"]
+		"modules": ["facebook:iphone","facebook:android"],
+		"dependencies": ["util"]
 	},
 	"filesystem":{
 		"name": "Filesystem",
