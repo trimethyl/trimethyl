@@ -4,6 +4,29 @@
  */
 
 var Dialog = require('T/dialog');
+var Util = require('T/util');
+
+/**
+ * Check for calendar permissions
+ * @private
+ * @param  {Function} callback  	Success callback
+ */
+function handlePermissions(success, error){
+	success = _.isFunction(success) ? success : Alloy.Globals.noop;
+	error = _.isFunction(error) ? error : Alloy.Globals.noop;
+	if (Ti.Calendar.hasCalendarPermissions() !== true) {
+		Ti.Calendar.requestCalendarPermissions(function(res) {
+			if (res.success === true) {
+				success();
+			} else {
+				Ti.API.error('Calendar: Error', res.error);
+				error();
+			}
+		});
+	} else {
+		callback();
+	}
+}
 
 /** 
  * @method addEvent
@@ -15,42 +38,44 @@ var Dialog = require('T/dialog');
  */
 exports.addEvent = function(newEvent, success, error) {
 	title = L('calendar', 'Calendar');
-	success = _.isFunction(success) ? success : function() {};
-	error = _.isFunction(error) ? error : function() {};
+	success = _.isFunction(success) ? success : Alloy.Globals.noop;
+	error = _.isFunction(error) ? error : Alloy.Globals.noop;
 
-	var options = _.map(Ti.Calendar.allCalendars, function(calendar) {
-		return {
-			title: calendar.name,
-			calendarID: calendar.id,
-			callback: function (e) {
-				var result = false;
-				var cre = calendar.createEvent(newEvent);
-				if (OS_IOS) { // iOS needs an event.save()
-					result = cre.save(Titanium.Calendar.SPAN_THISEVENT);
-				} else {
-					result = cre && !_.isEmpty(cre);
+	handlePermissions(function() {
+		var options = _.map(Ti.Calendar.allCalendars, function(calendar) {
+			return {
+				title: calendar.name,
+				calendarID: calendar.id,
+				callback: function (e) {
+					var result = false;
+					var cre = calendar.createEvent(newEvent);
+					if (OS_IOS) { // iOS needs an event.save()
+						result = cre.save(Titanium.Calendar.SPAN_THISEVENT);
+					} else {
+						result = cre && !_.isEmpty(cre);
+					}
+					if (result == true) {
+						success(cre);
+						return true;
+					} else {
+						error();
+						return false;
+					}
 				}
-				if (result == true) {
-					success(cre);
-					return true;
-				} else {
-					error();
-					return false;
-				}
+			};
+		});
+		options.push({title: L('cancel', 'Cancel'), cancel: true});
+
+		if (OS_IOS) {
+			if (Ti.Calendar.eventsAuthorization === Ti.Calendar.AUTHORIZATION_AUTHORIZED) {
+				Dialog.option(title, options);
 			}
-		};
-	});
-	options.push({title: L('cancel', 'Cancel'), cancel: true});
-
-	if (OS_IOS) {
-		if (Ti.Calendar.eventsAuthorization === Ti.Calendar.AUTHORIZATION_AUTHORIZED) {
+			else Ti.Calendar.requestEventsAuthorization(function(e) {
+				if (e.success) Dialog.option(title, options);
+				else Dialog.alert(L('warning', 'Warning!'), L('calendar_unauthorized', 'You are not authorized to modify this calendar.'), error);
+			});
+		} else if (OS_ANDROID) {
 			Dialog.option(title, options);
 		}
-		else Ti.Calendar.requestEventsAuthorization(function(e) {
-			if (e.success) Dialog.option(title, options);
-			else Dialog.alert(L('warning', 'Warning!'), L('calendar_unauthorized', 'You are not authorized to modify this calendar.'));
-		});
-	} else if (OS_ANDROID) {
-		Dialog.option(title, options);
-	}
+	}, error);
 };

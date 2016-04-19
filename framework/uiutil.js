@@ -85,25 +85,44 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 		return;
 	}
 
+	var filename = null;
+	if (_.isString(url)) {
+		filename = url;
+	} else {
+		filename = url.name;
+	}
+
 	var w = $this.size.width, h = $this.size.height;
-	var hashedCachedName = Ti.Utils.md5HexDigest(url) + '_' + (w+'x'+h) + '.png';
+	var hashedCachedName = Ti.Utils.md5HexDigest(filename) + '_' + (w+'x'+h) + '.png';
 	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
 
 	var onBlobReady = function(blob) {
-		Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
+		if (OS_IOS || Ti.Filesystem.hasStoragePermissions() === true) {
+			// Cache the file to avoid future calls
+			Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
 
-		var cachedFileStatus = Image.process({
-			blob: blob,
-			width: w,
-			height: h,
-			retina: true,
-			file: cachedFile
-		});
+			var cachedFileStatus = Image.process({
+				blob: blob,
+				width: w,
+				height: h,
+				retina: true,
+				file: cachedFile
+			});
 
-		if (cachedFileStatus != false && cachedFileStatus.nativePath) {
-			callback(cachedFileStatus.nativePath);
+			if (cachedFileStatus != false && cachedFileStatus.nativePath) {
+				callback(cachedFileStatus.nativePath);
+			} else {
+				Ti.API.error('UIUtil: Can\'t write cover file for url <' + url + '>');
+			}
 		} else {
-			Ti.API.error('UIUtil: Can\'t write cover file for url <' + url + '>');
+			// fall back to the original file
+			// TODO this is needed because of a bug in how Titanium handles storage permissions:
+			// applicationCacheDirectory and other directories shouldn't need storage permissions, but they do.
+			// This will be fixed in Titanium 5.4.0. Maybe.
+			// See: https://jira.appcelerator.org/browse/TIMOB-20440
+			Ti.API.error('UIUtil: Missing storage permissions, using original file <' + url + '>');
+
+			callback(url);
 		}
 	};
 
@@ -112,7 +131,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 
 	} else {
 
-		if (/^https?\:\/\//.test(url)) {
+		if (_.isString(url) && /^https?\:\/\//.test(url)) {
 			HTTP.send({
 				url: url,
 				format: 'blob',
@@ -127,11 +146,17 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 
 		} else {
 
-			if (OS_ANDROID) url = url.replace(/^\//, '');
-			var origFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
+			var tiFile = null;
 
-			if (origFile.exists()) {
-				var blob = origFile.read();
+			if (_.isString(url)) {
+				if (OS_ANDROID) url = url.replace(/^\//, '');
+				tiFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
+			} else {
+				tiFile = url;
+			}
+
+			if (tiFile.exists()) {
+				var blob = tiFile.read();
 				if (blob != null) {
 					onBlobReady(blob);
 				} else {
@@ -141,6 +166,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 				Ti.API.error('UIUtil: File <' + url + '> doesn\'t exists');
 			}
 		}
+
 	}
 
 };
