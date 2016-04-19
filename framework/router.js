@@ -201,7 +201,6 @@ exports.appendToQueue = function(array) {
 
 /**
  * @method dispatchQueue
- * @return {String} The last element in the queue
  */
 exports.dispatchQueue = function(bypassFromNow) {
 	var e = null;
