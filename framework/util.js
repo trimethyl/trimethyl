@@ -63,7 +63,7 @@ exports.openURL = function(url, fallback, error) {
  */
 exports.openHTTPLink = function(url) {
 	var SD = exports.requireOrNull('ti.safaridialog');
-	if (OS_IOS && exports.getIOSVersion() >= 9 && SD != null) {
+	if (OS_IOS && SD != null && SD.isSupported()) {
 		SD.open({ url:url });
 	} else {
 		require('T/dialog').confirmYes(L('confirm_openlink_leave_app', 'Leave application?'), L('confirm_openlink_browser_alert', 'The link will be open in the browser'), function() {
