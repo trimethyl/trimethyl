@@ -528,7 +528,6 @@ module.exports = function(args) {
 
 	/**
 	 * @method getDataInterface
-	 * @param {Object}
 	 * Get the internal data interface
 	 */
 	$this.getDataInterface = function() {

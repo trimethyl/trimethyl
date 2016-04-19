@@ -345,7 +345,6 @@ exports.isStoredLoginAvailable = function() {
  * @method storedLogin
  * Login using stored driver
  * @param  {Object} opt
- * @param  {Object} opt
  */
 exports.storedLogin = function(opt) {
 	opt = _.defaults(opt || {}, {

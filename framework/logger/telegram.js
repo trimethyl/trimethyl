@@ -6,7 +6,7 @@
 /**
  * @property config
  * @property {String} [config.token=null]					The authorization token for a Telegram bot
- * @property {String} [config.chatId=null]					Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+ * @property {String} [config.chatId=null]					Unique identifier for the target chat or username of the target channel (in the format \@channelusername)
  * @property {String} [config.parseMode='Markdown']			Use the keywords 'Markdown' or 'HTML', if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in your bot's message. Otherwise, set to null.
  * @property {String} [config.disableNotification=false]	Sends the message silently. iOS users will not receive a notification, Android users will receive a notification with no sound.
  */
