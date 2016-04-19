@@ -2,22 +2,11 @@
 
 rm -rf /tmp/trimethyl
 mkdir -p /tmp/trimethyl
+rm -rf /tmp/trimethyl.wiki
+mkdir -p /tmp/trimethyl.wiki
 
-node -e "
-var fs = require('fs');
-fs.writeFileSync('jsduck-guides.json', JSON.stringify([{
-	title: 'Trimethyl Guide',
-	items: fs.readdirSync('guides').map(function(e) {
-		return {
-			name: e,
-			title: e.substr(0,1).toUpperCase() + e.substr(1).replace('.md', '')
-		};
-	})
-}]));
-"
-
-jsduck --config jsduck.json
-# open /tmp/trimethyl/index.html
+node gendoc.js &&
+jsduck --config jsduck.json &&
 
 cd /tmp/trimethyl &&
 git init &&
@@ -26,3 +15,10 @@ git add -A &&
 git commit -am "Documentation of $(date)" &&
 git remote add origin git@github.com:CaffeinaLab/Trimethyl.git &&
 git push -u -f origin gh-pages
+
+cd /tmp/trimethyl.wiki &&
+git init &&
+git add -A &&
+git commit -am "Documentation of $(date)" &&
+git remote add origin git@github.com:CaffeinaLab/Trimethyl.wiki.git &&
+git push -u -f origin master

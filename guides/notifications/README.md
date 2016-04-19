@@ -12,7 +12,7 @@ First of all, you have to set a driver in your `config.json` under `T`.
 
 In `alloy.js` file just write:
 
-```
+```javascript
 var Notifications = require('T/notifications');
 Notifications.onReceived = function() {
 
@@ -21,7 +21,7 @@ Notifications.onReceived = function() {
 
 When you are ready to subscribe the user (this method will prompt an alert), call:
 
-```
+```javascript
 Notifications.subscribe();
 ```
 
@@ -33,7 +33,7 @@ Starting on iOS 8, you can define interactive notifications.
 
 The original Titanium/iOS syntax is horrible, so we have redefined that:
 
-```
+```javascript
 Notifications.addInteractiveNotification("ARTICLE", [
 	{
 		id: "ARTICLE_READ",
@@ -61,7 +61,7 @@ Notifications.addInteractiveNotification("ARTICLE", [
 
 Now, from your server, just send a payload containing almost:
 
-```
+```json
 {
 	"category": "ARTICLE",
 	"id_article": 2
