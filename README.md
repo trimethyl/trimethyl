@@ -10,6 +10,8 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 #### [Download Dash Kapeli Docset](https://github.com/caffeinalab/trimethyl/blob/master/docset/Trimethyl.tgz)
 
+---
+
 ![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
 ![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
 
