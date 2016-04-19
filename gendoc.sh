@@ -17,7 +17,7 @@ fs.writeFileSync('jsduck-guides.json', JSON.stringify([{
 "
 
 jsduck --config jsduck.json
-open /tmp/trimethyl/index.html
+# open /tmp/trimethyl/index.html
 
 cd /tmp/trimethyl &&
 git init &&

@@ -5,12 +5,10 @@ if [ -z "$1" ]; then
 	exit
 fi
 
-npm run test
 
-if [ $? -eq 0 ]; then
-	npm version $1 && 
-	npm publish && 
-	git push && 
-	git push --tags &&
-	npm run gendoc
-fi
+npm run test &&
+npm version $1 && 
+npm publish && 
+git push && 
+git push --tags &&
+npm run gendoc
