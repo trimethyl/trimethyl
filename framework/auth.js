@@ -421,6 +421,7 @@ exports.autoLogin = function(opt) {
 
 	opt.error = function() {
 		clearTimeout(errorTimeout);
+		success = Alloy.Globals.noop; // reset to noop to prevent that is invoked lately
 		error.apply(null, arguments);
 	};
 
