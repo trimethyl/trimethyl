@@ -8,7 +8,7 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 #### [Check the Wiki](https://github.com/caffeinalab/trimethyl/wiki)
 
-#### [Download Dash Kapeli Docset](https://github.com/caffeinalab/trimethyl/blob/master/docset/Trimethyl.tgz)
+#### [Download Dash Kapeli Docset](https://github.com/caffeinalab/trimethyl/blob/master/docset/Trimethyl.tgz?raw=1)
 
 ---
 
