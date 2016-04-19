@@ -1,5 +1,5 @@
 /**
- * @class  	Auth.Bypass
+ * @module  auth/bypass
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

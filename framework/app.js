@@ -1,5 +1,5 @@
 /**
- * @class  	App
+ * @module  app
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -17,29 +17,26 @@ var Util = require('T/util');
 var Router = require('T/router');
 
 /**
- * @method universalLinkToRoute
  * @param  {String} url
  */
 exports.universalLinkToRoute = function(url) { return url; };
 
 /**
- * @method deepLinkToRoute
  * @param  {String} url
  */
 exports.deepLinkToRoute = function(url) { return url; };
 
 /**
  * @deprecated
- * @method start
+ * Use the Router enqueue paradigma instead
  */
 exports.start = function() { Ti.API.error('App: method start() is DEPRECATED!'); };
 
 /**
- * @method isFirstUse
  * Check if the first open of the app.
  *
- * Call {@link #setFirstUse} to set the first use of the app.
- * @param {String} prefix A prefix to apply
+ * Call {@link setFirstUse} to set the first use of the app.
+ * @param {String} [prefix=""] A prefix to apply
  * @return {Boolean}
  */
 exports.isFirstUse = function(prefix) {
@@ -48,10 +45,9 @@ exports.isFirstUse = function(prefix) {
 };
 
 /**
- * @method setFirstUse
  * Set the app first usage date.
  * @param {String} prefix A prefix to apply
- * Use in conjunction with {@link #isFirstUse}
+ * Use in conjunction with {@link isFirstUse}
  */
 exports.setFirstUse = function(prefix) {
 	prefix = prefix || '';
@@ -59,14 +55,13 @@ exports.setFirstUse = function(prefix) {
 };
 
 /**
- * @method notifyUpdate
  * Check on the App/Play store if new version of this app has been released.
  * If it is, a dialog is shown to update the app.
  * @param  {String} 		url
- * @param  {Function} 	version_callback
- * @param  {Function} 	success_callback
+ * @param  {Function} 	versionCb
+ * @param  {Function} 	successCb
  */
-exports.notifyUpdate = function(url, version_callback, success_callback) {
+exports.notifyUpdate = function(url, versionCb, successCb) {
 	if (!Ti.Network.online) return;
 
 	if (url == null) {
@@ -77,7 +72,7 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 		}
 	}
 
-	version_callback = version_callback || function(response) {
+	versionCb = versionCb || function(response) {
 		if (OS_IOS) {
 			return (response.results && response.results[0]) ? response.results[0].version : null;
 		} else {
@@ -85,7 +80,7 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 		}
 	};
 
-	success_callback = success_callback || function(response) {
+	successCb = successCb || function(response) {
 		Util.openInStore((function() {
 			if (OS_IOS) return response.results[0].trackId;
 			else return null;
@@ -99,7 +94,7 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 		success: function(response) {
 			if (response == null || !_.isObject(response)) return;
 
-			var new_version = version_callback(response);
+			var new_version = versionCb(response);
 			var version_compare = Util.compareVersions(new_version, Ti.App.version);
 
 			Ti.API.info('Util: App store version is ' + new_version);
@@ -119,7 +114,7 @@ exports.notifyUpdate = function(url, version_callback, success_callback) {
 					title: L('app_new_version_button_update', 'Update'),
 					selected: true,
 					callback: function() {
-						success_callback(response);
+						successCb(response);
 					}
 				}
 				]);

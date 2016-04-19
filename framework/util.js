@@ -1,10 +1,9 @@
 /**
- * @class  	Util
+ * @module 	util
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
 /**
- * @method requireOrNull
  * Require a module, or return a null object
  * @param  {String} name
  * @return {Object}
@@ -18,7 +17,6 @@ exports.requireOrNull = function(name) {
 };
 
 /**
- * @method openURL
  * Try to open the URL with `Ti.Platform.openURL`, catching errors.
  *
  * If can't open the primary argument (url), open the fallback.
@@ -58,7 +56,6 @@ exports.openURL = function(url, fallback, error) {
 };
 
 /**
- * @method openHTTPLink
  * @param  {String} url
  */
 exports.openHTTPLink = function(url) {
@@ -75,7 +72,6 @@ exports.openHTTPLink = function(url) {
 };
 
 /**
- * @method 	tryOpenURLs
  * Try to open all URLs in the array
  * @param  {Array} urls
  * @return {Boolean} `true` if at least one url has been opened.
@@ -101,7 +97,6 @@ exports.tryOpenURLs = function(urls) {
 };
 
 /**
- * @method startActivity
  * Valid only on Android, start the activity catching any possible errors.
  *
  * If `error` is provided, show the error dialog with this message.
@@ -120,7 +115,6 @@ exports.startActivity = function(opt, error) {
 };
 
 /**
- * @method  openFacebookProfile
  * Open a Facebook profile in the Facebook application
  * @param  {String} fb_id 	Facebook ID
  */
@@ -136,7 +130,6 @@ exports.openFacebookProfile = function(fb_id) {
 };
 
 /**
- * @method  openTwitterProfile
  * Open a Twitter profile in the Twitter application
  * @param  {String} tw_username 	Twitter screen name
  */
@@ -154,7 +147,6 @@ exports.openTwitterProfile = function(tw_username) {
 };
 
 /**
- * @method  openTwitterStatus
  * Open a Twitter status in the Twitter application
  * @param  {String} tw_username   	The user id
  * @param  {String} status_id 		The status id
@@ -167,7 +159,6 @@ exports.openTwitterStatus = function(tw_username, status_id) {
 };
 
 /**
- * @method  openYoutubeProfile
  * Open a Youtube profile in the Yotube application
  * @param  {String} ytid 	Youtube ID
  */
@@ -176,7 +167,6 @@ exports.openYoutubeProfile = function(ytid) {
 };
 
 /**
- * @method  openInstagramProfile
  * Open an Instagram profile in the Instagram application
  * @param  {String} ig_username 	The user's id
  */
@@ -200,7 +190,6 @@ exports.getFacebookAvatar = function(fbid, w, h) {
 };
 
 /**
- * @method openInStore
  * Open the iTunes Store or Google Play Store of specified appid
  * @property appid The appid
  */
@@ -213,7 +202,6 @@ exports.openInStore = function(appid) {
 };
 
 /**
- * @method  getDomainFromURL
  * Return the clean domain of an URL
  *
  * @param  {String} url The URL to parse
@@ -235,7 +223,6 @@ exports.getIOSVersion = function() {
 };
 
 /**
- * @method isIOS6
  * Check if is iOS 6
  * @return {Boolean}
  */
@@ -244,7 +231,6 @@ exports.isIOS6 = function() {
 };
 
 /**
- * @method isIOS7
  * Check if is iOS 7
  * @return {Boolean}
  */
@@ -253,7 +239,6 @@ exports.isIOS7 = function() {
 };
 
 /**
- * @method isIOS8
  * Check if is iOS 8
  * @return {Boolean}
  */
@@ -262,7 +247,6 @@ exports.isIOS8 = function() {
 };
 
 /**
- * @method isIOS9
  * Check if is iOS 9
  * @return {Boolean}
  */
@@ -287,7 +271,6 @@ exports.parseSchema = function() {
 };
 
 /**
- * @method timestamp
  * Get the UNIX timestamp.
  *
  * @param  {Object} [arg]  The date to parse.
@@ -299,7 +282,6 @@ exports.timestamp = function(arg) {
 };
 
 /**
- * @method now
  * Get the current UNIX timestamp.
  * @return {Number}
  */
@@ -308,7 +290,6 @@ exports.now = function() {
 };
 
 /**
- * @method fromNow
  * Get the UNIX timestamp from now with delay expressed in seconds.
  *
  * @param  {Number} [t]  Seconds from now.
@@ -319,7 +300,6 @@ exports.fromNow = function(t) {
 };
 
 /**
- * @method timestampForHumans
  * Return in human readable format a timestamp
  * @param  {Number} ts The timestamp
  * @return {String}
@@ -329,7 +309,6 @@ exports.timestampForHumans = function(ts) {
 };
 
 /**
- * @method parseJSON
  * Try to parse a JSON, and silently fail on error, returning a `null` in this case.
  *
  * @param  {String} json 		The JSON to parse.
@@ -344,7 +323,6 @@ exports.parseJSON = function(json) {
 };
 
 /**
- * @method buildQuery
  * Generate URL-encoded query string.
  *
  * @param {Object} obj 			Object key-value to parse.
@@ -371,13 +349,13 @@ exports.buildQuery = function(obj, prepend) {
 	return q.length === 0 ? '' : ((prepend != null ? prepend : '?') + q.join('&'));
 };
 
+var APPDATA_DIRECTORY = null;
+
 /**
- * @method  getAppDataDirectory
  * Return the app-data directory.
  *
  * @return {String}
  */
-var APPDATA_DIRECTORY = null;
 exports.getAppDataDirectory = function() {
 	if (APPDATA_DIRECTORY === null) {
 		if (OS_IOS) {
@@ -396,7 +374,6 @@ exports.getAppDataDirectory = function() {
 };
 
 /**
- * @method  dialog
  * Dial a number.
  *
  * @param  {String} tel The number to call.
@@ -463,7 +440,6 @@ var XCU = {
 
 
 /**
- * @method parseAsXCallbackURL
  * @param  {String} 	url  The URL to parse
  * @return {XCallbackURL}
  */
@@ -481,7 +457,6 @@ exports.parseAsXCallbackURL = function(str) {
 
 
 /**
- * @method hashJavascriptObject
  * Return the seralized representation of any JS object.
  * @param  {Object} obj
  * @return {String} The hash
@@ -493,7 +468,6 @@ exports.hashJavascriptObject = function(obj) {
 };
 
 /**
- * @method getErrorMessage
  * An error parser that parse a String/Object
  */
 exports.getErrorMessage = function(obj, def) {
@@ -515,16 +489,21 @@ exports.getErrorMessage = function(obj, def) {
 };
 
 /**
- * @method errorAlert
  * @param  {Object}   err      		The object error
  * @param  {Function} [callback] 	The callback
  */
-exports.errorAlert = exports.alertError = function(err, callback) {
+exports.errorAlert = function(err, callback) {
 	require('T/dialog').alert(L('error', 'Error'), exports.getErrorMessage(err), callback);
 };
 
 /**
- * @method bytesForHumans
+ * @method alertError
+ * @see {@link errorAlert}
+ */
+exports.alertError = exports.errorAlert;
+
+
+/**
  * Get a human representation of bytes
  * @param  {Number} bytes
  * @return {String}
@@ -536,12 +515,12 @@ exports.bytesForHumans = function(bytes) {
 	return Math.round(bytes/Math.pow(1024,i),2) + ' ' + sizes[i];
 };
 
+var DATABASE_DIRECTORY = null;
+
 /**
- * @method getDatabaseDirectory
  * Get the private documents directory
  * @return {String}
  */
-var DATABASE_DIRECTORY = null;
 exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
 	if (DATABASE_DIRECTORY === null) {
 		if (OS_IOS) {
@@ -558,7 +537,6 @@ exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
 };
 
 /**
- * @method getResourcesDirectory
  * Get the resources directory path
  * @return {String}
  */
@@ -571,7 +549,6 @@ exports.getResourcesDirectory = function() {
 };
 
 /**
- * @method compareVersions
  * Compare two app versions
  * @param  {String} a
  * @param  {String} b
@@ -591,7 +568,6 @@ exports.compareVersions = function(a, b) {
 };
 
 /**
- * @method zeroPad
  * Add leading zeros
  * @param  {String} num  The number
  * @param  {Number} size The final size
@@ -606,7 +582,6 @@ exports.zeroPad = function(num, size) {
 };
 
 /**
- * @method guid
  * Get a UUID
  * @return {String}
  */
@@ -615,7 +590,6 @@ exports.guid = function() {
 };
 
 /**
- * @method getPlatform
  * Get the full platform name
  * @return {String}
  */

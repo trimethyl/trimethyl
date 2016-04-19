@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.ImageView
+ * @module  uifactory/imageview
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -11,7 +11,8 @@ module.exports = function(args) {
 	var $this = Ti.UI.createImageView(args);
 
 	/**
-	 * @method setcoverImage
+	 * Set the cover image
+	 * @method setCoverImage
 	 * @param {String} url
 	 */
 	$this.setCoverImage = function(url) {

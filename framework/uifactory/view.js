@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.View
+ * @module  uifactory/view
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -11,7 +11,8 @@ module.exports = function(args) {
 	var $this = Ti.UI.createView(args);
 
 	/**
-	 * @method setBackgroundCoverImage
+	 * Set the cover image
+	 * @method  setBackgroundCoverImage
 	 * @param {String} url
 	 */
 	$this.setBackgroundCoverImage = function(url) {

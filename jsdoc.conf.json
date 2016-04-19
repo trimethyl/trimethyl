@@ -1,0 +1,13 @@
+{
+	"docset" : {
+		"name": "Trimethyl",
+		"enableJavascript": true
+	},
+	"source": {
+		"include": "framework",
+		"excludePattern": "framework/ext"
+	},
+	"opts": {
+		"recurse": true
+	}
+}

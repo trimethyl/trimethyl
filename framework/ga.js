@@ -1,5 +1,5 @@
 /**
- * @class  	GA
+ * @module  gA
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -29,7 +29,6 @@ function track(method, what) {
 
 
 /**
- * @method trackEvent
  * Track an event
  * @param  {String} cat 	Category **or object passed to native proxy**
  * @param  {String} act 	The action
@@ -56,15 +55,12 @@ exports.trackEvent = function(cat, act, lbl, val){
 
 
 /**
- * @method event
- * @inheritDoc #trackEvent
- * Alias for {@link #trackEvent}
+ * @link #trackEvent
  */
 exports.event = exports.trackEvent;
 
 
 /**
- * @method trackScreen
  * Track a screen
  * @param  {String} name 	The screen name
  */
@@ -80,15 +76,12 @@ exports.trackScreen = function(name) {
 };
 
 /**
- * @method screen
- * @inheritDoc #trackScreen
- * Alias for {@link #trackScreen}
+ * @link #trackScreen
  */
 exports.screen = exports.trackScreen;
 
 
 /**
- * @method trackSocial
  * Track a social action
  *
  * @param  {String} net 		The social network name **or object passed to native proxy**
@@ -113,9 +106,7 @@ exports.trackSocial = function(net, act, tar){
 };
 
 /**
- * @method social
- * @inheritDoc #trackSocial
- * Alias for {@link #trackSocial}
+ * @link #trackSocial
  */
 exports.social = exports.trackSocial;
 
@@ -148,15 +139,12 @@ exports.trackTiming = function(cat, time, name, lbl){
 };
 
 /**
- * @method time
- * @inheritDoc #trackTiming
- * Alias for {@link #trackTiming}
+ * @link #trackTiming
  */
 exports.time = exports.trackTiming;
 
 
 /**
- * @method trackException
  * @param  {String} description 	The description of the exception **or object passed to native proxy**
  * @param  {Boolean} fatal       Fatal or not?
  */
@@ -177,9 +165,7 @@ exports.trackException = function(description, fatal) {
 };
 
 /**
- * @method exception
- * @inheritDoc #trackException
- * Alias for {@link #trackException}
+ * @link #trackException
  */
 exports.exception = exports.trackException;
 

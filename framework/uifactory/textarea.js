@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.TextArea
+ * @module  uifactory/textarea
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * * Add support for `hintText`, that is missing on iOS.
@@ -43,7 +43,6 @@ module.exports = function(args) {
 	if (OS_IOS) {
 
 		/**
-		 * @method getRealValue
 		 * Get the effective value when using hintText hack
 		 * @return {String}
 		 */
@@ -53,7 +52,6 @@ module.exports = function(args) {
 		};
 
 		/**
-		 * @method setRealValue
 		 * Set the real value when using hintText hack
 		 */
 		$this.setRealValue = function(v){

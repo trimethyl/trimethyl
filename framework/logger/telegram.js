@@ -1,5 +1,5 @@
 /**
- * @class  	Logger.Telegram
+ * @module  logger/telegram
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
@@ -64,7 +64,6 @@ function _parse(args) {
 }
 
 /**
- * @method write
  * @param {String} level A severity level.
  * @param message The message's parts
  */

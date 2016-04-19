@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.TabbedBar
+ * @module  uifactory.tabbedbar
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * Android Implementation of `Ti.UI.iOS.TabbedBar`

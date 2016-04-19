@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.Window
+ * @module  uifactory/window
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -9,38 +9,38 @@ module.exports = function(args) {
 	_.defaults(args, {
 
 		/**
-		 * @property {Boolean} [displayHomeAsUp=false]
 		 * **(Android only)** Set the property `displayHomeAsUp` and the relative close listener.
+		 * @property {Boolean} [displayHomeAsUp=false]
 		 */
 		displayHomeAsUp: false,
 
 		/**
-		 * @property {Boolean} [backButtonDisabled=false]
 		 * **(Android only)** Disable the hardware back button (do nothing on click)
+		 * @property {Boolean} [backButtonDisabled=false]
 		 */
 		backButtonDisabled: false,
 
 		/**
-		 * @property {String} [deferredBackgroundImage=null]
 		 * View {@link #setDeferredBackgroundImage}
+		 * @property {String} [deferredBackgroundImage=null]
 		 */
 		deferredBackgroundImage: null,
 
 		/**
-		 * @property {String} [backgroundCoverImage=null]
 		 * View {@link #setBackgroundCoverImage}
+		 * @property {String} [backgroundCoverImage=null]
 		 */
 		backgroundCoverImage: null,
 
 		/**
-		 * @property {Object} [activityProperties=null]
 		 * View {@link #setActivityProperties}
+		 * @property {Object} [activityProperties=null]
 		 */
 		activityProperties: null,
 
 		/**
-		 * @property {Object} [actionBarProperties=null]
 		 * View {@link #setActionBarProperties}
+		 * @property {Object} [actionBarProperties=null]
 		 */
 		actionBarProperties: null,
 
@@ -51,20 +51,20 @@ module.exports = function(args) {
 		rightNavButton: null,
 
 		/**
-		 * @property {Array} [activityButtons=null]
 		 * View {@link #addActivityButton}
+		 * @property {Array} [activityButtons=null]
 		 */
 		activityButtons: null,
 
 		/**
-		 * @property {Object} [activityButton=null]
 		 * View {@link #setActivityButton}
+		 * @property {Object} [activityButton=null]
 		 */
 		activityButton: null,
 
 		/**
-		 * @property {Boolean} [exitOnBack=null]
 		 * Set an handler that kill the entire app when back button is closed
+		 * @property {Boolean} [exitOnBack=null]
 		 */
 		exitOnBack: null
 
@@ -90,8 +90,8 @@ module.exports = function(args) {
 	});
 
 	/**
-	 * @method setDeferredBackgroundImage
 	 * When large images are requested, it's useful to set `deferredBackgroundImage` to set the background on window open.
+	 * @method setDeferredBackgroundImage
 	 * @param {String} val
 	 */
 	$this.setDeferredBackgroundImage = function(val) {
@@ -101,7 +101,7 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method setBackgroundCoverImage
+	 * @method  setBackgroundCoverImage
 	 * @param {String} url
 	 */
 	$this.setBackgroundCoverImage = function(url) {
@@ -111,8 +111,8 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method fadeIn
 	 * Fade in this window
+	 * @method  fadeIn
 	 */
 	$this.fadeIn = function() {
 		$this.opacity = 0;
@@ -124,8 +124,8 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method fadeOut
 	 * Fade in this window
+	 * @method  fadeOut
 	 */
 	$this.fadeOut = function() {
 		setTimeout(function() { $this.close(); }, 300);
@@ -138,8 +138,8 @@ module.exports = function(args) {
 	if (OS_ANDROID) {
 
 		/**
-		 * @method setActivityProperties
 		 * Set the properties for the Activity
+		 * @method setActivityProperties
 		 * @param {Object} props
 		 */
 		$this.setActivityProperties = function(props) {
@@ -149,8 +149,8 @@ module.exports = function(args) {
 		};
 
 		/**
-		 * @method setActionBarProperties
 		 * Set the properties for the ActionBar
+		 * @method  setActionBarProperties
 		 * @param {Object}   props
 		 * @param {Function} callback
 		 */
@@ -186,8 +186,8 @@ module.exports = function(args) {
 
 
 		/**
-		 * @method addActivityButton
 		 * **Android specific**
+		 * @method  addActivityButton
 		 * @param {Object} opt
 		 */
 		$this.addActivityButton = function(opt) {
@@ -199,8 +199,8 @@ module.exports = function(args) {
 		};
 
 		/**
-		 * @method setActivityButton
 		 * **Android specific**
+		 * @method  setActivityButton
 		 * @param {Object} opt
 		 */
 		$this.setActivityButton = function(opt) {
@@ -210,15 +210,14 @@ module.exports = function(args) {
 
  		/**
  		 * @method setRightNavButton
- 		 * @inheritDoc #setActivityButton
- 		 * Alias for {@link #setActivityButton}
+ 		 * @see {@link setActivityButton}
  		 */
 		$this.setRightNavButton = $this.setActivityButton;
 
 
 		/**
-		 * @method processTitles
 		 * Auto-process the titles
+		 * @method  processTitles
 		 */
 		$this.processTitles = function () {
 			$this.setActionBarProperties({
@@ -228,8 +227,8 @@ module.exports = function(args) {
 		};
 
 		/**
-		 * @method setTitle
 		 * **Android fix**
+		 * @method setTitle
 		 * @param {String} value
 		 */
 		$this.setTitle = function(value) {
@@ -238,8 +237,8 @@ module.exports = function(args) {
 		};
 
 		/**
-		 * @method setSubtitle
 		 * **Android fix**
+		 * @method  setSubtitle
 		 * @param {String} value
 		 */
 		$this.setSubtitle = function(value) {

@@ -1,5 +1,5 @@
 /**
- * @class  	Trimethyl
+ * @module  trimethyl
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

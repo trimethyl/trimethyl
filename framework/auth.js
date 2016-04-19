@@ -1,5 +1,5 @@
 /**
- * @class  	Auth
+ * @module  auth
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -130,6 +130,10 @@ var OAuth = {
 
 };
 
+/**
+ * OAuth object
+ * @type {Object}
+ */
 exports.OAuth = OAuth;
 
 
@@ -239,7 +243,7 @@ function fetchUserModel(opt, dataFromServer) {
 
 
 /**
- * @method loadDriver
+ * Load a driver
  */
 exports.loadDriver = function(name) {
 	return Alloy.Globals.Trimethyl.loadDriver('auth', name, {
@@ -251,14 +255,13 @@ exports.loadDriver = function(name) {
 };
 
 /**
- * @method event
+ * Add the event
  */
 exports.event = function(name, cb) {
 	Event.on('auth.' + name, cb);
 };
 
 /**
- * @method getUser
  * Get current User model
  * @return {Object}
  */
@@ -268,7 +271,6 @@ exports.getUser = function(){
 
 /**
  * Check if the user is logged in
- *
  * @return {Boolean}
  */
 exports.isLoggedIn = function() {
@@ -276,7 +278,6 @@ exports.isLoggedIn = function() {
 };
 
 /**
- * @method getUserID
  * Get current User ID
  * @return {Number}
  */
@@ -286,7 +287,6 @@ exports.getUserID = function(){
 };
 
 /**
- * @method login
  * Login using selected driver
  * @param  {Object} opt
  */
@@ -330,7 +330,6 @@ exports.login = function(opt) {
 };
 
 /**
- * @method isStoredLoginAvailable
  * Check if the Stored login feature is available
  * @return {Boolean}
  */
@@ -342,7 +341,6 @@ exports.isStoredLoginAvailable = function() {
 };
 
 /**
- * @method storedLogin
  * Login using stored driver
  * @param  {Object} opt
  */
@@ -363,7 +361,6 @@ exports.storedLogin = function(opt) {
 };
 
 /**
- * @method isOfflineLoginAvailable
  * Check if an offline login is available
  * @return {Boolean} [description]
  */
@@ -372,7 +369,6 @@ exports.isOfflineLoginAvailable = function() {
 };
 
 /**
- * @method offlineLogin
  * Login using offline properties
  * @param  {Object} opt
  */
@@ -403,9 +399,11 @@ exports.offlineLogin = function(opt) {
 };
 
 /**
- * @method autoLogin
  * This method will select the best behaviour and will login the user
- * @param  {Object} opt
+ * @param {Object} opt
+ * @param {Function} [opt.success] 			Success callback
+ * @param {Function} [opt.error] 			Error callback
+ * @param {Number} 	[opt.timeout=10000] 	Timeout
  */
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -509,7 +507,6 @@ exports.autoLogin = function(opt) {
 };
 
 /**
- * @method logout
  * @param  {Function} callback
  */
 exports.logout = function(callback) {

@@ -1,5 +1,5 @@
 /**
- * @class  	Cache
+ * @module  cache
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -12,7 +12,7 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.cache : {});
 
 /**
- * @method loadDriver
+ * Load a driver
  */
 exports.loadDriver = function(name) {
 	return Alloy.Globals.Trimethyl.loadDriver('cache', name, {

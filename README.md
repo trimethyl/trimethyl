@@ -1,4 +1,4 @@
-![image](https://s3.amazonaws.com/f.cl.ly/items/3h2Q2i0K1s2i0u2G2h2N/logo.jpg)
+![image](logo.jpg)
 
 Trimethyl is a collection of very useful modules to work with **Appcelerator Titanium**.
 

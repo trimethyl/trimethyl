@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.Select
+ * @module  uifactory/select
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -495,7 +495,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method getValue
 	 * Get the value
 	 * @return {Object}
 	 */
@@ -508,7 +507,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method  setValue
 	 * @param {Object} value
 	 * Set the current value
 	 * Shorthand for setColumnsValues with a single columns picker
@@ -518,7 +516,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method setValues
 	 * @param {Array} values
 	 * Shorthand for setColumns with a single columns picker
 	 */
@@ -527,7 +524,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method getDataInterface
 	 * Get the internal data interface
 	 */
 	$this.getDataInterface = function() {
@@ -535,7 +531,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method setColumns
 	 * @param {Array} columns The columns
 	 * Set the columns for the picker
 	 */
@@ -549,7 +544,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method setColumnsValues
 	 * @param {Array} columnsValues
 	 */
 	$this.setColumnsValues = function(columnsValues) {
@@ -582,7 +576,6 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method open
 	 * Open the picker
 	 */
 	$this.open = function() {

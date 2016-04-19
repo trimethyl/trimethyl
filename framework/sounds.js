@@ -1,5 +1,5 @@
 /**
- * @class  	Sounds
+ * @module  sounds
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -7,7 +7,6 @@
 var players = {};
 
 /**
- * @method create
  * Create the `Ti.Media.Sound` and allocate for future play
  * @param  {String} key The sound file to load
  * @return {Ti.Media.Sound}
@@ -18,7 +17,6 @@ exports.create = function(key) {
 };
 
 /**
- * @method play
  * Play the sound
  * @param  {String} key The sound file to play
  */
@@ -28,7 +26,6 @@ exports.play = function(key) {
 };
 
 /**
- * @method pause
  * Pause the sound
  * @param  {String} key The sound file to pause
  */

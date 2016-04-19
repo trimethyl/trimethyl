@@ -1,5 +1,5 @@
 /**
- * @class  	Camera
+ * @module  camera
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -49,7 +49,6 @@ function getPhoto(method, opt, callback){
 }
 
 /**
- * @method takePhoto
  * Open the Camera to take a photo
  *
  * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
@@ -60,7 +59,6 @@ exports.takePhoto = function(opt, callback) {
 };
 
 /**
- * @method choosePhoto
  * Open the Gallery to chooose a photo
  *
  * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`
@@ -71,7 +69,6 @@ exports.choosePhoto = function(opt, callback) {
 };
 
 /**
- * @method selectPhoto
  * Display an option dialog to prompt the user to take a photo with the camera or select a photo from the gallery
  *
  * @param  {Object}   opt 			Options passed to `Ti.Media.showCamera`

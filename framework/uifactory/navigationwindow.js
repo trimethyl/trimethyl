@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.NavigationWindow
+ * @module  uifactory/navigationwindow
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * Simple stack of `Ti.UI.iOS.NavigationWindow`

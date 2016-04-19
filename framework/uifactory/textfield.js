@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.TextField
+ * @module  uifactory/textfield
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

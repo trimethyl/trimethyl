@@ -1,5 +1,5 @@
 /**
- * @class 	Image
+ * @module 	image
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

@@ -1,5 +1,5 @@
 /**
- * @class  	Notifications.Parse
+ * @module  notifications/parse
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

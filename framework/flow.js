@@ -1,5 +1,5 @@
 /**
- * @class  	Flow
+ * @module  flow
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -16,19 +16,19 @@ var windowsStack = [];
 var currentController = null;
 
 /**
- * @property currentControllerName
+ * Current controller name
  * @type {Object}
  */
 exports.currentControllerName = null;
 
 /**
- * @property currentControllerArgs
+ * Current controller arguments
  * @type {Object}
  */
 exports.currentControllerArgs = null;
 
 /**
- * @method event
+ * Attach event to current module
  */
 exports.event = function(name, cb) {
 	Event.on('flow.' + name, cb);
@@ -149,7 +149,6 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
 
 
 /**
- * @method openDirect
  * Require an Alloy.Controller without passing it to the Navigator
  *
  * This is anyway tracked with Google Analitycs
@@ -164,7 +163,6 @@ exports.openDirect = function(name, args, openArgs, route) {
 };
 
 /**
- * @method open
  * Require an Alloy.Controller and open its main `View` in the Navigator.
  *
  * A `close` event is automatically attached to the main window to call sequentially
@@ -198,7 +196,6 @@ exports.close = function() {
 };
 
 /**
- * @method setCurrentController
  * Set current controller
  * @param {Alloy.Controller} 	controller
  * @param {String} 				[name]
@@ -211,7 +208,6 @@ exports.setCurrentController = function(controller, name, args) {
 };
 
 /**
- * @method getCurrentController
  * Return current controller
  * @return {Alloy.Controller}
  */
@@ -220,7 +216,6 @@ exports.getCurrentController = function() {
 };
 
 /**
- * @method setCurrentWindow
  * Set current Window and push in the windows stack
  * @param {Ti.UI.Window} $window
  * @param {String} route
@@ -237,7 +232,6 @@ exports.setCurrentWindow = function($window, route) {
 };
 
 /**
- * @method getWindows
  * Return the windows stacks
  * @return {Array}
  */
@@ -246,7 +240,6 @@ exports.getWindows = function() {
 };
 
 /**
- * @method getCurrentWindow
  * Get current Window
  * @return {Ti.UI.Window}
  */
@@ -256,7 +249,6 @@ exports.getCurrentWindow = function() {
 
 
 /**
- * @method setNavigationController
  * Set the Navigator used to open the windows
  *
  * ** This is required before opening windows **
@@ -273,7 +265,6 @@ exports.setNavigationController = function(nav, openNow) {
 
 
 /**
- * @method getNavigationController
  * Return the instance set of Navigator
  * @return {Object}
  */
@@ -283,7 +274,6 @@ exports.getNavigationController = function() {
 
 
 /**
- * @method closeAllWindowsExceptFirst
  * Close all windows, except first.
  */
 exports.closeAllWindowsExceptFirst = function() {

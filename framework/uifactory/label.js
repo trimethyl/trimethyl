@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.Label
+ * @module  uifactory/label
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * Add support for very basic HTML.
@@ -73,7 +73,7 @@ module.exports = function(args) {
 	});
 
 	/**
-	* @method setHtml
+	 * Set the HTML
 	* @param {String} value
 	*/
 	$this.setHtml = function(value, parser) {

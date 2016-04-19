@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.ZoomImageView
+ * @module  uifactory/zoomimageview
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * An ImageView with the pinch-to-zoom feature included.
@@ -9,30 +9,30 @@ module.exports = function(args) {
 	_.defaults(args, {
 
 		/**
+		 * The current zoom scale
 		 * @property zoomScale
 		 * @type {Number}
-		 * The current zoom scale
 		 */
 		zoomScale: 1,
 
 		/**
+		 * The min zoom scale
 		 * @property minZoomScale
 		 * @type {Number}
-		 * The min zoom scale
 		 */
 		minZoomScale: 1,
 
 		/**
+		 * The max zoom scale
 		 * @property maxZoomScale
 		 * @type {Number}
-		 * The max zoom scale
 		 */
 		maxZoomScale: 2,
 
 		/**
+		 * The image to show
 		 * @property image
 		 * @type {String}
-		 * The image to show
 		 */
 		image: null
 
@@ -55,7 +55,7 @@ module.exports = function(args) {
 			});
 
 			/**
-			 * @method setImage
+			 * @method  setImage
 			 * @param {String} image
 			 */
 			$this.setImage = function(image) {

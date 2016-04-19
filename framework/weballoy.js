@@ -1,5 +1,5 @@
 /**
- * @class  	WebAlloy
+ * @module  weballoy
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -115,7 +115,6 @@ exports.addHelper = function(name, method) {
 };
 
 /**
- * @method addFont
  * Add a font dynamically loaded with font-face in CSS
  * @param {String} 		name   		The name of the font
  * @param {String} 		weight 		The weight of the font
@@ -136,7 +135,6 @@ exports.addFont = function(name, weight, filename) {
 };
 
 /**
- * @method createView
  * @param  {Object} args Arguments for the view.
  * @return {Ti.UI.WebView}
  */

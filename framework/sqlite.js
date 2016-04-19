@@ -1,5 +1,5 @@
 /**
- * @class  SQLite
+ * @module sqlite
  * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -24,9 +24,9 @@ function SQLite(name, file) {
 }
 
 /**
- * @static
- * @method  fromFile
  * Return a new instance of SQLite opened from an absolute file
+ * @method fromFile
+ * @static
  * @param  {String} path
  * @return {SQLite}
  */
@@ -51,8 +51,8 @@ SQLite.fromFile = function(path) {
 };
 
 /**
- * @method table
  * Start a chain to query informations
+ * @method table
  * @param  {String} name The table name
  * @return {SQLite}
  */
@@ -73,8 +73,8 @@ SQLite.prototype.table = function(name) {
 };
 
 /**
- * @method select
  * Select attributes
+ * @method select
  * @return {SQLite}
  */
 SQLite.prototype.select = function() {
@@ -131,8 +131,8 @@ SQLite.prototype.select = function() {
 };
 
 /**
- * @method update
  * Update attributes.
+ * @method update
  * @param  {Object} obj
  * @return {SQLite}
  */
@@ -153,8 +153,8 @@ SQLite.prototype.update = function(obj) {
 };
 
 /**
- * @method delete
  * Perform a delete table.
+ * @method delete
  * @return {SQLite}
  */
 SQLite.prototype.delete = function() {
@@ -167,8 +167,9 @@ SQLite.prototype.delete = function() {
 
 
 /**
- * @method orderBy
  * Order the results in the select.
+ * @method order
+ * @alias orderBy
  * @return {SQLite}
  */
 SQLite.prototype.order = SQLite.prototype.orderBy = function(key, direction) {
@@ -183,8 +184,8 @@ SQLite.prototype.order = SQLite.prototype.orderBy = function(key, direction) {
 };
 
 /**
- * @method truncate
  * Perform a truncate table.
+ * @method truncate
  * @return {SQLite}
  */
 SQLite.prototype.truncate = function() {
@@ -196,8 +197,9 @@ SQLite.prototype.truncate = function() {
 };
 
 /**
- * @method where
  * Add where clauses.
+ * @method where
+ * @alias andWhere
  * @return {SQLite}
  */
 SQLite.prototype.where = SQLite.prototype.andWhere = function() {
@@ -241,8 +243,8 @@ SQLite.prototype.where = SQLite.prototype.andWhere = function() {
 };
 
 /**
- * @method insert
  * Insert values
+ * @method insert
  * @return {SQLite}
  */
 SQLite.prototype.insert = function(obj) {
@@ -262,7 +264,9 @@ SQLite.prototype.insert = function(obj) {
 };
 
 /**
+ * Return the query to pass to native module
  * @method getExequery
+ * @return {Array}
  */
 SQLite.prototype.getExequery = function() {
 	if (this.query === null) throw new Error('Start a query chain with .table() method');
@@ -313,8 +317,8 @@ SQLite.prototype.getExequery = function() {
 
 
 /**
- * @method close
  * Close the database
+ * @method close
  */
 SQLite.prototype.close = function() {
 	try {
@@ -325,8 +329,9 @@ SQLite.prototype.close = function() {
 };
 
 /**
- * @method execute
  * Execute a query
+ * @method execute
+ * @alias exec
  * @param {String} query
  * @param {Vararg} values
  * @return {Ti.DB.ResultSet}
@@ -344,8 +349,9 @@ SQLite.prototype.execute = SQLite.prototype.exec = function() {
 };
 
 /**
- * @method value
  * Return a single value
+ * @method value
+ * @alias val
  * @param {String} query
  * @param {Vararg} values
  */
@@ -357,8 +363,9 @@ SQLite.prototype.value = SQLite.prototype.val = function() {
 };
 
 /**
- * @method single
  * Return a single object (row)
+ * @method single
+ * @alias row
  * @param {String} query
  * @param {Vararg} values
  */
@@ -374,8 +381,9 @@ SQLite.prototype.single = SQLite.prototype.row = function() {
 };
 
 /**
- * @method list
  * Return a list of single values
+ * @method list
+ * @alias array
  * @param {String} query
  * @param {Vararg} values
  */
@@ -390,8 +398,9 @@ SQLite.prototype.list = SQLite.prototype.array = function() {
 };
 
 /**
- * @method all
  * Return a list of objects (row)
+ * @method all
+ * @alias rows
  * @param {String} query
  * @param {Vararg} values
  */
@@ -412,8 +421,8 @@ SQLite.prototype.all = SQLite.prototype.rows = function() {
 };
 
 /**
- * @method loop
  * Loop over query
+ * @method loop
  * @param {String} query
  * @param {Vararg} values
  */

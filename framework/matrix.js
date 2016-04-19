@@ -1,5 +1,5 @@
 /**
- * @class  	Matrix
+ * @module  matrix
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

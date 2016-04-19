@@ -1,5 +1,5 @@
 /**
-* @class   Filesystem
+* @module  filesystem
 * @author  Andrea Jonus <andrea.jonus@caffeinalab.com>
 * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
 */
@@ -21,7 +21,6 @@ function recursiveIterator(file) {
 }
 
 /**
- * @method listDirectoryRecursive
  * Lists the content of a directory and all its subdirectories.
  * Returns a list of objects with the structure `{path: "", content: []}`
  *
@@ -39,7 +38,6 @@ exports.listDirectoryRecursive = function(path) {
 };
 
 /**
- * @method move
  * Move a file or a directory to a new path. Overwrite the destination path if the flag is set to true.
  *
  * Returns true if the operation was successful.
@@ -64,7 +62,6 @@ exports.move = function(src, dest, ow) {
 };
 
 /**
- * @method  getSize
  * Get the size of a directory in bytes
  * @param {String} path
  * @return {Number}

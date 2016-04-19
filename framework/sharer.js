@@ -1,5 +1,5 @@
 /**
- * @class  	Sharer
+ * @module  sharer
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -77,7 +77,6 @@ function parseArgs(args) {
 
 
 /**
- * @method facebook
  * Share on Facebook
  * @param {Object} args
  */
@@ -133,7 +132,6 @@ exports.facebook = function(args) {
 
 
 /**
- * @method twitter
  * Share on Twitter
  * @param {Object} args
  */
@@ -188,7 +186,6 @@ exports.twitter = function(args) {
 
 
 /**
- * @method email
  * Share via Mail
  * @param {Object} args
  */
@@ -225,7 +222,6 @@ exports.email = exports.mail = function(args) {
 
 
 /**
- * @method googleplus
  * Share on Google Plus
  * @param {Object} args
  */
@@ -242,7 +238,6 @@ exports.googleplus = function(args) {
 
 
 /**
- * @method whatsapp
  * Share via Whatsapp
  * @param {Object} args
  */
@@ -285,7 +280,6 @@ exports.whatsapp = function(args) {
 };
 
 /**
- * @method telegram
  * Share via Telegram
  * @param {Object} args
  */
@@ -303,7 +297,6 @@ exports.telegram = function(args) {
 
 
 /**
- * @method message
  * Share via Messages
  * @param {Object} args
  */
@@ -364,7 +357,6 @@ exports.message = exports.sms = function(args) {
 
 
 /**
- * @method activity
  * Share using iOS ActivityPopover or Android Intents
  * @param {Object} args
  */

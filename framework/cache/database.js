@@ -1,5 +1,5 @@
 /**
- * @class  	Cache.Database
+ * @module  cache/database
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -10,7 +10,6 @@ var DIR = Ti.Filesystem.applicationCacheDirectory + 'database';
 var TABLE = 'cachedb';
 
 /**
- * @method get
  * Get an entry
  * @param  {String} 	hash
  * @return {Ti.Blob}
@@ -33,7 +32,6 @@ exports.get = function(hash) {
 };
 
 /**
- * @method set
  * Set a new entry
  * @param {String} 	hash
  * @param {Object} 	value
@@ -52,7 +50,6 @@ exports.set = function(hash, value, ttl, info) {
 
 
 /**
- * @method remove
  * Remove an entry
  * @param  {String} 	hash
  */
@@ -62,7 +59,6 @@ exports.remove = function(hash) {
 };
 
 /**
- * @method purge
  * Prune all
  */
 exports.purge = function() {
@@ -72,7 +68,6 @@ exports.purge = function() {
 };
 
 /**
- * @method getSize
  * @return {Number}
  */
 exports.getSize = function() {

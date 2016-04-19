@@ -1,5 +1,5 @@
 /**
- * @class  	HTTP
+ * @module  http
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -401,7 +401,6 @@ HTTPRequest.prototype.getPromise = function() {
 var filters = {};
 
 /**
- * @method addFilter
  * @param {String} 	name 	The name of the middleware
  * @param {Function} func  The function
  */
@@ -410,7 +409,6 @@ exports.addFilter = function(name, func) {
 };
 
 /**
- * @method removeFilter
  * @param {String} 	name 	The name of the middleware
  */
 exports.removeFilter = function(name, func) {
@@ -418,14 +416,13 @@ exports.removeFilter = function(name, func) {
 };
 
 /**
- * @method event
+ * Attach events to current module
  */
 exports.event = function(name, cb) {
 	Event.on('http.' + name, cb);
 };
 
 /**
- * @method getUniqueId
  * @return {String}
  */
 var __uniqueId = 0;
@@ -437,7 +434,6 @@ var headers = _.clone(exports.config.headers);
 var headersPerDomain = {};
 
 /**
- * @method getHeaders
  * @return {Object}
  */
 exports.getHeaders = function(domain) {
@@ -449,7 +445,6 @@ exports.getHeaders = function(domain) {
 };
 
 /**
- * @method addHeader
  * Add a global header for all requests
  * @param {String} key 					The header key
  * @param {String} value 				The header value
@@ -465,7 +460,6 @@ exports.addHeader = function(key, value, domain) {
 };
 
 /**
- * @method removeHeader
  * Remove a global header
  * @param {String} key 					The header key
  * @param {String} [domain=null] 	Optional domain
@@ -481,7 +475,6 @@ exports.removeHeader = function(key, domain) {
 };
 
 /**
- * @method resetHeaders
  * Reset all globals headers
  * @param {String} [domain=null]		Optional domain
  */
@@ -498,7 +491,6 @@ exports.resetHeaders = function(domain) {
 var queue = [];
 
 /**
- * @method isQueueEmpty
  * Check if the requests queue is empty
  * @return {Boolean}
  */
@@ -507,7 +499,6 @@ exports.isQueueEmpty = function(){
 };
 
 /**
- * @method getQueue
  * Get the current requests queue
  * @return {Array}
  */
@@ -516,7 +507,6 @@ exports.getQueue = function(){
 };
 
 /**
- * @method addToQueue
  * Add a request to queue
  * @param {HTTP.Request} request
  */
@@ -525,7 +515,6 @@ exports.addToQueue = function(request) {
 };
 
 /**
- * @method removeFromQueue
  * Remove a request from queue
  */
 exports.removeFromQueue = function(request) {
@@ -533,7 +522,6 @@ exports.removeFromQueue = function(request) {
 };
 
 /**
- * @method resetCookies
  * Reset the cookies for all requests
  */
 exports.resetCookies = function() {
@@ -567,7 +555,6 @@ exports.send = send;
 
 
 /**
- * @method get
  * Make a GET request to that URL
  * @param  {String}   	url The endpoint url
  * @param  {Function} 	success  Success callback
@@ -585,7 +572,6 @@ exports.get = function(url, success, error) {
 
 
 /**
- * @method post
  * Make a POST request to that URL
  * @param  {String}   	url 		The endpoint url
  * @param  {Object}   	data 		The data
@@ -605,7 +591,6 @@ exports.post = function(url, data, success, error) {
 
 
 /**
- * @method  getJSON
  * Make a GET request to that url with that data and setting the format forced to JSON
  * @param  {String}   	url 		The endpoint url
  * @param  {Object}   	data 		The data
@@ -626,7 +611,6 @@ exports.getJSON = function(url, data, success, error) {
 
 
 /**
- * @method  postJSON
  * Make a POST request to that url with that data and setting the format forced to JSON
  * @param  {String}   	url 			The endpoint url
  * @param  {Object}   	data 			The data
@@ -647,7 +631,6 @@ exports.postJSON = function(url, data, success, error) {
 
 
 /**
- * @method download
  * @param  {String}  			url  				The url
  * @param  {Object}  			filename  		File name or `Ti.File`
  * @param  {Function}  			success  		Success callback
@@ -711,7 +694,6 @@ exports.download = function(url, file, success, error, ondatastream) {
 };
 
 /**
- * @method exportCookiesToSystem
  * Export the HTTP cookies to the system to make them available to `WebViews`
  * @param  {String} domain The domain. Default is `HTTP.config.base`
  */

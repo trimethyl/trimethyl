@@ -1,5 +1,5 @@
 /**
-* @class  	UIFactory.ImageLoadingView
+* @module  	uifactory/imageloadingview
 * @author  	Andrea Jonus <andrea.jonus@caffeina.it>
 */
 
@@ -12,20 +12,20 @@ module.exports = function(args) {
 		width: Ti.UI.SIZE,
 
 		/**
-		* @property {Number} [indicatorStyle=DARK]
 		* Sets the style of the activity indicator.
+		* @property {Number} [indicatorStyle=DARK]
 		*/
 		indicatorStyle: OS_ANDROID ? Ti.UI.ActivityIndicatorStyle.DARK : Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
 
 		/**
-		* @property {Number} [indicatorMessage]
 		* Sets the message of the activity indicator.
+		* @property {Number} [indicatorMessage]
 		*/
 		indicatorMessage: null,
 
 		/**
-		* @property {Number} [indicatorColor]
 		* Sets the message's color of the activity indicator.
+		* @property {Number} [indicatorColor]
 		*/
 		indicatorColor: null
 
@@ -51,8 +51,8 @@ module.exports = function(args) {
 	var indicatorVisible = false;
 
 	/**
-	* @method showIndicator
 	* Show an activity indicator, hiding the displayed image
+	* @method  showIndicator
 	*/
 	$this.showIndicator = function() {
 		if (indicatorVisible === true) return;
@@ -68,8 +68,8 @@ module.exports = function(args) {
 	};
 
 	/**
-	* @method hideIndicator
 	* Hide this ImageView's activity indicator
+	* @method  hideIndicator
 	*/
 	$this.hideIndicator = function() {
 		if (indicatorVisible === false) return;
@@ -81,8 +81,8 @@ module.exports = function(args) {
 	};
 
 	/**
-	* @method toggleIndicator
 	* Toggle the visibility of this ImageView's activity indicator
+	* @method  toggleIndicator
 	* @param {boolean} visible
 	*/
 	$this.toggleIndicator = function(visible) {
@@ -91,8 +91,8 @@ module.exports = function(args) {
 	};
 
 	/**
-	* @method setImage
 	* Sets the image of this ImageView
+	* @method  setImage
 	* @param {String|Titanium.Blob|Titanium.Filesystem.File} image
 	*/
 	$this.setImage = function(image) {
@@ -100,8 +100,8 @@ module.exports = function(args) {
 	};
 
 	/**
-	* @method getImage
 	* Returns the image of this ImageView
+	* @method getImage
 	* @returns {String|Titanium.Blob|Titanium.Filesystem.File}
 	*/
 	$this.getImage = function() {

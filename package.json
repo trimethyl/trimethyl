@@ -46,5 +46,8 @@
     "tiapp.xml": "^0.2.2",
     "underscore": "^1.8.3",
     "update-notifier": "^0.3.1"
+  },
+  "devDependencies": {
+    "jsdoc-dash-template": "^1.2.0"
   }
 }

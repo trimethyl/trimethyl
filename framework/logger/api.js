@@ -1,5 +1,5 @@
 /**
- * @class  	Logger.Api
+ * @module  logger/api
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
@@ -29,7 +29,6 @@ function _parse(args) {
 
 
 /**
- * @method write
  * @param {String} level A severity level. See http://docs.appcelerator.com/platform/latest/#!/api/Titanium.API-method-log for a list of supported levels.
  * @param message The message's parts
  */

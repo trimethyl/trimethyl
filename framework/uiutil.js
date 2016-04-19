@@ -1,5 +1,5 @@
 /**
- * @class  	UIUtil
+ * @module  uiutil
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -7,7 +7,6 @@ var Image = require('T/image');
 var HTTP = require('T/http');
 
 /**
- * @method populateListViewFromCollection
  * Parse an array or a Backbone.Collection and populate a ListView with this values.
  *
  * @param {Object} C Array or Backbone.Collection
@@ -68,7 +67,6 @@ exports.populateListViewFromCollection = function(C, opt, $ui) {
 
 
 /**
-* @method setBackgroundCoverForView
 * Set the background image with cover method
 * @param {String} url
 */
@@ -172,7 +170,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 };
 
 /**
- * @method  buildKeyboardToolbar
+ * Build a Toolbar
  * @return {Ti.UI.iOS.Toolbar}
  */
 exports.buildKeyboardToolbar = function(opt) {

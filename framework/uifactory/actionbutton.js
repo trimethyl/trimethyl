@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.BackgroundView
+ * @module  uifactory/backgroundview
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -12,9 +12,9 @@ module.exports = function(args) {
 	var $this = Ti.UI.createView(args);
 
 	/**
-	 * @method showLoader
-	 * @param {String} loadingTitle	The new optional title to show
 	 * Show the loader and hide the left image
+	 * @method  showLoader
+	 * @param {String} loadingTitle	The new optional title to show
 	 */
 	$this.showLoader = function(loadingTitle) {
 		$this.loaderView.show();
@@ -30,9 +30,9 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method hideLoader
-	 * @param {String} newTitle	The new title to apply
 	 * Hide the loader and show the left image
+	 * @method  hideLoader
+	 * @param {String} newTitle	The new title to apply
 	 */
 	$this.hideLoader = function(newTitle) {
 		$this.loaderView.hide();
@@ -52,9 +52,9 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method setTitle
-	 * @param {String} title
 	 * Set the title for the button
+	 * @method  setTitle
+	 * @param {String} title
 	 */
 	$this.setTitle = function(title) {
 		$this.title = title;
@@ -62,9 +62,9 @@ module.exports = function(args) {
 	};
 
 	/**
-	 * @method setImage
-	 * @param {String} image
 	 * Set the left image for the button
+	 * @method  setImage
+	 * @param {String} image
 	 */
 	$this.setImage = function(image) {
 		$this.image = image;

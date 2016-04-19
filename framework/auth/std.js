@@ -1,5 +1,5 @@
 /**
- * @class  	Auth.Std
+ * @module  auth/std
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

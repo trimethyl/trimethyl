@@ -1,5 +1,5 @@
 /**
- * @class  	Calendar
+ * @module  calendar
  * @author  Andrea Jonus <andrea.jonus@caffeina.it>
  */
 
@@ -29,7 +29,6 @@ function handlePermissions(success, error){
 }
 
 /** 
- * @method addEvent
  * Adds a Ti.Calendar.Event to a calendar selected from an option dialog.
  * 
  * @param {Ti.Calendar.Event}	newEvent	The Event to add to the calendar. See the doc page for Titanium.Calendar.Event.

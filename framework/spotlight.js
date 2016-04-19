@@ -1,6 +1,6 @@
 /**
- * @class  Spotlight
- * @author Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @module  spotlight
+ * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
 /**
@@ -16,7 +16,6 @@ var Router = require('T/router');
 
 
 /**
- * @method populateFromCollection
  * @param {Object} opt
  * @param {Object} opt.collection The collection
  * @param {String} opt.id The id of this collection

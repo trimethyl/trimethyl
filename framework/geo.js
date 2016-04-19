@@ -1,5 +1,5 @@
 /**
- * @class  	Geo
+ * @module  geo
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -27,15 +27,14 @@ var Dialog = require('T/dialog');
 
 
 /**
- * @method event
+ * Attach event to current module
  */
 exports.event = function(name, cb) {
-	Event.on('http.'+name, cb);
+	Event.on('geo.'+name, cb);
 };
 
 
 /**
- * @method authorizeLocationServices
  * @param  {Object} opt
  */
 exports.authorizeLocationServices = function(opt) {
@@ -93,7 +92,6 @@ exports.authorizeLocationServices = function(opt) {
 };
 
 /**
- * @method getCurrentPosition
  * Get the current GPS coordinates of user using `Ti.Geolocation.getCurrentPosition`
  * @param {Object}	opt
  */
@@ -119,7 +117,6 @@ exports.getCurrentPosition = function(opt) {
 
 
 /**
- * @method startNavigator
  * Open Apple Maps on iOS, Google Maps on Android and route from user location to defined location
  * @param  {Number} lat  		Destination latitude
  * @param  {Number} lng  		Destination longitude
@@ -159,7 +156,6 @@ exports.startNavigator = function(lat, lng, mode) {
 
 
 /**
- * @method geocode
  * Return the coordinates of an address
  * @param {Object} opt
  */
@@ -208,7 +204,6 @@ exports.geocode = function(opt) {
 
 
 /**
- * @method reverseGeocode
  * Return the address with the specified coordinates
  * @param {Object} opt
  */
@@ -264,7 +259,6 @@ function dist(a,b) {
 }
 
 /**
- * @method distanceInKm
  * Return the distance express in km between two points of the earth
  *
  * @param  {Number} lat1 The latitude of first point
@@ -282,7 +276,6 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
 
 
 /**
- * @method markerCluster
  * Process a set of markers and cluster them
  * @param  {Object} event     The event raised from `regionchanged`.
  * @param  {Object} markers 	The markers **must be** an instance of `Backbone.Collection` or an Object id-indexed
@@ -397,7 +390,6 @@ exports.markerCluster = function(event, markers, keys) {
 
 
 /**
- * @method checkForDependencies
  * Check if the Google Play Services are installed and updated,
  * otherwise Maps doesn't work and the app crashes.
  *
@@ -446,7 +438,6 @@ exports.checkForDependencies = function() {
 
 
 /**
- * @method getRegionBounds
  * Get the minimum MapRegion to include all annotations in array
  * @param  {Object} 	array 	An array of annotations
  * @param  {Number}	mulGap	Gap multiplier
@@ -466,7 +457,6 @@ exports.getRegionBounds = function(array, mulGap) {
 };
 
 /**
- * @method isAuthorized
  * Check if the location services are enabled and the app is authorized to use them.
  * @return {Boolean}
  */
@@ -476,7 +466,6 @@ exports.isAuthorized = function() {
 };
 
 /**
- * @method isDenied
  * Check if the the app is denied from using the location services.
  * Returns false for every other platform.
  * @return {Boolean}

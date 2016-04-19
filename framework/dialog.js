@@ -1,5 +1,5 @@
 /**
- * @class  	Dialog
+ * @module  dialog
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -22,7 +22,6 @@ function onClickDict(e, dict, dialog) {
 }
 
 /**
- * @method alert
  * Create and show an Alert Dialog
  *
  * @param  {String}		title    		The title
@@ -53,7 +52,6 @@ exports.alert = dialogAlert;
 
 
 /**
- * @method confirm
  * Create and show a confirm dialog
  *
  * @param  {String}		title       	The title
@@ -80,7 +78,6 @@ exports.confirm = dialogConfirm;
 
 
 /**
- * @method option
  * Create and show an Option Dialog
  *
  * @param  {String}		title 			The title
@@ -111,7 +108,6 @@ exports.option = dialogOption;
 
 
 /**
- * @method confirmYes
  * Create and show a confirm dialog with *Cancel* and *Yes* button.
  *
  * @param  {String}   	title 				The title
@@ -137,7 +133,6 @@ exports.confirmYes = confirmYes;
 
 
 /**
- * @method prompt
  * Create a prompt dialog.
  *
  * @param  {String}   	title 				The title

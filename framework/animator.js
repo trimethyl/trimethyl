@@ -1,5 +1,5 @@
 /**
- * @class  	Animator
+ * @module  animator
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -14,7 +14,6 @@ function simpleFromTo(view, a, b, callback) {
 }
 
 /**
- * @method fadeIn
  */
 exports.fadeIn = function(opt) {
 	_.defaults(opt, {
@@ -28,7 +27,6 @@ exports.fadeIn = function(opt) {
 };
 
 /**
- * @method fadeOut
  */
 exports.fadeOut = function(opt) {
 	_.defaults(opt, {
@@ -42,7 +40,6 @@ exports.fadeOut = function(opt) {
 };
 
 /**
- * @method fadeInUp
  */
 exports.fadeInUp = function(opt) {
 	_.defaults(opt, {
@@ -57,7 +54,6 @@ exports.fadeInUp = function(opt) {
 };
 
 /**
- * @method fadeInDown
  */
 exports.fadeInLeft = function(opt) {
 	_.defaults(opt, {
@@ -72,7 +68,6 @@ exports.fadeInLeft = function(opt) {
 };
 
 /**
- * @method fadeInBottom
  */
 exports.fadeInBottom = function(opt) {
 	_.defaults(opt, {
@@ -87,7 +82,6 @@ exports.fadeInBottom = function(opt) {
 };
 
 /**
- * @method fadeInRight
  */
 exports.fadeInRight = function(opt) {
 	_.defaults(opt, {
@@ -102,7 +96,6 @@ exports.fadeInRight = function(opt) {
 };
 
 /**
- * @method upAndDown
  * @return {Function}
  */
 exports.upAndDown = function(opt) {
@@ -135,7 +128,6 @@ exports.upAndDown = function(opt) {
 };
 
 /**
- * @method fallDownForGravity
  * @return {Function}
  */
 exports.fallDownForGravity = function(opt) {

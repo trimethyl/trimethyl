@@ -1,5 +1,5 @@
 /**
- * @class  	Notifications.HTTP
+ * @module  notifications/http
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

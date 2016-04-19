@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.YoutubeVideoWebView
+ * @module  uifactory/youtubevideowebview
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  *
  * View that contain a Youtube video. Internally use a WebView to provide the content.

@@ -1,5 +1,5 @@
 /**
- * @class  	Router
+ * @module  router
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -53,7 +53,6 @@ exports.currentRoute = null;
 exports.stack = [];
 
 /**
- * @method on
  * Register a route with defined callbacks
  *
  * @param {Object} key The route name.
@@ -78,7 +77,6 @@ exports.on = function() {
 };
 
 /**
- * @method dispatch
  * Dispatch the router
  *
  * This function call the defined function with `Router.on`
@@ -171,14 +169,11 @@ exports.dispatch = function(url, data) {
 };
 
 /**
- * @method go
- * @inheritDoc #dispatch
- * Alias for {@link #dispatch}
+ * @link #dispatch
  */
 exports.go = exports.dispatch;
 
 /**
- * @method enqueue
  * @param  {String} url The route
  */
 exports.enqueue = function(url) {
@@ -192,7 +187,6 @@ exports.enqueue = function(url) {
 };
 
 /**
- * @method appendToQueue
  * @param  {Array} array
  */
 exports.appendToQueue = function(array) {
@@ -200,7 +194,8 @@ exports.appendToQueue = function(array) {
 };
 
 /**
- * @method dispatchQueue
+ * Dispatch the queue
+ * @param  {Boolean} bypassFromNow Indicate if (from now) should not enqueue routes but dispatch directly
  */
 exports.dispatchQueue = function(bypassFromNow) {
 	var e = null;
@@ -223,7 +218,6 @@ exports.alias = function(url, newUrl) {
 };
 
 /**
- * @method autoMapModel
  * Create the routes for a model
  * @param  {String} single The name for the model
  * @param  {String} [plural] The name for the model, plural.

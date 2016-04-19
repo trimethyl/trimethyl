@@ -1,5 +1,5 @@
 /**
- * @class  	UIFactory.Button
+ * @module  uifactory.button
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 

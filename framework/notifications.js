@@ -1,5 +1,5 @@
 /**
- * @class  	Notifications
+ * @module  notifications
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -60,7 +60,7 @@ function onNotificationReceived(e) {
 
 
 /**
- * @method loadDriver
+ * Load a driver of current module
  */
 exports.loadDriver = function(name) {
 	return Alloy.Globals.Trimethyl.loadDriver('notifications', name, {
@@ -70,14 +70,13 @@ exports.loadDriver = function(name) {
 };
 
 /**
- * @method event
+ * Attach events to current module
  */
 exports.event = function(name, cb) {
 	Event.on('notifications.' + name, cb);
 };
 
 /**
- * @method activate
  * @param  {Function} callback Callback invoked when success occur
  */
 exports.activate = function(callback) {
@@ -186,7 +185,6 @@ exports.activate = function(callback) {
 
 
 /**
- * @method deactivate
  * Deactivate completely the notifications
  */
 exports.deactivate = function() {
@@ -200,7 +198,6 @@ exports.deactivate = function() {
 };
 
 /**
- * @method subscribe
  * Subscribe for that channel
  * @param {String} channel 	Channel name
  * @param {Object} data 		Additional data
@@ -245,7 +242,6 @@ exports.subscribe = function(channel, data, opt) {
 
 
 /**
- * @method unsubscribe
  * Unsubscribe for that channel
  * @param {String} channel 	Channel name
  * @param {Object} data 		Additional data
@@ -283,7 +279,6 @@ exports.unsubscribe = function(channel, data) {
 
 
 /**
- * @method setBadge
  * Set the App badge value
  * @param {Number} x
  */
@@ -293,7 +288,6 @@ exports.setBadge = function(x) {
 };
 
 /**
- * @method getBadge
  * Get the App badge value
  * @return {Number}
  */
@@ -303,7 +297,6 @@ exports.getBadge = function() {
 };
 
 /**
- * @method resetBadge
  * Reset to 0 the badge
  */
 exports.resetBadge = function() {
@@ -311,7 +304,6 @@ exports.resetBadge = function() {
 };
 
 /**
- * @method incBadge
  * Increment the badge app
  * @param  {Number} i The value to increment
  */
@@ -320,7 +312,6 @@ exports.incBadge = function(i) {
 };
 
 /**
- * @method getStoredDeviceToken
  * Deprecated, use {@link #getRemoteDeviceUUID} instead
  * @return {String}
  */
@@ -331,7 +322,6 @@ exports.getStoredDeviceToken = function() {
 
 
 /**
- * @method getRemoteDeviceUUID
  * Get the stored device token.
  * Don't rely on this method to check if notifications are active, use {@link #isRemoteNotificationsEnabled} instead
  * @return {String}
@@ -342,7 +332,6 @@ exports.getRemoteDeviceUUID = function() {
 };
 
 /**
- * @method isRemoteNotificationsEnabled
  * Check if the remote notifications has been registered once
  * Use this method at startup in conjunction with `activate()`
  * @return {Boolean} [description]
@@ -371,7 +360,6 @@ function createIntNotifAction(opt) {
 }
 
 /**
- * @method addInteractiveNotificationCategory
  * @param {String}   id       	The ID of the category. It must be unique.
  * @param {Array}    dict     	An array of actions, with `id, title` (required) and `openApplication, destructive, authenticationRequired` (optional)
  * @param {Function} callback 	The callback to invoke

@@ -1,5 +1,5 @@
 /**
- * @class 	Facebook
+ * @module 	fb
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -21,7 +21,7 @@ if (_FB) {
 	// Hydratate module
 
 	/**
-	 * @method fetchUser
+	 * @method  fetchUser
 	 * @param  {Object} opt
 	 */
 	_FB.fetchUser = function(opt) {
@@ -46,7 +46,7 @@ if (_FB) {
 	// Setup login events and forward to internal JS dispatcher
 	
 	/**
-	 * @method addLoginListener
+	 * @method  addLoginListener
 	 * @param {Function} callback)
 	 */
 	_FB.addLoginListener = function(callback) {
@@ -54,7 +54,7 @@ if (_FB) {
 	};
 
 	/**
-	 * @method removeLoginListener
+	 * @method  removeLoginListener
 	 * @param  {Function} callback
 	 */
 	_FB.removeLoginListener = function(callback) { 
@@ -62,7 +62,7 @@ if (_FB) {
 	};
 
 	/**
-	 * @method addLogoutListener
+	 * @method  addLogoutListener
 	 * @param {Function} callback)
 	 */
 	_FB.addLogoutListener = function(callback) {
@@ -70,7 +70,7 @@ if (_FB) {
 	};
 
 	/**
-	 * @method removeLogoutListener
+	 * @method 	removeLogoutListener
 	 * @param  {Function} callback
 	 */
 	_FB.removeLogoutListener = function(callback) { 
