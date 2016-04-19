@@ -10,6 +10,7 @@ jsdoc -c jsdoc.conf.json -d /tmp/trimethyl-docset &&
 jsdoc -c jsdoc.conf.json -d docset -p -t node_modules/jsdoc-dash-template &&
 tar --exclude='.DS_Store' -cvzf docset/Trimethyl.tgz docset/Trimethyl.docset &&
 rm -rf docset/Trimethyl.docset &&
+cp kapeli.xml docset/Trimethyl.xml &&
 
 git add -A && git commit -am "Documentation of $(date)" && git push &&
 
