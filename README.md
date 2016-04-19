@@ -8,12 +8,19 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 #### [Check the Wiki](https://github.com/caffeinalab/trimethyl/wiki)
 
-#### [Dash Kapeli Docset](dash-feed://https%3A%2F%2Fraw.githubusercontent.com%2Fcaffeinalab%2Ftrimethyl%2Fmaster%2Fdocset%2FTrimethyl.xml)
+#### [Download Dash Kapeli Docset](
 
 ![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
 ![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+#### Dash Kapeli URL
+
+```
+dash-feed://https%3A%2F%2Fraw.githubusercontent.com%2Fcaffeinalab%2Ftrimethyl%2Fmaster%2Fdocset%2FTrimethyl.xml
+```
+
 
 ## Installation via NPM
 
