@@ -8,6 +8,8 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 #### [Check the Guides](http://caffeinalab.github.io/Trimethyl/#!/guide)
 
+#### [Check the Wiki](http://caffeinalab.github.io/Trimethyl/wiki)
+
 ![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
 ![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
 
