@@ -294,6 +294,7 @@ exports.login = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop,
+		silent: false,
 		driver: 'bypass'
 	});
 	
@@ -316,8 +317,10 @@ exports.login = function(opt) {
 			id: Me.id
 		};
 
-		Event.trigger('auth.success', payload);
 		opt.success(payload);
+		if (opt.silent !== true) {
+			Event.trigger('auth.success', payload);
+		}
 	})
 
 	.fail(function(err) {
@@ -376,6 +379,7 @@ exports.isOfflineLoginAvailable = function() {
  */
 exports.offlineLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
+		silent: false,
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop
 	});
@@ -389,8 +393,10 @@ exports.offlineLogin = function(opt) {
 			offline: true
 		};
 
-		Event.trigger('auth.success', payload);
 		opt.success(payload);
+		if (opt.silent !== true) {
+			Event.trigger('auth.success', payload);
+		}
 
 	} else {
 		opt.error();
@@ -406,13 +412,18 @@ exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop,
-		timeout: 10000
+		timeout: 10000,
+		silent: false
 	});
 
 	var success = opt.success;
 	var error = opt.error;
 
-	var errorTimeout = setTimeout(error, opt.timeout);
+	var timeouted = false;
+	var errorTimeout = setTimeout(function() {
+		timeouted = true;
+		opt.error();
+	}, opt.timeout);
 
 	opt.success = function() {
 		clearTimeout(errorTimeout);
@@ -421,7 +432,8 @@ exports.autoLogin = function(opt) {
 
 	opt.error = function() {
 		clearTimeout(errorTimeout);
-		success = Alloy.Globals.noop; // reset to noop to prevent that is invoked lately
+		 // reset to noop to prevent that is invoked lately
+		success = Alloy.Globals.noop;
 		error.apply(null, arguments);
 	};
 
@@ -434,19 +446,24 @@ exports.autoLogin = function(opt) {
 			
 				fetchUserModel()
 				.then(function() {
+					if (timeouted) return;
 
 					var payload = {
 						id: Me.id,
 						oauth: true
 					};
 
-					Event.trigger('auth.success', payload);
 					opt.success(payload);
+					if (opt.silent !== true) {
+						Event.trigger('auth.success', payload);
+					}
 
 				})
 				.fail(function(err) {
-					Event.trigger('auth.error', err);
 					opt.error(err);
+					if (opt.silent != true) {
+						Event.trigger('auth.error', err);
+					}
 				});
 
 			} else {
@@ -456,7 +473,17 @@ exports.autoLogin = function(opt) {
 		} else {
 
 			if (exports.isStoredLoginAvailable()) {
-				exports.storedLogin(opt);
+				exports.storedLogin({
+					success: function(payload) {
+						if (timeouted) return;
+						opt.success(payload);
+						if (opt.silent != true) {
+							Event.trigger('auth.success', payload);
+						}
+					},
+					error: opt.error,
+					silent: true // manage internally
+				});
 			} else {
 				opt.error();
 			}
@@ -465,7 +492,17 @@ exports.autoLogin = function(opt) {
 
 	} else {
 		if (exports.isOfflineLoginAvailable()) {
-			exports.offlineLogin(opt);
+			exports.offlineLogin({
+				success: function(payload) {
+					if (timeouted) return;
+					opt.success(payload);
+					if (opt.silent != true) {
+						Event.trigger('auth.success', payload);
+					}
+				},
+				error: opt.error,
+				silent: true // manage internally
+			});
 		} else {
 			opt.error();
 		}
