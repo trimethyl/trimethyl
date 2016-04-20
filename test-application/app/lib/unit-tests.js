@@ -3,7 +3,6 @@ var SQLite = T('sqlite');
 var Router = T('router');
 var Util = T('util');
 var Logger = T('logger');
-var Calendar = T('calendar');
 var Moment = require('alloy/moment');
 var Dialog = T('dialog');
 
@@ -183,37 +182,5 @@ exports.logger_methods = function() {
 		}
 
 		resolve();
-	});
-};
-
-exports.calendar_add_event = function() {
-	return Q.promise(function(resolve, reject) {
-
-		Dialog.confirm('Warning', 'This test will try to create an event on your calendar. Continue?', [
-			{
-				title: 'Continue',
-				selected: true,
-				callback: function() {
-					var calendarEvent = {
-						title: 'Trimethyl Test Event',
-						begin: Moment().startOf('day').toDate(),
-						end: Moment().endOf('day').toDate(),
-						description: 'Example description for Android',
-						notes: 'Example notes for iOS'
-					};
-
-					Calendar.addEvent(calendarEvent, resolve, function() {
-						reject({ message: 'Error while creating the event' });
-					});
-				}
-			},
-			{
-				title: 'Cancel',
-				callback: function() {
-					reject({ message: 'Canceled by the user' });
-				}
-			}
-		]);
-
 	});
 };

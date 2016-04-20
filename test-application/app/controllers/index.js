@@ -1,4 +1,6 @@
-var UT = require('/unit-tests');
+var Q = T('ext/q');
+
+var UT = require('unit-tests');
 var UTKeys = Object.keys(UT);
 
 function log(text, color, top) {
@@ -31,13 +33,21 @@ function log(text, color, top) {
 
 })();
 
+// Configure UI tests
+
 $.window.setActivityButton( $.uiTestsBtn );
 
 $.uiTestsBtn.addEventListener('click', function(e) {
-	T('dialog').option('UI Tests', [
-		{ title: 'Select', callback: function() { $.nav.openWindow(Alloy.createController('ui-select').getView()); } },
-		{ title: 'Cancel', cancel: true }
-	]);
+	T('dialog').option('UI Tests', _.map(Alloy.CFG['ui-tests'], function(name) {
+		return {
+			title: name,
+			callback: function() {
+				Alloy.createController(name, {
+					nav: $.nav
+				});
+			}
+		};
+	}).concat({ title: 'Cancel', cancel: true }));
 });
 
 $.nav.open();

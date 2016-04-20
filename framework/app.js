@@ -17,24 +17,26 @@ var Util = require('T/util');
 var Router = require('T/router');
 
 /**
- * @param  {String} url
+ * A static method used to convert a Universal link to a route
+ * With its default implementation, the original incoming string is return.
+ * You can override this function to get a different behaviour
+ * @param  {String} url The URL
+ * @return {String} The route
  */
 exports.universalLinkToRoute = function(url) { return url; };
 
 /**
- * @param  {String} url
+ * A static method used to convert a Deep link to a route
+ * With its default implementation, the original incoming string is return
+ * You can override this function to get a different behaviour
+ * @param  {String} url The URL
+ * @return {String} The route
  */
 exports.deepLinkToRoute = function(url) { return url; };
 
-/**
- * @deprecated
- * Use the Router enqueue paradigma instead
- */
-exports.start = function() { Ti.API.error('App: method start() is DEPRECATED!'); };
 
 /**
- * Check if the first open of the app.
- *
+ * Check if the first opening of the app.  
  * Call {@link setFirstUse} to set the first use of the app.
  * @param {String} [prefix=""] A prefix to apply
  * @return {Boolean}
@@ -46,7 +48,7 @@ exports.isFirstUse = function(prefix) {
 
 /**
  * Set the app first usage date.
- * @param {String} prefix A prefix to apply
+ * @param {String} [prefix=""] A prefix to apply
  * Use in conjunction with {@link isFirstUse}
  */
 exports.setFirstUse = function(prefix) {

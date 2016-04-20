@@ -17,7 +17,7 @@
 	"auth":{
 		"name": "Auth",
 		"description": "Authentication with a REST web server provided by local drivers.",
-		"dependencies": ["http","event","ext/q","auth/bypass"]
+		"dependencies": ["http","event","ext/q","auth/bypass","support/oauth"]
 	},
 	"auth/bypass":{
 		"name": "Auth.Bypass",
@@ -251,18 +251,23 @@
 		"description": "µ-web-framework to write Alloy apps in HTML/CSS/JS."
 	},
 
-	"ext/q":{
-		"name": "Q (external)",
-		"description": "--"
-	},
-	"ext/underscore.string":{
-		"name": "Underscore.String (external)",
-		"description": "--"
-	},
-
 	"alloy/sync/api":{
 		"name": "API Alloy Adapter",
 		"description": "A sync for Backbone to work with HTTP models.",
 		"dependencies": ["http","util"]
-	}
+	},
+
+	"ext/q":{
+		"name": "Q",
+		"internal": true
+	},
+	"ext/underscore.string":{
+		"name": "Underscore.String",
+		"internal": true
+	},
+
+	"support/oauth":{
+		"name": "OAuth internal module",
+		"internal": true
+	},
 }

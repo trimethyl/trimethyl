@@ -14,6 +14,11 @@ function simpleFromTo(view, a, b, callback) {
 }
 
 /**
+ * Fade in the view
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=400] The duration in ms
+ * @param {Function} callback
  */
 exports.fadeIn = function(opt) {
 	_.defaults(opt, {
@@ -27,6 +32,11 @@ exports.fadeIn = function(opt) {
 };
 
 /**
+ * Fade out the view
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=400] The duration in ms
+ * @param {Function} callback
  */
 exports.fadeOut = function(opt) {
 	_.defaults(opt, {
@@ -40,10 +50,16 @@ exports.fadeOut = function(opt) {
 };
 
 /**
+ * Fade in the view with an offset from up
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=400] The duration in ms
+ * @param {Number} [offset=50] The offset to apply when animation starts
+ * @param {Function} callback
  */
 exports.fadeInUp = function(opt) {
 	_.defaults(opt, {
-		duration: 5000,
+		duration: 400,
 		offset: 50
 	});
 
@@ -54,6 +70,12 @@ exports.fadeInUp = function(opt) {
 };
 
 /**
+ * Fade in the view with an offset from left
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=400] The duration in ms
+ * @param {Number} [offset=50] The offset to apply when animation starts
+ * @param {Function} callback
  */
 exports.fadeInLeft = function(opt) {
 	_.defaults(opt, {
@@ -68,6 +90,12 @@ exports.fadeInLeft = function(opt) {
 };
 
 /**
+ * Fade in the view with an offset from bottom
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=400] The duration in ms
+ * @param {Number} [offset=50] The offset to apply when animation starts
+ * @param {Function} callback
  */
 exports.fadeInBottom = function(opt) {
 	_.defaults(opt, {
@@ -82,6 +110,12 @@ exports.fadeInBottom = function(opt) {
 };
 
 /**
+ * Fade in the view with an offset from right
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=400] The duration in ms
+ * @param {Number} [offset=50] The offset to apply when animation starts
+ * @param {Function} callback
  */
 exports.fadeInRight = function(opt) {
 	_.defaults(opt, {
@@ -96,7 +130,12 @@ exports.fadeInRight = function(opt) {
 };
 
 /**
- * @return {Function}
+ * Indefinitely move up and down a view
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [duration=1000] The duration of the animation
+ * @param {Number} [y=10] How many pixel move up and down
+ * @return {Function} A function that can be used to stop the animation calling its `stop()` method
  */
 exports.upAndDown = function(opt) {
 	var self = {};
@@ -128,7 +167,14 @@ exports.upAndDown = function(opt) {
 };
 
 /**
- * @return {Function}
+ * Treat the view to animate like a normal falling object
+ * @param {Object} opt
+ * @param {Ti.UI.View} opt.view The view to animate
+ * @param {Number} [friction=0.6] The friction to apply when the object touch the ground
+ * @param {Number} [potentialEnergy=10] The initial potential energy of the object
+ * @param {Number} [y=60] The initial height of the object
+ * @param {Function} [callback=null]
+ * @return {Function} A function that can be used to stop the animation calling its `stop()` method
  */
 exports.fallDownForGravity = function(opt) {
 	var self = {};

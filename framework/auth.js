@@ -19,123 +19,20 @@ var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
 var Cache = require('T/cache');
+var Util = require('T/util');
+
+var OAuth = require('T/support/oauth');
+OAuth.vars.accessTokenURL = exports.config.oAuthAccessTokenURL;
+OAuth.vars.httpBase = HTTP.config.base;
 
 var Me = null; // User model object
 
-///////////
-// OAuth //
-///////////
-
-var OAuth = {
-
-	isRequestingToken: false,
-
-	getClientID: function() {
-		return Ti.App.Properties.getString('oauth.clientid') || 'app';
-	},
-
-	getClientSecret: function() {
-		return Ti.App.Properties.getString('oauth.clientsecret') || 'app-secret';
-	},
-
-	storeCredentials: function(data) {
-		Ti.API.trace('Auth: storing OAuth credentials', data);
-
-		Ti.App.Properties.setString('oauth.access_token', data.access_token);
-		Ti.App.Properties.setString('oauth.refresh_token', data.refresh_token);
-		Ti.App.Properties.setString('oauth.expiration', Util.now() + data.expires_in);
-	},
-
-	resetCredentials: function() {
-		Ti.API.trace('Auth: resetting OAuth credentials');
-
-		Ti.App.Properties.removeProperty('oauth.access_token');
-		Ti.App.Properties.removeProperty('oauth.refresh_token');
-		Ti.App.Properties.removeProperty('oauth.expiration');
-	},
-
-	httpFilter: function(httpRequest) {
-		if (OAuth.isRequestingToken) return;
-
-		OAuth.baseDomain = OAuth.baseDomain || Util.getDomainFromURL(HTTP.config.base);
-		if (httpRequest.domain !== OAuth.baseDomain) return;
-
-		var access_token = OAuth.getAccessToken();
-		if (access_token == null) return;
-
-		if (OAuth.isAccessTokenExpired()) {
-
-			Ti.API.warn('Auth: access token is expired, refreshing...');
-
-			var oAuthPostData = {
-				client_id: OAuth.getClientID(),
-				client_secret: OAuth.getClientSecret(),
-				grant_type: 'refresh_token',
-				refresh_token: OAuth.getRefreshToken(),
-				access_token: OAuth.getAccessToken()
-			};
-
-			return Q.promise(function(resolve, reject) {
-				OAuth.isRequestingToken = true;
-
-				HTTP.send({
-					url: exports.config.oAuthAccessTokenURL,
-					method: 'POST',
-					data: oAuthPostData,
-					suppressFilters: ['oauth'],
-					success: function(data) {
-
-						OAuth.storeCredentials(data);
-						
-						Q.when(OAuth.httpFilter(httpRequest), function() {
-							OAuth.isRequestingToken = false;
-							resolve();
-						}, function(err) {
-							OAuth.isRequestingToken = false;
-							reject(err);
-						});
-				
-					},
-					error: function(err) {
-						OAuth.isRequestingToken = false;
-						OAuth.resetCredentials();
-						reject(err);
-					}
-				});
-			});
-
-		}
-		
-		httpRequest.headers.Authorization = 'Bearer ' + access_token;
-	},
-
-	getAccessToken: function() {
-		return Ti.App.Properties.getString('oauth.access_token', null);
-	},
-
-	getRefreshToken: function() {
-		return Ti.App.Properties.getString('oauth.refresh_token', null);
-	},
-
-	isAccessTokenExpired: function() {
-		return OAuth.getRemainingAccessTokenExpirationTime() <= 0;
-	},
-
-	getRemainingAccessTokenExpirationTime: function() {
-		var expire = Ti.App.Properties.getString('oauth.expiration') << 0;
-		if (expire == 0) return -1;
-
-		return expire - Util.now();
-	}
-
-};
-
 /**
- * OAuth object
+ * OAuth object instance of oauth module
+ * @see  support/oauth
  * @type {Object}
  */
 exports.OAuth = OAuth;
-
 
 ////////////
 // Driver //

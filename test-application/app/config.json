@@ -4,7 +4,8 @@
 			"http":{
 				"log": true
 			}
-		}
+		},
+		"ui-tests": ["select", "calendar"]
 	},
 	"env:development": {},
 	"env:test": {},

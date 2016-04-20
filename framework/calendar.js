@@ -24,7 +24,7 @@ function handlePermissions(success, error){
 			}
 		});
 	} else {
-		callback();
+		success();
 	}
 }
 

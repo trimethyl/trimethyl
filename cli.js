@@ -248,6 +248,8 @@ program.command('install').alias('i').description('Install the framework files')
 
 program.command('list').alias('ls').description('List all Trimethyl available modules').action(function() {
 	_.each(trimethyl_map, function(m, k) {
+		if (m.internal) return;
+
 		var dots = m.name.match(/\./g);
 		var tabs = new Array( dots ? dots.length*4 : 0 ).join(' ');
 		process.stdout.write( tabs + (m.name).green + " (" + k.yellow + ") - " + m.description + "\n");
@@ -261,6 +263,11 @@ program.command('list').alias('ls').description('List all Trimethyl available mo
 program.command('add [name]').alias('a').description('Add a Trimethyl module to your config').action(function(name) {
 	if (!(name in trimethyl_map)) {
 		process.stdout.write(('<' + name + '> is not a valid Trimethyl module.').red);
+		process.exit();
+	}
+
+	if (trimethyl_map[name].internal) {
+		process.stdout.write(('<' + name + '> is an internal module.').red);
 		process.exit();
 	}
 
