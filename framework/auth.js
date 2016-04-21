@@ -5,9 +5,9 @@
 
 /**
  * @property config
- * @property {String} [config.loginUrl="/login"] 		URL to login-in
- * @property {Boolean} [config.useOAuth=false] 			Use OAuth method to authenticate
- * @property {String} [config.oAuthAccessTokenURL] 	OAuth endpoint to retrieve access token
+ * @property {String} [config.loginUrl="/login"] URL to login-in
+ * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate
+ * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token
  */
 exports.config = _.extend({
 	loginUrl: '/login',
@@ -22,10 +22,6 @@ var Cache = require('T/cache');
 var Util = require('T/util');
 
 var OAuth = require('T/support/oauth');
-OAuth.vars.accessTokenURL = exports.config.oAuthAccessTokenURL;
-OAuth.vars.httpBase = HTTP.config.base;
-
-var Me = null; // User model object
 
 /**
  * OAuth object instance of oauth module
@@ -33,6 +29,16 @@ var Me = null; // User model object
  * @type {Object}
  */
 exports.OAuth = OAuth;
+
+
+var Me = null;
+
+/**
+ * User model object
+ * Don't rely direcly on this property but use {@link getUser) instead
+ * @type {Backbone.Model}
+ */
+exports.me = Me;
 
 ////////////
 // Driver //
@@ -141,6 +147,7 @@ function fetchUserModel(opt, dataFromServer) {
 
 /**
  * Load a driver
+ * @return {Object}
  */
 exports.loadDriver = function(name) {
 	return Alloy.Globals.Trimethyl.loadDriver('auth', name, {
@@ -152,7 +159,7 @@ exports.loadDriver = function(name) {
 };
 
 /**
- * Add the event
+ * Add an event to current module
  */
 exports.event = function(name, cb) {
 	Event.on('auth.' + name, cb);
@@ -160,7 +167,7 @@ exports.event = function(name, cb) {
 
 /**
  * Get current User model
- * @return {Object}
+ * @return {Backbone.Model}
  */
 exports.getUser = function(){
 	return Me;
@@ -176,6 +183,7 @@ exports.isLoggedIn = function() {
 
 /**
  * Get current User ID
+ * Return 0 if no user is logged in
  * @return {Number}
  */
 exports.getUserID = function(){
@@ -186,6 +194,10 @@ exports.getUserID = function(){
 /**
  * Login using selected driver
  * @param  {Object} opt
+ * @param {Boolean} [opt.silent=false] Silence all global events
+ * @param {String} [opt.driver="bypass"] The driver to use as string
+ * @param {Function} [opt.success=null] The success callback to invoke
+ * @param {Function} [opt.error=null] The error callback to invoke
  */
 exports.login = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -227,7 +239,9 @@ exports.login = function(opt) {
 };
 
 /**
- * Check if the Stored login feature is available
+ * Check if the stored login feature is available
+ * Stored login indicate if the auth can be completed using stored credentials on the device
+ * but require an Internet connection anyway
  * @return {Boolean}
  */
 exports.isStoredLoginAvailable = function() {
@@ -238,8 +252,11 @@ exports.isStoredLoginAvailable = function() {
 };
 
 /**
- * Login using stored driver
+ * Login using stored credentials on the device
  * @param  {Object} opt
+ * @param {Boolean} [opt.silent=false] Silence all global events
+ * @param {Function} [opt.success=null] The success callback to invoke
+ * @param {Function} [opt.error=null] The error callback to invoke
  */
 exports.storedLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -259,7 +276,7 @@ exports.storedLogin = function(opt) {
 
 /**
  * Check if an offline login is available
- * @return {Boolean} [description]
+ * @return {Boolean}
  */
 exports.isOfflineLoginAvailable = function() {
 	return Ti.App.Properties.hasProperty('auth.me');
@@ -267,7 +284,11 @@ exports.isOfflineLoginAvailable = function() {
 
 /**
  * Login using offline properties
+ * This method doesn't require an internet connection
  * @param  {Object} opt
+ * @param {Boolean} [opt.silent=false] Silence all global events
+ * @param {Function} [opt.success=null] The success callback to invoke
+ * @param {Function} [opt.error=null] The error callback to invoke
  */
 exports.offlineLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -298,9 +319,11 @@ exports.offlineLogin = function(opt) {
 /**
  * This method will select the best behaviour and will login the user
  * @param {Object} opt
- * @param {Function} [opt.success] 			Success callback
- * @param {Function} [opt.error] 			Error callback
- * @param {Number} 	[opt.timeout=10000] 	Timeout
+ * @param  {Object} opt
+ * @param {Boolean} [opt.silent=false] Silence all global events
+ * @param {Function} [opt.success=null] The success callback to invoke
+ * @param {Function} [opt.error=null] The error callback to invoke
+ * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error
  */
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -404,7 +427,8 @@ exports.autoLogin = function(opt) {
 };
 
 /**
- * @param  {Function} callback
+ * Logout the user
+ * @param  {Function} callback Callback to invoke on completion
  */
 exports.logout = function(callback) {
 	Event.trigger('auth.logout', {

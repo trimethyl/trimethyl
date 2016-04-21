@@ -5,11 +5,12 @@
 
 var isRequestingToken = false;
 var storagePrefix = 'oauth';
+var baseDomain = null;
 
-var Util = require('T/util');
 var Q = require('T/ext/q');
+var Util = require('T/util');
+var HTTP = require('T/http');
 
-exports.vars = {};
 
 /**
  * Retrieve the client ID of the OAuth read from the config
@@ -42,7 +43,7 @@ exports.resetCredentials = function() {
 exports.httpFilter = function(httpRequest) {
 	if (isRequestingToken) return;
 
-	baseDomain = baseDomain || Util.getDomainFromURL(exports.vars.httpBase);
+	baseDomain = baseDomain || Util.getDomainFromURL(HTTP.config.base);
 	if (httpRequest.domain !== baseDomain) return;
 
 	var access_token = exports.getAccessToken();
@@ -63,8 +64,10 @@ exports.httpFilter = function(httpRequest) {
 		return Q.promise(function(resolve, reject) {
 			isRequestingToken = true;
 
+			var Auth = require('T/auth');
+
 			HTTP.send({
-				url: exports.vars.oAuthAccessTokenURL,
+				url: Auth.config.oAuthAccessTokenURL,
 				method: 'POST',
 				data: oAuthPostData,
 				suppressFilters: ['oauth'],

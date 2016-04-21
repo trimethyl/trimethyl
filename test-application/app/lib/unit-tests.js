@@ -1,3 +1,5 @@
+var Q = T('ext/q');
+
 var HTTP = T('http');
 var SQLite = T('sqlite');
 var Router = T('router');

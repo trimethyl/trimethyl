@@ -269,5 +269,5 @@
 	"support/oauth":{
 		"name": "OAuth internal module",
 		"internal": true
-	},
+	}
 }
