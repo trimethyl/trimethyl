@@ -281,6 +281,7 @@ exports.autocomplete = function(opt) {
 		url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
 		data: data,
 		format: 'json',
+		silent: true,
 		success: function(res) {
 			if (!res.predictions) {
 				if (_.isFunction(opt.error)) opt.error();
@@ -321,6 +322,7 @@ exports.getPlaceDetails = function(opt) {
 		url: 'https://maps.googleapis.com/maps/api/place/details/json',
 		data: data,
 		format: 'json',
+		silent: true,
 		success: function(res) {
 			if (res.status !== 'OK' || _.isEmpty(res.result)) {
 				if (_.isFunction(opt.error)) opt.error();
