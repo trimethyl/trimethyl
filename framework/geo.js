@@ -249,6 +249,89 @@ exports.reverseGeocode = function(opt) {
 	}
 };
 
+/**
+ * Return a list of predicted places based on an input string.
+ * To use this method, you need to create a browser key for the Google Places API Web Service and place it in the tiapp.xml file as a property named "google.places.api.key".
+ * @see {@link https://developers.google.com/places/web-service/autocomplete}
+ * @param {Object} opt
+ * @param {String} opt.input 		The text string on which to search.
+ * @param {String} opt.offset 		The position, in the input term, of the last character that the service uses to match predictions.
+ * @param {String} opt.location 	The point around which you wish to retrieve place information. Must be specified as latitude,longitude.
+ * @param {Number} opt.radius 		The distance (in meters) within which to return place results.
+ * @param {String} opt.language 	The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ * @param {String} opt.types 		The types of place results to return. See https://developers.google.com/places/web-service/autocomplete#place_types
+ * @param {String} opt.components 	A grouping of places to which you would like to restrict your results. Currently, you can use components to filter by country. The country must be passed as a two character, ISO 3166-1 Alpha-2 compatible country code. For example: components=country:fr would restrict your results to places within France.
+ */
+exports.autocomplete = function(opt) {
+	var key = Ti.App.Properties.getString('google.places.api.key');
+	if (!key) {
+		throw new Error('This method needs a Google Maps API key to work');
+	}
+
+	if (!opt.input) {
+		Ti.API.error('Geo: Missing required parameter "input"');
+		if (_.isFunction(opt.error)) opt.error();
+		return;
+	}
+
+	var data = _.pick(opt, 'input', 'offset', 'location', 'radius', 'language', 'types', 'components');
+	_.extend(data, { key: key });
+
+	HTTP.send({
+		url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
+		data: data,
+		format: 'json',
+		success: function(res) {
+			if (!res.predictions) {
+				if (_.isFunction(opt.error)) opt.error();
+				return;
+			}
+
+			opt.success(res.predictions);
+		},
+		error: opt.error
+	});
+};
+
+/**
+ * Return the details of a place with a specific placeid.
+ * To use this method, you need to create a browser key for the Google Places API Web Service and place it in the tiapp.xml file as a property named "google.places.api.key".
+ * @see {@link https://developers.google.com/places/web-service/details}
+ * @param {Object} opt
+ * @param {String} opt.placeid 		A textual identifier that uniquely identifies a place, returned from a Place Search. See https://developers.google.com/places/web-service/search
+ * @param {Object} opt.extensions 	Indicates if the Place Details response should include additional fields.
+ * @param {String} opt.language 	The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ */
+exports.getPlaceDetails = function(opt) {
+	var key = Ti.App.Properties.getString('google.places.api.key');
+	if (!key) {
+		throw new Error('This method needs a Google Maps API key to work');
+	}
+
+	if (!opt.placeid) {
+		Ti.API.error('Geo: Missing required parameter "placeid"');
+		if (_.isFunction(opt.error)) opt.error();
+		return;
+	}
+
+	var data = _.pick(opt, 'placeid', 'extensions', 'language');
+	_.extend(data, { key: key });
+
+	HTTP.send({
+		url: 'https://maps.googleapis.com/maps/api/place/details/json',
+		data: data,
+		format: 'json',
+		success: function(res) {
+			if (res.status !== 'OK' || _.isEmpty(res.result)) {
+				if (_.isFunction(opt.error)) opt.error();
+				return;
+			}
+
+			opt.success(res.result);
+		},
+		error: opt.error
+	});
+};
 
 function deg2rad(deg) {
 	return deg * 0.017453; // return deg * (Math.PI/180); OPTIMIZE! :*
