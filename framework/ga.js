@@ -1,5 +1,5 @@
 /**
- * @module  gA
+ * @module  ga
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
@@ -27,13 +27,12 @@ function track(method, what) {
 	}
 }
 
-
 /**
  * Track an event
  * @param  {String} cat 	Category **or object passed to native proxy**
  * @param  {String} act 	The action
- * @param  {String} [lbl] 	Label
- * @param  {String} [val]	Value
+ * @param  {String} [lbl=""] 	Label
+ * @param  {String} [val=0]	Value
  */
 exports.trackEvent = function(cat, act, lbl, val){
 	if (tracker === null) return;
@@ -84,9 +83,9 @@ exports.screen = exports.trackScreen;
 /**
  * Track a social action
  *
- * @param  {String} net 		The social network name **or object passed to native proxy**
- * @param  {String} [act] 		The action (Default `share`)
- * @param  {String} [tar] 		Target
+ * @param  {String} net The social network name **or object passed to native proxy**
+ * @param  {String} [act="share"] The action
+ * @param  {String} [tar=""] Target
  */
 exports.trackSocial = function(net, act, tar){
 	if (tracker === null) return;
@@ -115,10 +114,10 @@ exports.social = exports.trackSocial;
 /**
  * Track timing
  *
- * @param  {String} cat 		Category **or object passed to native proxy**
- * @param  {String} time 		Time expressed in ms
- * @param  {String} [name] 	Name
- * @param  {String} [lbl]		Label
+ * @param  {String} cat Category **or object passed to native proxy**
+ * @param  {String} time Time expressed in ms
+ * @param  {String} [name=""] Name
+ * @param  {String} [lbl=""] Label
  */
 exports.trackTiming = function(cat, time, name, lbl){
 	if (tracker === null) return;
@@ -146,7 +145,7 @@ exports.time = exports.trackTiming;
 
 /**
  * @param  {String} description 	The description of the exception **or object passed to native proxy**
- * @param  {Boolean} fatal       Fatal or not?
+ * @param  {Boolean} [fatal=false} Indicate if the error is a fatal error
  */
 exports.trackException = function(description, fatal) {
 	if (tracker === null) return;
