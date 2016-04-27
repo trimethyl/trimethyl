@@ -534,16 +534,16 @@ exports.resetCookies = function() {
  *
  * Create an HTTP.Request and resolve it
  *
- * @param  {Object}	 opt 		The request dictionary
- * * * **url**: The endpoint URL
- * * **method**: The HTTP method to use (GET|POST|PUT|PATCH|..)
- * * **headers**: An Object key-value of additional headers
- * * **timeout**: Timeout after stopping the request and triggering an error
- * * **cache**: Set to false to disable the cache
- * * **success**: The success callback
- * * **error**: The error callback
- * * **format**: Override the format for that request (like `json`)
- * * **ttl**: Override the TTL seconds for the cache
+ * @param {Object}	 opt 				The request dictionary
+ * @param {String} opt.url 				The endpoint URL
+ * @param {String} [opt.method="GET"] 	The HTTP method to use (GET|POST|PUT|PATCH|..)
+ * @param {Object} [opt.headers] 		An Object key-value of additional headers
+ * @param {Number} [opt.timeout=30000] 	Timeout after stopping the request and triggering an error
+ * @param {Boolean} [opt.cache=true] 	Set to false to disable the cache
+ * @param {Function} [opt.success] 		The success callback
+ * @param {Function} [opt.error] 		The error callback
+ * @param {String} [opt.format] 		Override the format for that request (like `json`)
+ * @param {Number} [opt.ttl] 			Override the TTL seconds for the cache
  * @return {HTTP.Request}
  */
 function send(opt) {
