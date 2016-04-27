@@ -25,6 +25,7 @@ var Util = require('T/util');
 var Event = require('T/event');
 var Dialog = require('T/dialog');
 
+var CACHE_TTL = 2592000;
 
 /**
  * Attach event to current module
@@ -162,22 +163,30 @@ exports.startNavigator = function(lat, lng, mode) {
  * @param {Function} opt.success 		Success callback
  * @param {Function} [opt.error] 		Error callback
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.geocode = function(opt) {
 	_.defaults(opt, {
-		silent: true
+		silent: true,
+		ttl: CACHE_TTL
 	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
 
 	if (exports.config.geocodeUseGoogle === true) {
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
-			cache: false,
 			data: {
 				address: opt.address,
 				sensor: 'false'
 			},
 			silent: opt.silent,
+			ttl: opt.ttl,
 			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || _.isEmpty(res.results)) {
@@ -220,11 +229,19 @@ exports.geocode = function(opt) {
  * @param {Function} opt.success 		Success callback
  * @param {Function} [opt.error] 		Error callback
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.reverseGeocode = function(opt) {
 	_.defaults(opt, {
-		silent: true
+		silent: true,
+		ttl: CACHE_TTL
 	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
 
 	if (exports.config.geocodeUseGoogle) {
 
@@ -235,6 +252,7 @@ exports.reverseGeocode = function(opt) {
 				sensor: 'false'
 			},
 			silent: opt.silent,
+			ttl: opt.ttl,
 			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || res.results.length === 0) {
@@ -283,11 +301,19 @@ exports.reverseGeocode = function(opt) {
  * @param {Function} [opt.success] 		Success callback
  * @param {Function} [opt.error] 		Error callback
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.autocomplete = function(opt) {
 	_.defaults(opt, {
-		silent: true
+		silent: true,
+		ttl: CACHE_TTL
 	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
 
 	var key = Ti.App.Properties.getString('google.places.api.key');
 	if (!key) {
@@ -307,6 +333,7 @@ exports.autocomplete = function(opt) {
 		url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
 		data: data,
 		silent: opt.silent,
+		ttl: opt.ttl,
 		format: 'json',
 		success: function(res) {
 			if (!res.predictions) {
@@ -331,11 +358,19 @@ exports.autocomplete = function(opt) {
  * @param {Function} [opt.success]	 	Success callback
  * @param {Function} [opt.error] 		Error callback
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.getPlaceDetails = function(opt) {
 	_.defaults(opt, {
-		silent: true
+		silent: true,
+		ttl: CACHE_TTL
 	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
 
 	var key = Ti.App.Properties.getString('google.places.api.key');
 	if (!key) {
@@ -355,6 +390,7 @@ exports.getPlaceDetails = function(opt) {
 		url: 'https://maps.googleapis.com/maps/api/place/details/json',
 		data: data,
 		silent: opt.silent,
+		ttl: opt.ttl,
 		format: 'json',
 		success: function(res) {
 			if (res.status !== 'OK' || _.isEmpty(res.result)) {
