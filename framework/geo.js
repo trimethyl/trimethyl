@@ -158,6 +158,9 @@ exports.startNavigator = function(lat, lng, mode) {
 /**
  * Return the coordinates of an address
  * @param {Object} opt
+ * @param {String} opt.address 		The address to geocode
+ * @param {Function} opt.success 	Success callback
+ * @param {Function} [opt.error] 	Error callback
  */
 exports.geocode = function(opt) {
 	if (exports.config.geocodeUseGoogle === true) {
@@ -255,12 +258,14 @@ exports.reverseGeocode = function(opt) {
  * @see {@link https://developers.google.com/places/web-service/autocomplete}
  * @param {Object} opt
  * @param {String} opt.input 		The text string on which to search.
- * @param {String} opt.offset 		The position, in the input term, of the last character that the service uses to match predictions.
- * @param {String} opt.location 	The point around which you wish to retrieve place information. Must be specified as latitude,longitude.
- * @param {Number} opt.radius 		The distance (in meters) within which to return place results.
- * @param {String} opt.language 	The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
- * @param {String} opt.types 		The types of place results to return. See https://developers.google.com/places/web-service/autocomplete#place_types
- * @param {String} opt.components 	A grouping of places to which you would like to restrict your results. Currently, you can use components to filter by country. The country must be passed as a two character, ISO 3166-1 Alpha-2 compatible country code. For example: components=country:fr would restrict your results to places within France.
+ * @param {String} [opt.offset] 	The position, in the input term, of the last character that the service uses to match predictions.
+ * @param {String} [opt.location] 	The point around which you wish to retrieve place information. Must be specified as latitude,longitude.
+ * @param {Number} [opt.radius] 	The distance (in meters) within which to return place results.
+ * @param {String} [opt.language] 	The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ * @param {String} [opt.types] 		The types of place results to return. See https://developers.google.com/places/web-service/autocomplete#place_types
+ * @param {String} [opt.components] A grouping of places to which you would like to restrict your results. Currently, you can use components to filter by country. The country must be passed as a two character, ISO 3166-1 Alpha-2 compatible country code. For example: components=country:fr would restrict your results to places within France.
+ * @param {Function} [opt.success] 	Success callback
+ * @param {Function} [opt.error] 	Error callback
  */
 exports.autocomplete = function(opt) {
 	var key = Ti.App.Properties.getString('google.places.api.key');
@@ -281,7 +286,6 @@ exports.autocomplete = function(opt) {
 		url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
 		data: data,
 		format: 'json',
-		silent: true,
 		success: function(res) {
 			if (!res.predictions) {
 				if (_.isFunction(opt.error)) opt.error();
@@ -300,8 +304,10 @@ exports.autocomplete = function(opt) {
  * @see {@link https://developers.google.com/places/web-service/details}
  * @param {Object} opt
  * @param {String} opt.placeid 		A textual identifier that uniquely identifies a place, returned from a Place Search. See https://developers.google.com/places/web-service/search
- * @param {Object} opt.extensions 	Indicates if the Place Details response should include additional fields.
- * @param {String} opt.language 	The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ * @param {Object} [opt.extensions] Indicates if the Place Details response should include additional fields.
+ * @param {String} [opt.language] 	The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ * @param {Function} [opt.success] 	Success callback
+ * @param {Function} [opt.error] 	Error callback
  */
 exports.getPlaceDetails = function(opt) {
 	var key = Ti.App.Properties.getString('google.places.api.key');
@@ -322,7 +328,6 @@ exports.getPlaceDetails = function(opt) {
 		url: 'https://maps.googleapis.com/maps/api/place/details/json',
 		data: data,
 		format: 'json',
-		silent: true,
 		success: function(res) {
 			if (res.status !== 'OK' || _.isEmpty(res.result)) {
 				if (_.isFunction(opt.error)) opt.error();
