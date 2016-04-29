@@ -25,6 +25,7 @@ var Util = require('T/util');
 var Event = require('T/event');
 var Dialog = require('T/dialog');
 
+var CACHE_TTL = 2592000;
 
 /**
  * Attach event to current module
@@ -120,7 +121,7 @@ exports.getCurrentPosition = function(opt) {
  * Open Apple Maps on iOS, Google Maps on Android and route from user location to defined location
  * @param  {Number} lat  		Destination latitude
  * @param  {Number} lng  		Destination longitude
- * @param  {String} [mode] 	GPS mode used (walking,driving)
+ * @param  {String} [mode] 		GPS mode used (walking,driving)
  */
 exports.startNavigator = function(lat, lng, mode) {
 	var query = {
@@ -158,17 +159,34 @@ exports.startNavigator = function(lat, lng, mode) {
 /**
  * Return the coordinates of an address
  * @param {Object} opt
+ * @param {String} opt.address 			The address to geocode
+ * @param {Function} opt.success 		Success callback
+ * @param {Function} [opt.error] 		Error callback
+ * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.geocode = function(opt) {
+	_.defaults(opt, {
+		silent: true,
+		ttl: CACHE_TTL
+	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
+
 	if (exports.config.geocodeUseGoogle === true) {
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
-			cache: false,
 			data: {
 				address: opt.address,
 				sensor: 'false'
 			},
+			silent: opt.silent,
+			ttl: opt.ttl,
 			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || _.isEmpty(res.results)) {
@@ -206,8 +224,25 @@ exports.geocode = function(opt) {
 /**
  * Return the address with the specified coordinates
  * @param {Object} opt
+ * @param {String} opt.lat 				The latitude of the address to search
+ * @param {String} opt.lng 				The longitude of the address to search
+ * @param {Function} opt.success 		Success callback
+ * @param {Function} [opt.error] 		Error callback
+ * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.reverseGeocode = function(opt) {
+	_.defaults(opt, {
+		silent: true,
+		ttl: CACHE_TTL
+	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
+
 	if (exports.config.geocodeUseGoogle) {
 
 		HTTP.send({
@@ -216,6 +251,8 @@ exports.reverseGeocode = function(opt) {
 				latlng: opt.lat + ',' + opt.lng,
 				sensor: 'false'
 			},
+			silent: opt.silent,
+			ttl: opt.ttl,
 			format: 'json',
 			success: function(res) {
 				if (res.status !== 'OK' || res.results.length === 0) {
@@ -249,6 +286,123 @@ exports.reverseGeocode = function(opt) {
 	}
 };
 
+/**
+ * Return a list of predicted places based on an input string.
+ * To use this method, you need to create a browser key for the Google Places API Web Service and place it in the tiapp.xml file as a property named "google.places.api.key".
+ * @see {@link https://developers.google.com/places/web-service/autocomplete}
+ * @param {Object} opt
+ * @param {String} opt.input 			The text string on which to search.
+ * @param {String} [opt.offset] 		The position, in the input term, of the last character that the service uses to match predictions.
+ * @param {String} [opt.location] 		The point around which you wish to retrieve place information. Must be specified as latitude,longitude.
+ * @param {Number} [opt.radius] 		The distance (in meters) within which to return place results.
+ * @param {String} [opt.language] 		The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ * @param {String} [opt.types] 			The types of place results to return. See https://developers.google.com/places/web-service/autocomplete#place_types
+ * @param {String} [opt.components] 	A grouping of places to which you would like to restrict your results. Currently, you can use components to filter by country. The country must be passed as a two character, ISO 3166-1 Alpha-2 compatible country code. For example: components=country:fr would restrict your results to places within France.
+ * @param {Function} [opt.success] 		Success callback
+ * @param {Function} [opt.error] 		Error callback
+ * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
+ */
+exports.autocomplete = function(opt) {
+	_.defaults(opt, {
+		silent: true,
+		ttl: CACHE_TTL
+	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
+
+	var key = Ti.App.Properties.getString('google.places.api.key');
+	if (!key) {
+		throw new Error('This method needs a Google Maps API key to work');
+	}
+
+	if (!opt.input) {
+		Ti.API.error('Geo: Missing required parameter "input"');
+		if (_.isFunction(opt.error)) opt.error();
+		return;
+	}
+
+	var data = _.pick(opt, 'input', 'offset', 'location', 'radius', 'language', 'types', 'components');
+	_.extend(data, { key: key });
+
+	HTTP.send({
+		url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
+		data: data,
+		silent: opt.silent,
+		ttl: opt.ttl,
+		format: 'json',
+		success: function(res) {
+			if (!res.predictions) {
+				if (_.isFunction(opt.error)) opt.error();
+				return;
+			}
+
+			opt.success(res.predictions);
+		},
+		error: opt.error
+	});
+};
+
+/**
+ * Return the details of a place with a specific placeid.
+ * To use this method, you need to create a browser key for the Google Places API Web Service and place it in the tiapp.xml file as a property named "google.places.api.key".
+ * @see {@link https://developers.google.com/places/web-service/details}
+ * @param {Object} opt
+ * @param {String} opt.placeid 			A textual identifier that uniquely identifies a place, returned from a Place Search. See https://developers.google.com/places/web-service/search
+ * @param {Object} [opt.extensions] 	Indicates if the Place Details response should include additional fields.
+ * @param {String} [opt.language] 		The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
+ * @param {Function} [opt.success]	 	Success callback
+ * @param {Function} [opt.error] 		Error callback
+ * @param {Boolean} [opt.silent=true] 	Silence HTTP events
+ * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @see {@link https://developers.google.com/maps/terms#section_10_5}
+ */
+exports.getPlaceDetails = function(opt) {
+	_.defaults(opt, {
+		silent: true,
+		ttl: CACHE_TTL
+	});
+
+	if (opt.ttl > CACHE_TTL) {
+		Ti.API.error('Geo: cache TTL cannot exceed 30 days. Defaulting to ' + CACHE_TTL + ' seconds');
+		opt.ttl = CACHE_TTL;
+	}
+
+	var key = Ti.App.Properties.getString('google.places.api.key');
+	if (!key) {
+		throw new Error('This method needs a Google Maps API key to work');
+	}
+
+	if (!opt.placeid) {
+		Ti.API.error('Geo: Missing required parameter "placeid"');
+		if (_.isFunction(opt.error)) opt.error();
+		return;
+	}
+
+	var data = _.pick(opt, 'placeid', 'extensions', 'language');
+	_.extend(data, { key: key });
+
+	HTTP.send({
+		url: 'https://maps.googleapis.com/maps/api/place/details/json',
+		data: data,
+		silent: opt.silent,
+		ttl: opt.ttl,
+		format: 'json',
+		success: function(res) {
+			if (res.status !== 'OK' || _.isEmpty(res.result)) {
+				if (_.isFunction(opt.error)) opt.error();
+				return;
+			}
+
+			opt.success(res.result);
+		},
+		error: opt.error
+	});
+};
 
 function deg2rad(deg) {
 	return deg * 0.017453; // return deg * (Math.PI/180); OPTIMIZE! :*
