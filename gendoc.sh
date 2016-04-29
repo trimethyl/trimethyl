@@ -18,12 +18,12 @@ cd /tmp/trimethyl-docset &&
 git init && git checkout -b gh-pages &&
 git add -A &&
 git commit -am "Documentation of $(date)" &&
-git remote add origin git@github.com:CaffeinaLab/Trimethyl.git &&
+git remote add origin git@github.com:caffeinaLab/trimethyl.git &&
 git push -u -f origin gh-pages &&
 
 cd /tmp/trimethyl-wiki &&
 git init &&
 git add -A &&
 git commit -am "Documentation of $(date)" &&
-git remote add origin git@github.com:CaffeinaLab/Trimethyl.wiki.git &&
+git remote add origin git@github.com:caffeinaLab/trimethyl.wiki.git &&
 git push -u -f origin master

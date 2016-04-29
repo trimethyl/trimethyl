@@ -4,7 +4,7 @@ Trimethyl is a collection of very useful modules to work with **Appcelerator Tit
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
-#### [Check the API Documentation](http://caffeinalab.github.io/Trimethyl)
+#### [Check the API Documentation](http://caffeinalab.github.io/trimethyl)
 
 #### [Check the Wiki](https://github.com/caffeinalab/trimethyl/wiki)
 
