@@ -11,6 +11,8 @@ exports.config = _.extend({
 	jsExt: '.jslocal'
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
 
+var Filesystem = require('T/filesystem');
+
 var libDir = [];
 var helpers = {};
 var fonts = [];
@@ -142,23 +144,28 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	// On Android, sometimes, this directory doesn't not exists
-	// And, creating on init doesn't work.
-	Ti.Filesystem.getFile(TMP_DIR).createDirectory();
-
-	var tmpFile = Ti.Filesystem.getFile(TMP_DIR, args.uniqid + '.html');
-	tmpFile.write(getHTML(args));
-
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
-		backgroundColor: 'transparent',
-		url: tmpFile.nativePath
+		backgroundColor: 'transparent'
 	}, args));
 
-	tmpFile = null;
+	// On Android, sometimes, this directory doesn't not exists
+	// And, creating on init doesn't work.
+	Filesystem.createDirectory(Ti.Filesystem.getFile(TMP_DIR), function() {
+		var tmpFile = Ti.Filesystem.getFile(TMP_DIR, args.uniqid + '.html');
+		Filesystem.write(tmpFile, getHTML(args), function() {
+			$ui.url = tmpFile.nativePath
+			tmpFile = null;
+		}, function(err) {
+			Ti.API.error('WebAlloy: unable to create the temporary file:', err);
+			tmpFile = null;
+		});
+	}, function() {
+		Ti.API.error('WebAlloy: unable to create the temporary directory');
+	});
 
 	$ui.addEventListener('load', function() {
 		if (args.autoHeight) {
@@ -229,4 +236,6 @@ helpers.embedCSS = embedCSS;
 helpers.embedJS = embedJS;
 
 // Clear
-Ti.Filesystem.getFile(TMP_DIR).deleteDirectory(true);
+Filesystem.deleteDirectory(Ti.Filesystem.getFile(TMP_DIR), null, function() {
+	Ti.API.error('WebAlloy: unable to delete the temporary directory');
+}, true);

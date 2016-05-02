@@ -253,7 +253,8 @@
 	},
 	"weballoy":{
 		"name": "WebAlloy",
-		"description": "µ-web-framework to write Alloy apps in HTML/CSS/JS."
+		"description": "µ-web-framework to write Alloy apps in HTML/CSS/JS.",
+		"dependencies": ["filesystem"]
 	},
 
 	"alloy/sync/api":{
