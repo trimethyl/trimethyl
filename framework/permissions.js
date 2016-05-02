@@ -18,7 +18,7 @@ var PERMISSIONS_TYPES = [
 { name: 'Storage', proxy: 'Filesystem'}
 ];
 
-PERMISSIONS_TYPES.each(function(type) {
+PERMISSIONS_TYPES.forEach(function(type) {
 	exports['request' + type.name + 'Permissions'] = function(success, error) {
 		success = _.isFunction(success) ? success : Alloy.Globals.noop;
 		error = _.isFunction(error) ? error : Alloy.Globals.noop;
