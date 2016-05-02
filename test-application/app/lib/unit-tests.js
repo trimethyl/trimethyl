@@ -7,6 +7,7 @@ var Util = T('util');
 var Logger = T('logger');
 var Moment = require('alloy/moment');
 var Dialog = T('dialog');
+var Filesystem = T('filesystem');
 
 var G = {};
 
@@ -184,5 +185,12 @@ exports.logger_methods = function() {
 		}
 
 		resolve();
+	});
+};
+
+exports.filesystem_write = function() {
+	return Q.promise(function(resolve, reject) {
+		var test_file = Ti.Filesystem.getFile(Util.getAppDataDirectory(), 'trimethyl_test_file');
+		Filesystem.write(test_file, 'test', resolve, reject);
 	});
 };

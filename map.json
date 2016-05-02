@@ -72,7 +72,8 @@
 	},
 	"filesystem":{
 		"name": "Filesystem",
-		"description": "Filesystem proxy."
+		"description": "Filesystem proxy.",
+		"dependencies": ["permissions"]
 	},
 	"flow":{
 		"name": "Flow",

@@ -1,6 +1,6 @@
 /**
  * @module  calendar
- * @author  Andrea Jonus <andrea.jonus@caffeina.it>
+ * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
 var Dialog = require('T/dialog');

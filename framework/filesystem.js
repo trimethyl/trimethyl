@@ -1,8 +1,10 @@
 /**
 * @module  filesystem
-* @author  Andrea Jonus <andrea.jonus@caffeinalab.com>
-* @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+* @author  Andrea Jonus <andrea.jonus@caffeina.com>
+* @author  Flavio De Stefano <flavio.destefano@caffeina.com>
 */
+
+var Permissions = require('T/permissions');
 
 function recursiveIterator(file) {
 	return _.map(file.getDirectoryListing(), function(item) {
@@ -77,3 +79,24 @@ exports.getSize = function(path) {
 		return carry;
 	}, 0);
 };
+
+/**
+ * Write content to a file after checking storage write permissions. This operation is asynchronous.
+ * @param {Titanium.Filesystem.File} file 						The file to modify
+ * @param {String/Titanium.Filesystem.File/Titanium.Blob} data 	Data to write, as a String, Blob or File object.
+ * @param {Function} [success] 									The callback to invoke on success.
+ * @param {Function} [error] 									The callback to invoke on error.
+ * @param {Boolean} [append] 									If true, append the data to the end of the file.
+ * @return {Boolean}
+ */
+exports.write = function(file, data, success, error, append) {
+	success = _.isFunction(success) ? success : Alloy.Globals.noop;
+	error = _.isFunction(error) ? error : Alloy.Globals.noop;
+
+	Permissions.requestStoragePermissions(function() {
+		var res = file.write(data, append);
+
+		if (res) success();
+		else error();
+	}, error);
+}
