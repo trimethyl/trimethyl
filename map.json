@@ -45,7 +45,7 @@
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",
-		"dependencies": ["dialog"]
+		"dependencies": ["dialog","permissions"]
 	},
 	"camera":{
 		"name": "Camera",
@@ -132,6 +132,10 @@
 		"name": "Notifications.Parse",
 		"description": "Driver for Parse.",
 		"dependencies": ["http"]
+	},
+	"permissions":{
+		"name": "Permissions",
+		"description": "Handle permissions requests for different modules."
 	},
 	"prop":{
 		"name": "Prop",

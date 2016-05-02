@@ -5,6 +5,7 @@
 
 var Dialog = require('T/dialog');
 var Util = require('T/util');
+var Permissions = require('T/permissions');
 
 /**
  * Check for calendar permissions
@@ -40,7 +41,7 @@ exports.addEvent = function(newEvent, success, error) {
 	success = _.isFunction(success) ? success : Alloy.Globals.noop;
 	error = _.isFunction(error) ? error : Alloy.Globals.noop;
 
-	handlePermissions(function() {
+	Permissions.requestCalendarPermissions(function() {
 		var options = _.map(Ti.Calendar.allCalendars, function(calendar) {
 			return {
 				title: calendar.name,
