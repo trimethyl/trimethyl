@@ -22,6 +22,10 @@ function recursiveIterator(file) {
 	});
 }
 
+function canWrite(file) {
+	return (OS_IOS || (opt.file.exists() && opt.file.writable) || (OS_ANDROID && opt.file.parent.writable));
+}
+
 /**
  * Lists the content of a directory and all its subdirectories.
  * Returns a list of objects with the structure `{path: "", content: []}`
@@ -96,12 +100,18 @@ exports.write = function(opt) {
 		error: Alloy.Globals.noop
 	});
 
-	Permissions.requestStoragePermissions(function() {
+	function writeFile() {
 		var res = opt.file.write(opt.data, opt.append);
 
 		if (res) opt.success();
 		else opt.error();
-	}, opt.error);
+	}
+
+	if (canWrite(opt.file)) {
+		writeFile();
+	} else {
+		Permissions.requestStoragePermissions(writeFile, opt.error);
+	}
 }
 
 /**
@@ -118,22 +128,23 @@ exports.createDirectory = function(opt) {
 		error: Alloy.Globals.noop
 	});
 
-	Permissions.requestStoragePermissions(function() {
+	function writeDir() {
 		if (opt.file.exists() && opt.file.isDirectory()) {
-			if (opt.file.writable) {
-				Ti.API.warn('Filesystem: directory already exists. Skipping.');
-				opt.success();
-			} else {
-				Ti.API.error('Filesystem: directory exists but is not writable.');
-				opt.error();
-			}
+			Ti.API.warn('Filesystem: directory already exists. Skipping.');
+			opt.success();
 		} else {
 			var res = opt.file.createDirectory();
 
 			if (res) opt.success();
 			else opt.error();
 		}
-	}, opt.error);
+	}
+
+	if (canWrite(opt.file)) {
+		writeDir();
+	} else {
+		Permissions.requestStoragePermissions(writeDir, opt.error);
+	}
 }
 
 /**
@@ -151,20 +162,21 @@ exports.deleteDirectory = function(opt) {
 		error: Alloy.Globals.noop
 	});
 
-	Permissions.requestStoragePermissions(function() {
-			if (!opt.file.exists()) {
-				Ti.API.warn('Filesystem: directory does not exist. Skipping.');
-				opt.success();
-			} else {
-				if (opt.file.writable) {
-					var res = opt.file.deleteDirectory(opt.recursive);
+	function deleteDir() {
+		var res = opt.file.deleteDirectory(opt.recursive);
 
-					if (res) opt.success();
-					else opt.error();
-				} else {
-					Ti.API.error('Filesystem: directory exists but is not writable.');
-					opt.error();
-				}
-			}
-	}, opt.error);
+		if (res) opt.success();
+		else opt.error();
+	}
+
+	if (canWrite(opt.file)) {
+		if (!opt.file.exists()) {
+			Ti.API.warn('Filesystem: directory does not exist. Skipping.');
+			opt.success();
+		} else {
+			deleteDir();
+		}
+	} else {
+		Permissions.requestStoragePermissions(deleteDir, opt.error);
+	}
 }
