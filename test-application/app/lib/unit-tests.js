@@ -191,6 +191,11 @@ exports.logger_methods = function() {
 exports.filesystem_write = function() {
 	return Q.promise(function(resolve, reject) {
 		var test_file = Ti.Filesystem.getFile(Util.getAppDataDirectory(), 'trimethyl_test_file');
-		Filesystem.write(test_file, 'test', resolve, reject);
+		Filesystem.write({
+			file: test_file,
+			data: 'test',
+			success: resolve,
+			error: reject
+		});
 	});
 };

@@ -82,79 +82,89 @@ exports.getSize = function(path) {
 
 /**
  * Writes the specified data to a file, after checking storage permissions. This operation is asynchronous.
- * @param {Titanium.Filesystem.File} file 						The file to modify
- * @param {String/Titanium.Filesystem.File/Titanium.Blob} data 	Data to write, as a String, Blob or File object.
- * @param {Function} [success] 									The callback to invoke on success.
- * @param {Function} [error] 									The callback to invoke on error.
- * @param {Boolean} [append] 									If true, append the data to the end of the file.
+ * @param {Object} opt
+ * @param {Titanium.Filesystem.File} opt.file 						The file to modify
+ * @param {String/Titanium.Filesystem.File/Titanium.Blob} opt.data 	Data to write, as a String, Blob or File object.
+ * @param {Function} [opt.success] 									The callback to invoke on success.
+ * @param {Function} [opt.error] 									The callback to invoke on error.
+ * @param {Boolean} [opt.append] 									If true, append the data to the end of the file.
  * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-write}
  */
-exports.write = function(file, data, success, error, append) {
-	success = _.isFunction(success) ? success : Alloy.Globals.noop;
-	error = _.isFunction(error) ? error : Alloy.Globals.noop;
+exports.write = function(opt) {
+	_.defaults(opt, {
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
+	});
 
 	Permissions.requestStoragePermissions(function() {
-		var res = file.write(data, append);
+		var res = opt.file.write(opt.data, opt.append);
 
-		if (res) success();
-		else error();
-	}, error);
+		if (res) opt.success();
+		else opt.error();
+	}, opt.error);
 }
 
 /**
  * Creates a directory, after checking storage permissions. This operation is asynchronous.
- * @param {Titanium.Filesystem.File} file 						The file object that identifies the directory to create.
- * @param {Function} [success] 									The callback to invoke on success.
- * @param {Function} [error] 									The callback to invoke on error.
+ * @param {Object} opt
+ * @param {Titanium.Filesystem.File} opt.file 	The file object that identifies the directory to create.
+ * @param {Function} [opt.success] 				The callback to invoke on success.
+ * @param {Function} [opt.error] 				The callback to invoke on error.
  * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-createDirectory}
  */
-exports.createDirectory = function(file, success, error) {
-	success = _.isFunction(success) ? success : Alloy.Globals.noop;
-	error = _.isFunction(error) ? error : Alloy.Globals.noop;
+exports.createDirectory = function(opt) {
+	_.defaults(opt, {
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
+	});
 
 	Permissions.requestStoragePermissions(function() {
-		if (file.exists() && file.isDirectory()) {
-			if (file.writable) {
+		if (opt.file.exists() && opt.file.isDirectory()) {
+			if (opt.file.writable) {
 				Ti.API.warn('Filesystem: directory already exists. Skipping.');
-				success();
+				opt.success();
 			} else {
 				Ti.API.error('Filesystem: directory exists but is not writable.');
+				opt.error();
 			}
 		} else {
-			var res = file.createDirectory();
+			var res = opt.file.createDirectory();
 
-			if (res) success();
-			else error();
+			if (res) opt.success();
+			else opt.error();
 		}
-	}, error);
+	}, opt.error);
 }
 
 /**
  * Deletes a directory, after checking storage permissions. This operation is asynchronous.
- * @param {Titanium.Filesystem.File} file 						The file object that identifies the directory to delete.
- * @param {Function} [success] 									The callback to invoke on success.
- * @param {Function} [error] 									The callback to invoke on error.
- * @param {Boolean} [recursive] 								Pass true to recursively delete any directory contents.
+ * @param {Object} opt
+ * @param {Titanium.Filesystem.File} opt.file 	The file object that identifies the directory to delete.
+ * @param {Function} [opt.success] 				The callback to invoke on success.
+ * @param {Function} [opt.error] 				The callback to invoke on error.
+ * @param {Boolean} [opt.recursive] 			Pass true to recursively delete any directory contents.
  * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-deleteDirectory}
  */
-exports.deleteDirectory = function(file, success, error, recursive) {
-	success = _.isFunction(success) ? success : Alloy.Globals.noop;
-	error = _.isFunction(error) ? error : Alloy.Globals.noop;
+exports.deleteDirectory = function(opt) {
+	_.defaults(opt, {
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
+	});
 
 	Permissions.requestStoragePermissions(function() {
-			if (!file.exists()) {
+			if (!opt.file.exists()) {
 				Ti.API.warn('Filesystem: directory does not exist. Skipping.');
-				success();
+				opt.success();
 			} else {
-				if (file.writable) {
-					var res = file.deleteDirectory(recursive);
+				if (opt.file.writable) {
+					var res = opt.file.deleteDirectory(opt.recursive);
 
-					if (res) success();
-					else error();
+					if (res) opt.success();
+					else opt.error();
 				} else {
 					Ti.API.error('Filesystem: directory exists but is not writable.');
-					error();
+					opt.error();
 				}
 			}
-	}, error);
+	}, opt.error);
 }
