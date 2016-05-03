@@ -112,7 +112,7 @@ exports.write = function(opt) {
 	} else {
 		Permissions.requestStoragePermissions(writeFile, opt.error);
 	}
-}
+};
 
 /**
  * Creates a directory, after checking storage permissions. This operation is asynchronous.
@@ -145,7 +145,7 @@ exports.createDirectory = function(opt) {
 	} else {
 		Permissions.requestStoragePermissions(writeDir, opt.error);
 	}
-}
+};
 
 /**
  * Deletes a directory, after checking storage permissions. This operation is asynchronous.
@@ -179,4 +179,4 @@ exports.deleteDirectory = function(opt) {
 	} else {
 		Permissions.requestStoragePermissions(deleteDir, opt.error);
 	}
-}
+};
