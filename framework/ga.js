@@ -145,7 +145,7 @@ exports.time = exports.trackTiming;
 
 /**
  * @param  {String} description 	The description of the exception **or object passed to native proxy**
- * @param  {Boolean} [fatal=false} Indicate if the error is a fatal error
+ * @param  {Boolean} [fatal=false] Indicate if the error is a fatal error
  */
 exports.trackException = function(description, fatal) {
 	if (tracker === null) return;

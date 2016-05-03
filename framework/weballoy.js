@@ -154,27 +154,17 @@ exports.createView = function(args) {
 
 	// On Android, sometimes, this directory doesn't not exists
 	// And, creating on init doesn't work.
-	Filesystem.createDirectory({
-		file: Ti.Filesystem.getFile(TMP_DIR),
-		success: function() {
-			var tmpFile = Ti.Filesystem.getFile(TMP_DIR, args.uniqid + '.html');
-
-			Filesystem.write({
-				file: tmpFile,
-				data: getHTML(args),
-				success: function() {
-					$ui.url = tmpFile.nativePath
-					tmpFile = null;
-				},
-				error: function(err) {
-					Ti.API.error('WebAlloy: unable to create the temporary file:', err);
-					tmpFile = null;
-				}
-			});
-		},
-		error: function() {
-			Ti.API.error('WebAlloy: unable to create the temporary directory');
-		}
+	Filesystem.createDirectory(Ti.Filesystem.getFile(TMP_DIR), function() {
+		var tmpFile = Ti.Filesystem.getFile(TMP_DIR, args.uniqid + '.html');
+		Filesystem.write(tmpFile, getHTML(args), function() {
+			$ui.url = tmpFile.nativePath
+			tmpFile = null;
+		}, function(err) {
+			Ti.API.error('WebAlloy: unable to create the temporary file:', err);
+			tmpFile = null;
+		});
+	}, function() {
+		Ti.API.error('WebAlloy: unable to create the temporary directory');
 	});
 
 	$ui.addEventListener('load', function() {
@@ -246,13 +236,6 @@ helpers.embedCSS = embedCSS;
 helpers.embedJS = embedJS;
 
 // Clear
-Filesystem.deleteDirectory({
-	file: Ti.Filesystem.getFile(TMP_DIR),
-	success: function() {
-		Ti.API.debug("WebAlloy: cleared temporary directory", TMP_DIR);
-	},
-	error: function() {
-		Ti.API.error('WebAlloy: unable to delete the temporary directory', TMP_DIR);
-	},
-	recursive: true
-});
+Filesystem.deleteDirectory(Ti.Filesystem.getFile(TMP_DIR), null, function() {
+	Ti.API.error('WebAlloy: unable to delete the temporary directory');
+}, true);
