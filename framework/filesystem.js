@@ -23,7 +23,7 @@ function recursiveIterator(file) {
 }
 
 function canWrite(file) {
-	return (OS_IOS || (opt.file.exists() && opt.file.writable) || (OS_ANDROID && opt.file.parent.writable));
+	return (OS_IOS || (file.exists() && file.writable) || (OS_ANDROID && file.parent.writable));
 }
 
 /**
