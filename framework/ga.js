@@ -5,10 +5,11 @@
 
 /**
  * @property config
- * @property {Boolean} 	config.dryRun		Enable debug mode. This will prevent sending data to Google Analytics.
+ * @property {String} [config.log=false] Log the queries
  * @type {Object}
  */
 exports.config = _.extend({
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
 var Util = require('T/util');
@@ -19,6 +20,10 @@ var tracker = null;
 function track(method, what) {
 	if (tracker === null) return;
 	if (_.isEmpty(what)) return;
+
+	if (exports.config.log === true) {
+		Ti.API.trace("GA: Track", method, what);
+	}
 
 	try {
 		tracker['add' + method](what);
