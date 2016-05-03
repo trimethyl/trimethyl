@@ -74,6 +74,9 @@ exports.trackScreen = function(name) {
 
 	try {
 		tracker.addScreenView(name);
+		if (exports.config.log === true) {
+			Ti.API.trace("GA: Track", "Screen", name);
+		}
 	} catch (err) {
 		Ti.API.error('GA: Error while calling method ScreenView', err);
 	}
