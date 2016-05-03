@@ -21,8 +21,11 @@ if (_FB) {
 	// Hydratate module
 
 	/**
-	 * @method  fetchUser
-	 * @param  {Object} opt
+	 * @method fetchUser
+	 * @param {Object} opt
+	 * @param {String} [opt.fields='name,email,first_name,last_name'] The fields of the user to fetch
+	 * @param {Function} opt.success Success callback to invoke
+	 * @param {Function} opt.error Error callback to invoke
 	 */
 	_FB.fetchUser = function(opt) {
 		opt = _.defaults(opt || {}, {
@@ -87,7 +90,6 @@ if (_FB) {
 		Ti.API.debug('FB: logout fired', e);
 		dispatcher.trigger('logout', e); 
 	});
-
 
 	// Initialize the SDK and login events
 	_FB.initialize();

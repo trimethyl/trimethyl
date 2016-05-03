@@ -537,7 +537,7 @@ exports.resetCookies = function() {
  * @param {Object}	 opt 				The request dictionary
  * @param {String} opt.url 				The endpoint URL
  * @param {String} [opt.method="GET"] 	The HTTP method to use (GET|POST|PUT|PATCH|..)
- * @param {Object} [opt.headers] 		An Object key-value of additional headers
+ * @param {Object} [opt.headers=null] 		An Object key-value of additional headers
  * @param {Number} [opt.timeout=30000] 	Timeout after stopping the request and triggering an error
  * @param {Boolean} [opt.cache=true] 	Set to false to disable the cache
  * @param {Function} [opt.success] 		The success callback
