@@ -7,28 +7,6 @@ var Dialog = require('T/dialog');
 var Util = require('T/util');
 var Permissions = require('T/permissions');
 
-/**
- * Check for calendar permissions
- * @private
- * @param  {Function} callback  	Success callback
- */
-function handlePermissions(success, error){
-	success = _.isFunction(success) ? success : Alloy.Globals.noop;
-	error = _.isFunction(error) ? error : Alloy.Globals.noop;
-	if (Ti.Calendar.hasCalendarPermissions() !== true) {
-		Ti.Calendar.requestCalendarPermissions(function(res) {
-			if (res.success === true) {
-				success();
-			} else {
-				Ti.API.error('Calendar: Error', res.error);
-				error();
-			}
-		});
-	} else {
-		success();
-	}
-}
-
 /** 
  * Adds a Ti.Calendar.Event to a calendar selected from an option dialog.
  * 
