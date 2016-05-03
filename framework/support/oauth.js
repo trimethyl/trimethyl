@@ -40,6 +40,10 @@ exports.resetCredentials = function() {
 	Ti.App.Properties.removeProperty(storagePrefix + '.' + 'expiration');
 };
 
+function hydratateRequest(req) {
+	req.headers.Authorization = 'Bearer ' + exports.getAccessToken();
+}
+
 exports.httpFilter = function(httpRequest) {
 	if (isRequestingToken) return;
 
@@ -72,17 +76,10 @@ exports.httpFilter = function(httpRequest) {
 				data: oAuthPostData,
 				suppressFilters: ['oauth'],
 				success: function(data) {
-
+					isRequestingToken = false;
 					exports.storeCredentials(data);
-
-					Q.when(exports.httpFilter(httpRequest), function() {
-						isRequestingToken = false;
-						resolve();
-					}, function(err) {
-						isRequestingToken = false;
-						reject(err);
-					});
-
+					hydratateRequest(httpRequest);
+					resolve();
 				},
 				error: function(err) {
 					isRequestingToken = false;
@@ -94,7 +91,8 @@ exports.httpFilter = function(httpRequest) {
 
 	}
 
-	httpRequest.headers.Authorization = 'Bearer ' + access_token;
+	hydratateRequest(httpRequest);
+	return true;
 };
 
 exports.getAccessToken = function() {
