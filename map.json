@@ -93,8 +93,8 @@
 	},
 	"http":{
 		"name": "HTTP",
-		"description": "Make HTTP requests is a simple way.",
-		"dependencies": ["event","util","cache","ext/q"]
+		"description": "HTTP requests made simple.",
+		"dependencies": ["event","util","cache","ext/q","permissions"]
 	},
 	"image":{
 		"name": "Image",

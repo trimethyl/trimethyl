@@ -27,6 +27,7 @@ var Event = require('T/event');
 var Util = require('T/util');
 var Cache = require('T/cache');
 var Q = require('T/ext/q');
+var Permissions = require('T/permissions');
 
 function extractHTTPText(data, info) {
 	if (info != null && data != null) {
@@ -674,23 +675,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 		});
 	};
 
-	if (OS_IOS) {
-		doDownload();
-	} else if (OS_ANDROID) {
-		if (Ti.Filesystem.hasStoragePermissions() === true) {
-			doDownload();
-		} else {
-			Ti.Filesystem.requestStoragePermissions(function(e) {
-				if (e.success === false) {
-					return error({
-						message: L('missing_permission_write_file', 'Missing permission to write file')
-					});
-				}
-
-				doDownload();
-			});
-		}
-	}
+	Permissions.requestStoragePermissions(doDownload, error);
 };
 
 /**
