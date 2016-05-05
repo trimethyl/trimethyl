@@ -50,7 +50,7 @@
 	"camera":{
 		"name": "Camera",
 		"description": "Helper for Camera access.",
-		"dependencies": ["util","dialog"]
+		"dependencies": ["util","dialog", "permissions"]
 	},
 	"device":{
 		"name": "Device",

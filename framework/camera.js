@@ -5,36 +5,17 @@
 
 var Dialog = require('T/dialog');
 var Util = require('T/util');
-
-/**
- * Check for camera and/or storage permissions
- * @private
- * @param  {Function} callback  	Success callback
- */
-function handlePermissions(callback){
-	if (Ti.Media.hasCameraPermissions() !== true) {
-		Ti.Media.requestCameraPermissions(function(res) {
-			if (res.success === true) {
-				callback();
-			} else {
-				Ti.API.error('Camera: Error', res.error);
-				Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));
-			}
-		});
-	} else {
-		callback();
-	}
-}
+var Permissions = require('T/permissions');
 
 /**
  * Call showCamera or openPhotoGallery using same options
  * @private
- * @param  {String}   method 		Must be one of showCamera or openPhotoGallery
- * @param  {Object}   opt 			Options passed to `Ti.Media.FUNC`
- * @param  {Function} callback  	Success callback
+ * @param  {String}   method 	Must be one of showCamera or openPhotoGallery
+ * @param  {Object}   opt 		Options passed to `Ti.Media.FUNC`
+ * @param  {Function} callback 	Success callback
  */
 function getPhoto(method, opt, callback){
-	handlePermissions(function() {
+	Permissions.requestCameraPermissions(function() {
 		Ti.Media[method](_.extend({}, opt, {
 			mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
 			saveToPhotoGallery: (method === 'showCamera'),
@@ -45,6 +26,9 @@ function getPhoto(method, opt, callback){
 				Util.errorAlert(L('unexpected_error', 'Unexpected error'));
 			}
 		}));
+	}, function(err) {
+		Ti.API.error('Camera: Error', err);
+		Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));
 	});
 }
 
