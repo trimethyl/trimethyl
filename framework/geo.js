@@ -167,6 +167,7 @@ function parseComponents(cps) {
  * @param {String} opt.address 			The address to geocode
  * @param {Function} opt.success 		Success callback
  * @param {Function} [opt.error] 		Error callback
+ * @param {String} [opt.language] 		The language in which to return results
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
  * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
  * @param {Object} [opt.components] 	The component filters. Each component filter consists of a component:value pair and will fully restrict the results from the geocoder.
@@ -185,16 +186,17 @@ exports.geocode = function(opt) {
 	}
 
 	if (exports.config.geocodeUseGoogle === true) {
-		var data = {
-			address: opt.address,
-			sensor: 'false'
-		};
+		var data = _.pick(opt, ['address', 'language']);
 
 		if (_.isObject(opt.components)) {
 			_.extend(data, {
 				components: parseComponents(opt.components)
 			});
 		}
+
+		_.extend(data, {
+			sensor: 'false'
+		});
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
@@ -243,6 +245,7 @@ exports.geocode = function(opt) {
  * @param {String} opt.lng 				The longitude of the address to search
  * @param {Function} opt.success 		Success callback
  * @param {Function} [opt.error] 		Error callback
+ * @param {String} [opt.language] 		The language in which to return results
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
  * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
  * @see {@link https://developers.google.com/maps/terms#section_10_5}
@@ -259,6 +262,13 @@ exports.reverseGeocode = function(opt) {
 	}
 
 	if (exports.config.geocodeUseGoogle) {
+
+		var data = _.pick(opt, ['language']);
+
+		_.extend(data, {
+			latlng: opt.lat + ',' + opt.lng,
+			sensor: 'false'
+		});
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
