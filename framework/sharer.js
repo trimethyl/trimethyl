@@ -97,11 +97,11 @@ exports.facebook = function(args) {
 	}
 
 	// SDK
-	if (FB != null && FB.canPresentShareDialog) {
+	if (FB != null /*&& FB.canPresentShareDialog*/) { // http://docs.appcelerator.com/platform/latest/#!/api/Modules.Facebook-property-canPresentShareDialog
 		FB.presentShareDialog({
 			url: args.url,
 			title: args.title,
-			description: args.description
+			description: args.description ? args.description : args.text
 		});
 		return true;
 	}
@@ -123,7 +123,7 @@ exports.facebook = function(args) {
 
 	// Fallback
 	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
-		app_id: Ti.App.Properties.getString('ti.facebook.appid'),
+		app_id: Ti.App.Properties.getString('ti.facebook.appid', (Alloy.CFG.T.fb || Alloy.CFG.T.facebook).app_id),
 		display: 'touch',
 		redirect_uri: args.redirect_uri || Ti.App.url,
 		href: args.url
