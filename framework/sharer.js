@@ -99,7 +99,7 @@ exports.facebook = function(args) {
 	// SDK
 	if (FB != null /*&& FB.canPresentShareDialog*/) { // http://docs.appcelerator.com/platform/latest/#!/api/Modules.Facebook-property-canPresentShareDialog
 		FB.presentShareDialog({
-			url: args.url,
+			link: args.url, // url change to link
 			title: args.title,
 			description: args.description ? args.description : args.text
 		});
