@@ -45,7 +45,9 @@
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",
-		"dependencies": ["dialog","permissions"]
+		"dependencies": ["permissions","util"],
+		"modules": ["lucadamico.android.calendar:android"],
+		"minsdk": "6.0.0"
 	},
 	"camera":{
 		"name": "Camera",
