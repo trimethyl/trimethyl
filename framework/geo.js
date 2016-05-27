@@ -155,6 +155,11 @@ exports.startNavigator = function(lat, lng, mode) {
 	}
 };
 
+function parseComponents(cps) {
+	return _.map(cps, function(value, key) {
+		return key + ':' + value;
+	}).join('|');
+}
 
 /**
  * Return the coordinates of an address
@@ -162,8 +167,11 @@ exports.startNavigator = function(lat, lng, mode) {
  * @param {String} opt.address 			The address to geocode
  * @param {Function} opt.success 		Success callback
  * @param {Function} [opt.error] 		Error callback
+ * @param {String} [opt.language] 		The language in which to return results
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
  * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
+ * @param {Object} [opt.components] 	The component filters. Each component filter consists of a component:value pair and will fully restrict the results from the geocoder.
+ * @see {@link https://developers.google.com/maps/documentation/geocoding/intro}
  * @see {@link https://developers.google.com/maps/terms#section_10_5}
  */
 exports.geocode = function(opt) {
@@ -178,13 +186,21 @@ exports.geocode = function(opt) {
 	}
 
 	if (exports.config.geocodeUseGoogle === true) {
+		var data = _.pick(opt, ['address', 'language']);
+
+		if (_.isObject(opt.components)) {
+			_.extend(data, {
+				components: parseComponents(opt.components)
+			});
+		}
+
+		_.extend(data, {
+			sensor: 'false'
+		});
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
-			data: {
-				address: opt.address,
-				sensor: 'false'
-			},
+			data: data,
 			silent: opt.silent,
 			ttl: opt.ttl,
 			format: 'json',
@@ -197,7 +213,8 @@ exports.geocode = function(opt) {
 				opt.success({
 					success: true,
 					latitude: res.results[0].geometry.location.lat,
-					longitude: res.results[0].geometry.location.lng
+					longitude: res.results[0].geometry.location.lng,
+					formatted_address: res.results[0].formatted_address
 				});
 			},
 			error: opt.error
@@ -228,6 +245,7 @@ exports.geocode = function(opt) {
  * @param {String} opt.lng 				The longitude of the address to search
  * @param {Function} opt.success 		Success callback
  * @param {Function} [opt.error] 		Error callback
+ * @param {String} [opt.language] 		The language in which to return results
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
  * @param {Number} [opt.ttl=2592000] 	Override the TTL seconds for the cache. The default and maximum value is 30 days. Set to -1 to disable request caching.
  * @see {@link https://developers.google.com/maps/terms#section_10_5}
@@ -244,6 +262,13 @@ exports.reverseGeocode = function(opt) {
 	}
 
 	if (exports.config.geocodeUseGoogle) {
+
+		var data = _.pick(opt, ['language']);
+
+		_.extend(data, {
+			latlng: opt.lat + ',' + opt.lng,
+			sensor: 'false'
+		});
 
 		HTTP.send({
 			url: 'http://maps.googleapis.com/maps/api/geocode/json',
@@ -297,7 +322,7 @@ exports.reverseGeocode = function(opt) {
  * @param {Number} [opt.radius] 		The distance (in meters) within which to return place results.
  * @param {String} [opt.language] 		The language code, indicating in which language the results should be returned, if possible. See https://developers.google.com/maps/faq#languagesupport
  * @param {String} [opt.types] 			The types of place results to return. See https://developers.google.com/places/web-service/autocomplete#place_types
- * @param {String} [opt.components] 	A grouping of places to which you would like to restrict your results. Currently, you can use components to filter by country. The country must be passed as a two character, ISO 3166-1 Alpha-2 compatible country code. For example: components=country:fr would restrict your results to places within France.
+ * @param {Object} [opt.components] 	A grouping of places to which you would like to restrict your results. Currently, you can use components to filter by country. The country must be passed as a two character, ISO 3166-1 Alpha-2 compatible country code. For example: components: {country: "fr"} would restrict your results to places within France.
  * @param {Function} [opt.success] 		Success callback
  * @param {Function} [opt.error] 		Error callback
  * @param {Boolean} [opt.silent=true] 	Silence HTTP events
@@ -326,7 +351,12 @@ exports.autocomplete = function(opt) {
 		return;
 	}
 
-	var data = _.pick(opt, 'input', 'offset', 'location', 'radius', 'language', 'types', 'components');
+	var data = _.pick(opt, 'input', 'offset', 'location', 'radius', 'language', 'types');
+	if (_.isObject(opt.components)) {
+		_.extend(data, {
+			components: parseComponents(opt.components)
+		});
+	}
 	_.extend(data, { key: key });
 
 	HTTP.send({

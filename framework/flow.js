@@ -277,7 +277,10 @@ exports.getNavigationController = function() {
  * Close all windows, except first.
  */
 exports.closeAllWindowsExceptFirst = function() {
+	if (windowsStack.length < 2) return;
+
 	var wins = _.clone(windowsStack);
+
 	for (var i = wins.length-2; i > 0; i--) {
 		wins[i].close({ animated: false });
 	}

@@ -52,7 +52,7 @@
 	"camera":{
 		"name": "Camera",
 		"description": "Helper for Camera access.",
-		"dependencies": ["util","dialog"]
+		"dependencies": ["util","dialog", "permissions"]
 	},
 	"device":{
 		"name": "Device",
@@ -95,8 +95,8 @@
 	},
 	"http":{
 		"name": "HTTP",
-		"description": "Make HTTP requests is a simple way.",
-		"dependencies": ["event","util","cache","ext/q"]
+		"description": "HTTP requests made simple.",
+		"dependencies": ["event","util","cache","ext/q","permissions"]
 	},
 	"image":{
 		"name": "Image",
