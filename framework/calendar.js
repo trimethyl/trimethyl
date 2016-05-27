@@ -182,8 +182,8 @@ exports.setRecurrenceRule = function(event, rule) {
 /**
  * Set the alerts for the event.
  * Each alert specifies how many minutes in advance the user will receive the notification (must be positive)
- * @param {[type]} event  [description]
- * @param {[type]} alerts [description]
+ * @param  {Ti.Calendar.Event} event
+ * @param  {Array} alerts
  */
 exports.setAlerts = function(event, alerts) {
 	if (OS_IOS) {
