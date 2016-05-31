@@ -207,7 +207,8 @@
 	},
 	"uifactory/select":{
 		"name": "UIFactory.Select",
-		"description": "Select façade"
+		"description": "Select façade",
+		"dependencies": ["dialog","util"]
 	},
 	"uifactory/tabbedbar":{
 		"name": "UIFactory.TabbedBar",
@@ -222,6 +223,11 @@
 		"name": "UIFactory.Textfield",
 		"description": "Textfield façade",
 		"dependencies": ["uiutil"]
+	},
+	"uifactory/timeselect":{
+		"name": "UIFactory.TimeSelect",
+		"description": "Time select façade",
+		"dependencies": ["dialog","util"]
 	},
 	"uifactory/view":{
 		"name": "UIFactory.View",
