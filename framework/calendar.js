@@ -140,7 +140,9 @@ exports.createEvent = function(calendar, opt) {
  * @return {Ti.Calendar.Event}
  */
 exports.getEventById = function(calendar, id) {
-	return calendar.getEventById(id);
+	var cal = calendar.getEventById(id);
+
+	return cal;
 };
 
 /**
@@ -172,11 +174,32 @@ exports.setRecurrenceRule = function(event, rule) {
 
 		var rrule = RRules.build(event.begin, rule);
 		var status = (1 == LDACalendar.updateEventRecurrenceRule(event.id, rrule));
-		if (!status) throw new Error("Calendar: errore in update event recurrence rule");
+		if (!status) {
+			throw new Error("Calendar: errore in update event recurrence rule");
+		}
 
 	}
 
 	return event;
+};
+
+exports.getRecurrenceRule = function(event) {
+	var rule = null;
+
+	if (OS_IOS) {
+
+		if (event.recurrenceRules != null) {
+			rule = event.recurrenceRules[0];
+			switch (rule.frequency) {
+				case Ti.Calendar.RECURRENCEFREQUENCY_DAILY: 
+			}
+		}
+
+	} else if (OS_ANDROID) {
+
+	}
+
+	return rule;
 };
 
 /**
@@ -316,7 +339,7 @@ exports.getEventsInYear = function(cal, year) {
 };
 
 /**
- * Get or create a Calendar that can beu used by the application without dirtying other calendars.
+ * Get or create a Calendar that can be used by the application without dirtying other calendars.
  * The calendar ID object is saved in a persistent storage that will be deleted when the app
  * will be uninstalled, so take care of your ID.
  * The calendar name is automatically set by application name.
