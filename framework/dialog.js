@@ -23,7 +23,6 @@ function onClickDict(e, dict, dialog) {
 
 /**
  * Create and show an Alert Dialog
- *
  * @param  {String}		title    		The title
  * @param  {String}		message    		The message
  * @param  {Function}	[callback] 		The callback to invokie when clicking **OK**

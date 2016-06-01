@@ -184,6 +184,11 @@
 		"name": "UIFactory.Button",
 		"description": "Button façade"
 	},
+	"uifactory/dateselect":{
+		"name": "UIFactory.DateSelect",
+		"description": "Date select façade",
+		"dependencies": ["dialog","util"]
+	},
 	"uifactory/imageview":{
 		"name": "UIFactory.ImageView",
 		"description": "ImageView façade",
@@ -201,13 +206,19 @@
 		"name": "UIFactory.ListView",
 		"description": "ListView façade"
 	},
+	"uifactory/multiselect":{
+		"name": "UIFactory.MultiSelect",
+		"description": "Multicolumn select façade",
+		"dependencies": ["dialog"]
+	},
 	"uifactory/navigationwindow":{
 		"name": "UIFactory.NavigationWindow",
 		"description": "NavigationWindow façade"
 	},
 	"uifactory/select":{
 		"name": "UIFactory.Select",
-		"description": "Select façade"
+		"description": "Select façade",
+		"dependencies": ["dialog","util"]
 	},
 	"uifactory/tabbedbar":{
 		"name": "UIFactory.TabbedBar",
@@ -222,6 +233,11 @@
 		"name": "UIFactory.Textfield",
 		"description": "Textfield façade",
 		"dependencies": ["uiutil"]
+	},
+	"uifactory/timeselect":{
+		"name": "UIFactory.TimeSelect",
+		"description": "Time select façade",
+		"dependencies": ["dialog","util"]
 	},
 	"uifactory/view":{
 		"name": "UIFactory.View",
