@@ -184,6 +184,11 @@
 		"name": "UIFactory.Button",
 		"description": "Button façade"
 	},
+	"uifactory/dateselect":{
+		"name": "UIFactory.DateSelect",
+		"description": "Date select façade",
+		"dependencies": ["dialog","util"]
+	},
 	"uifactory/imageview":{
 		"name": "UIFactory.ImageView",
 		"description": "ImageView façade",
@@ -200,6 +205,11 @@
 	"uifactory/listview":{
 		"name": "UIFactory.ListView",
 		"description": "ListView façade"
+	},
+	"uifactory/multiselect":{
+		"name": "UIFactory.MultiSelect",
+		"description": "Multicolumn select façade",
+		"dependencies": ["dialog"]
 	},
 	"uifactory/navigationwindow":{
 		"name": "UIFactory.NavigationWindow",
