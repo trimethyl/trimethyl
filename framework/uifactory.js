@@ -69,6 +69,24 @@ exports.createSelect = function(args) {
 
 /**
  */
+exports.createMultiSelect = function(args) {
+	return require('T/uifactory/multiselect')(args);
+};
+
+/**
+ */
+exports.createDateSelect = function(args) {
+	return require('T/uifactory/dateselect')(args);
+};
+
+/**
+ */
+exports.createTimeSelect = function(args) {
+	return require('T/uifactory/timeselect')(args);
+};
+
+/**
+ */
 exports.createView = function(args) {
 	return require('T/uifactory/view')(args);
 };
