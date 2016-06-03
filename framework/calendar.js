@@ -22,122 +22,102 @@ if (OS_ANDROID) {
 
 var RRT = {
 	map: {
-		freq: {
-			RR_to_IOS: {},
-			IOS_to_RR: {}
+		RR_to_IOS: {
+			freq: {},
+			weekday: {},
 		},
-		weekday: {
-			RR_to_IOS: {},
-			IOS_to_RR: {}
+		IOS_to_RR: {
+			frequency: {},
+			weekday: {},
 		},
 	},
 	props: {
-		RR_to_IOS: {},
-		IOS_to_RR: {}
-	}
-};
-
-exports.RRT = RRT;
-
-RRT.map.freq.RR_to_IOS[ JSON.stringify(RRule.YEARLY) ] = Ti.Calendar.RECURRENCEFREQUENCY_YEARLY;
-RRT.map.freq.RR_to_IOS[ JSON.stringify(RRule.MONTHLY) ] = Ti.Calendar.RECURRENCEFREQUENCY_MONTHLY;
-RRT.map.freq.RR_to_IOS[ JSON.stringify(RRule.WEEKLY) ] = Ti.Calendar.RECURRENCEFREQUENCY_WEEKLY;
-RRT.map.freq.RR_to_IOS[ JSON.stringify(RRule.DAILY) ] = Ti.Calendar.RECURRENCEFREQUENCY_DAILY;
-
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.MO) ] = 2;
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.TU) ] = 3;
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.WE) ] = 4;
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.TH) ] = 5;
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.FR) ] = 6;
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.SA) ] = 7;
-RRT.map.weekday.RR_to_IOS[ JSON.stringify(RRule.SU) ] = 1;
-
-RRT.map.freq.IOS_to_RR[ JSON.stringify(Ti.Calendar.RECURRENCEFREQUENCY_YEARLY) ] = RRule.YEARLY;
-RRT.map.freq.IOS_to_RR[ JSON.stringify(Ti.Calendar.RECURRENCEFREQUENCY_MONTHLY) ] = RRule.MONTHLY;
-RRT.map.freq.IOS_to_RR[ JSON.stringify(Ti.Calendar.RECURRENCEFREQUENCY_WEEKLY) ] = RRule.WEEKLY;
-RRT.map.freq.IOS_to_RR[ JSON.stringify(Ti.Calendar.RECURRENCEFREQUENCY_DAILY) ] = RRule.DAILY;
-
-RRT.map.weekday.IOS_to_RR[ 2 ] = RRule.MO;
-RRT.map.weekday.IOS_to_RR[ 3 ] = RRule.TU;
-RRT.map.weekday.IOS_to_RR[ 4 ] = RRule.WE;
-RRT.map.weekday.IOS_to_RR[ 5 ] = RRule.TH;
-RRT.map.weekday.IOS_to_RR[ 6 ] = RRule.FR;
-RRT.map.weekday.IOS_to_RR[ 7 ] = RRule.SA;
-RRT.map.weekday.IOS_to_RR[ 1 ] = RRule.SU;
-
-RRT.props.RR_to_IOS = {
-	interval : 'interval',
-	count: function(ios, value) { 
-		ios.end = { occurrenceCount: value }; 
-	},
-	until: function(ios, value) { 
-		ios.end = { endDate: value }; 
-	},
-	freq : function(ios, value) { 
-		ios.frequency = RRT.map.freq.RR_to_IOS[ JSON.stringify(value) ]; 
-	},
-	bymonth: 'monthsOfTheYear',
-	bymonthday: 'daysOfTheMonth',
-	byyearday: 'daysOfTheYear',
-	byweekday: function(ios, value) {
-		ios.daysOfTheWeek = value.map(function(day) {
-			return { dayOfWeek: RRT.map.weekday.RR_to_IOS[ JSON.stringify(day) ] };
-		});
-	}
-};
-
-RRT.props.IOS_to_RR = {
-	interval : 'interval',
-	end: function(rruleOpt, value) {
-		if (value.occurrenceCount) {
-			rruleOpt.count = value.occurrenceCount;
-		} else if (value.endDate) {
-			rruleOpt.until = value.occurrenceCount;
+		RR_to_IOS: {
+			interval : 'interval',
+			count: 'end.occurrenceCount',
+			until: 'end.endDate',
+			freq : 'frequency',
+			bymonth: 'monthsOfTheYear',
+			bymonthday: 'daysOfTheMonth',
+			byyearday: 'daysOfTheYear',
+			byweekday: function(ios, value) {
+				ios.daysOfTheWeek = value.map(function(day) {
+					return { dayOfWeek: RRT.map.RR_to_IOS.weekday[ JSON.stringify(day) ] };
+				});
+			}
+		},
+		IOS_to_RR: {
+			interval : 'interval',
+			'end.occurrenceCount': 'count',
+			'end.endDate': 'until',
+			frequency: 'freq',
+			monthsOfTheYear: 'bymonth',
+			daysOfTheMonth: 'bymonthday',
+			daysOfTheYear: 'byyearday',
+			daysOfTheWeek: function(rruleOpt, value) {
+				rruleOpt.byweekday = value.map(function(o) {
+					return RRT.map.IOS_to_RR.weekday[ JSON.stringify(o.dayOfWeek) ];
+				});
+			}
 		}
-	},
-	frequency: function(rruleOpt, value) { 
-		rruleOpt.freq = RRT.map.freq.IOS_to_RR[ JSON.stringify(value) ]; 
-	},
-	monthsOfTheYear: 'bymonth',
-	daysOfTheMonth: 'bymonthday',
-	daysOfTheYear: 'byyearday',
-	daysOfTheWeek: function(rruleOpt, value) {
-		rruleOpt.byweekday = value.map(function(wkDayObj) {
-			return RRT.map.weekday.IOS_to_RR[ JSON.stringify(wkDayObj.dayOfWeek) ];
-		});
 	}
 };
 
-RRT.RRuleOptToiOSRecurrenceRule = function(rruleOpt) {
-	var ios = {};
-	_.each(RRT.props.RR_to_IOS, function(ios_prop_key, rrule_prop_key) {
-		var rrule_prop_val = rruleOpt[ rrule_prop_key ];
-		if (rrule_prop_val == null) return;
-		if (_.isArray(rrule_prop_val) && rrule_prop_val.length === 0) return;
+_.each(['SU','MO','TU','WE','TH','FR','SA'], function(day, index) {
+	RRT.map.RR_to_IOS.weekday[ JSON.stringify(RRule[day]) ] = (index+1);
+	RRT.map.IOS_to_RR.weekday[ (index+1) ] = RRule[day];
+});
 
-		if (_.isString(ios_prop_key)) {
-			ios[ ios_prop_key ] = rrule_prop_val;
-		} else if (_.isFunction(ios_prop_key)) {
-			ios_prop_key(ios, rrule_prop_val);
+_.each(['YEARLY','MONTHLY','WEEKLY','DAILY'], function(rec) {
+	RRT.map.RR_to_IOS.freq[ JSON.stringify(RRule[rec]) ] = Ti.Calendar['RECURRENCEFREQUENCY_' + rec];
+	RRT.map.IOS_to_RR.frequency[ JSON.stringify(Ti.Calendar['RECURRENCEFREQUENCY_' + rec]) ] = RRule[rec];
+});
+
+RRT.transformer = function(input) {
+	var verse = this;
+	var out = {};
+
+	_.each(RRT.props[verse], function(out_prop_key, input_prop_key) {
+		
+		// retrieve the input value
+		var input_prop_val = input;
+		var input_prop_key_split = input_prop_key.split('.');
+
+		for (var i = 0; i < input_prop_key_split.length; i++) {
+			input_prop_val = input_prop_val[ input_prop_key_split[i] ];
+			if (input_prop_val == null) return;
+			if (_.isArray(input_prop_val) && input_prop_val.length === 0) return;
+		}
+		
+		// check if exists a transform map of this attribute in this verse
+		if (RRT.map[verse][input_prop_key]) {
+			input_prop_val = RRT.map[verse][input_prop_key][ JSON.stringify(input_prop_val) ];
+		}
+
+		// define the output
+		if (_.isString(out_prop_key)) {
+			var mid_out = out;
+			var out_prop_key_split = out_prop_key.split('.');
+			for (var j = 0; j < out_prop_key_split.length; j++) {
+				if (j+1 == out_prop_key_split.length) {
+					mid_out[ out_prop_key_split[j] ] = input_prop_val;
+				} else {
+					mid_out[ out_prop_key_split[j] ] = mid_out[ out_prop_key_split[j] ] || {};
+					mid_out = mid_out[ out_prop_key_split[j] ];
+				}
+			}
+		} else if (_.isFunction(out_prop_key)) {
+			// immediate callback alteration
+			out_prop_key(out, input_prop_val);
 		}
 	});
-	return ios;
+
+	console.log('Out', verse, JSON.stringify(out));
+	return out;
 };
 
-RRT.iOSRecurrenceRuleToRRuleOpt = function(ios) {
-	var rruleOpt = {};
-	_.each(RRT.props.IOS_to_RR, function(rrule_prop_key, ios_prop_key) {
-		var ios_prop_val = ios[ ios_prop_key ];
-		if (ios_prop_val == null) return;
-
-		if (_.isString(rrule_prop_key)) {
-			rruleOpt[ rrule_prop_key ] = ios_prop_val;
-		} else if (_.isFunction(rrule_prop_key)) {
-			rrule_prop_key(rruleOpt, ios_prop_val);
-		}
-	});
-	return rruleOpt;
-};
+RRT.RR_to_IOS = RRT.transformer.bind('RR_to_IOS');
+RRT.IOS_to_RR = RRT.transformer.bind('IOS_to_RR');
 
 /**
  * Create an event in calendar
@@ -184,9 +164,7 @@ exports.createEvent = function(calendar, opt) {
  * @return {Ti.Calendar.Event}
  */
 exports.getEventById = function(calendar, id) {
-	var cal = calendar.getEventById(id);
-
-	return cal;
+	return calendar.getEventById(id);
 };
 
 /**
@@ -198,16 +176,17 @@ exports.getEventById = function(calendar, id) {
 exports.setRecurrenceRule = function(event, rruleOpt) {
 	rruleOpt.interval = rruleOpt.interval || 1;
 	rruleOpt.dtstart = Moment(event.begin).toDate();
+	var rrule = new RRule(rruleOpt);
 
  	if (OS_IOS) {
 
- 		var iosRRule = RRT.RRuleOptToiOSRecurrenceRule(rruleOpt);
+ 		var iosRRule = RRT.RR_to_IOS(rrule.origOptions);
  		event.recurrenceRules = [ event.createRecurrenceRule(iosRRule) ];
 		event.save( Ti.Calendar.SPAN_FUTUREEVENTS );
 
 	} else if (OS_ANDROID) {
 
-		var rows = LDACalendar.updateEventRecurrenceRule(event.id, RRule.toString(rruleOpt));
+		var rows = LDACalendar.updateEventRecurrenceRule(event.id, rrule.toString());
 		if (rows != 1) {
 			throw new Error("Error while saving recurrence rules");
 		}
@@ -222,7 +201,7 @@ exports.getRecurrenceRule = function(event) {
 
 	if (OS_IOS) {
 		if (event.recurrenceRules != null) {
-			var rruleOpt = RRT.iOSRecurrenceRuleToRRuleOpt(event.recurrenceRules[0]);
+			var rruleOpt = RRT.IOS_to_RR(event.recurrenceRules[0]);
 			rruleOpt.dtstart = Moment(event.begin).toDate();
 			rrule = new RRule(rruleOpt);
 		}
@@ -427,3 +406,9 @@ exports.getOrCreateAppCalendar = function() {
 exports.requestPermissions = function(success, error) {
 	return Permissions.requestCalendarPermissions(success, error);
 };
+
+/**
+ * The transformer
+ * @type {Object}
+ */
+exports.RRT = RRT;
