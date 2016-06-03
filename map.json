@@ -45,7 +45,7 @@
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",
-		"dependencies": ["permissions","util"],
+		"dependencies": ["permissions","util","ext/rrule"],
 		"modules": ["lucadamico.android.calendar:android"],
 		"minsdk": "6.0.0"
 	},
@@ -287,6 +287,16 @@
 	"ext/underscore.string":{
 		"name": "Underscore.String",
 		"internal": true
+	},
+	"ext/rrule":{
+		"name": "RRule",
+		"internal": true,
+		"dependencies":["ext/nlp"]
+	},
+	"ext/nlp":{
+		"name": "RRule NLP",
+		"internal": true,
+		"dependencies":["ext/nlp"]
 	},
 
 	"support/oauth":{
