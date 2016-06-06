@@ -281,22 +281,22 @@
 	},
 
 	"ext/q":{
-		"name": "Q",
-		"internal": true
+		"name": "Q"
 	},
 	"ext/underscore.string":{
-		"name": "Underscore.String",
-		"internal": true
+		"name": "Underscore.String"
 	},
 	"ext/rrule":{
 		"name": "RRule",
-		"internal": true,
 		"dependencies":["ext/nlp"]
 	},
 	"ext/nlp":{
 		"name": "RRule NLP",
-		"internal": true,
-		"dependencies":["ext/nlp"]
+		"dependencies":[]
+	},
+	"ext/nlp-i18n/it":{
+		"name": "RRule NLP - Italian",
+		"dependencies":[]
 	},
 
 	"support/oauth":{

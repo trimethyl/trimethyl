@@ -202,17 +202,22 @@ exports.setRecurrenceRule = function(event, rruleOpt) {
 	return event;
 };
 
+/**
+ * Get a recurrence rule instance for an event
+ * @param  {Ti.Calendar.Event}
+ * @return {calendar.RRule}
+ */
 exports.getRecurrenceRule = function(event) {
 	var rrule = null;
 
 	if (OS_IOS) {
-		if (event.recurrenceRules != null) {
+		if (!_.isEmpty(event.recurrenceRules)) {
 			var rruleOpt = RRT.IOS_to_RR(event.recurrenceRules[0]);
 			rruleOpt.dtstart = Moment(event.begin).toDate();
 			rrule = new RRule(rruleOpt);
 		}
 	} else if (OS_ANDROID) {
-		if (event.rrule != null) {
+		if (!_.isEmpty(event.rrule)) {
 			rrule = RRule.fromString(event.rrule);
 		}
 	}
@@ -225,6 +230,7 @@ exports.getRecurrenceRule = function(event) {
  * Each alert specifies how many minutes in advance the user will receive the notification (must be positive)
  * @param  {Ti.Calendar.Event} event
  * @param  {Array} alerts
+ * @return {Ti.Calendar.Event}
  */
 exports.setAlerts = function(event, alerts) {
 	if (OS_IOS) {
