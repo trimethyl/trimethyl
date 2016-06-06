@@ -21,6 +21,7 @@ if (OS_ANDROID) {
 }
 
 var RRT = {
+	dateFormat: 'YYYY-MM-DDTHH:mm:ss.SSS+0000',
 	map: {
 		RR_to_IOS: {
 			freq: {},
@@ -35,7 +36,11 @@ var RRT = {
 		RR_to_IOS: {
 			interval : 'interval',
 			count: 'end.occurrenceCount',
-			until: 'end.endDate',
+			until: function(ios, value) {
+				ios.end = { 
+					endDate: Moment(value).format(RRT.dateFormat) 
+				};
+			},
 			freq : 'frequency',
 			bymonth: 'monthsOfTheYear',
 			bymonthday: 'daysOfTheMonth',
@@ -49,7 +54,9 @@ var RRT = {
 		IOS_to_RR: {
 			interval : 'interval',
 			'end.occurrenceCount': 'count',
-			'end.endDate': 'until',
+			'end.endDate': function(rruleOpt, value) {
+				rruleOpt.until = Moment(value).toDate();
+			},
 			frequency: 'freq',
 			monthsOfTheYear: 'bymonth',
 			daysOfTheMonth: 'bymonthday',
@@ -112,7 +119,6 @@ RRT.transformer = function(input) {
 		}
 	});
 
-	console.log('Out', verse, JSON.stringify(out));
 	return out;
 };
 
@@ -135,8 +141,8 @@ exports.createEvent = function(calendar, opt) {
 	if (opt.begin == null) throw new Error("Calendar: Set a begin date");
 	if (opt.end == null && opt.allDay != true) throw new Error("Calendar: Set an end date or an allDay event");
 
-	if (_.isString(opt.begin)) opt.begin = Moment(opt.begin).getDate();
-	if (_.isString(opt.end)) opt.end = Moment(opt.end).getDate();
+	if (_.isString(opt.begin)) opt.begin = Moment(opt.begin).toDate();
+	if (_.isString(opt.end)) opt.end = Moment(opt.end).toDate();
 	
 	if (opt.end < opt.begin) throw new Error("Calendar: The end date is lesser than begin date");
 
