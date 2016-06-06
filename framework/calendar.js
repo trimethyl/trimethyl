@@ -334,7 +334,7 @@ exports.getAllCalendars = function() {
  */
 exports.getEventsBetweenDates = function(cal, d1, d2) {
 	d1 = Moment(d1).format(RRT.dateFormat);
-	d2 = Moment(d1).format(RRT.dateFormat);
+	d2 = Moment(d2).format(RRT.dateFormat);
 	return cal.getEventsBetweenDates(d1, d2);
 };
 
