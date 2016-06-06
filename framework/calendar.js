@@ -333,9 +333,8 @@ exports.getAllCalendars = function() {
  * @return {Ti.Calendar.Event[]}
  */
 exports.getEventsBetweenDates = function(cal, d1, d2) {
-	if (_.isString(d1)) d1 = Moment(d1).toDate();
-	if (_.isString(d2)) d2 = Moment(d2).toDate();
-
+	d1 = Moment(d1).format(RRT.dateFormat);
+	d2 = Moment(d1).format(RRT.dateFormat);
 	return cal.getEventsBetweenDates(d1, d2);
 };
 
