@@ -80,7 +80,7 @@ if (notifier.update) {
 }
 
 function writeConfig() {
-	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config));
+	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config, null, 2));
 }
 
 function addModule(name) {
