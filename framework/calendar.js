@@ -380,28 +380,40 @@ exports.getEventsInYear = function(cal, year) {
  * @return {Ti.Calendar.Calendar}
  */
 exports.getOrCreateAppCalendar = function() {
-	var id = null;
-	var cal = null;
-	var defaultCalendar = exports.getDefaultCalendar();
+	var id = Ti.App.Properties.getString('calendar_id', null);
+	var cal = id != null ? exports.getCalendarById(id) : null;
 
-	if ( ! Ti.App.Properties.hasProperty('calendar_id')) {
+	if (cal != null) return cal;
 
-		id = exports.createCalendar({ name: Ti.App.name });
-		if (id != null) cal = exports.getCalendarById(id);
-
-		if (id != null && cal != null) {
-			Ti.App.Properties.setString('calendar_id', id);
-		} else {
-			Ti.App.Properties.setString('calendar_id', defaultCalendar.id);
-			cal = defaultCalendar;
-		}
-
-	} else {
-		id = Ti.App.Properties.getString('calendar_id');
+	id = exports.createCalendar({ name: Ti.App.name });
+	if (id != null) {
 		cal = exports.getCalendarById(id);
+		Ti.App.Properties.setString('calendar_id', id);
 	}
 
-	return cal || exports.getDefaultCalendar();
+	if (cal != null) return cal;
+
+	var defaultCalendar = exports.getDefaultCalendar();
+	Ti.App.Properties.setString('calendar_id', defaultCalendar.id);
+	return defaultCalendar;
+};
+
+/**
+ * Delete a calendar by its ID
+ * @param  {String} id The ID
+ * @return {Boolean}
+ */
+exports.deleteCalendarById = function(id) {
+	return Ti.Calendar.deleteCalendarById(id);
+};
+
+/**
+ * Delete a calendar
+ * @param  {Ti.Calendar} Calendar object
+ * @return {Boolean}
+ */
+exports.deleteCalendar = function(c) {
+	return exports.deleteCalendarById(c.id);
 };
 
 /**
