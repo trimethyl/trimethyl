@@ -11,30 +11,32 @@ var CWD = process.cwd();
 var trimethyl_map = require('./map.json');
 var package = require('./package.json');
 
+var DEFAULT_SOURCE_PATH = '/framework/';
+var DEFAULT_DEST_PATH = '/app/lib/T/';
+
 function buildDependencies(libs, key, req, tabs) {
 	req = req || null;
 	tabs = tabs || 0;
 	if (key in libs) return;
 
-	var dst_file, src_file;
-
-	if (/^alloy\//.test(key)) {
-		dst_file = CWD + '/app/lib' + '/alloy/' + key.replace('alloy/', '') + '.js';
-		src_file = __dirname + '/framework/alloy/' + key.replace('alloy/', '') + '.js';
-	} else {
-		dst_file = CWD + '/app/lib' + '/T/' + key + '.js';
-		src_file = __dirname + '/framework/' + key + '.js';
-	}
-
-	var val = trimethyl_map[key];
-	if (val == null) {
+	var K = trimethyl_map[ key ];
+	if (K == null) {
 		process.stdout.write(('Unable to find module "' + key + '"').red);
 		process.exit();
 	}
 
+	var src_file = __dirname + DEFAULT_SOURCE_PATH + key + '.js';
+	var dst_file = CWD + DEFAULT_DEST_PATH + key + '.js';
+
+	if (K.destination) {
+		dst_file = CWD + K.destination;
+	} else if (K.source) {
+		src_file = __dirname + K.source;
+	} 
+	
 	var stat = fs.statSync(src_file).size;
 
-	libs[key] = _.extend({}, val, {
+	libs[key] = _.extend({}, K, {
 		requiredBy: req,
 		tabs: tabs,
 		dst_file: dst_file,
@@ -43,8 +45,8 @@ function buildDependencies(libs, key, req, tabs) {
 		size: (stat / 1000).toFixed(2) + ' KB'
 	});
 
-	(val.dependencies || []).forEach(function(o) {
-		buildDependencies(libs, o, val, tabs+1);
+	(K.dependencies || []).forEach(function(o) {
+		buildDependencies(libs, o, K, tabs+1);
 	});
 }
 

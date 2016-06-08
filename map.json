@@ -277,21 +277,27 @@
 	"alloy/sync/api":{
 		"name": "API Alloy Adapter",
 		"description": "A sync for Backbone to work with HTTP models.",
-		"dependencies": ["http","util"]
+		"dependencies": ["http","util"],
+		"destination": "/app/lib/alloy/sync/api.js"
 	},
 
 	"ext/q":{
-		"name": "Q"
+		"name": "Q",
+		"source": "/node_modules/q/q.js"
 	},
 	"ext/underscore.string":{
-		"name": "Underscore.String"
+		"name": "Underscore.String",
+		"source": "/node_modules/underscore.string/dist/underscore.string.js"
 	},
+	
 	"ext/rrule":{
 		"name": "RRule",
+		"source": "/node_modules/rrule/lib/rrule.js",
 		"dependencies":["ext/nlp"]
 	},
 	"ext/nlp":{
 		"name": "RRule NLP",
+		"source": "/node_modules/rrule/lib/nlp.js",
 		"dependencies":[]
 	},
 	"ext/nlp-i18n/it":{
