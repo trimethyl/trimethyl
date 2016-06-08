@@ -281,6 +281,11 @@
 		"destination": "/app/lib/alloy/sync/api.js"
 	},
 
+	"ext/async":{
+		"name": "Async",
+		"source": "/node_modules/async/dist/async.js"
+	},
+
 	"ext/q":{
 		"name": "Q",
 		"source": "/node_modules/q/q.js"
