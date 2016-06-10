@@ -40,13 +40,15 @@ function validateToken(token) {
 
 function onNotificationReceived(e) {
 	if (OS_ANDROID) {
-		if (_.isString(e.data)) {
-			try {
-				e.data = JSON.parse(e.data);
-			} catch (ex) {
-				e.data = {};
+		_.each(['notification','data'], function(prop) {
+			if (_.isString(e[prop])) {
+				try {
+					e[prop] = JSON.parse(e[prop]);
+				} catch (ex) {
+					e[prop] = {};
+				}
 			}
-		}
+		});
 	}
 
 	// Auto-reset the badge
@@ -150,8 +152,7 @@ exports.activate = function(callback) {
 
 		} else if (OS_ANDROID) {
 
-			Module = require('it.caffeina.gcm');
-			moduleOpt.senderId = Ti.App.Properties.getString('gcm.senderid');
+			Module = require('ti.goosh');
 
 		} else return;
 
@@ -191,7 +192,7 @@ exports.deactivate = function() {
 	if (OS_IOS) {
 		Module = Ti.Network;
 	} else if (OS_ANDROID) {
-		Module = require("it.caffeina.gcm");
+		Module = require("ti.goosh");
 	} else return;
 
 	Module.unregisterForPushNotifications();
@@ -283,7 +284,7 @@ exports.unsubscribe = function(channel, data) {
  * @param {Number} x
  */
 exports.setBadge = function(x) {
-	var Module = OS_IOS ? Ti.UI.iPhone : require('it.caffeina.gcm');
+	var Module = OS_IOS ? Ti.UI.iPhone : require('ti.goosh');
 	Module.setAppBadge(Math.max(x,0));
 };
 
@@ -292,7 +293,7 @@ exports.setBadge = function(x) {
  * @return {Number}
  */
 exports.getBadge = function() {
-	var Module = OS_IOS ? Ti.UI.iPhone : require('it.caffeina.gcm');
+	var Module = OS_IOS ? Ti.UI.iPhone : require('ti.goosh');
 	return Module.getAppBadge();
 };
 
@@ -312,22 +313,12 @@ exports.incBadge = function(i) {
 };
 
 /**
- * Deprecated, use {@link #getRemoteDeviceUUID} instead
- * @return {String}
- */
-exports.getStoredDeviceToken = function() {
-	Ti.API.warn('Notifications: getStoredDeviceToken is deprecated, use getRemoteDeviceUUID instead');
-	return exports.getRemoteDeviceUUID();
-};
-
-
-/**
  * Get the stored device token.
  * Don't rely on this method to check if notifications are active, use {@link #isRemoteNotificationsEnabled} instead
  * @return {String}
  */
 exports.getRemoteDeviceUUID = function() {
-	var Module = OS_IOS ? Ti.Network : require('it.caffeina.gcm');
+	var Module = OS_IOS ? Ti.Network : require('ti.goosh');
 	return Module.remoteDeviceUUID;
 };
 
@@ -337,7 +328,7 @@ exports.getRemoteDeviceUUID = function() {
  * @return {Boolean} [description]
  */
 exports.isRemoteNotificationsEnabled = function() {
-	var Module = OS_IOS ? Ti.Network : require('it.caffeina.gcm');
+	var Module = OS_IOS ? Ti.Network : require('ti.goosh');
 	return Module.remoteNotificationsEnabled;
 };
 

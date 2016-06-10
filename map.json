@@ -119,7 +119,7 @@
 		"name": "Notifications",
 		"description": "Push notifications interface provided by different drivers.",
 		"dependencies": ["event","util","router","ext/q"],
-		"modules": ["it.caffeina.gcm:android"]
+		"modules": ["ti.goosh:android"]
 	},
 	"notifications/http":{
 		"name": "Notifications.HTTP",
