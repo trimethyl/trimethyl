@@ -18,6 +18,8 @@ var PICKER_HEIGHT_IPAD = 216;
 function createTiUIPicker($this, opt) {
 	var $picker = Ti.UI.createPicker(_.extend({}, opt, {
 		value: $this.getValue(),
+		minDate: $this.minDate,
+		maxDate: $this.maxDate,
 		type: Ti.UI.PICKER_TYPE_DATE,
 	}));
 
@@ -153,7 +155,7 @@ var UIPickers = {
 	android: function($this) {
 		Ti.UI.createPicker({
 			type: Ti.UI.PICKER_TYPE_DATE
-		}).showDatePickerDialog(_.extend(_.pick($this, 'value'), {
+		}).showDatePickerDialog(_.extend(_.pick($this, 'value', 'minDate', 'maxDate'), {
 			value: $this.getValue(),
 			callback: function(e) {
 				if (e.value == null || e.cancel) return;
@@ -196,8 +198,17 @@ module.exports = function(args) {
 		/**
 		 * @property {String} [tintColor=null] **(iOS only)** The tint color for the toolbar buttons of the picker.
 		 */
-		tintColor: null
+		tintColor: null,
 
+		/**
+		 * @property {Date} [minDate=null] Minimum date displayed.
+		 */
+		minDate: null,
+
+		/**
+		 * @property {Date} [maxDate=null] Maximum date displayed.
+		 */
+		maxDate: null
 	});
 
 	args._uid = _.uniqueId();
@@ -253,6 +264,34 @@ module.exports = function(args) {
 		Data[ $this._uid ].value = value;
 
 		$this.updateUI();
+	};
+
+	/**
+	 * @param {Date} date
+	 * Set the minimum date to display
+	 */
+	$this.setMinDate = function(date) {
+		if ($this.maxDate != null && Moment(date).isAfter($this.maxDate)) {
+			Ti.API.warn('UIFactory/DatePicker: The new minDate is after the defined maxDate. Falling back to maxDate.');
+
+			$this.minDate = $this.maxDate;
+		} else {
+			$this.minDate = date;
+		}
+	};
+
+	/**
+	 * @param {Date} date
+	 * Set the maximum date to display
+	 */
+	$this.setMaxDate = function(date) {
+		if ($this.minDate != null && Moment(date).isBefore($this.minDate)) {
+			Ti.API.warn('UIFactory/DatePicker: The new maxDate is before the defined minDate. Falling back to minDate.');
+
+			$this.maxDate = $this.minDate;
+		} else {
+			$this.maxDate = date;
+		}
 	};
 
 	/**
