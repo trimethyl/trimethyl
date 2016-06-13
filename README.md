@@ -4,18 +4,16 @@ Trimethyl is a collection of very useful modules to work with **Appcelerator Tit
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
-#### [Check the API Documentation](http://caffeinalab.github.io/trimethyl)
+#### [Check the API Documentation](http://trimethyl.github.io/trimethyl)
 
-#### [Check the Wiki](https://github.com/caffeinalab/trimethyl/wiki)
+#### [Check the Wiki](http://trimethyl.github.io/trimethyl/wiki)
 
-#### [Download Dash Kapeli Docset](https://github.com/caffeinalab/trimethyl/blob/master/docset/Trimethyl.tgz?raw=1)
+#### [Download Dash Kapeli Docset](https://github.com/trimethyl/trimethyl/blob/master/docset/Trimethyl.tgz?raw=1)
 
 ---
 
 ![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
 ![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
-
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/CaffeinaLab/Trimethyl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Installation via NPM
 
@@ -114,7 +112,7 @@ exports.createWindow = function(args) {
 
 ## API Documentation
 
-**Please refer to the [documentation](http://caffeinalab.github.io/Trimethyl/) for full-usage of all APIs**.
+**Please refer to the [documentation](http://trimethyl.github.io/trimethyl) for full-usage of all APIs**.
 
 #### Dash Kapeli URL
 

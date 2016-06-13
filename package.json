@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/CaffeinaLab/Trimethyl"
+    "url": "https://github.com/trimethyl/trimethyl"
   },
   "keywords": [
     "titanium",
@@ -27,7 +27,7 @@
     "android"
   ],
   "bugs": {
-    "url": "https://github.com/CaffeinaLab/Trimethyl/issues"
+    "url": "https://github.com/trimethyl/trimethyl/issues"
   },
   "scripts": {
     "hint": "jshint framework --exclude framework/ext",
