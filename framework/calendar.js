@@ -13,7 +13,7 @@ var Util = require('T/util');
 var Moment = require('alloy/moment');
 var Permissions = require('T/permissions');
 
-var RRule = require('T/ext/rrule');
+require('T/ext/rrule');
 exports.RRule = RRule;
 
 if (OS_ANDROID) {
@@ -25,6 +25,10 @@ var RRT = {
 	map: {
 		IOS_to_RR: {
 			frequency: {},
+			weekday: {},
+		},
+		RR_to_IOS: {
+			freq: {},
 			weekday: {},
 		},
 	},
