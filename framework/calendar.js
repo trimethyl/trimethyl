@@ -13,8 +13,7 @@ var Util = require('T/util');
 var Moment = require('alloy/moment');
 var Permissions = require('T/permissions');
 
-require('T/ext/rrule');
-exports.RRule = RRule;
+var RRule = require('T/ext/rrule');
 
 if (OS_ANDROID) {
 	var LDACalendar = require('lucadamico.android.calendar');
@@ -422,3 +421,10 @@ exports.deleteCalendar = function(c) {
 exports.requestPermissions = function(success, error) {
 	return Permissions.requestCalendarPermissions(success, error);
 };
+
+/**
+ * RRule instance
+ * @type {RRule}
+ */
+exports.RRule = RRule;
+
