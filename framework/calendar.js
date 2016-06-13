@@ -20,7 +20,100 @@ if (OS_ANDROID) {
 	var LDACalendar = require('lucadamico.android.calendar');
 }
 
-var IOS_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SSS+0000';
+var RRT = {
+	IOS_DATE_FORMAT: 'YYYY-MM-DDTHH:mm:ss.SSS+0000',
+	map: {
+		IOS_to_RR: {
+			frequency: {},
+			weekday: {},
+		},
+	},
+	props: {
+		RR_to_IOS: {
+			interval : 'interval',
+			count: 'end.occurrenceCount',
+			until: function(ios, value) { ios.end = { endDate: Moment(value).format(RRT.IOS_DATE_FORMAT) }; },
+			freq : 'frequency',
+			bymonth: 'monthsOfTheYear',
+			bymonthday: 'daysOfTheMonth',
+			byyearday: 'daysOfTheYear',
+			byweekday: function(ios, value) {
+				ios.daysOfTheWeek = value.map(function(day) {
+					return { dayOfWeek: RRT.map.RR_to_IOS.weekday[ JSON.stringify(day) ] };
+				});
+			}
+		},
+		IOS_to_RR: {
+			interval : 'interval',
+			'end.occurrenceCount': 'count',
+			'end.endDate': function(rruleOpt, value) { rruleOpt.until = Moment(value).toDate(); },
+			frequency: 'freq',
+			monthsOfTheYear: 'bymonth',
+			daysOfTheMonth: 'bymonthday',
+			daysOfTheYear: 'byyearday',
+			daysOfTheWeek: function(rruleOpt, value) {
+				rruleOpt.byweekday = value.map(function(o) {
+					return RRT.map.IOS_to_RR.weekday[ JSON.stringify(o.dayOfWeek) ];
+				});
+			}
+		}
+	}
+};
+
+_.each(['SU','MO','TU','WE','TH','FR','SA'], function(day, index) {
+	RRT.map.RR_to_IOS.weekday[ JSON.stringify(RRule[day]) ] = (index+1);
+	RRT.map.IOS_to_RR.weekday[ (index+1) ] = RRule[day];
+});
+
+_.each(['YEARLY','MONTHLY','WEEKLY','DAILY'], function(rec) {
+	RRT.map.RR_to_IOS.freq[ JSON.stringify(RRule[rec]) ] = Ti.Calendar['RECURRENCEFREQUENCY_' + rec];
+	RRT.map.IOS_to_RR.frequency[ JSON.stringify(Ti.Calendar['RECURRENCEFREQUENCY_' + rec]) ] = RRule[rec];
+});
+
+RRT.transformer = function(input) {
+	var verse = this;
+	var out = {};
+
+	_.each(RRT.props[verse], function(out_prop_key, input_prop_key) {
+		
+		// retrieve the input value
+		var input_prop_val = input;
+		var input_prop_key_split = input_prop_key.split('.');
+
+		for (var i = 0; i < input_prop_key_split.length; i++) {
+			input_prop_val = input_prop_val[ input_prop_key_split[i] ];
+			if (input_prop_val == null) return;
+			if (_.isArray(input_prop_val) && input_prop_val.length === 0) return;
+		}
+		
+		// check if exists a transform map of this attribute in this verse
+		if (RRT.map[verse][input_prop_key]) {
+			input_prop_val = RRT.map[verse][input_prop_key][ JSON.stringify(input_prop_val) ];
+		}
+
+		// define the output
+		if (_.isString(out_prop_key)) {
+			var mid_out = out;
+			var out_prop_key_split = out_prop_key.split('.');
+			for (var j = 0; j < out_prop_key_split.length; j++) {
+				if (j+1 == out_prop_key_split.length) {
+					mid_out[ out_prop_key_split[j] ] = input_prop_val;
+				} else {
+					mid_out[ out_prop_key_split[j] ] = mid_out[ out_prop_key_split[j] ] || {};
+					mid_out = mid_out[ out_prop_key_split[j] ];
+				}
+			}
+		} else if (_.isFunction(out_prop_key)) {
+			// immediate callback alteration
+			out_prop_key(out, input_prop_val);
+		}
+	});
+
+	return out;
+};
+
+RRT.RR_to_IOS = RRT.transformer.bind('RR_to_IOS');
+RRT.IOS_to_RR = RRT.transformer.bind('IOS_to_RR');
 
 /**
  * Create an event in calendar
@@ -108,8 +201,8 @@ exports.getRecurrenceRule = function(event) {
 
 	if (OS_IOS) {
 		if (!_.isEmpty(event.recurrenceRules)) {
-			rrule = new RRule(_.extend(rruleOpt, {
-				dtstart: Moment(event.begin).toDate()
+			rrule = new RRule(_.extend(RRT.IOS_to_RR(event.recurrenceRules[0]), {
+				dtstart: Moment(opt.begin).toDate()
 			}));
 		}
 	} else if (OS_ANDROID) {
@@ -235,8 +328,8 @@ exports.getAllCalendars = function() {
  * @return {Ti.Calendar.Event[]}
  */
 exports.getEventsBetweenDates = function(cal, d1, d2) {
-	d1 = Moment(d1).format(IOS_DATE_FORMAT);
-	d2 = Moment(d2).format(IOS_DATE_FORMAT);
+	d1 = Moment(d1).format(RRT.IOS_DATE_FORMAT);
+	d2 = Moment(d2).format(RRT.IOS_DATE_FORMAT);
 	return cal.getEventsBetweenDates(d1, d2);
 };
 
