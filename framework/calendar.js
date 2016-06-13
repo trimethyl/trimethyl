@@ -205,7 +205,7 @@ exports.getRecurrenceRule = function(event) {
 	if (OS_IOS) {
 		if (!_.isEmpty(event.recurrenceRules)) {
 			rrule = new RRule(_.extend(RRT.IOS_to_RR(event.recurrenceRules[0]), {
-				dtstart: Moment(opt.begin).toDate()
+				dtstart: Moment(event.begin).toDate()
 			}));
 		}
 	} else if (OS_ANDROID) {
