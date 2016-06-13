@@ -20,6 +20,8 @@ if (OS_ANDROID) {
 	var LDACalendar = require('lucadamico.android.calendar');
 }
 
+var iOSDateFormat = 'YYYY-MM-DDTHH:mm:ss.SSS+0000';
+
 /**
  * Create an event in calendar
  * @param {Ti.Calendar.Calendar} calendar The calendar object
@@ -233,8 +235,8 @@ exports.getAllCalendars = function() {
  * @return {Ti.Calendar.Event[]}
  */
 exports.getEventsBetweenDates = function(cal, d1, d2) {
-	d1 = Moment(d1).format(RRT.dateFormat);
-	d2 = Moment(d2).format(RRT.dateFormat);
+	d1 = Moment(d1).format(iOSDateFormat);
+	d2 = Moment(d2).format(iOSDateFormat);
 	return cal.getEventsBetweenDates(d1, d2);
 };
 
@@ -323,9 +325,3 @@ exports.deleteCalendar = function(c) {
 exports.requestPermissions = function(success, error) {
 	return Permissions.requestCalendarPermissions(success, error);
 };
-
-/**
- * The transformer
- * @type {Object}
- */
-exports.RRT = RRT;
