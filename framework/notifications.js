@@ -40,15 +40,13 @@ function validateToken(token) {
 
 function onNotificationReceived(e) {
 	if (OS_ANDROID) {
-		_.each(['notification','data'], function(prop) {
-			if (_.isString(e[prop])) {
-				try {
-					e[prop] = JSON.parse(e[prop]);
-				} catch (ex) {
-					e[prop] = {};
-				}
+		if (_.isString(e.data)) {
+			try {
+				e.data = JSON.parse(e.data);
+			} catch (ex) {
+				e.data = {};
 			}
-		});
+		}
 	}
 
 	// Auto-reset the badge
