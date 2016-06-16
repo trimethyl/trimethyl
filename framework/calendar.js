@@ -136,8 +136,8 @@ exports.createEvent = function(calendar, opt) {
 
 	if (_.isString(opt.begin)) opt.begin = Moment(opt.begin).toDate();
 	if (_.isString(opt.end)) opt.end = Moment(opt.end).toDate();
-	
-	if (opt.end < opt.begin) throw new Error("Calendar: The end date is lesser than begin date");
+
+	if (opt.end != null && opt.end < opt.begin) throw new Error("Calendar: The end date is lesser than begin date");
 
 	var event = calendar.createEvent( _.omit(opt, 'recurrenceRule', 'alerts') );
 
