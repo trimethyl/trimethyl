@@ -14,13 +14,9 @@ exports.config = _.extend({
 }, (Alloy.CFG.T && Alloy.CFG.T.notifications) ? Alloy.CFG.T.notifications.http : {});
 
 var HTTP = require('T/http');
+var Util = require('T/util');
 
 var deploy_type = (Ti.App.deployType === 'production' ? 'production' : 'development');
-var os_enum = (function() {
-	if (OS_IOS) return 1;
-	if (OS_ANDROID) return 2;
-	return 0;
-})();
 
 exports.subscribe = function(opt) {
 	if (exports.config.subscribeEndpoint == null) {
@@ -36,7 +32,7 @@ exports.subscribe = function(opt) {
 			app_id: Ti.App.id,
 			app_version: Ti.App.version,
 			app_deploytype: deploy_type,
-			os: os_enum,
+			os: Util.getOS(),
 		}),
 		success: opt.success,
 		error: opt.error,

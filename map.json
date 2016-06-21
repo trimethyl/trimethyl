@@ -124,7 +124,7 @@
 	"notifications/http":{
 		"name": "Notifications.HTTP",
 		"description": "Driver based on HTTP.",
-		"dependencies": ["http"]
+		"dependencies": ["http","util"]
 	},
 	"notifications/cloud":{
 		"name": "Notifications.Cloud",
