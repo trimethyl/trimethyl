@@ -214,6 +214,15 @@ exports.getDomainFromURL = function(url) {
 };
 
 /**
+ * Return the OS name. It differs from Ti.Platform.osname, as it returns "ios" both for iPhone and iPad.
+ * @return {String}
+ */
+exports.getOS = function() {
+	var name = Ti.Platform.osname;
+	return (name == 'iphone' || name == 'ipad') ? 'ios' : name;
+};
+
+/**
  * Return the iOS major version
  * @return {Number}
  */
