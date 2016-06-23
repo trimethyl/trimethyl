@@ -214,7 +214,15 @@ exports.getDomainFromURL = function(url) {
 };
 
 /**
- * Return the OS name. It differs from Ti.Platform.osname, as it returns "ios" both for iPhone and iPad.
+ * Returns the build type. It differs from Ti.Platform.deployType, as it returns "development" both for "test" and "development" builds.
+ * @return {String}
+ */
+exports.getDeployType = function() {
+	return Ti.App.deployType === 'production' ? 'production' : 'development';
+};
+
+/**
+ * Returns the OS name. It differs from Ti.Platform.osname, as it returns "ios" both for iPhone and iPad.
  * @return {String}
  */
 exports.getOS = function() {

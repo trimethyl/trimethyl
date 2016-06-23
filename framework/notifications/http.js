@@ -31,7 +31,7 @@ exports.subscribe = function(opt) {
 			channel: opt.channel,
 			app_id: Ti.App.id,
 			app_version: Ti.App.version,
-			app_deploytype: deploy_type,
+			app_deploytype: Util.getDeployType(),
 			os: Util.getOS(),
 		}),
 		success: opt.success,
