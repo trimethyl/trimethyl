@@ -12,6 +12,7 @@ exports.config = _.extend({
 var Util = require('T/util');
 var Moment = require('alloy/moment');
 var Permissions = require('T/permissions');
+var Dialog = require('T/dialog');
 
 var RRule = require('T/ext/rrule');
 
@@ -377,22 +378,37 @@ exports.getEventsInYear = function(cal, year) {
  * @return {Ti.Calendar.Calendar}
  */
 exports.getOrCreateAppCalendar = function() {
+	var cal = null;
+	var name = Ti.App.name;
+
 	var id = Ti.App.Properties.getString('calendar_id', null);
-	var cal = id != null ? exports.getCalendarById(id) : null;
-
-	if (cal != null) return cal;
-
-	id = exports.createCalendar({ name: Ti.App.name });
 	if (id != null) {
 		cal = exports.getCalendarById(id);
-		Ti.App.Properties.setString('calendar_id', id);
 	}
 
-	if (cal != null) return cal;
+	if (cal == null) {
+		cal = _.find(exports.getAllCalendars(), function(c) { return (c.name === name); });
+		if (cal != null) {
+			Ti.App.Properties.setString('calendar_id', cal.id);
+		}
+	}
 
-	var defaultCalendar = exports.getDefaultCalendar();
-	Ti.App.Properties.setString('calendar_id', defaultCalendar.id);
-	return defaultCalendar;
+	if (cal == null) {
+		var idCr = exports.createCalendar({ name: name });
+		if (idCr != null) {
+			cal = exports.getCalendarById(idCr);
+			if (cal != null) {
+				Ti.App.Properties.setString('calendar_id', cal.id);
+			}
+		}
+	}
+
+	if (cal == null) {
+		cal = exports.getDefaultCalendar();
+		Ti.App.Properties.setString('calendar_id', cal.id);
+	}
+
+	return cal;
 };
 
 /**
