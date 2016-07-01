@@ -332,8 +332,10 @@ exports.getAllCalendars = function() {
  * @return {Ti.Calendar.Event[]}
  */
 exports.getEventsBetweenDates = function(cal, d1, d2) {
-	d1 = Moment(d1).format(RRT.IOS_DATE_FORMAT);
-	d2 = Moment(d2).format(RRT.IOS_DATE_FORMAT);
+	d1 = Moment(d1);
+	d2 = Moment(d2);
+	d1 = OS_IOS ? d1.format(RRT.IOS_DATE_FORMAT) : d1.toDate();
+	d2 = OS_IOS ? d2.format(RRT.IOS_DATE_FORMAT) : d2.toDate();
 	return cal.getEventsBetweenDates(d1, d2);
 };
 
