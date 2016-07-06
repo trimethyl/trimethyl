@@ -28,8 +28,8 @@ Dialog.alert('Hello!', 'The quick brown fox jumps over the lazy dog',
 ```javascript
 Dialog.confirm('Hello!', 'The quick brown fox jumps over the lazy..', [
    { title: "dog", selected: true, callback: function() { /* you win */ } },
-   { title: "cat", callback: function() { /* what the f**k is wrong with you? */ },
-   { title: "giraffe", destructive: true, callback: function() { /* O_o */},
+   { title: "cat", callback: function() { /* what the f**k is wrong with you? */ } },
+   { title: "giraffe", destructive: true, callback: function() { /* O_o */} },
 ]);
 ```
 
@@ -38,8 +38,8 @@ Dialog.confirm('Hello!', 'The quick brown fox jumps over the lazy..', [
 ```javascript
 Dialog.option('The quick brown fox jumps over the lazy..', [
    { title: "dog", selected: true, callback: function() { /* you win */ } },
-   { title: "cat", callback: function() { /* what the f**k is wrong with you? */ },
-   { title: "giraffe", destructive: true, callback: function() { /* O_o */},
+   { title: "cat", callback: function() { /* what the f**k is wrong with you? */ } },
+   { title: "giraffe", destructive: true, callback: function() { /* O_o */} },
    { title: "Cancel", cancel: true }
 ]);
 ```
