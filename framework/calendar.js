@@ -175,21 +175,16 @@ exports.getEventById = function(calendar, id) {
  */
 exports.setRecurrenceRule = function(event, rruleOpt) {
 	rruleOpt.interval = rruleOpt.interval || 1;
-	rruleOpt.dtstart = Moment(event.begin).toDate();
 	var rrule = new RRule(rruleOpt);
 
  	if (OS_IOS) {
-
  		event.recurrenceRules = [ event.createRecurrenceRuleFromString(rrule.toString()) ];
 		event.save( Ti.Calendar.SPAN_FUTUREEVENTS );
-
 	} else if (OS_ANDROID) {
-
 		var rows = LDACalendar.updateEventRecurrenceRule(event.id, rrule.toString());
 		if (rows != 1) {
 			throw new Error("Error while saving recurrence rules");
 		}
-
 	}
 
 	return event;
@@ -237,7 +232,7 @@ exports.setAlerts = function(event, alerts) {
 		LDACalendar.deleteAllEventReminders(event.id);
 		_.each(alerts, function(minutes) {
 			var status = (1 == LDACalendar.addReminderToEvent(event.id, minutes));
-			if (!status) throw new Error("Calendar: error in update event recurrence rule");
+			if (!status) throw new Error("Calendar: error while updating alerts");
 		});
 	}
 	
