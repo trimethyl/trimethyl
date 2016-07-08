@@ -248,11 +248,11 @@ exports.getAlerts = function(event) {
 	var alerts = [];
 
 	if (OS_IOS) {
-		alerts = event.getAlerts().map(function(a) {
+		alerts = (event.alerts || []).map(function(a) {
 			return -1 * (a.relativeOffset / (60 * 1000));
 		});
 	} else if (OS_ANDROID) {
-		alerts = event.getAlerts().map(function(a) {
+		alerts = (event.alerts || []).map(function(a) {
 			return a.minutes;
 		});
 	}
