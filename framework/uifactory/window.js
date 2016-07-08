@@ -174,7 +174,7 @@ module.exports = function(args) {
 					var menuItem = e.menu.add({
 						title: btn.title || '',
 						icon: btn.icon || btn.image || '',
-						showAsAction: btn.showAsAction || Ti.Android.SHOW_AS_ACTION_ALWAYS
+						showAsAction: btn.showAsAction != null ? btn.showAsAction : Ti.Android.SHOW_AS_ACTION_ALWAYS
 					});
 					menuItem.addEventListener('click', function(){
 						if (_.isFunction(btn.click)) btn.click();
