@@ -294,6 +294,15 @@ program.command('remove [name]').alias('r').description('Remove a Trimethyl modu
 	writeConfig();
 });
 
+//////////////////////
+// Update trimethyl //
+//////////////////////
+
+program.command('update').alias('r').description('Do a full upgrade of Trimethyl and its modules').action(function(name) {
+	require('child_process').exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
+});
+
+
 ///////////
 // Start //
 ///////////
