@@ -6,7 +6,7 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 #### [Check the API Documentation](http://trimethyl.github.io/trimethyl)
 
-#### [Check the Wiki](http://trimethyl.github.io/trimethyl/wiki)
+#### [Check the Wiki](https://github.com/trimethyl/trimethyl/wiki)
 
 #### [Download Dash Kapeli Docset](https://github.com/trimethyl/trimethyl/blob/master/docset/Trimethyl.tgz?raw=1)
 
