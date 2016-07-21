@@ -281,6 +281,13 @@
 		"destination": "/app/lib/alloy/sync/api.js"
 	},
 
+	"alloy/sync/hateoas":{
+		"name": "HATEOAS Alloy Adapter",
+		"description": "A sync for Backbone to work with HTTP models with a HATEOAS structure.",
+		"dependencies": ["http","util"],
+		"destination": "/app/lib/alloy/sync/hateoas.js"
+	},
+
 	"ext/async":{
 		"name": "Async",
 		"source": "/node_modules/async/dist/async.js"
