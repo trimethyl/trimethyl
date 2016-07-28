@@ -141,6 +141,7 @@ exports.createEvent = function(calendar, opt) {
 	if (opt.end != null && opt.end < opt.begin) throw new Error("Calendar: The end date is lesser than begin date");
 
 	var event = calendar.createEvent( _.omit(opt, 'recurrenceRule', 'alerts') );
+	event.save( Ti.Calendar.SPAN_FUTUREEVENTS );
 
 	if (opt.recurrenceRule != null) {
 		exports.setRecurrenceRule(event, opt.recurrenceRule);
@@ -148,10 +149,6 @@ exports.createEvent = function(calendar, opt) {
 
 	if (opt.alerts != null) {
 		exports.setAlerts(event, opt.alerts);
-	}
-
-	if (OS_IOS) {
-		event.save( Ti.Calendar.SPAN_FUTUREEVENTS );
 	}
 
 	return event.id;
@@ -179,13 +176,11 @@ exports.setRecurrenceRule = function(event, rruleOpt) {
 
  	if (OS_IOS) {
  		event.recurrenceRules = [ event.createRecurrenceRuleFromString(rrule.toString()) ];
-		event.save( Ti.Calendar.SPAN_FUTUREEVENTS );
 	} else if (OS_ANDROID) {
-		var rows = LDACalendar.updateEventRecurrenceRule(event.id, rrule.toString());
-		if (rows != 1) {
-			throw new Error("Error while saving recurrence rules");
-		}
+		event.rrule = rrule.toString();
 	}
+
+	event.save( Ti.Calendar.SPAN_FUTUREEVENTS );
 
 	return event;
 };
