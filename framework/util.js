@@ -479,6 +479,31 @@ exports.parseAsXCallbackURL = function(str) {
 	return uri;
 };
 
+// The next two methods are taken from https://gist.github.com/CatTail/4174511
+// Many thanks to CatTail!
+/**
+ * Decode html entities into text
+ * @param  {String} str The string to decode
+ * @return {String} 	The decoded string
+ */
+exports.decodeHtmlEntity = function(str) {
+	return str.replace(/&#(\d+);/g, function(match, dec) {
+		return String.fromCharCode(dec);
+	});
+};
+
+/**
+ * Encode a string into html entities
+ * @param  {String} str The string to encode
+ * @return {String} 	The encoded string
+ */
+exports.encodeHtmlEntity = function(str) {
+	var buf = [];
+	for (var i=str.length-1;i>=0;i--) {
+		buf.unshift(['&#', str[i].charCodeAt(), ';'].join(''));
+	}
+	return buf.join('');
+};
 
 /**
  * Return the seralized representation of any JS object.
