@@ -251,7 +251,7 @@ program.command('install').alias('i').description('Install the framework files')
 			inquirer.prompt([{
 				type: 'confirm',
 				name: 'result',
-				message: ("You are doing a major upgrade from " + app_trimethyl_config.version + " to " + package.version + "\nThis means that some features have changed from one release to the other, you have to check very carefully the project after doing that.\nAre you sure to install?").yellow
+				message: ("You are doing a major upgrade from " + app_trimethyl_config.version + " to " + package.version + "\nThis means that some features have changed from one release to the other, you have to check the project very carefully after doing that.\nAre you sure to install?").yellow
 			}], function(ans) {
 				if (ans.result) {
 					preInstall();
