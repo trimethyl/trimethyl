@@ -50,6 +50,7 @@ function buildDependencies(libs, key, req, tabs) {
 	});
 }
 
+/* if a>b => 1, a=b => 0, a<b => -1 */
 function compareVersions(a, b) {
 	if (a == null || b == null) return 0;
 
@@ -61,6 +62,11 @@ function compareVersions(a, b) {
 		else if (_a < _b) return -1;
 	}
 	return 0;
+}
+
+function compareMajorVersions(a, b) {
+	if (a == null || b == null) return 0;
+	return compareVersions(a.split('.')[0], b.split('.')[0]);
 }
 
 /////////////////////////
@@ -228,19 +234,35 @@ function installOnFileSystem(items) {
 /////////////////////
 
 program.command('install').alias('i').description('Install the framework files').action(function() {
-	if (compareVersions(app_trimethyl_config.version, package.version) === 1) {
+	var comparision = compareVersions(package.version, app_trimethyl_config.version);
+	if (comparision === -1) {
 		inquirer.prompt([{
 			type: 'confirm',
 			name: 'result',
-			message: "You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?".yellow,
+			message: ("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?").yellow,
 			default: false
 		}], function(ans) {
 			if (ans.result) {
 				preInstall();
 			}
 		});
-	} else {
-		preInstall();
+	} else if (comparision === 1) {
+		if (compareMajorVersions(package.version, app_trimethyl_config.version) === 1) {
+			inquirer.prompt([{
+				type: 'confirm',
+				name: 'result',
+				message: ("You are doing a major upgrade from " + app_trimethyl_config.version + " to " + package.version + "\nThis means that some features have changed from one release to the other, you have to check very carefully the project after doing that.\nAre you sure to install?").yellow
+			}], function(ans) {
+				if (ans.result) {
+					preInstall();
+				}
+			});
+		} else {
+			preInstall();
+		}
+	} else if (comparision === 0) {
+		process.stdout.write(("Your installed version is up to date with the global").yellow);
+		process.exit(1);
 	}
 });
 
