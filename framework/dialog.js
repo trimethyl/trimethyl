@@ -16,7 +16,7 @@ function onClickDict(e, dict, dialog) {
 	if (OS_IOS && e.index == e.source.cancel) return;
 	if (OS_ANDROID && e.cancel === true) return;
 
-	if (_.isObject(dict[+e.index]) && _.isFunction(dict[+e.index].callback)) {
+	if (dict != null && _.isObject(dict[+e.index]) && _.isFunction(dict[+e.index].callback)) {
 		dict[+e.index].callback.call(dialog, e);
 	}
 }
@@ -55,7 +55,7 @@ exports.alert = dialogAlert;
  *
  * @param  {String}		title       	The title
  * @param  {String}		message        The message
- * @param  {Object}		dict     		Buttons as Dictonary
+ * @param  {Object}		dict     		Buttons as Dictionary
  * @param  {Object}		ext 				Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
@@ -80,7 +80,7 @@ exports.confirm = dialogConfirm;
  * Create and show an Option Dialog
  *
  * @param  {String}		title 			The title
- * @param  {Object}    	dict 				Buttons as Dictonary
+ * @param  {Object}    	dict 				Buttons as Dictionary
  * @param  {Object}		[ext] 			Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
@@ -136,7 +136,7 @@ exports.confirmYes = confirmYes;
  *
  * @param  {String}   	title 				The title
  * @param  {String}   	message   			The message
- * @param  {Object}    	dict 					Buttons as Dictonary
+ * @param  {Object}    	dict 					Buttons as Dictionary
  * @param  {Object}		[ext] 				Extends the `AlertDialog`
  * @return {Ti.UI.AlertDialog}
  */
@@ -144,7 +144,7 @@ function dialogPrompt(title, message, dict, ext) {
 	if (OS_IOS) {
 
 		return dialogConfirm(title, message, dict, _.extend({
-			style: Ti.UI.iPhone.AlertDialogStyle.PLAIN_TEXT_INPUT
+			style: Ti.UI.iOS.AlertDialogStyle.PLAIN_TEXT_INPUT
 		}, ext));
 
 	} else if (OS_ANDROID) {
@@ -167,3 +167,96 @@ function dialogPrompt(title, message, dict, ext) {
 	}
 }
 exports.prompt = dialogPrompt;
+
+/**
+ * Create a checkbox prompt dialog.
+ * Android only.
+ *
+ * @param  {String}   	[title] 	The title.
+ * @param  {String}   	[message]   The message.
+ * @param  {Object}   	[options] 	The options as an Array of primitive values or Literal objects with title/value. Title can be a primitive or a Literal object of Ti.UI.Label options.
+ * @param  {Object}   	[values] 	A list of preselected values.
+ * @param  {Object}   	[dict] 		Buttons as Dictionary.
+ * @param  {Object}		[ext] 		Extends the `AlertDialog`. The property androidView is ignored.
+ * @return {Ti.UI.AlertDialog}
+ */
+function dialogCheckbox(title, message, options, values, dict, ext) {
+	if (OS_IOS) {
+
+		Ti.API.error('Dialog: Dialog.checkbox is not supported yet on iOS');
+		return false;
+
+	} else if (OS_ANDROID) {
+
+		var container = Ti.UI.createView({
+			width: Ti.UI.FILL,
+			height: Ti.UI.SIZE
+		});
+
+		var inner_container = Ti.UI.createView({
+			width: Ti.UI.FILL,
+			height: Ti.UI.SIZE,
+			top: _.isEmpty(message) ? 20 : 0,
+			bottom: _.isEmpty(dict) ? 24 : 0,
+			left: 24,
+			right: 24,
+			layout: 'vertical'
+		});
+
+		values = values || [];
+
+		_.each(options, function(item) {
+			var value = _.isObject(item) ? item.value : item;
+			var title = _.isObject(item) ? item.title : item;
+
+			var item_container = Ti.UI.createView({
+				width: Ti.UI.FILL,
+				height: 48
+			});
+
+			item_container.input = Ti.UI.createSwitch({
+				style: Ti.UI.Android.SWITCH_STYLE_CHECKBOX,
+				value: values.indexOf(value) >= 0 ? true : false,
+				width: Ti.UI.SIZE,
+				left: 0,
+			});
+			item_container.add(item_container.input);
+
+			item_container.add(Ti.UI.createLabel(_.extend({
+				left: 36,
+				width: Ti.UI.FILL
+			}, _.isObject(title) ? title : { text: title })));
+
+			item_container.value = value;
+
+			inner_container.add(item_container);
+		});
+
+		container.add(inner_container);
+
+		_.each(dict, function(d) {
+			if (d.cancel === true || d.callback == null) return;
+			d._origCallback = d.callback;
+			d.callback = function(e) {
+				var values = [];
+
+				_.each(inner_container.children, function(item) {
+					if (item.input.getValue() == true) {
+						values.push(item.value);
+					}
+				});
+				_.extend(e, {
+					values: values
+				});
+
+				d._origCallback.call(this, e);
+			};
+		});
+
+		return dialogConfirm(title, message, dict, _.extend({
+			androidView: container
+		}, _.omit(ext, 'androidView')));
+
+	}
+}
+exports.checkbox = dialogCheckbox;
