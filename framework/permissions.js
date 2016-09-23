@@ -23,8 +23,17 @@ PERMISSIONS_TYPES.forEach(function(type) {
 		success = _.isFunction(success) ? success : Alloy.Globals.noop;
 		error = _.isFunction(error) ? error : Alloy.Globals.noop;
 
-		if (Ti[type.proxy]['has' + type.name + 'Permissions']() !== true) {
-			Ti[type.proxy]['request' + type.name + 'Permissions'](function(res) {
+		var has 	= Ti[type.proxy]['has' + type.name + 'Permissions'];
+		var request = Ti[type.proxy]['request' + type.name + 'Permissions'];
+
+		if(!_.isFunction(has) || 
+		   !_.isFunction(request)) {
+			Ti.API.debug("Either of the functions [Ti." + type.proxy + ".has" + type.name + "Permissions(), Ti." + type.proxy + ".request" + type.name + "Permissions()] is missing");
+			success();
+		}
+
+		if (has() !== true) {
+			request(function(res) {
 				if (res.success === true) {
 					success();
 				} else {
