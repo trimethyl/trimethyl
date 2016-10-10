@@ -234,7 +234,13 @@ function installOnFileSystem(items) {
 /////////////////////
 
 program.command('install').alias('i').description('Install the framework files').action(function() {
+	if (app_trimethyl_config.version == null) {
+		preInstall();
+		return;
+	}
+
 	var comparision = compareVersions(package.version, app_trimethyl_config.version);
+
 	if (comparision === -1) {
 		inquirer.prompt([{
 			type: 'confirm',
