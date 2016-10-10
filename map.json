@@ -19,6 +19,11 @@
 		"description": "Authentication with a REST web server provided by local drivers.",
 		"dependencies": ["http","event","ext/q","auth/bypass","support/oauth"]
 	},
+	"forceTouch":{
+		"name": "ForceTouch",
+		"description": "Creation of the forcetouch app icon menus programmatically",
+		"dependencies": ["router","ext/q","event"]
+	},
 	"auth/bypass":{
 		"name": "Auth.Bypass",
 		"description": "Bypass driver."
