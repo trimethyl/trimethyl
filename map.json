@@ -19,11 +19,6 @@
 		"description": "Authentication with a REST web server provided by local drivers.",
 		"dependencies": ["http","event","ext/q","auth/bypass","support/oauth"]
 	},
-	"forceTouch":{
-		"name": "ForceTouch",
-		"description": "Creation of the forcetouch app icon menus programmatically",
-		"dependencies": ["router","ext/q","event"]
-	},
 	"auth/bypass":{
 		"name": "Auth.Bypass",
 		"description": "Bypass driver."
@@ -86,6 +81,11 @@
 		"name": "Flow",
 		"description": "Manages the app windows flow.",
 		"dependencies": ["event","ga"]
+	},
+	"forceTouch":{
+		"name": "ForceTouch",
+		"description": "Creation of the forcetouch app icon menus programmatically",
+		"dependencies": ["router","ext/q","event"]
 	},
 	"ga":{
 		"name": "GA",
