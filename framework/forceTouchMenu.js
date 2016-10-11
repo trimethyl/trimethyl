@@ -30,7 +30,7 @@
  */
 exports.config = _.extend({
 	items: []
-}, Alloy.CFG.T ? Alloy.CFG.T.forceTouch : {});
+}, Alloy.CFG.T ? Alloy.CFG.T.forceTouchMenu : {});
 
 var Event = require('T/event');
 //var Util = require('T/util');

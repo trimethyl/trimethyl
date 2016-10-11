@@ -82,8 +82,8 @@
 		"description": "Manages the app windows flow.",
 		"dependencies": ["event","ga"]
 	},
-	"forceTouch":{
-		"name": "ForceTouch",
+	"forceTouchMenu":{
+		"name": "ForceTouchMenu",
 		"description": "Creation of the forcetouch app icon menus programmatically",
 		"dependencies": ["router","ext/q","event"]
 	},
