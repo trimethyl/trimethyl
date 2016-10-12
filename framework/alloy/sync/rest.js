@@ -1,9 +1,16 @@
 /*
- * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @author Flavio De Stefano <flavio.destefano@caffeina.com>
+ * @author Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
 var HTTP = require('T/http');
 var Util = require('T/util');
+
+exports.config = _.extend({
+	base: '/',
+	idAttribute: 'id',
+	collectionWrapper: 'data'
+}, Alloy.CFG.T ? Alloy.CFG.T.rest : {});
 
 var CRUD_to_REST = {
 	'create': 'POST',
@@ -14,15 +21,18 @@ var CRUD_to_REST = {
 };
 
 exports.sync = function(method, model, opt) {
-	var url = (model.config.adapter.baseUrl || '/') + model.config.adapter.name;
-	var idAttribute = model.config.idAttribute || 'id';
-	var attributeToWrapCollections = model.config.adapter.attributeToWrapCollections || 'data';
-	
-	if ((model instanceof Backbone.Model) && model.id != null) {
-		url += '/' + model.id;
+	var adapter_cfg = _.extend({}, exports.config, model.config.adapter);
+	var url = adapter_cfg.base + adapter_cfg.name;
+
+	if (model instanceof Backbone.Model) {
+		if (opt.id != null) {
+			url += '/' + opt.id;
+		} else if (model.id != null) {
+			url += '/' + model.id;
+		}
 	}
 
-	if (model.query != null) {
+	if (opt.query != null) {
 		if (_.isObject(model.query) || _.isArray(model.query)) {
 			url += Util.buildQuery(model.query);
 		} else if (_.isString(model.query)) {
@@ -40,13 +50,29 @@ exports.sync = function(method, model, opt) {
 
 	switch (method) {
 
+		case 'patch':
+
+		httpOpt = _.extend(httpOpt, { data: _.pick(model.attributes, _.keys(opt.changes)) });
+
+		HTTP.send(httpOpt)
+		.success(function(resp) {
+			if (resp != null && resp[ adapter_cfg.idAttribute ] != null) {
+				opt.success(resp);
+			} else {
+				opt.error(resp);
+			}
+		})
+		.error(opt.error);
+		break;
+
+		case 'update':
 		case 'create':
 
 		httpOpt = _.extend(httpOpt, { data: model.toJSON() });
 
 		HTTP.send(httpOpt)
 		.success(function(resp) {
-			if (resp != null && resp[ idAttribute ] != null) {
+			if (resp != null && resp[ adapter_cfg.idAttribute ] != null) {
 				opt.success(resp);
 			} else {
 				opt.error(resp);
@@ -66,14 +92,14 @@ exports.sync = function(method, model, opt) {
 					if (_.isArray(resp)) {
 						opt.success(resp);
 					} else if (_.isObject(resp)){
-						opt.success(resp[ attributeToWrapCollections ]);
+						opt.success(resp[ adapter_cfg.collectionWrapper ]);
 					} else {
 						opt.error(resp);
 					}
 
 				} else {
-					
-					if (resp != null && resp[ idAttribute ] != null) {
+
+					if (resp != null && resp[ adapter_cfg.idAttribute ] != null) {
 						opt.success(resp);
 					} else {
 						opt.error(resp);
@@ -84,25 +110,6 @@ exports.sync = function(method, model, opt) {
 				opt.error(resp);
 			}
 
-		})
-		.error(opt.error);
-		break;
-
-		case 'update':
-
-		if (opt.patch) {
-			httpOpt = _.extend(httpOpt, { data: _.pick(model.attributes, _.keys(opt.changes)) });
-		} else {
-			httpOpt = _.extend(httpOpt, { data: model.toJSON() });
-		}
-
-		HTTP.send(httpOpt)
-		.success(function(resp) {
-			if (resp != null && resp[ idAttribute ] != null) {
-				opt.success(resp);
-			} else {
-				opt.error(resp);
-			}
 		})
 		.error(opt.error);
 		break;

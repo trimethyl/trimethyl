@@ -293,6 +293,13 @@
 		"destination": "/app/lib/alloy/sync/hateoas.js"
 	},
 
+	"alloy/sync/rest":{
+		"name": "REST Alloy Adapter",
+		"description": "A sync for Backbone to work with RESTful APIs.",
+		"dependencies": ["http","util"],
+		"destination": "/app/lib/alloy/sync/rest.js"
+	},
+
 	"ext/async":{
 		"name": "Async",
 		"source": "/node_modules/async/dist/async.js"

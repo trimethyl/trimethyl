@@ -1,6 +1,6 @@
 /**
  * @module  http
- * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
 /**
@@ -235,7 +235,10 @@ HTTPRequest.prototype._whenComplete = function(e) {
 	try {
 		this.responseInfo = this._getResponseInfo();
 	} catch (ex) {
-		this.defer.reject({ broken: true });
+		this.defer.reject({
+			code: 0,
+			broken: true
+		});
 		return;
 	}
 
@@ -247,19 +250,19 @@ HTTPRequest.prototype._whenComplete = function(e) {
 	}
 
 	if (e.success) {
-		
+
 		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
 
 	} else {
-		
+
 		this.defer.reject({
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
 			error: e.error,
 			code: this.client.status,
 			response: data
 		});
-	
+
 	}
 };
 
@@ -276,7 +279,7 @@ HTTPRequest.prototype.send = function() {
 	_.each(filters, function(filter, name) {
 		if (self.opt.suppressFilters == true) return;
 		if (_.isArray(self.opt.suppressFilters) && self.opt.suppressFilters.indexOf(name) >= 0) return;
-		
+
 		promise = promise.then( filter.bind(null, self) );
 	});
 
@@ -336,7 +339,7 @@ HTTPRequest.prototype._send = function() {
 	this.client = client;
 };
 
-HTTPRequest.prototype.resolve = function() {	
+HTTPRequest.prototype.resolve = function() {
 	var cache = null;
 
 	if (Ti.Network.online) {
@@ -359,12 +362,14 @@ HTTPRequest.prototype.resolve = function() {
 			} else {
 				this.defer.reject({
 					offline: true,
+					code: 0,
 					message: L('network_offline', 'Check your connectivity.')
 				});
 			}
 		} else {
 			this.defer.reject({
 				offline: true,
+				code: 0,
 				message: L('network_offline', 'Check your connectivity.')
 			});
 		}
