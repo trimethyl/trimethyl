@@ -82,6 +82,11 @@
 		"description": "Manages the app windows flow.",
 		"dependencies": ["event","ga"]
 	},
+	"forceTouchMenu":{
+		"name": "ForceTouchMenu",
+		"description": "Creation of the forcetouch app icon menus programmatically",
+		"dependencies": ["router","ext/q","event"]
+	},
 	"ga":{
 		"name": "GA",
 		"description": "Google Analytics proxy.",
