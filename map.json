@@ -280,7 +280,7 @@
 	},
 	"xmlparser/extract": {
 		"name": "XMLParser.Extract",
-		"description": "Extracts the first xml tag found with all the content inside.",
+		"description": "Extracts the first xml tag found with all the content inside."
 	},
 	"xmlparser/parser": {
 		"name": "XMLParser.Parser",
@@ -289,7 +289,7 @@
 	},
 	"xmlparser/proxies": {
 		"name": "XMLParser.Proxies",
-		"description": "Default proxies for the xmlparser/parser module.",
+		"description": "Default proxies for the xmlparser/parser module."
 	},
 
 	"alloy/sync/api":{
