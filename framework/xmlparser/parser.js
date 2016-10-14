@@ -182,12 +182,12 @@ function parse(xml, opts) {
 	 function closingTag(tag, data) {
 	 	var re = new RegExp('<[\\/]*(['+ tag +'\\w-:.]+)\\s*',"gm");
 	 	var counter = 1;
-	 	var m;
+	 	var m = re.exec(data);
 	 	var index = -1;
 
 	 	var ma = [];
 
-		while (m = re.exec(data)) {
+		while (m) {
 	 		if (m[0].indexOf("/") != -1) {
 	 			counter--;
 	 		} else {
@@ -195,6 +195,8 @@ function parse(xml, opts) {
 	 		}
 	 		ma.push(m);
 	 		if (counter == 0) return ma;
+	 		
+	 		m = re.exec(data);
 	 	}
 	 }
 

@@ -112,7 +112,9 @@ function extract(xml, tagName) {
 	 	var re = new RegExp(reString,"gm");
 
 	 	var counter = 1;
-	 	while (m = re.exec(xml)) {
+	 	m = re.exec(xml);
+
+	 	while (m) {
 			if (m[0].indexOf("/") != -1) {
 	 			counter--;
 	 		} else {
@@ -120,6 +122,8 @@ function extract(xml, tagName) {
 	 		}
 
 	 		if (counter == 0) return m;
+
+	 		m = re.exec(xml);
 	 	}
 	 }
 
