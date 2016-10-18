@@ -6,10 +6,10 @@
  * dependencies: n/a
  */
 
-exports.TYPE_TEXT = 0;
-exports.TYPE_CUSTOM = 1;
-exports.opts 	  = {};
-exports.fontTransform = exports.opts.fontTransform || {};
+exports.TYPE_TEXT 		= 0;
+exports.TYPE_CUSTOM 	= 1;
+exports.opts 	  		= {};
+exports.fontTransform 	= exports.opts.fontTransform || {};
 
 exports.proxies = {
 	p: {
@@ -21,7 +21,7 @@ exports.proxies = {
 	br: {
 		type: exports.TYPE_TEXT,
 		handler: function(e) {
-			return { text: "\n" + e.text, attributes: [] };
+			return { text: "\n", attributes: [] };
 		}
 	},
 	h3: {

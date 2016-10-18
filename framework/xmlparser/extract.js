@@ -59,7 +59,6 @@ function extract(xml, tagName) {
 			if (!attr) break;
 			node.attributes[attr.name] = attr.value;
 		}
-
 		// self closing tag
 		if (match(/^\s*\/>\s*/)) {
 			return node;
@@ -67,7 +66,9 @@ function extract(xml, tagName) {
 		match(/\w*?>\s*/);
 
 		// content
-		node.content = xml.replace(closeTag[0], ''); //content();
+		//Ti.API.debug(closeTag[0]);
+		node.content = xml.replace(new RegExp(closeTag[0]+"$"), ''); //content();
+		//Ti.API.debug(node.content);
 		node.text = /([^<]*)/.exec(xml)[0];
 
 		return node;
@@ -108,14 +109,16 @@ function extract(xml, tagName) {
 	 */
 
 	 function closingTag(tag) {
-	 	var reString = '<[\\/]'+ tag +'([\\w-:.]*)\\s*>';
-	 	var re = new RegExp(reString,"gm");
+	 	var reString = '<[\\/]*'+ tag +'[^>]*>';
+	 	var re = new RegExp(reString,"g");
 
-	 	var counter = 1;
+	 	var i = 0;
+	 	var counter = 0;
+
 	 	m = re.exec(xml);
 
-	 	while (m) {
-			if (m[0].indexOf("/") != -1) {
+	 	while (m && i < 1000) {
+			if (m[0].indexOf("</") != -1) {
 	 			counter--;
 	 		} else {
 	 			counter ++;
@@ -124,6 +127,7 @@ function extract(xml, tagName) {
 	 		if (counter == 0) return m;
 
 	 		m = re.exec(xml);
+	 		i++;
 	 	}
 	 }
 

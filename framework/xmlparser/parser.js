@@ -96,12 +96,11 @@ function parse(xml, opts) {
 	var currentLabel; // variable to use for constucting multi style labels
 	var tempAttributes = [];
 
-
 	this.container = container;
 
 	// strip comments and whitespaces
 	xml = xml.trim();
-	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(/\n*/g, '');
+	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br></br>');
 
 	// start processing
 	tag(xml);
@@ -170,6 +169,7 @@ function parse(xml, opts) {
 				proxy(block); // create proxy
 			}
 		}
+		if (!child && ! content.length) proxy(block);
 		tag(data);
 
 		return;
@@ -180,7 +180,7 @@ function parse(xml, opts) {
 	 */
 
 	 function closingTag(tag, data) {
-	 	var re = new RegExp('<[\\/]*(['+ tag +'\\w-:.]+)\\s*',"gm");
+	 	var re = new RegExp('<[\\/]*('+ tag +'[^>]*>',"g");
 	 	var counter = 1;
 	 	var m = re.exec(data);
 	 	var index = -1;
@@ -195,7 +195,7 @@ function parse(xml, opts) {
 	 		}
 	 		ma.push(m);
 	 		if (counter == 0) return ma;
-	 		
+
 	 		m = re.exec(data);
 	 	}
 	 }
@@ -274,8 +274,14 @@ function parse(xml, opts) {
 			attributedString: Ti.UI.createAttributedString(currentLabel),
 			font: {fontSize: 14}
 		}, opts.textStyle));
+
+		label.addEventListener("link", linkHandler);
 		// add label to container
 		container.add(label);
 		currentLabel = null;
+	}
+
+	function linkHandler(e) {
+		if (e.url) alert(e.url);
 	}
 }
