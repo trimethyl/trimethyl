@@ -225,6 +225,10 @@
 		"description": "Select façade",
 		"dependencies": ["dialog","util"]
 	},
+	"uifactory/soundcloudclassicwebview":{
+		"name": "UIFactory.SoundCloudClassicWebView",
+		"description": "Renderer for soundcloud tracks"
+	},
 	"uifactory/tabbedbar":{
 		"name": "UIFactory.TabbedBar",
 		"description": "TabbedBar façade"
@@ -278,14 +282,14 @@
 		"name": "WebAlloy",
 		"description": "µ-web-framework to write Alloy apps in HTML/CSS/JS."
 	},
+	"xmlparser": {
+		"name": "XMLParser",
+		"description": "Parser for html/xml data which exposes the tags and gives you the ability to manage them through proxies",
+		"dependencies": ["xmlparser/proxies", "xmlparser/extract"]
+	},
 	"xmlparser/extract": {
 		"name": "XMLParser.Extract",
 		"description": "Extracts the first xml tag found with all the content inside."
-	},
-	"xmlparser/parser": {
-		"name": "XMLParser.Parser",
-		"description": "Parser for html/xml data which exposes the tags and gives you the ability to manage them through proxies",
-		"dependencies": ["xmlparser/proxies", "xmlparser/extract"]
 	},
 	"xmlparser/proxies": {
 		"name": "XMLParser.Proxies",
