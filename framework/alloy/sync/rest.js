@@ -33,10 +33,10 @@ exports.sync = function(method, model, opt) {
 	}
 
 	if (opt.query != null) {
-		if (_.isObject(model.query) || _.isArray(model.query)) {
-			url += Util.buildQuery(model.query);
-		} else if (_.isString(model.query)) {
-			url += model.query.substr(0,1) === '?' ? model.query : ('?'+model.query);
+		if (_.isObject(opt.query) || _.isArray(opt.query)) {
+			url += Util.buildQuery(opt.query);
+		} else if (_.isString(opt.query)) {
+			url += opt.query.substr(0,1) === '?' ? opt.query : ('?'+opt.query);
 		}
 	}
 
