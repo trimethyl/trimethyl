@@ -1,29 +1,7 @@
 /**
  * @author Ani Sinanaj
  * @module ext/xmlparser
- * dependencies: ext/xmlextract, ext/xmlproxies
- * Given an xml/html string, the module parses it into objects and
- * lets you have complete control over how it is rendered through proxies.
- * @usage
- * var Parser = T('ext/xmlparser');
- * Parser.overrideProxies({
- * 		imagecaption: {
- *			type: exports.TYPE_CUSTOM,
- *			handler: function(e, container) {
- *				container.add(Ti.UI.createImageView({
- *					width: 100,
- *					height: 100,
- *					backgroundColor: "#ccc"
- *				}));
- *			}
- *		}
- * });
- * var opts = {
- * 		font: {}, // Titanium Font object
- * 		textStyle: {}, // Properties for the main label container for the texts
- *
- * };
- * win.add(Parser(XML_STRING, opts));
+ * @dependencies: ext/xmlextract, ext/xmlproxies
  */
 
 /**
@@ -92,7 +70,7 @@ function parse(xml, opts) {
 
 	var proxies   = _.extend(DefaultProxies.proxies, customProxies, opts.proxies);
 
-	container = container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
+	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
 	var tempAttributes = [];
 
@@ -100,7 +78,7 @@ function parse(xml, opts) {
 
 	// strip comments and whitespaces
 	xml = xml.trim();
-	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br></br>');
+	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br />');
 
 	// start processing
 	tag(xml);
@@ -174,31 +152,6 @@ function parse(xml, opts) {
 
 		return;
 	}
-
-	/**
-	 *	Find the closing tag
-	 */
-
-	 function closingTag(tag, data) {
-	 	var re = new RegExp('<[\\/]*('+ tag +'[^>]*>',"g");
-	 	var counter = 1;
-	 	var m = re.exec(data);
-	 	var index = -1;
-
-	 	var ma = [];
-
-		while (m) {
-	 		if (m[0].indexOf("/") != -1) {
-	 			counter--;
-	 		} else {
-	 			counter ++;
-	 		}
-	 		ma.push(m);
-	 		if (counter == 0) return ma;
-
-	 		m = re.exec(data);
-	 	}
-	 }
 
 	/**
 	 * Strip.

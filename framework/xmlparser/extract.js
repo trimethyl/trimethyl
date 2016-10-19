@@ -1,11 +1,10 @@
 /**
- * @author Ani Sinanaj
- * @module ext/xmlextract
- * dependencies: n/a
  * This module extracts the first tag matching with the second
  * argument from an xml/html string (first argument)
  * returns an object containing the attributes of the tag, it's name and the content
  * based on `https://github.com/segmentio/xml-parser`
+ * @author Ani Sinanaj
+ * @module xmlparser/extract
  */
 
 /**
@@ -19,7 +18,6 @@ exports = extract;
  * @param {String} xml
  * @param {String} tag to extract
  * @return {Object}
- * @api public
  */
 function extract(xml, tagName) {
 	// strip spaces
@@ -59,16 +57,16 @@ function extract(xml, tagName) {
 			if (!attr) break;
 			node.attributes[attr.name] = attr.value;
 		}
+
 		// self closing tag
-		if (match(/^\s*\/>\s*/)) {
+		if (openTag.index === closeTag.index) {
+			node.content = "";
 			return node;
 		}
 		match(/\w*?>\s*/);
 
 		// content
-		//Ti.API.debug(closeTag[0]);
-		node.content = xml.replace(new RegExp(closeTag[0]+"$"), ''); //content();
-		//Ti.API.debug(node.content);
+		node.content = xml.replace(new RegExp(closeTag[0]+"$"), '');
 		node.text = /([^<]*)/.exec(xml)[0];
 
 		return node;
@@ -116,6 +114,8 @@ function extract(xml, tagName) {
 	 	var counter = 0;
 
 	 	m = re.exec(xml);
+
+	 	if (m[0].indexOf("/>") != -1) return m;
 
 	 	while (m && i < 1000) {
 			if (m[0].indexOf("</") != -1) {

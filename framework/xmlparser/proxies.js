@@ -3,7 +3,6 @@
  * @module ext/xmlproxies
  * Set of predefined proxies for xmlparser. Can be overriden
  * by xmlParser's own method `overrideProxies`
- * dependencies: n/a
  */
 
 exports.TYPE_TEXT 		= 0;
