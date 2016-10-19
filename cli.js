@@ -11,8 +11,17 @@ var CWD = process.cwd();
 var trimethyl_map = require('./map.json');
 var package = require('./package.json');
 
+var ga = require('universal-analytics')(package.ua);
+
 var DEFAULT_SOURCE_PATH = '/framework/';
 var DEFAULT_DEST_PATH = '/app/lib/T/';
+
+function error(msg, code) {
+	ga.event("error", "error", msg).send();
+
+	process.stdout.write(msg.red);
+	process.exit( code || 1 );
+}
 
 function buildDependencies(libs, key, req, tabs) {
 	req = req || null;
@@ -21,8 +30,7 @@ function buildDependencies(libs, key, req, tabs) {
 
 	var K = trimethyl_map[ key ];
 	if (K == null) {
-		process.stdout.write(('Unable to find module "' + key + '"').red);
-		process.exit();
+		error('Unable to find module "' + key + '"');
 	}
 
 	var src_file = __dirname + DEFAULT_SOURCE_PATH + key + '.js';
@@ -97,6 +105,8 @@ function addModule(name) {
 }
 
 function preInstall() {
+	ga.event("installation", "preinstall").send();
+
 	if (_.isEmpty(app_trimethyl_config.libs)) {
 		inquirer.prompt([{
 			type: 'checkbox',
@@ -105,8 +115,7 @@ function preInstall() {
 			choices: _.map(trimethyl_map, function(e, k) { return { name: e.name, value: k }; })
 		}], function (ans) {
 			if (_.isEmpty(ans.modules)) {
-				process.stdout.write("Please select at least one module.".red);
-				process.exit(1);
+				error("Please select at least one module.");
 			}
 
 			ans.modules.forEach(function(e) { addModule(e); });
@@ -123,6 +132,8 @@ function install() {
 	// Get the libraries to copy in /Resources
 	var libs_to_copy = {};
 	(["trimethyl"].concat( app_trimethyl_config.libs )).forEach(function(v) {
+		ga.event("installation", "module", v).send();
+
 		buildDependencies(libs_to_copy, v);
 	});
 	libs_to_copy = _.toArray(libs_to_copy);
@@ -155,6 +166,8 @@ function install() {
 			if (null == _.find(tiapp.getModules(), function(m) {
 				return m.id == module && m.platform == platform;
 			})) {
+				ga.event("installation", "dependency").send();
+
 				inquirer.prompt([{
 					type: 'expand',
 					name: 'result',
@@ -166,31 +179,41 @@ function install() {
 						{ key: 'e', name: 'Exit', value: 'exit' }
 					]
 				}], function (ans) {
+
 					if (ans.result === 'add') {
+						ga.event("installation", "dependency_add", module).send();
+
 						tiapp.setModule(module, { platform: platform });
 						tiapp.write();
 						installModules(install_modules_callback);
 
 					} else if (ans.result === 'install') {
+						ga.event("installation", "dependency_gittio_install", module).send();
+
 						require('child_process').exec('gittio install ' + module + ' -p ' + platform, function(error, stdout, stderr) {
 							if (stderr) process.stdout.write(stderr.replace(/\[.+?\] /g, '').red);
 							else process.stdout.write(stderr.replace(/\[.+?\] /g, '').gray);
 							installModules(install_modules_callback);
 						});
-
+					
 					} else if (ans.result === 'skip') {
-						installModules(install_modules_callback);
+						ga.event("installation", "dependency_skip", module).send();
 
+						installModules(install_modules_callback);
 					}
+
 				});
 			} else {
 				installModules(install_modules_callback);
 			}
+
 		})(function() {
 			checkLibs(copy_libs_callback);
 		});
 
 	})(function() {
+
+		ga.event("installation", "end").send();
 
 		process.stdout.write("\n");
 
@@ -234,6 +257,8 @@ function installOnFileSystem(items) {
 /////////////////////
 
 program.command('install').alias('i').description('Install the framework files').action(function() {
+	ga.pageview("/install").send();
+
 	if (app_trimethyl_config.version == null) {
 		preInstall();
 		return;
@@ -248,10 +273,13 @@ program.command('install').alias('i').description('Install the framework files')
 			message: ("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?").yellow,
 			default: false
 		}], function(ans) {
+			ga.event("installation", "downgrade").send();
+
 			if (ans.result) {
 				preInstall();
 			}
 		});
+
 	} else if (comparision === 1) {
 		if (compareMajorVersions(package.version, app_trimethyl_config.version) === 1) {
 			inquirer.prompt([{
@@ -259,16 +287,21 @@ program.command('install').alias('i').description('Install the framework files')
 				name: 'result',
 				message: ("You are doing a major upgrade from " + app_trimethyl_config.version + " to " + package.version + "\nThis means that some features have changed from one release to the other, you have to check the project very carefully after doing that.\nAre you sure to install?").yellow
 			}], function(ans) {
+				ga.event("installation", "majorupgrade").send();
+
 				if (ans.result) {
 					preInstall();
 				}
 			});
+
 		} else {
+			ga.event("installation", "upgrade").send();
 			preInstall();
 		}
+
 	} else if (comparision === 0) {
-		process.stdout.write(("Your installed version is up to date with the global").yellow);
-		process.exit(1);
+		ga.event("installation", "uptodate").send();
+		error("Your installed version is up to date with the global");
 	}
 });
 
@@ -277,6 +310,8 @@ program.command('install').alias('i').description('Install the framework files')
 //////////////////
 
 program.command('list').alias('ls').description('List all Trimethyl available modules').action(function() {
+	ga.pageview("/list").send();
+
 	_.each(trimethyl_map, function(m, k) {
 		if (m.internal) return;
 
@@ -291,14 +326,14 @@ program.command('list').alias('ls').description('List all Trimethyl available mo
 /////////////////
 
 program.command('add [name]').alias('a').description('Add a Trimethyl module to your config').action(function(name) {
+	ga.pageview("/add/" + name).send();
+
 	if (!(name in trimethyl_map)) {
-		process.stdout.write(('<' + name + '> is not a valid Trimethyl module.').red);
-		process.exit();
+		error('<' + name + '> is not a valid Trimethyl module.');
 	}
 
 	if (trimethyl_map[name].internal) {
-		process.stdout.write(('<' + name + '> is an internal module.').red);
-		process.exit();
+		error('<' + name + '> is an internal module.');
 	}
 
 	addModule(name);
@@ -310,12 +345,12 @@ program.command('add [name]').alias('a').description('Add a Trimethyl module to 
 ////////////////////
 
 program.command('remove [name]').alias('r').description('Remove a Trimethyl module to your config').action(function(name) {
+	ga.pageview("/remove/" + name).send();
 	name = name.replace('.', '/');
 
 	var io = app_trimethyl_config.libs.indexOf(name);
 	if (io === -1) {
-		process.stdout.write('Unable to find <' + name + '> in your libs');
-		return;
+		error('Unable to find <' + name + '> in your libs');
 	}
 
 	app_trimethyl_config.libs.splice(io, 1);
@@ -327,6 +362,8 @@ program.command('remove [name]').alias('r').description('Remove a Trimethyl modu
 //////////////////////
 
 program.command('update').alias('r').description('Do a full upgrade of Trimethyl and its modules').action(function(name) {
+	ga.pageview("/update").send();
+
 	require('child_process').exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
 });
 
@@ -340,29 +377,30 @@ if (fs.existsSync(CWD + '/trimethyl.json')) {
 	try {
 		app_trimethyl_config = require(CWD + '/trimethyl.json');
 	} catch (err) {
-		process.stdout.write("Unable to parse trimethyl.json file!\n".red);
-		process.exit(1);
+		error("Unable to parse trimethyl.json file!");
 	}
 }
 
 // Alloy.js
 
 if (!fs.existsSync(CWD + '/app/config.json')) {
-	process.stdout.write("This is not a valid Alloy project.\n".red);
-	process.exit(1);
+	error("This is not a valid Alloy project.");
 }
+
 var app_config = require(CWD + '/app/config.json');
 
 // Tiapp.xml
 
 var tiapp = require('tiapp.xml').load('./tiapp.xml');
 if (tiapp == null) {
-	process.stdout.write("This is not a valid Titanium project.\n".red);
-	process.exit(1);
+	error("This is not a valid Titanium project.");
 }
 
 program.parse(process.argv);
+
 if (program.args.length === 0 || typeof program.args[program.args.length - 1] === 'string') {
+	ga.pageview("/help");
 	program.help();
-	return;
+} else {
+	ga.pageview("/");
 }

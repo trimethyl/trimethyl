@@ -5,10 +5,11 @@ if [ -z "$1" ]; then
 	exit
 fi
 
-
 npm run hint &&
 npm version $1 && 
 npm publish && 
+
 git push && 
 git push --tags &&
+
 npm run gendoc
