@@ -19,7 +19,6 @@ exports.config = _.extend({
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
-
 var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
@@ -641,12 +640,21 @@ exports.getRegionBounds = function(array, mulGap) {
 };
 
 /**
+ * Check if the the app doesn't know if it can use location services.
+ * @return {Boolean} [description]
+ */
+exports.isAuthorizationUnknown = function() {
+	return Ti.Geolocation.AUTHORIZATION_UNKNOWN;
+};
+
+/**
  * Check if the location services are enabled and the app is authorized to use them.
  * @return {Boolean}
  */
 exports.isAuthorized = function() {
-	return !!Ti.Geolocation.locationServicesEnabled &&
-	!!(Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_ALWAYS) || Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE));
+	return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_ALWAYS || 
+	Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE ||
+	Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_AUTHORIZED;
 };
 
 /**
@@ -657,8 +665,6 @@ exports.isAuthorized = function() {
 exports.isDenied = function() {
 	return !exports.isAuthorized();
 };
-
-
 
 //////////
 // Init //

@@ -301,7 +301,7 @@ program.command('install').alias('i').description('Install the framework files')
 
 	} else if (comparision === 0) {
 		ga.event("installation", "uptodate").send();
-		error("Your installed version is up to date with the global");
+		preInstall();
 	}
 });
 
