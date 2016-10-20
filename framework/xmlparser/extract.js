@@ -1,8 +1,4 @@
 /**
- * This module extracts the first tag matching with the second
- * argument from an xml/html string (first argument)
- * returns an object containing the attributes of the tag, it's name and the content
- * based on `https://github.com/segmentio/xml-parser`
  * @author Ani Sinanaj
  * @module xmlparser/extract
  */

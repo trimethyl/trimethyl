@@ -1,8 +1,6 @@
 /**
  * @author Ani Sinanaj
- * @module ext/xmlproxies
- * Set of predefined proxies for xmlparser. Can be overriden
- * by xmlParser's own method `overrideProxies`
+ * @module xmlparser/proxies
  */
 
 exports.TYPE_TEXT 		= 0;
