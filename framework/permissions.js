@@ -26,10 +26,9 @@ PERMISSIONS_TYPES.forEach(function(type) {
 		var has 	= Ti[type.proxy]['has' + type.name + 'Permissions'];
 		var request = Ti[type.proxy]['request' + type.name + 'Permissions'];
 
-		if(!_.isFunction(has) || 
-		   !_.isFunction(request)) {
+		if (!_.isFunction(has) || !_.isFunction(request)) {
 			Ti.API.debug("Either of the functions [Ti." + type.proxy + ".has" + type.name + "Permissions(), Ti." + type.proxy + ".request" + type.name + "Permissions()] is missing");
-			success();
+			return success();
 		}
 
 		if (has() !== true) {
