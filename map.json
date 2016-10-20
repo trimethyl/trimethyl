@@ -7,16 +7,17 @@
 
 	"animator":{
 		"name": "Animator",
-		"description": "Animator helper"
+		"description": "UI animation helper, providing built-in animations.",
+		"dependencies": ["matrix"]
 	},
 	"app":{
 		"name": "App",
-		"description": "Application manager",
+		"description": "Application manager, handling startup and incoming link or in-app updates.",
 		"dependencies": ["util","router","http","dialog"]
 	},
 	"auth":{
 		"name": "Auth",
-		"description": "Authentication with a REST web server provided by local drivers.",
+		"description": "Authentication with a web server using Backbone User model, supporting cookie-based and OAuth 2 via social logins.",
 		"dependencies": ["http","event","ext/q","auth/bypass","support/oauth"]
 	},
 	"auth/bypass":{
@@ -34,7 +35,7 @@
 	},
 	"cache":{
 		"name": "Cache",
-		"description": "Cache interface with different strategies.",
+		"description": "Store informations temporarily using different storages.",
 		"dependencies": ["cache/database"]
 	},
 	"cache/database":{
@@ -56,7 +57,7 @@
 	},
 	"device":{
 		"name": "Device",
-		"description": "Retrieve current informations about device."
+		"description": "Retrieve informations about current device."
 	},
 	"dialog":{
 		"name": "Dialog",
@@ -64,22 +65,22 @@
 	},
 	"event":{
 		"name": "Event",
-		"description": "Event manager based on Backbone.Events."
+		"description": "Global event manager based on Backbone.Events."
 	},
 	"fb":{
 		"name": "FB",
-		"description": "Proxy for Facebook SDK.",
+		"description": "Proxy for Facebook SDK adding global listeners and useful methods.",
 		"modules": ["facebook:iphone","facebook:android"],
 		"dependencies": ["util"]
 	},
 	"filesystem":{
 		"name": "Filesystem",
-		"description": "Filesystem proxy.",
+		"description": "Filesystem proxy adding convenience methods about directories.",
 		"dependencies": ["permissions"]
 	},
 	"flow":{
 		"name": "Flow",
-		"description": "Manages the app windows flow.",
+		"description": "Manages the app windows flow using a global navigator and exposing informations about opened controller and windows. It also tracks the screen view and timing automatically.",
 		"dependencies": ["event","ga"]
 	},
 	"forcetouchmenu":{
@@ -89,23 +90,23 @@
 	},
 	"ga":{
 		"name": "GA",
-		"description": "Google Analytics proxy.",
+		"description": "Google Analytics proxy with error-aware tracking.",
 		"modules": ["ti.ga:iphone","ti.ga:android"]
 	},
 	"geo":{
 		"name": "Geo",
-		"description": "Geographic API proxy and Map additional features like clustering.",
+		"description": "Geographic API proxy including geocoding features using Google, and map additional features like internal marker clustering.",
 		"dependencies": ["http","util","event","dialog"],
 		"modules": ["ti.map:iphone","ti.map:android"]
 	},
 	"http":{
 		"name": "HTTP",
-		"description": "HTTP requests made simple.",
+		"description": "HTTP requests in a clear interface with automatic internal cache control, automatic body encoding based on content and middleware filters.",
 		"dependencies": ["event","util","cache","ext/q","permissions"]
 	},
 	"image":{
 		"name": "Image",
-		"description": "Image manipulation features."
+		"description": "Image manipulation features to resize, crop or edit images in a clear interface."
 	},
 	"logger":{
 		"name": "Logger",
@@ -122,7 +123,7 @@
 	},
 	"notifications":{
 		"name": "Notifications",
-		"description": "Push notifications interface provided by different drivers.",
+		"description": "Push notifications module with interactive notification supports handling all platforms with one single interface, and communicating with several online service (Parse or CloudPush) or with your custom server.",
 		"dependencies": ["event","util","router","ext/q"],
 		"modules": ["ti.goosh:android"]
 	},
@@ -143,7 +144,7 @@
 	},
 	"permissions":{
 		"name": "Permissions",
-		"description": "Handle permissions requests for different modules."
+		"description": "Handle permissions requests for different modules with all platforms."
 	},
 	"prop":{
 		"name": "Prop",
@@ -151,18 +152,18 @@
 	},
 	"router":{
 		"name": "Router",
-		"description": "Manage your app flow with a routing system.",
+		"description": "You can emulate the routing concept adopted in many web framework, to handle incoming universal links and manage your app architecture.",
 		"dependencies": ["util","flow","ext/q"]
 	},
 	"sharer":{
 		"name": "Sharer",
-		"description": "Share like a sharer, be social!",
+		"description": "It provides a simple interface to share link on various social networks / chat systems like Facebook, Twitter, Telegram, WhatsApp and all you can imagine.",
 		"dependencies": ["fb","ga","util","dialog"],
 		"modules": ["bencoding.sms:iphone","dk.napp.social:iphone"]
 	},
 	"sounds":{
 		"name": "Sounds",
-		"description": "Proxy for Ti.Media.Sound."
+		"description": "Proxy to play sounds using a local cache."
 	},
 	"spotlight":{
 		"name": "Spotlight",
@@ -171,11 +172,11 @@
 	},
 	"sqlite":{
 		"name": "SQLite",
-		"description": "JavaScript SQLite abstraction layer."
+		"description": "SQLite abstraction layer providing a fluent interface to do query and fetch data from a remote/local SQLite database."
 	},
 	"uifactory":{
 		"name": "UIFactory",
-		"description": "Façade for new/XP UI elements."
+		"description": "Façade for new UI elements and cross-platform UI elements. It has a lot of  views that you can use when some features are missing."
 	},
 	"uifactory/actionbutton":{
 		"name": "UIFactory.ActionButton",
@@ -218,7 +219,7 @@
 	},
 	"uifactory/navigationwindow":{
 		"name": "UIFactory.NavigationWindow",
-		"description": "NavigationWindow façade"
+		"description": "It re-creates a new concept of Android Activity that works just like an iOS NavigationWindow with the same syntax."
 	},
 	"uifactory/select":{
 		"name": "UIFactory.Select",
@@ -255,7 +256,7 @@
 	},
 	"uifactory/window":{
 		"name": "UIFactory.Window",
-		"description": "Window façade",
+		"description": "It provides a clear way to handle both iOS / Android windows with a single UI module.",
 		"dependencies": ["uiutil"]
 	},
 	"uifactory/youtubevideowebview":{
@@ -280,7 +281,7 @@
 	},
 	"weballoy":{
 		"name": "WebAlloy",
-		"description": "µ-web-framework to write Alloy apps in HTML/CSS/JS."
+		"description": "µ-web-framework to write Alloy apps using only web technologies (HTML/CSS/JS) but interfacing in real time with native features. Could you re-create a mini PhoneGap framework in Titanium; the answer is yes."
 	},
 	"xmlparser": {
 		"name": "XMLParser",
