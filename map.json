@@ -82,7 +82,7 @@
 		"description": "Manages the app windows flow.",
 		"dependencies": ["event","ga"]
 	},
-	"forceTouchMenu":{
+	"forcetouchmenu":{
 		"name": "ForceTouchMenu",
 		"description": "Creation of the forcetouch app icon menus programmatically",
 		"dependencies": ["router","ext/q","event"]
@@ -285,15 +285,7 @@
 	"xmlparser": {
 		"name": "XMLParser",
 		"description": "Parser for html/xml data which exposes the tags and gives you the ability to manage them through proxies",
-		"dependencies": ["xmlparser/proxies", "xmlparser/extract"]
-	},
-	"xmlparser/extract": {
-		"name": "XMLParser.Extract",
-		"description": "Extracts the first xml tag found with all the content inside."
-	},
-	"xmlparser/proxies": {
-		"name": "XMLParser.Proxies",
-		"description": "Default proxies for the xmlparser/parser module."
+		"dependencies": ["support/xmlparser/proxies", "support/xmlparser/extract"]
 	},
 
 	"alloy/sync/api":{
@@ -348,6 +340,16 @@
 
 	"support/oauth":{
 		"name": "OAuth internal module",
+		"internal": true
+	},
+	"support/xmlparser/extract": {
+		"name": "XMLParser.Extract",
+		"description": "Extracts the first xml tag found with all the content inside.",
+		"internal": true
+	},
+	"support/xmlparser/proxies": {
+		"name": "XMLParser.Proxies",
+		"description": "Default proxies for the xmlparser/parser module.",
 		"internal": true
 	}
 }

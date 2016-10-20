@@ -1,5 +1,5 @@
 /**
- * @module  forceTouchMenu
+ * @module  forcetouchmenu
  * @author  Ani Sinanaj <ani.sinanaj@caffeina.com>
  */
 

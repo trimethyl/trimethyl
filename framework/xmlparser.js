@@ -7,8 +7,8 @@
 /**
  * Dependencies
  */
-var Extract = require('T/xmlparser/extract');
-var DefaultProxies = require('T/xmlparser/proxies');
+var Extract = require('T/support/xmlparser/extract');
+var DefaultProxies = require('T/support/xmlparser/proxies');
 
 /**
  * Global variables
