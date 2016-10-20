@@ -1,6 +1,6 @@
 /**
  * @author Ani Sinanaj
- * @module xmlparser/proxies
+ * @module support/xmlparser/proxies
  */
 
 exports.TYPE_TEXT 		= 0;
