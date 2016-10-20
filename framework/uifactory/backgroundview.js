@@ -1,5 +1,5 @@
 /**
- * @module  uifactory.backgroundview
+ * @module  uifactory/backgroundview
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
