@@ -1,14 +1,14 @@
 /**
  * @author Ani Sinanaj
- * @module ext/xmlparser
- * @dependencies: ext/xmlextract, ext/xmlproxies
+ * @module xmlparser
+ * @dependencies: xmlparser/extract, xmlparser/proxies
  */
 
 /**
  * Dependencies
  */
-var Extract = T('xmlparser/extract');
-var DefaultProxies = T('xmlparser/proxies');
+var Extract = require('T/xmlparser/extract');
+var DefaultProxies = require('T/xmlparser/proxies');
 
 /**
  * Global variables
