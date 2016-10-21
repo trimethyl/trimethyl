@@ -13,18 +13,23 @@ exports.config = _.extend({
 
 var Util = require('T/util');
 
+var LOGNAME = 'SQLite';
+
 function SQLite(name, file) {
 	this.query = null;
+	this.name = name;
+	this.db = null;
 
-	if (file == null) {
-		this.db = Ti.Database.open(name);
-	} else {
+	// Install the database from a file if needed, and close it immediately.
+	if (file != null) {
 		this.db = Ti.Database.install(file, name);
+
+		this.close();
 	}
 }
 
 /**
- * Return a new instance of SQLite opened from an absolute file
+ * Returns a new instance of SQLite opened from a file identified by the path argument.
  * @method fromFile
  * @static
  * @param  {String} path
@@ -264,7 +269,7 @@ SQLite.prototype.insert = function(obj) {
 };
 
 /**
- * Return the query to pass to native module
+ * Returns the query to pass to native module
  * @method getExequery
  * @return {Array}
  */
@@ -315,6 +320,18 @@ SQLite.prototype.getExequery = function() {
 	}
 };
 
+/**
+ * Open the database.
+ * Important: ALWAYS close the database after you are done with it.
+ * @method open
+ */
+SQLite.prototype.open = function() {
+	try {
+		this.db = Ti.Database.open(this.name);
+	} catch (ex) {
+		Ti.API.error(LOGNAME + ': Error while opening the database: ' + ex);
+	}
+};
 
 /**
  * Close the database
@@ -324,7 +341,7 @@ SQLite.prototype.close = function() {
 	try {
 		this.db.close();
 	} catch (ex) {
-		Ti.API.error('SQLite: error while closening database');
+		Ti.API.error(LOGNAME + ': Error while closing the database: ' + ex);
 	}
 };
 
@@ -337,78 +354,24 @@ SQLite.prototype.close = function() {
  * @return {Ti.DB.ResultSet}
  */
 SQLite.prototype.execute = SQLite.prototype.exec = function() {
+	this.open();
+
+	var q = null;
+
 	if (this.query === null) {
-		if (exports.config.log) Ti.API.debug('SQLite:', arguments);
-		return Function.prototype.apply.call(this.db.execute, this.db, arguments);
+		q = arguments;
+	} else {
+		q = this.getExequery();
+		this.query = null; // Reset query
 	}
 
-	var q = this.getExequery();
-	this.query = null; // Reset query
-	if (exports.config.log) Ti.API.debug('SQLite:', q);
-	return Function.prototype.apply.call(this.db.execute, this.db, q);
-};
+	if (exports.config.log) Ti.API.debug(LOGNAME + ':', arguments);
 
-/**
- * Return a single value
- * @method value
- * @alias val
- * @param {String} query
- * @param {Vararg} values
- */
-SQLite.prototype.value = SQLite.prototype.val = function() {
-	var row = this.execute.apply(this, arguments);
-	if (row.validRow === false) return null;
-
-	return row.field(0);
-};
-
-/**
- * Return a single object (row)
- * @method single
- * @alias row
- * @param {String} query
- * @param {Vararg} values
- */
-SQLite.prototype.single = SQLite.prototype.row = function() {
-	var row = this.execute.apply(this, arguments);
-	if (row.validRow === false) return null;
-
-	var obj = {};
-	for (var i = 0; i < row.fieldCount; i++) {
-		obj[row.fieldName(i)] = row.field(i);
-	}
-	return obj;
-};
-
-/**
- * Return a list of single values
- * @method list
- * @alias array
- * @param {String} query
- * @param {Vararg} values
- */
-SQLite.prototype.list = SQLite.prototype.array = function() {
-	var row = this.execute.apply(this, arguments);
-	var list = [];
-	while (row.validRow === true) {
-		list.push(row.field(0));
-		row.next();
-	}
-	return list;
-};
-
-/**
- * Return a list of objects (row)
- * @method all
- * @alias rows
- * @param {String} query
- * @param {Vararg} values
- */
-SQLite.prototype.all = SQLite.prototype.rows = function() {
-	var row = this.execute.apply(this, arguments);
+	var row = Function.prototype.apply.call(this.db.execute, this.db, q);
 	var list = [];
 	var fieldNames = [];
-	while (row.validRow === true) {
+
+	while (row != null && row.validRow === true) {
 		var obj = {};
 		for (var i = 0; i < row.fieldCount; i++) {
 			fieldNames[i] = fieldNames[i] || row.fieldName(i);
@@ -417,7 +380,66 @@ SQLite.prototype.all = SQLite.prototype.rows = function() {
 		list.push(obj);
 		row.next();
 	}
+
+	if (row != null) {
+		row.close();
+	}
+	this.close();
+
 	return list;
+
+};
+
+/**
+ * Returns a single value
+ * @method value
+ * @alias val
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.value = SQLite.prototype.val = function() {
+	var res = this.execute.apply(this, arguments);
+
+	return res.length > 0 ? res[0][0] : null;
+};
+
+/**
+ * Returns a single object (row)
+ * @method single
+ * @alias row
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.single = SQLite.prototype.row = function() {
+	var res = this.execute.apply(this, arguments);
+
+	return res.length > 0 ? res[0] : null;
+};
+
+/**
+ * Returns a list of single values
+ * @method list
+ * @alias array
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.list = SQLite.prototype.array = function() {
+	var res = this.execute.apply(this, arguments);
+
+	return res.map(function(row) {
+		return row[0];
+	});
+};
+
+/**
+ * Returns a list of objects (row)
+ * @method all
+ * @alias rows
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.all = SQLite.prototype.rows = function() {
+	return this.execute.apply(this, arguments);
 };
 
 /**
@@ -433,17 +455,7 @@ SQLite.prototype.loop = function() {
 		throw new Error('SQLite: last argument of SQLite.loop must be a Function');
 	}
 
-	var row = this.execute.apply(this, _arguments);
-	var fieldNames = [];
-	while (row.validRow === true) {
-		var obj = {};
-		for (var i = 0; i < row.fieldCount; i++) {
-			fieldNames[i] = fieldNames[i] || row.fieldName(i);
-			obj[fieldNames[i]] = row.field(i);
-		}
-		loopFn(obj);
-		row.next();
-	}
+	this.execute.apply(this, _arguments).forEach(loopFn);
 };
 
 module.exports = SQLite;
