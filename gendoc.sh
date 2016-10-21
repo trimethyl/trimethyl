@@ -17,8 +17,8 @@ echo "<entry><version>$(./version.sh)</version><url>https://github.com/trimethyl
 
 # Commit the docset
 git add ./docset/Trimethyl.tgz ./docset/Trimethyl.docset && 
-git commit -m "Updated docset for version $(./version.sh)" && 
-git push
+git commit -am "Updated docset for version $(./version.sh)" && 
+git push &&
 
 # Move to gh-pages and push forced
 cd /tmp/trimethyl-gh-pages &&
