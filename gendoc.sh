@@ -16,7 +16,7 @@ rm -rf ./docset/Trimethyl.docset &&
 echo "<entry><version>$(./version.sh)</version><url>https://github.com/trimethyl/trimethyl/raw/master/docset/Trimethyl.tgz?raw=1</url></entry>" > ./docset/Trimethyl.xml &&
 
 # Commit the docset
-git add ./docset/Trimethyl.tgz ./docset/Trimethyl.docset && 
+git add ./docset/Trimethyl.tgz ./docset/Trimethyl.xml && 
 git commit -am "Updated docset for version $(./version.sh)" && 
 git push &&
 
