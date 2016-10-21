@@ -44,7 +44,7 @@ exports.set = function(hash, value, ttl, info) {
 
 	var expire = Util.fromNow(ttl || 0);
 
-	DB.execute('INSERT OR REPLACE INTO ' + TABLE + ' (hash, expire, info) VALUES (?, ?, ?)', hash, expire, info);
+	DB.run('INSERT OR REPLACE INTO ' + TABLE + ' (hash, expire, info) VALUES (?, ?, ?)', hash, expire, info);
 	Ti.Filesystem.getFile(DIR, hash).write(value);
 };
 
@@ -54,7 +54,7 @@ exports.set = function(hash, value, ttl, info) {
  * @param  {String} 	hash
  */
 exports.remove = function(hash) {
-	DB.execute('DELETE FROM ' + TABLE + ' WHERE hash = ?', hash);
+	DB.run('DELETE FROM ' + TABLE + ' WHERE hash = ?', hash);
 	Ti.Filesystem.getFile(DIR, hash).deleteFile();
 };
 
@@ -62,7 +62,7 @@ exports.remove = function(hash) {
  * Prune all
  */
 exports.purge = function() {
-	DB.execute('DELETE FROM ' + TABLE + ' WHERE 1');
+	DB.run('DELETE FROM ' + TABLE + ' WHERE 1');
 	Ti.Filesystem.getFile(DIR).deleteDirectory(true);
 	Ti.Filesystem.getFile(DIR).createDirectory();
 };
@@ -83,7 +83,7 @@ Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory()
 Ti.Filesystem.getFile(DIR).createDirectory();
 
 var DB = new SQLite('app');
-DB.execute('CREATE TABLE IF NOT EXISTS ' + TABLE + ' (hash TEXT PRIMARY KEY, expire INTEGER, info TEXT)');
+DB.run('CREATE TABLE IF NOT EXISTS ' + TABLE + ' (hash TEXT PRIMARY KEY, expire INTEGER, info TEXT)');
 
 // Delete oldest keys
 DB.list('SELECT hash FROM ' + TABLE + ' WHERE expire < ' + Util.now()).forEach(function(h) {
