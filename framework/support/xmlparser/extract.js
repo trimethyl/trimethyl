@@ -1,6 +1,6 @@
 /**
  * @author Ani Sinanaj
- * @module xmlparser/extract
+ * @module support/xmlparser/extract
  */
 
 /**

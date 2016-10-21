@@ -19,7 +19,6 @@ exports.config = _.extend({
 	clusterMaxDelta: 0.3
 }, Alloy.CFG.T ? Alloy.CFG.geo : {});
 
-
 var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
@@ -45,7 +44,7 @@ exports.authorizeLocationServices = function(opt) {
 		error: function(){}
 	});
 
-	var authToCheck = Ti.Geolocation[ opt.inBackground ? "AUTHORIZATION_ALWAYS" : "AUTHORIZATION_WHEN_IN_USE" ];
+	var authToCheck = Ti.Geolocation[ "AUTHORIZATION_" + (opt.inBackground ? "ALWAYS" : "WHEN_IN_USE") ];
 
 	// The documentation for Android is lying:
 	// Ti.Geolocation.locationServicesEnabled will be false even if
@@ -99,10 +98,12 @@ exports.authorizeLocationServices = function(opt) {
 exports.getCurrentPosition = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: function(){},
-		error: function(){}
+		error: function(){},
+		inBackground: false,
 	});
 
 	exports.authorizeLocationServices({
+		inBackground: opt.inBackground,
 		success: function() {
 			Ti.Geolocation.getCurrentPosition(function(e) {
 				if (e.success && e.coords != null) {
@@ -641,24 +642,43 @@ exports.getRegionBounds = function(array, mulGap) {
 };
 
 /**
- * Check if the location services are enabled and the app is authorized to use them.
+ * Check if the the app doesn't know if it can use location services. This is the default state.
  * @return {Boolean}
  */
-exports.isAuthorized = function() {
-	return !!Ti.Geolocation.locationServicesEnabled &&
-	!!(Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_ALWAYS) || Ti.Geolocation.hasLocationPermissions(Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE));
+exports.isAuthorizationUnknown = function() {
+	if (OS_IOS) {
+		return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN;
+	} 
+	return !Ti.Geolocation.hasLocationPermissions();
 };
 
 /**
- * Check if the the app is denied from using the location services.
+ * Check if the location services are enabled and the app is authorized to use them.
+ * @return {Boolean}
+ */
+exports.isAuthorized = function(inBackground) {
+	if (OS_IOS) {
+		if (inBackground) {
+			return Ti.Geolocation.hasLocationPermissions( Ti.Geolocation.AUTHORIZATION_ALWAYS );
+		} else {
+			return Ti.Geolocation.hasLocationPermissions( Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE ) || Ti.Geolocation.hasLocationPermissions( Ti.Geolocation.AUTHORIZATION_ALWAYS );
+		}
+	} else {
+		return Ti.Geolocation.hasLocationPermissions();
+	}
+};
+
+/**
+ * On iOS, check if the the app is denied from using the location services and must be notified to the user.
  * Returns false for every other platform.
  * @return {Boolean}
  */
 exports.isDenied = function() {
-	return !exports.isAuthorized();
+	if (OS_IOS) {
+		return Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_DENIED;
+	}
+	return false;
 };
-
-
 
 //////////
 // Init //
