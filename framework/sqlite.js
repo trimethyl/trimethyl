@@ -355,7 +355,7 @@ SQLite.prototype.close = function() {
  * @return {Ti.Database.ResultSet}
  */
 SQLite.prototype.execute = SQLite.prototype.exec = function() {
-	Ti.API.warn(LOGNAME + ': WARNING: if you use .execute(), you will have to close the result set and the database manually!')
+	Ti.API.warn(LOGNAME + ': WARNING: if you use .execute(), you will have to close the result set and the database manually!');
 
 	var q = null;
 
@@ -406,7 +406,7 @@ SQLite.prototype.transform = function() {
 	this.close();
 
 	return res;
-}
+};
 
 /**
  * Run a query chain. Also accepts a query string.
