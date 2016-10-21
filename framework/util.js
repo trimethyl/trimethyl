@@ -645,3 +645,11 @@ exports.guid = function() {
 exports.getPlatformFullName = function() {
 	return Ti.Platform.model + ' - ' + Ti.Platform.osname + ' ' + Ti.Platform.version + ' (' + Ti.Platform.ostype + ') - ' + Ti.Platform.locale;
 };
+
+/**
+ * Get the rot13 of a string
+ * @param  {String} s
+ */
+exports.rot13 = function(s) {
+	return s.replace(/[a-zA-Z]/g,function(c){return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);});
+};
