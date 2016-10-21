@@ -428,7 +428,7 @@ SQLite.prototype.list = SQLite.prototype.array = function() {
 
 	return res.map(function(row) {
 		return row[0];
-	})
+	});
 };
 
 /**
