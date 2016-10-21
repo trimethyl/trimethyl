@@ -222,6 +222,14 @@ function parse(xml, opts) {
 	function finalizeLabel() {
 		if (currentLabel == null) return;
 
+		if (opts.lineSpacing) {
+			currentLabel.attributes.push({
+	            type: Ti.UI.iOS.ATTRIBUTE_BASELINE_OFFSET,
+	            value: opts.lineSpacing,
+	            range: [0,currentLabel.text.length]
+	        });
+		}
+
 		// add attributedString to label
 		var label = Ti.UI.createLabel(_.extend({
 			attributedString: Ti.UI.createAttributedString(currentLabel),
