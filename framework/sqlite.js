@@ -346,14 +346,75 @@ SQLite.prototype.close = function() {
 };
 
 /**
- * Execute a query
+ * Executes a query.
+ * Important: this method differs from SQLite.run() for the fact that it leaves the database open, and returns the result of the call to Ti.Database.DB.execute().
  * @method execute
  * @alias exec
  * @param {String} query
  * @param {Vararg} values
- * @return {Ti.DB.ResultSet}
+ * @return {Ti.Database.ResultSet}
  */
 SQLite.prototype.execute = SQLite.prototype.exec = function() {
+	Ti.API.warn(LOGNAME + ': WARNING: if you use .execute(), you will have to close the result set and the database manually!')
+
+	var q = null;
+
+	if (this.query === null) {
+		q = arguments;
+	} else {
+		q = this.getExequery();
+		this.query = null; // Reset query
+	}
+
+	if (exports.config.log) Ti.API.debug(LOGNAME + ':', q);
+
+	this.open();
+	return Function.prototype.apply.call(this.db.execute, this.db, q);
+};
+
+/**
+ * Execute a query and apply a transformation function to the result set, then close the set and the database.
+ * @param {String} [query]
+ * @param {Vararg} [values]
+ * @param {Function} fn The transformation function to apply to the dataset. It will be passed a `dataset` argument, which is an instance of Ti.Database.ResultSet, and it should return the transformed result.
+ * @return The result of fn
+ */
+SQLite.prototype.transform = function() {
+	var _arguments = _.toArray(arguments);
+	var transform = _arguments.pop();
+	if (!_.isFunction(transform)) {
+		throw new Error('SQLite: last argument of SQLite.transform must be a Function');
+	}
+
+	var q = null;
+
+	if (this.query === null) {
+		q = _arguments;
+	} else {
+		q = this.getExequery();
+		this.query = null; // Reset query
+	}
+
+	if (exports.config.log) Ti.API.debug(LOGNAME + ':', q);
+
+	this.open();
+	var dataset = Function.prototype.apply.call(this.db.execute, this.db, q);
+
+	var res = transform(dataset);
+
+	dataset.close();
+	this.close();
+
+	return res;
+}
+
+/**
+ * Run a query chain. Also accepts a query string.
+ * @method run
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.run = function() {
 	this.open();
 
 	var q = null;
@@ -368,26 +429,12 @@ SQLite.prototype.execute = SQLite.prototype.exec = function() {
 	if (exports.config.log) Ti.API.debug(LOGNAME + ':', arguments);
 
 	var row = Function.prototype.apply.call(this.db.execute, this.db, q);
-	var list = [];
-	var fieldNames = [];
-
-	while (row != null && row.validRow === true) {
-		var obj = {};
-		for (var i = 0; i < row.fieldCount; i++) {
-			fieldNames[i] = fieldNames[i] || row.fieldName(i);
-			obj[fieldNames[i]] = row.field(i);
-		}
-		list.push(obj);
-		row.next();
-	}
 
 	if (row != null) {
 		row.close();
 	}
+
 	this.close();
-
-	return list;
-
 };
 
 /**
@@ -398,9 +445,14 @@ SQLite.prototype.execute = SQLite.prototype.exec = function() {
  * @param {Vararg} values
  */
 SQLite.prototype.value = SQLite.prototype.val = function() {
-	var res = this.execute.apply(this, arguments);
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		if (row.validRow === false) return null;
 
-	return res.length > 0 ? res[0][0] : null;
+		return row.field(0);
+	});
+
+	return this.transform.apply(this, _args);
 };
 
 /**
@@ -411,9 +463,19 @@ SQLite.prototype.value = SQLite.prototype.val = function() {
  * @param {Vararg} values
  */
 SQLite.prototype.single = SQLite.prototype.row = function() {
-	var res = this.execute.apply(this, arguments);
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		if (row.validRow === false) return null;
 
-	return res.length > 0 ? res[0] : null;
+		var obj = {};
+		for (var i = 0; i < row.fieldCount; i++) {
+			obj[row.fieldName(i)] = row.field(i);
+		}
+
+		return obj;
+	});
+
+	return this.transform.apply(this, _args);
 };
 
 /**
@@ -424,11 +486,17 @@ SQLite.prototype.single = SQLite.prototype.row = function() {
  * @param {Vararg} values
  */
 SQLite.prototype.list = SQLite.prototype.array = function() {
-	var res = this.execute.apply(this, arguments);
-
-	return res.map(function(row) {
-		return row[0];
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		var list = [];
+		while (row.validRow === true) {
+			list.push(row.field(0));
+			row.next();
+		}
+		return list;
 	});
+
+	return this.transform.apply(this, _args);
 };
 
 /**
@@ -439,23 +507,51 @@ SQLite.prototype.list = SQLite.prototype.array = function() {
  * @param {Vararg} values
  */
 SQLite.prototype.all = SQLite.prototype.rows = function() {
-	return this.execute.apply(this, arguments);
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		var list = [];
+		var fieldNames = [];
+		while (row.validRow === true) {
+			var obj = {};
+			for (var i = 0; i < row.fieldCount; i++) {
+				fieldNames[i] = fieldNames[i] || row.fieldName(i);
+				obj[fieldNames[i]] = row.field(i);
+			}
+			list.push(obj);
+			row.next();
+		}
+		return list;
+	});
+
+	return this.transform.apply(this, _args);
 };
 
 /**
  * Loop over query
  * @method loop
- * @param {String} query
- * @param {Vararg} values
+ * @param {String} [query]
+ * @param {Vararg} [values]
+ * @param {Function} fn The function to loop over the query result
  */
 SQLite.prototype.loop = function() {
-	var _arguments = _.toArray(arguments);
-	var loopFn = _arguments.pop();
+	var _args = _.toArray(arguments);
+	var loopFn = _args.pop();
 	if (!_.isFunction(loopFn)) {
 		throw new Error('SQLite: last argument of SQLite.loop must be a Function');
 	}
 
-	this.execute.apply(this, _arguments).forEach(loopFn);
+	this.transform.apply(this, _args.concat(function(row) {
+		var fieldNames = [];
+		while (row.validRow === true) {
+			var obj = {};
+			for (var i = 0; i < row.fieldCount; i++) {
+				fieldNames[i] = fieldNames[i] || row.fieldName(i);
+				obj[fieldNames[i]] = row.field(i);
+			}
+			loopFn(obj);
+			row.next();
+		}
+	}));
 };
 
 module.exports = SQLite;
