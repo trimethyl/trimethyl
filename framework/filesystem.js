@@ -96,12 +96,13 @@ exports.getSize = function(path) {
  */
 exports.write = function(opt) {
 	_.defaults(opt, {
+		append: false,
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop
 	});
 
 	function writeFile() {
-		var res = opt.file.write(opt.data, opt.append);
+		var res = opt.file.write(opt.data, !!opt.append);
 
 		if (res) opt.success();
 		else opt.error();
