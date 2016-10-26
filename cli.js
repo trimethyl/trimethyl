@@ -1,77 +1,106 @@
 #!/usr/bin/env node
+
+var package = require('./package.json');
+
 var fs = require('fs-extended');
 var path = require('path');
 var _ = require('underscore');
 var program = require('commander');
 var inquirer = require('inquirer');
 var prompt = require('prompt');
+var ga = require('universal-analytics')(package.ua);
+var child_process = require('child_process');
+var async = require('async');
+var gittio = require('gittio');
 
+// Current directory
 var CWD = process.cwd();
 
+// This represents the entire module map
 var trimethyl_map = require('./map.json');
-var package = require('./package.json');
 
-var ga = require('universal-analytics')(package.ua);
-
+// The src install path
 var DEFAULT_SOURCE_PATH = '/framework/';
+
+// And the dest path in the project (except for Alloy adapters)
 var DEFAULT_DEST_PATH = '/app/lib/T/';
 
-function error(msg, code) {
+// Log an event to the CLI + GA, and miserably exit
+function error(msg, code, dont_exit) {
 	ga.event("error", "error", msg).send();
-
 	process.stdout.write(msg.red);
-	process.exit( code || 1 );
+	
+	if (dont_exit == false) {
+		process.exit( code || 1 );
+	}
 }
 
-function buildDependencies(libs, key, req, tabs) {
-	req = req || null;
-	tabs = tabs || 0;
-	if (key in libs) return;
+// From a set of modules, return a full array of objects that
+// have all informations about src and dest paths,
+// and add all modules dependencies
+function addLibraryToHashMap(libs, lib_name, lib_required_by_lib_name, no_of_tabs) {
+	lib_required_by_lib_name = lib_required_by_lib_name || null;
+	no_of_tabs = no_of_tabs || 0;
 
-	var K = trimethyl_map[ key ];
-	if (K == null) {
-		error('Unable to find module "' + key + '"');
+	// Do not process twice the same library, we use an HashMap to do that
+	if (lib_name in libs) return;
+
+	var lib = trimethyl_map[ lib_name ];
+	if (lib == null) {
+		error('Unable to find the referenced library "' + lib_name + '"', null, false);
 	}
 
-	var src_file = __dirname + DEFAULT_SOURCE_PATH + key + '.js';
-	var dst_file = CWD + DEFAULT_DEST_PATH + key + '.js';
+	var src_file = __dirname + DEFAULT_SOURCE_PATH + lib_name + '.js';
+	var dst_file = CWD + DEFAULT_DEST_PATH + lib_name + '.js';
 
-	if (K.destination) {
-		dst_file = CWD + K.destination;
-	} else if (K.source) {
-		src_file = __dirname + K.source;
+	// Overwrite default destination if specified in the library (Alloy adapters)
+	if (lib.destination) {
+		dst_file = CWD + lib.destination;
+	}
+
+	// Overwrite default source if specified in the library (node_modules)
+	if (lib.source) {
+		src_file = __dirname + lib.source;
 	} 
 	
 	var stat = fs.statSync(src_file).size;
+	var size = (stat / 1000).toFixed(2) + ' KB';
 
-	libs[key] = _.extend({}, K, {
-		requiredBy: req,
-		tabs: tabs,
+	libs[ lib_name ] = _.extend({}, lib, {
+		lib_required_by_lib_name: lib_required_by_lib_name,
+		no_of_tabs: no_of_tabs,
 		dst_file: dst_file,
 		src_file: src_file,
 		stat: stat,
-		size: (stat / 1000).toFixed(2) + ' KB'
+		size: size,
+		modules: lib.modules
 	});
 
-	(K.dependencies || []).forEach(function(o) {
-		buildDependencies(libs, o, K, tabs+1);
+	// Now, iterate over the dependencies and recursively 
+	// build the dependencies
+	(lib.dependencies || []).forEach(function(dependency_lib) {
+		addLibraryToHashMap(libs, dependency_lib, lib_name, no_of_tabs + 1);
 	});
 }
 
-/* if a>b => 1, a=b => 0, a<b => -1 */
+// Compare two versions, with this rule
+// if a>b => 1, a=b => 0, a<b => -1
 function compareVersions(a, b) {
 	if (a == null || b == null) return 0;
 
 	a = a.split('.');
 	b = b.split('.');
+	
 	for (var i = 0; i < Math.max(a.length, b.length); i++) {
 		var _a = +a[i] || 0, _b = +b[i] || 0;
 		if (_a > _b) return 1;
 		else if (_a < _b) return -1;
 	}
+
 	return 0;
 }
 
+// Compare only that major
 function compareMajorVersions(a, b) {
 	if (a == null || b == null) return 0;
 	return compareVersions(a.split('.')[0], b.split('.')[0]);
@@ -86,152 +115,65 @@ program
 .description(package.description)
 .usage('command <args> [options]');
 
-////////////////////////////////
-// Notify user of new version //
-////////////////////////////////
-
+// Notify user of new version
 var notifier = (require('update-notifier'))({ pkg: package });
 if (notifier.update) {
 	notifier.notify();
 }
 
+// Write the config file from the app_trimethyl_config var
 function writeConfig() {
 	fs.writeFileSync(CWD + '/trimethyl.json', JSON.stringify(app_trimethyl_config, null, 2));
 }
 
+// Add a module to app_trimethyl_config
 function addModule(name) {
 	app_trimethyl_config.libs.push(name);
-	app_trimethyl_config.libs = _.uniq(app_trimethyl_config.libs);
 }
 
+// This method check if a config file is found.
+// If found, proceed to the installtion,
+// otherwise, ask to the user which modules wants to install
 function preInstall() {
 	ga.event("installation", "preinstall").send();
 
 	if (_.isEmpty(app_trimethyl_config.libs)) {
+
+		var choices = trimethyl_map.map(function(e, k) { 
+			return { 
+				name: e.name, 
+				value: k 
+			}; 
+		});
+
 		inquirer.prompt([{
 			type: 'checkbox',
-			name: 'modules',
-			message: "Select the modules you want to install:",
-			choices: _.map(trimethyl_map, function(e, k) { return { name: e.name, value: k }; })
+			name: 'libraries',
+			message: "Select the libraries you want to install: ",
+			choices: choices
 		}], function (ans) {
-			if (_.isEmpty(ans.modules)) {
+			if (_.isEmpty(ans.libraries)) {
 				error("Please select at least one module.");
 			}
 
-			ans.modules.forEach(function(e) { addModule(e); });
+			// Add the module to the user library
+			ans.libraries.forEach(addModule);
+
+			// Write the config to the file system
 			writeConfig();
 
+			// And instantly proceed with the installation
 			install();
+
 		});
+
 	} else {
 		install();
 	}
 }
 
-function install() {
-	// Get the libraries to copy in /Resources
-	var libs_to_copy = {};
-	(["trimethyl"].concat( app_trimethyl_config.libs )).forEach(function(v) {
-		ga.event("installation", "module", v).send();
-
-		buildDependencies(libs_to_copy, v);
-	});
-	libs_to_copy = _.toArray(libs_to_copy);
-
-	var items = [];
-
-	// Star the chaining
-	(function checkLibs(copy_libs_callback) {
-		if (libs_to_copy.length === 0) {
-			return copy_libs_callback();
-		}
-
-		var info = libs_to_copy.shift();
-		items.push(info);
-
-		(function installModules(install_modules_callback) {
-			if (info.modules == null || info.modules.length === 0) {
-				return install_modules_callback();
-			}
-
-			var module_def = info.modules.shift().split(':');
-			var module = module_def[0];
-			var platform = module_def[1];
-
-			if (platform !== 'commonjs' && !tiapp.getDeploymentTarget(platform)) {
-				installModules(install_modules_callback);
-				return;
-			}
-
-			if (null == _.find(tiapp.getModules(), function(m) {
-				return m.id == module && m.platform == platform;
-			})) {
-				ga.event("installation", "dependency").send();
-
-				inquirer.prompt([{
-					type: 'expand',
-					name: 'result',
-					message: "<" + info.name + "> requires the native module <" + module + "> for the platform <" + platform + ">",
-					choices: [
-						{ key: 'a', name: 'Add to the "tiapp.xml"', value: 'add' },
-						{ key: 'i', name: 'Install via Gittio', value: 'install' },
-						{ key: 's', name: 'Skip', value: 'skip' },
-						{ key: 'e', name: 'Exit', value: 'exit' }
-					]
-				}], function (ans) {
-
-					if (ans.result === 'add') {
-						ga.event("installation", "dependency_add", module).send();
-
-						tiapp.setModule(module, { platform: platform });
-						tiapp.write();
-						installModules(install_modules_callback);
-
-					} else if (ans.result === 'install') {
-						ga.event("installation", "dependency_gittio_install", module).send();
-
-						require('child_process').exec('gittio install ' + module + ' -p ' + platform, function(error, stdout, stderr) {
-							if (stderr) process.stdout.write(stderr.replace(/\[.+?\] /g, '').red);
-							else process.stdout.write(stderr.replace(/\[.+?\] /g, '').gray);
-							installModules(install_modules_callback);
-						});
-					
-					} else if (ans.result === 'skip') {
-						ga.event("installation", "dependency_skip", module).send();
-
-						installModules(install_modules_callback);
-					}
-
-				});
-			} else {
-				installModules(install_modules_callback);
-			}
-
-		})(function() {
-			checkLibs(copy_libs_callback);
-		});
-
-	})(function() {
-
-		ga.event("installation", "end").send();
-
-		process.stdout.write("\n");
-
-		installOnFileSystem(items);
-
-		app_trimethyl_config.version = package.version;
-		app_trimethyl_config.install_date = Date.now();	
-		writeConfig();
-
-		process.stdout.write('\nInstalled version: ' + ('v' + app_trimethyl_config.version).green + '\n');
-
-		var total_size = _.reduce(_.pluck(items, 'stat'), function(s,e) { return s + e; }, 0);
-		process.stdout.write('Occupied space: ' + ( (total_size / 1000).toFixed(2) + ' KB' ).green + '\n');
-
-	});
-}
-
-function installOnFileSystem(items) {
+function ensureFilesystemStructure() {
+	// Esnure that app/lib exists
 	if (!fs.existsSync(CWD + '/app/lib')) {
 		fs.mkdirSync(CWD + '/app/lib');
 	}
@@ -239,16 +181,152 @@ function installOnFileSystem(items) {
 	fs.deleteDirSync(CWD + '/app/lib/T');
 	fs.mkdirSync(CWD + '/app/lib/T');
 
-	_.each(items, function(info) {
-		var dir_name = path.dirname(info.dst_file);
-		if (!fs.existsSync(dir_name)) {
-			fs.createDirSync(dir_name);
+	// Copy a README that indicates that the directory is auto-generated
+	// and can be deleted in any moment from the installaer
+	fs.copyFileSync(__dirname + '/INSTALLATION_README', CWD + '/app/lib/T/README');
+}
+
+function copyLibToFilesystem(lib, callback) {
+	// Check the filesystem structure before copying the file
+	var dir_name = path.dirname(lib.dst_file);
+	if (!fs.existsSync(dir_name)) {
+		fs.createDirSync(dir_name);
+	}
+
+	// Just print a beatiful graph
+	var tabs_to_print = lib.no_of_tabs ? new Array(Math.max(0, (lib.no_of_tabs || 0) - 1) * 3 ).join(' ') + '└' + new Array(3).join('─') : '';
+	process.stdout.write(tabs_to_print.grey + 'Copying '.grey + lib.name.bold.white + (' (' + lib.size + ')\n').grey );
+
+	// And copy the file
+	fs.copyFile(lib.src_file, lib.dst_file, callback);
+}
+
+// Just add to the tiapp.xml (the module could be installed globally, 
+// so this is a valid installation "method" for the module)
+function installNativeModuleByAdd(module, platform, callback) {
+	ga.event("installation", "module_add", module).send();
+
+	tiapp.setModule(module, { platform: platform });
+	tiapp.write();
+
+	callback();
+}
+
+// Required gittio to be installed and install the module via GITTIO 
+function installNativeModuleViaGittio(module, platform, callback) {
+	ga.event("installation", "module_install", module).send();
+
+	var cmd = 'gittio install ' + module + ' -p ' + platform;
+	process.stdout.write( ('Executing <' + cmd + '>...\n').yellow );
+
+	child_process.exec(cmd, function(err, stdout, stderr) {
+		process.stdout.write( (stdout || stderr).replace(/\[.+?\] /g, '').gray );
+		callback();
+	});
+}
+
+function installNativeModule(lib, module_def, callback) {
+	module_def = module_def.split(':');
+	
+	var module = module_def[0];
+	var platform = module_def[1];
+
+	// Do not install modules that are not for this app platforms (commonjs is an exception)
+	if (platform !== 'commonjs' && !tiapp.getDeploymentTarget(platform)) {
+		callback();
+		return;
+	}
+
+	var module_already_installed = _.find(tiapp.getModules(), function(m) {
+		return m.id == module && m.platform == platform;
+	});
+
+	if (module_already_installed) {
+		callback();
+		return;
+	}
+
+	// Ask to the user if he wants
+	// to "A" (add) to the tiapp.xml
+	// to "I" (install) via GITTIO (not supported in the future)
+	// to "S" (skip) the installation of this module
+	// to "E" (exit) and cancel the installation
+	inquirer.prompt([{
+		type: 'expand',
+		name: 'result',
+		message: "<" + lib.name + "> requires the native module <" + module + "> for the platform <" + platform + ">",
+		choices: [
+		{ key: 'a', name: 'Add to the "tiapp.xml"', value: 'add' },
+		{ key: 'i', name: 'Install via Gittio', value: 'install' },
+		{ key: 's', name: 'Skip', value: 'skip' },
+		{ key: 'e', name: 'Exit', value: 'exit' }
+		]
+	}], function (ans) {
+		switch (ans.result) {
+			case 'add':
+			installNativeModuleByAdd(module, platform, callback);
+			break;
+
+			case 'install':
+			installNativeModuleViaGittio(module, platform, callback);
+			break;
+
+			case 'skip':
+			ga.event("installation", "module_skipped", module).send();
+			callback();
+			break;
+
+			case 'exit':
+			error("Process interrupted by the user");
+			break;
 		}
+	});
+}
 
-		var tabs = info.tabs ? new Array(Math.max(0,(info.tabs||0)-1)*4).join(' ') + '└' + new Array(3).join('─') : '';
-		process.stdout.write((tabs + 'Installing ' + info.name + ' (' + info.size + ')\n').grey);
+function preInstallLib(lib, callback) {
+	// Check if the lib doesn't require any native modules that the end user doesn't have installed yet
+	async.eachSeries(lib.modules || [], function(module, callback) {
+		installNativeModule(lib, module, callback);
+	}, callback);
+}
 
-		fs.copyFileSync(info.src_file, info.dst_file);
+function installLib(lib, callback) {
+	copyLibToFilesystem(lib, callback);
+}
+
+function finishInstallation(libs) {
+	ga.event("installation", "end").send();
+
+	// Change the installed version and the current installation date
+	app_trimethyl_config.version = package.version;
+	app_trimethyl_config.install_date = Date.now();
+	writeConfig();
+
+	process.stdout.write('\nInstalled version: ' + ('v' + app_trimethyl_config.version).green + '\n');
+
+	var total_size = _.reduce(_.pluck(libs, 'stat'), function(s,e) { return s + e; }, 0);
+	process.stdout.write('Occupied space: ' + ( (total_size / 1000).toFixed(2) + ' KB' ).green + '\n');
+}
+
+// This function copy the files to the destination directory, building all dependencies upfront
+function install() {
+	var libs = {};
+
+	// Add trimethyl anyway, we REQUIRE it
+	(["trimethyl"].concat( app_trimethyl_config.libs )).forEach(function(lib) {
+		ga.event("installation", "module", lib).send();
+		addLibraryToHashMap(libs, lib);
+	});
+	libs = _.toArray(libs);
+
+	// Ensure the all directories are created upfront
+	ensureFilesystemStructure();
+
+	// Now cycle (async) over all libraries and install them
+	async.eachSeries(libs, preInstallLib, function(err) {
+		async.eachSeries(libs, installLib, function(err) {
+			finishInstallation(libs);
+		});
 	});
 }
 
@@ -329,11 +407,11 @@ program.command('add [name]').alias('a').description('Add a Trimethyl module to 
 	ga.pageview("/add/" + name).send();
 
 	if (!(name in trimethyl_map)) {
-		error('<' + name + '> is not a valid Trimethyl module.');
+		error('<' + name + '> is not a valid Trimethyl library.');
 	}
 
 	if (trimethyl_map[name].internal) {
-		error('<' + name + '> is an internal module.');
+		error('<' + name + '> is an internal library.');
 	}
 
 	addModule(name);
@@ -350,7 +428,7 @@ program.command('remove [name]').alias('r').description('Remove a Trimethyl modu
 
 	var io = app_trimethyl_config.libs.indexOf(name);
 	if (io === -1) {
-		error('Unable to find <' + name + '> in your libs');
+		error('Unable to find <' + name + '> in your library');
 	}
 
 	app_trimethyl_config.libs.splice(io, 1);
@@ -363,8 +441,7 @@ program.command('remove [name]').alias('r').description('Remove a Trimethyl modu
 
 program.command('update').alias('r').description('Do a full upgrade of Trimethyl and its modules').action(function(name) {
 	ga.pageview("/update").send();
-
-	require('child_process').exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
+	child_process.exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
 });
 
 
@@ -377,7 +454,7 @@ if (fs.existsSync(CWD + '/trimethyl.json')) {
 	try {
 		app_trimethyl_config = require(CWD + '/trimethyl.json');
 	} catch (err) {
-		error("Unable to parse trimethyl.json file!");
+		error("Unable to parse trimethyl.json file.");
 	}
 }
 

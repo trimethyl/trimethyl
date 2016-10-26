@@ -42,7 +42,7 @@
     "trimethyl": "./cli.js"
   },
   "dependencies": {
-    "async": "^2.0.0-rc.6",
+    "async": "^2.1.2",
     "colors": "^1.0.3",
     "commander": "^2.7.1",
     "fs-extended": "^0.2.0",

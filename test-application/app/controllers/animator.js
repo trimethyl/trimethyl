@@ -7,7 +7,10 @@ Dialog.option('Select an animation', [
 		callback: function() {
 
 			Animator.fallDownForGravity({
-				view: block
+				view: block,
+				y: 300,
+				potentialEnergy: 100,
+				gravity: 9.81
 			});
 
 		}
