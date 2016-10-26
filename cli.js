@@ -11,7 +11,6 @@ var prompt = require('prompt');
 var ga = require('universal-analytics')(package.ua);
 var child_process = require('child_process');
 var async = require('async');
-var gittio = require('gittio');
 
 // Current directory
 var CWD = process.cwd();
@@ -29,7 +28,7 @@ var DEFAULT_DEST_PATH = '/app/lib/T/';
 function error(msg, code, dont_exit) {
 	ga.event("error", "error", msg).send();
 	process.stdout.write(msg.red);
-	
+
 	if (dont_exit == false) {
 		process.exit( code || 1 );
 	}
