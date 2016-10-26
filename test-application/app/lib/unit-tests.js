@@ -171,7 +171,6 @@ exports.util_parse_as_x_callback_url = function() {
 
 exports.logger_methods = function() {
 	return Q.promise(function(resolve, reject) {
-
 		try {
 
 			Logger.trace('Single string');
@@ -180,11 +179,11 @@ exports.logger_methods = function() {
 			Logger.warn('Objects and array', { first: { type: "animal", name: "tapir" }, second: { type: "mineral", name: "quartz" } }, [1,7,9,0, null]);
 			Logger.error('Model', Alloy.createModel('test-model', { name: 'meerkat', type: 'animal', quantity: 1, organic: true }));
 
+			resolve();
+
 		} catch(err) {
 			reject(err);
 		}
-
-		resolve();
 	});
 };
 

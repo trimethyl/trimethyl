@@ -12,8 +12,7 @@ function log(text, color, top) {
 	}));
 }
 
-(function next() {
-
+function doNextTest() {
 	var key = UTKeys.shift();
 	var fn = UT[key];
 
@@ -22,20 +21,24 @@ function log(text, color, top) {
 	Q.when(fn(),
 	function() {
 		log('PASSED', 'green');
-		next();
+		doNextTest();
 	},
 	function(err) {
 		Ti.API.error(err);
 		log('REJECTED: ' + (err.message ? err.message : err.toString()), 'red');
-		next();
+		doNextTest();
 	}
 	);
-
-})();
+}
 
 // Configure UI tests
 
 $.window.setActivityButton( $.uiTestsBtn );
+
+$.testsBtn.addEventListener('click', function(e) {
+	$.sview.removeAllChildren();
+	doNextTest();
+});
 
 $.uiTestsBtn.addEventListener('click', function(e) {
 	T('dialog').option('UI Tests', _.map(Alloy.CFG['ui-tests'], function(name) {
@@ -51,3 +54,9 @@ $.uiTestsBtn.addEventListener('click', function(e) {
 });
 
 $.nav.open();
+
+if (Alloy.CFG.initController) {
+	Alloy.createController(Alloy.CFG.initController, {
+		nav: $.nav
+	});
+}

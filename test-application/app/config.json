@@ -1,11 +1,12 @@
 {
 	"global": {
+		"initController": "animator",
 		"T":{
 			"http":{
 				"log": true
 			}
 		},
-		"ui-tests": ["select", "calendar", "weballoy", "camera"]
+		"ui-tests": [ "select", "calendar", "weballoy", "camera", "animator" ]
 	},
 	"env:development": {},
 	"env:test": {},
