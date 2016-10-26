@@ -75,6 +75,8 @@ T('trimethyl');
 
 Requiring **trimethyl** by `T('trimethyl')` module on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` variables.
 
+You have to do that.
+
 ## Modules
 
 To use a module, just require with `T` helper:
