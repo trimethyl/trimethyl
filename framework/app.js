@@ -34,7 +34,6 @@ exports.universalLinkToRoute = function(url) { return url; };
  */
 exports.deepLinkToRoute = function(url) { return url; };
 
-
 /**
  * Check if the first opening of the app.  
  * Call {@link setFirstUse} to set the first use of the app.
@@ -57,14 +56,22 @@ exports.setFirstUse = function(prefix) {
 };
 
 /**
- * Check on the App/Play store if new version of this app has been released.
- * If it is, a dialog is shown to update the app.
- * @param  {String} 		url
- * @param  {Function} 	versionCb
- * @param  {Function} 	successCb
+ * Check on the App/Play store (or on a your distributed URL) if new version of this app has been released.
+ * If it is, a dialog is shown to prompt the user for the update.
+ * On iOS, all three parameters are auto-generated based on the app ID to check against the App Store.
+ * On Android, there's no a reliable method to check this on the Play Store, so you have to 
+ * specify it manually the URL (maybe on a server where you handle the current version) and the other two parameters.
+ * For In-House applications or Development application, you have to do the same.
+ * @param  {String} 		[url=null]					The URL to use to check for the update.
+ * @param  {Function} 	[version_cb=null]			The function to call that handle the parsing of the response: it must returns the version.
+ * @param  {Function} 	[success_cb=null]			The function to call when the user click: "Update"
  */
-exports.notifyUpdate = function(url, versionCb, successCb) {
+exports.notifyUpdate = function(url, version_cb, success_cb) {
 	if (!Ti.Network.online) return;
+
+	var HTTP = require('T/http');
+	var Dialog = require('T/dialog');
+	var GA = require('T/ga');
 
 	if (url == null) {
 		if (OS_IOS) {
@@ -74,7 +81,7 @@ exports.notifyUpdate = function(url, versionCb, successCb) {
 		}
 	}
 
-	versionCb = versionCb || function(response) {
+	version_cb = version_cb || function(response) {
 		if (OS_IOS) {
 			return (response.results && response.results[0]) ? response.results[0].version : null;
 		} else {
@@ -82,41 +89,43 @@ exports.notifyUpdate = function(url, versionCb, successCb) {
 		}
 	};
 
-	successCb = successCb || function(response) {
+	success_cb = success_cb || function(response) {
 		Util.openInStore((function() {
 			if (OS_IOS) return response.results[0].trackId;
 			else return null;
 		})() );
 	};
 
-	require('T/http').send({
+	HTTP.send({
 		url: url,
 		cache: false,
 		format: 'json',
 		success: function(response) {
 			if (response == null || !_.isObject(response)) return;
 
-			var new_version = versionCb(response);
+			var new_version = version_cb(response);
 			var version_compare = Util.compareVersions(new_version, Ti.App.version);
 
 			Ti.API.info('Util: App store version is ' + new_version);
 			Ti.API.info('Util: Current version is ' + Ti.App.version);
 
 			if (version_compare > 0) {
-				require('T/dialog').confirm(
-				L('app_new_version_title', 'Update available'),
-				String.format(L('app_new_version_message', 'A new version of %s is available: %s'), Ti.App.name, new_version), [
+				var title = L('app_new_version_title', 'Update available');
+				var message = String.format(L('app_new_version_message', 'A new version of %s is available: %s'), Ti.App.name, new_version);
+
+				Dialog.confirm(title, message, [
 				{
 					title: L('app_new_version_button_later', 'Later'),
 					callback: function() {
-						require('T/ga').trackEvent('updatedialog', 'later');
+						GA.trackEvent('updatedialog', 'later');
 					}
 				},
 				{
 					title: L('app_new_version_button_update', 'Update'),
 					selected: true,
 					callback: function() {
-						successCb(response);
+						GA.trackEvent('updatedialog', 'doit');
+						success_cb(response);
 					}
 				}
 				]);
