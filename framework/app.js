@@ -148,7 +148,7 @@ if (OS_IOS) {
 			Ti.API.info('App: Resumed with schema <' + url + '>');
 			
 			if (url != null) {
-				Router.go( exports.deepLinkToRoute(url) );
+				Router.enqueue( exports.deepLinkToRoute(url) );
 			}
 		});
 	}
@@ -157,6 +157,7 @@ if (OS_IOS) {
 		// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
 		Ti.App.iOS.addEventListener('continueactivity', function(e) {
 			if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
+			
 			if (e.webpageURL != null) {
 				Router.enqueue( exports.universalLinkToRoute(e.webpageURL) );
 			}
