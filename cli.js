@@ -393,7 +393,7 @@ program.command('list').alias('ls').description('List all Trimethyl available mo
 		if (m.internal) return;
 
 		var dots = m.name.match(/\./g);
-		var tabs = new Array( dots ? dots.length*4 : 0 ).join(' ');
+		var tabs = new Array( dots ? dots.length * 4 : 0 ).join(' ');
 		process.stdout.write( tabs + (m.name).green + " (" + k.yellow + ") - " + m.description + "\n");
 	});
 });
@@ -405,7 +405,7 @@ program.command('list').alias('ls').description('List all Trimethyl available mo
 program.command('add [name]').alias('a').description('Add a Trimethyl module to your config').action(function(name) {
 	ga.pageview("/add/" + name).send();
 
-	if (!(name in trimethyl_map)) {
+	if (trimethyl_map[name] == null) {
 		error('<' + name + '> is not a valid Trimethyl library.');
 	}
 
@@ -457,23 +457,18 @@ if (fs.existsSync(CWD + '/trimethyl.json')) {
 	}
 }
 
-// Alloy.js
-
-if (!fs.existsSync(CWD + '/app/config.json')) {
-	error("This is not a valid Alloy project.");
-}
-
+// Ensure the existence of an app/config.json file
+if (!fs.existsSync(CWD + '/app/config.json')) error("This is not a valid Alloy project.");
 var app_config = require(CWD + '/app/config.json');
 
-// Tiapp.xml
-
+// Ensure the existence of a tiapp.xml file
 var tiapp = require('tiapp.xml').load('./tiapp.xml');
-if (tiapp == null) {
-	error("This is not a valid Titanium project.");
-}
+if (tiapp == null) error("This is not a valid Titanium project.");
 
+// Parse the input arguments
 program.parse(process.argv);
 
+// Start commander
 if (program.args.length === 0 || typeof program.args[program.args.length - 1] === 'string') {
 	ga.pageview("/help");
 	program.help();
