@@ -12,7 +12,7 @@
 	},
 	"app":{
 		"name": "App",
-		"description": "Application manager, handling startup and incoming link or in-app updates.",
+		"description": "Application related utilites to handle deep links and iOS universal links, in-app updates and user-interactions.",
 		"dependencies": ["util","router","http","dialog"]
 	},
 	"auth":{
