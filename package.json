@@ -46,7 +46,6 @@
     "colors": "^1.0.3",
     "commander": "^2.7.1",
     "fs-extended": "^0.2.0",
-    "googleanalytics": "^0.3.7",
     "inquirer": "^0.12.0",
     "prompt": "^0.3.0",
     "q": "^1.4.1",
