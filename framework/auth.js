@@ -22,6 +22,7 @@ var Cache = require('T/cache');
 var Util = require('T/util');
 
 var OAuth = require('T/support/oauth');
+var Me = null;
 
 /**
  * OAuth object instance of oauth module
@@ -29,9 +30,6 @@ var OAuth = require('T/support/oauth');
  * @type {Object}
  */
 exports.OAuth = OAuth;
-
-
-var Me = null;
 
 /**
  * User model object
