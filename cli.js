@@ -26,7 +26,7 @@ var DEFAULT_DEST_PATH = '/app/lib/T/';
 
 // Log an event to the CLI + GA, and miserably exit
 function error(msg, code, dont_exit) {
-	ga.event("error", "error", msg).send();
+	ga.event("installation", "error", msg).send();
 	process.stdout.write(msg.red);
 
 	if (dont_exit == false) {
@@ -313,7 +313,7 @@ function install() {
 
 	// Add trimethyl anyway, we REQUIRE it
 	(["trimethyl"].concat( app_trimethyl_config.libs )).forEach(function(lib) {
-		ga.event("installation", "module", lib).send();
+		ga.event("installation", "lib", lib).send();
 		addLibraryToHashMap(libs, lib);
 	});
 	libs = _.toArray(libs);
