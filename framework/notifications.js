@@ -114,10 +114,19 @@ exports.loadDriver = function(name) {
 /**
  * Attach events to current module
  * @param  {String}   	name 		Event key
- * @param  {Function} 	cb 		Callback to invoke
+ * @param  {Function} 	cb 		Callback
  */
-exports.event = function(name, cb) {
+exports.on = exports.event = function(name, cb) {
 	Event.on('notifications.' + name, cb);
+};
+
+/**
+ * Remove events to current module
+ * @param  {String}   	name 		Event key
+ * @param  {Function} 	cb 		Callback
+ */
+exports.off = function(name, cb) {
+	Event.off('notifications.' + name, cb);
 };
 
 /**
