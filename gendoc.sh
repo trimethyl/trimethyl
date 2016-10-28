@@ -1,5 +1,12 @@
 #!/bin/sh
 
+branch=$(git branch | grep \* | cut -d ' ' -f2)
+
+if [ $branch != "master" ]; then
+	echo "You can run gendoc only from master branch"
+	exit
+fi
+
 # Prepare directores
 rm -rf /tmp/trimethyl-gh-pages
 mkdir -p /tmp/trimethyl-gh-pages
