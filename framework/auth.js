@@ -11,6 +11,7 @@
  */
 exports.config = _.extend({
 	loginUrl: '/login',
+	logoutUrl: '/logout',
 	useOAuth: false,
 	oAuthAccessTokenURL: '/oauth/access_token'
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
@@ -204,7 +205,7 @@ exports.login = function(opt) {
 		silent: false,
 		driver: 'bypass'
 	});
-	
+
 	driverLogin(opt)
 
 	.then(function(dataFromDriver) {
@@ -353,12 +354,12 @@ exports.autoLogin = function(opt) {
 	};
 
 	if (Ti.Network.online) {
-		
+
 		var driver = getStoredDriverString();
 		if (exports.config.useOAuth == true && driver === 'bypass') {
 
 			if (OAuth.getAccessToken() != null) {
-			
+
 				fetchUserModel()
 				.then(function() {
 					if (timeouted) return;
@@ -438,8 +439,10 @@ exports.logout = function(callback) {
 		exports.loadDriver(driver).logout();
 	}
 
+	var logoutUrl = (driver && driver.config ? driver.config.logoutUrl : null) || exports.config.logoutUrl;
+
 	HTTP.send({
-		url: '/logout',
+		url: logoutUrl,
 		method: 'POST',
 		timeout: 3000,
 		complete: function() {
