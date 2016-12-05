@@ -15,28 +15,28 @@ var Permissions = require('T/permissions');
  * @param  {Function} callback  Success callback
  */
 function getPhoto(method, opt, callback) {
-    Permissions.requestCameraPermissions(function() {
-        opt = _.extend({}, opt, {
-            mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
-            saveToPhotoGallery: (method === 'showCamera'),
-            success: callback,
-            cancel: function(e) { Ti.API.warn('Camera: Cancelled', e); },
-            error: function(err) {
-                Ti.API.error('Camera: Error', err);
-                Util.errorAlert(L('unexpected_error', 'Unexpected error'));
-            }
-        });
+	Permissions.requestCameraPermissions(function() {
+		opt = _.extend({}, opt, {
+			mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
+			saveToPhotoGallery: (method === 'showCamera'),
+			success: callback,
+			cancel: function(e) { Ti.API.warn('Camera: Cancelled', e); },
+			error: function(err) {
+				Ti.API.error('Camera: Error', err);
+				Util.errorAlert(L('unexpected_error', 'Unexpected error'));
+			}
+		});
 
-        // for some reason, when we try to call those methods dynamically
-        // (Ti.Media[methodName]() in special), Titanium will throw an error.
-        switch (method) {
-            case 'showCamera':       Ti.Media.showCamera(opt); break;
-            case 'openPhotoGallery': Ti.Media.openPhotoGallery(opt); break;
-        }
-    }, function(err) {
-        Ti.API.error('Camera: Error', err);
-        Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));
-    });
+		// for some reason, when we try to call those methods dynamically
+		// (Ti.Media[methodName]() in special), Titanium will throw an error.
+		switch (method) {
+			case 'showCamera':       Ti.Media.showCamera(opt); break;
+			case 'openPhotoGallery': Ti.Media.openPhotoGallery(opt); break;
+		}
+	}, function(err) {
+		Ti.API.error('Camera: Error', err);
+		Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));
+	});
 }
 
 /**
@@ -46,7 +46,7 @@ function getPhoto(method, opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.takePhoto = function(opt, callback) {
-    getPhoto('showCamera', opt, callback);
+	getPhoto('showCamera', opt, callback);
 };
 
 /**
@@ -56,7 +56,7 @@ exports.takePhoto = function(opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.choosePhoto = function(opt, callback) {
-    getPhoto('openPhotoGallery', opt, callback);
+	getPhoto('openPhotoGallery', opt, callback);
 };
 
 /**
@@ -66,18 +66,18 @@ exports.choosePhoto = function(opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.selectPhoto = function(opt, callback) {
-    Dialog.option(L('select_photo_source'), [
-        {
-            title: L('take_photo', 'Take photo'),
-            callback: function() { exports.takePhoto(opt, callback); }
-        },
-        {
-            title: L('choose_existing_photo', 'Choose existing photo'),
-            callback: function() { exports.choosePhoto(opt, callback); }
-        },
-        {
-            title: L('cancel'),
-            cancel: true
-        }
-    ]);
+	Dialog.option(L('select_photo_source'), [
+		{
+			title: L('take_photo', 'Take photo'),
+			callback: function() { exports.takePhoto(opt, callback); }
+		},
+		{
+			title: L('choose_existing_photo', 'Choose existing photo'),
+			callback: function() { exports.choosePhoto(opt, callback); }
+		},
+		{
+			title: L('cancel'),
+			cancel: true
+		}
+	]);
 };
