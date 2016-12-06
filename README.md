@@ -99,7 +99,7 @@ It's useful to declare global modules that you'll use in the entire app in the `
 
 Otherwise, just like all CommonJS modules, you can require them later in your controllers.
 
-## UIFactory librqriy
+## UIFactory library
 
 The UIFactory library is special library that handle all UI proxies. Thanks to an Alloy feature, you have the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
 
@@ -110,6 +110,10 @@ The UIFactory library is special library that handle all UI proxies. Thanks to a
 	</Window>
 </Alloy>
 ```
+
+## Example app
+
+You can check an example app here: [https://github.com/caffeinalab/magneto](https://github.com/caffeinalab/magneto)
 
 ## API Documentation
 
