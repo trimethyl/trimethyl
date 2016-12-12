@@ -5,8 +5,10 @@
 
 /**
  * @property config
+ * @property [config.antiBounce=true] Add an anti bounce to avoid double triggering of open windows
  */
 exports.config = _.extend({
+	antiBounce: true
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 
 var Event = require('T/event');
@@ -14,6 +16,8 @@ var Event = require('T/event');
 var Navigator = null;
 var windowsStack = [];
 var currentController = null;
+
+var controllerBouncing = {};
 
 /**
  * Current controller name
@@ -56,6 +60,13 @@ function open(name, args, openArgs, route, useNav) {
 	openArgs = openArgs || {};
 	route = route || name;
 
+	if (name in controllerBouncing) {
+		Ti.API.warn("Flow: Trying to open twice the controller <" + name + "> - avoided by anti bounce system");
+		return;
+	}
+
+	controllerBouncing[ name ] = true;
+
 	var controller = Alloy.createController(name, args);
 	exports.setCurrentController(controller, name, args);
 
@@ -83,8 +94,15 @@ function open(name, args, openArgs, route, useNav) {
 	});
 
 	$window.addEventListener('open', function() {
+		delete controllerBouncing[ name ];
 		controller.trigger('open');
 	});
+
+	// Avoid that, if the listener is never called, the antibounce system
+	// will block all future opens
+	setTimeout(function() {
+		delete controllerBouncing[ name ];
+	}, 500);
 
 	// Open the window
 	if (useNav) {

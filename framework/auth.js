@@ -5,12 +5,18 @@
 
 /**
  * @property config
- * @property {String} [config.loginUrl="/login"] URL to login-in
- * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate
- * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token
+ * @property {String} [config.loginUrl="/login"] The URL called by login().
+ * @property {String} [config.logoutUrl="/logout"] The URL called by logout().
+ * @property {Boolean} [config.ignoreServerModelId=false] Force the module to use the configured modelId to fetch and store the user model.
+ * @property {String} [config.modelId="me"] The id for the user model.
+ * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate.
+ * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
  */
 exports.config = _.extend({
 	loginUrl: '/login',
+	logoutUrl: '/logout',
+	modelId: 'me',
+	ignoreServerModelId: false,
 	useOAuth: false,
 	oAuthAccessTokenURL: '/oauth/access_token'
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
@@ -125,7 +131,13 @@ function apiLogin(opt, dataFromDriver) {
 function fetchUserModel(opt, dataFromServer) {
 	dataFromServer = dataFromServer || {};
 	return Q.promise(function(resolve, reject) {
-		Me = Alloy.createModel('user', { id: dataFromServer.id || 'me' });
+		var id = exports.config.modelId;
+
+		if (exports.config.ignoreServerModelId == false && dataFromServer.id != null) {
+			id = dataFromServer.id;
+		}
+
+		Me = Alloy.createModel('user', { id: id });
 		Me.fetch({
 			http: {
 				refresh: true,
@@ -204,7 +216,7 @@ exports.login = function(opt) {
 		silent: false,
 		driver: 'bypass'
 	});
-	
+
 	driverLogin(opt)
 
 	.then(function(dataFromDriver) {
@@ -353,12 +365,12 @@ exports.autoLogin = function(opt) {
 	};
 
 	if (Ti.Network.online) {
-		
+
 		var driver = getStoredDriverString();
 		if (exports.config.useOAuth == true && driver === 'bypass') {
 
 			if (OAuth.getAccessToken() != null) {
-			
+
 				fetchUserModel()
 				.then(function() {
 					if (timeouted) return;
@@ -438,8 +450,10 @@ exports.logout = function(callback) {
 		exports.loadDriver(driver).logout();
 	}
 
+	var logoutUrl = (driver && driver.config ? driver.config.logoutUrl : null) || exports.config.logoutUrl;
+
 	HTTP.send({
-		url: '/logout',
+		url: logoutUrl,
 		method: 'POST',
 		timeout: 3000,
 		complete: function() {

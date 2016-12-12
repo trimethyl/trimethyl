@@ -1,16 +1,12 @@
 ![image](logo.jpg)
 
-Trimethyl is a collection of very useful modules to work with **Appcelerator Titanium**.
+Trimethyl is a framework we built for our purposes. We built it on top of **Appcelerator Titanium**.
 
 Most of these modules are proxies for Titanium API, and some of these add missing features or expose useful functions for cross platform development.
 
-#### [Check the API Documentation](http://trimethyl.github.io/trimethyl)
+Check the [API Documentation](http://trimethyl.github.io/trimethyl) to see all modules and all methods you can use. If you like Dash Kapeli, [download the Dash Kapeli Docset](https://github.com/trimethyl/trimethyl/blob/master/docset/Trimethyl.tgz?raw=1).
 
-#### [Check the Wiki](https://github.com/trimethyl/trimethyl/wiki)
-
-#### [Download Dash Kapeli Docset](https://github.com/trimethyl/trimethyl/blob/master/docset/Trimethyl.tgz?raw=1)
-
----
+For a more descriptive usage, with examples and common use cases, [check the wiki](https://github.com/trimethyl/trimethyl/wiki).
 
 ![NPM version](https://img.shields.io/npm/dm/trimethyl.svg)
 ![NPM downloads](https://img.shields.io/npm/dt/trimethyl.svg)
@@ -19,77 +15,93 @@ Most of these modules are proxies for Titanium API, and some of these add missin
 
 [![NPM](https://nodei.co/npm/trimethyl.png)](https://npmjs.org/package/trimethyl)
 
-Install globally with npm:
+Trimethyl comes with its own package manager for the internal libraries, because we don't want that the final user installs all libraries, but only the one which he uses. For this reason, you have to install it as a global helpers and install all libraries via CLI.
 
 ```
 [sudo] npm install -g trimethyl
 ```
 
-In your Titanium project, now you have the command `trimethyl`, run:
+Now you have the CLI command `trimethyl`. To install your libraries, cd to your Alloy project, and just type:
 
 ```
 trimethyl install
 ```
 
-## Configure modules
+If is the first installation, the command will prompt to add the libraries you want to use. 
 
-You can specify which modules you want to install, just type:
+Otherwise, it will perform a re-installation of all libraries configured in the `trimethyl.json` file.
+
+## Configure libraries
+
+You can specify later (after installation) which libraries you want to add, just type:
 
 ```
 trimethyl add {module}
 ```
 
-Or edit the `trimethyl.json` file in your project directory.
+It will add the library to your `trimethyl.json` file, just type `trimethyl install` to perform the installation again.
 
 ## Configuration
 
-Each module reads from the **config.json** your personal configuration, extending its default.
+Each library reads from the **config.json** your personal configuration, extending its default.
 
-For example, the module named `{Module}`, will read the `Alloy.CFG.T.{module}` object; the submodule `{Sub}` of `{Module}`, will read `Alloy.CFG.T.{module}.{submodule}`; etc..
+For example, the module named `{Module}`, will read the `Alloy.CFG.T.{module}` object; the submodule `{Sub}` of `{Module}`, will read `Alloy.CFG.T.{module}.{submodule}`.
 
 You can customize the options, editing your **config.json** file:
 
-```javascript
+```json
 {
-	"T":{
-		"module": {
-			...
-			"sub": {
-				...
-			}
-		},
-	}
+   "T":{
+      "module": {
+         "sub": {}
+      },
+   }
 }
 ```
 
-## Initialization
+For example to set the base URL for the HTTP library, configure the *T* section just like this:
 
-In your *app/alloy.js* file:
+```json
+{
+   "T":{
+      "http":{
+         "base": "http://yourserver.com/api/v1"
+       }
+    }
+}
+```
+
+## Initialization of the libraries
+
+The first thing you have to do is, in your *app/alloy.js* file, to require the framework bootstrap and define a global helper `T`:
 
 ```javascript
-T = function (name) { return require('T/'+name); }
+// Global T helper to load internal Trimethyl libraries
+var T = function (name) { return require('T/' + name); }
+
+// Bootstrap Trimethyl
 T('trimethyl');
 ```
 
-`T` it's an easier method to load Trimethyl modules.
+Requiring **trimethyl** using the code `T('trimethyl')` on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` variables.
 
-Requiring **trimethyl** by `T('trimethyl')` module on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` variables.
+You have to do that, otherwise some libraries will break up.
 
-You have to do that.
+## Libraries
 
-## Modules
-
-To use a module, just require with `T` helper:
+To use a library, just require with `T` helper.
 
 ```javascript
-var Util = T('util'); /* same of require('T/util') */
+var Util = T('util');
 ```
 
 It's useful to declare global modules that you'll use in the entire app in the `alloy.js` file to make them available through the variable name.
 
-## UIFactory module
+Otherwise, just like all CommonJS modules, you can require them later in your controllers.
 
-This is an Alloy feature: the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
+## UIFactory library
+
+The UIFactory library is special library that handle all UI proxies. Thanks to an Alloy feature, you have the ability to create UI objects directly from Alloy Views, using the `module` keyword. For example:
 
 ```xml
 <Alloy>
@@ -99,18 +111,9 @@ This is an Alloy feature: the ability to create UI objects directly from Alloy V
 </Alloy>
 ```
 
-You can obviously wrap these elements again with your own modules, creating a further module, for example creating a `ui.js` file in your `app/lib` directory:
+## Example app
 
-```js
-exports.createWindow = function(args) {
-	var $el = T('uifactory').createWindow(args);
-
-	// ...
-
-	return $el;
-}
-```
-
+You can check an example app here: [https://github.com/caffeinalab/magneto](https://github.com/caffeinalab/magneto)
 
 ## API Documentation
 
@@ -121,7 +124,6 @@ exports.createWindow = function(args) {
 ```
 dash-feed://https%3A%2F%2Fraw.githubusercontent.com%2Fcaffeinalab%2Ftrimethyl%2Fmaster%2Fdocset%2FTrimethyl.xml
 ```
-
 
 ## Copyright and license
 

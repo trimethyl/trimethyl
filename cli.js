@@ -138,7 +138,7 @@ function preInstall() {
 
 	if (_.isEmpty(app_trimethyl_config.libs)) {
 
-		var choices = trimethyl_map.map(function(e, k) { 
+		var choices = _.map(trimethyl_map, function(e, k) { 
 			return { 
 				name: e.name, 
 				value: k 
