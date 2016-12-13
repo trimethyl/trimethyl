@@ -66,6 +66,10 @@ function open(name, args, openArgs, route, useNav) {
 	}
 
 	controllerBouncing[ name ] = true;
+	// Avoid that, if the listener is never called, the antibounce system will block all future opens
+	setTimeout(function() {
+		delete controllerBouncing[ name ];
+	}, 500);
 
 	var controller = Alloy.createController(name, args);
 	exports.setCurrentController(controller, name, args);
@@ -97,12 +101,6 @@ function open(name, args, openArgs, route, useNav) {
 		delete controllerBouncing[ name ];
 		controller.trigger('open');
 	});
-
-	// Avoid that, if the listener is never called, the antibounce system
-	// will block all future opens
-	setTimeout(function() {
-		delete controllerBouncing[ name ];
-	}, 500);
 
 	// Open the window
 	if (useNav) {
