@@ -8,12 +8,14 @@
  * @property {String} 	[config.driver="http"] 					The driver to use.
  * @property {Boolean} 	[config.autoReset=true] 				If true, set the badge count to 0 when you open/resume the application.
  * @property {String}	[config.androidModule="ti.goosh"]	The name of the Android module to load.
+ * @property {Boolean}  [config.fakeRemoteDeviceUUID=false] Fake a device token
  * @type {Object}
  */
 exports.config = _.extend({
 	driver: 'http',
 	autoReset: true,
-	androidModule: 'ti.goosh'
+	androidModule: 'ti.goosh',
+	fakeRemoteDeviceUUID: false
 }, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
 
 var Event = require('T/event');
@@ -166,6 +168,12 @@ exports.activate = function(opt) {
 			opt.error(e);
 			_reject(e);
 		};
+
+		if (exports.config.fakeRemoteDeviceUUID) {
+			Ti.API.warn("Notifications: faking activation");
+			resolve( exports.config.fakeRemoteDeviceUUID );
+			return;
+		}
 
 		var registerForPushNotifications = function() {
 			if (exports.PushModule.remoteNotificationsEnabled) {
@@ -362,6 +370,11 @@ exports.incBadge = function(value) {
  * @return {String}
  */
 exports.getRemoteDeviceUUID = function() {
+	if (exports.config.fakeRemoteDeviceUUID) {
+		Ti.API.warn("Notifications: getRemoteDeviceUUID is returning a fake device token");
+		return exports.config.fakeRemoteDeviceUUID;
+	}
+
 	return exports.PushModule.remoteDeviceUUID;
 };
 
