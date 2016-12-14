@@ -16,17 +16,7 @@
  * @property {String}  [config.items[].subtitle] The subtitle/text of the menu
  * @property {String}  config.items[].icon The icon of the menu (see Ti.UI.iOS constants) or local image
  * @property {String}  config.items[].type An identifier for the menu such as `it.caffeina.menu`
- * @property {Object}  config.items[].data Some userdata, usually the route
- * @usage 
- *	 ForceTouchMenu.addMenus([{
- *		title: "Ciao",
- *		subtitle: "Prova",
- *		type: "com.caffeina.ciao",
- *		data: {route: "/favourites"}
- *	}]);
- *	Event.on("forcetouch.menu.click", function(e) {
- *		Router.go(e.userInfo.route);
- *	});
+ * @property {Object}  config.items[].data Some userdata, usually the routes
  */
 exports.config = _.extend({
 	items: []
