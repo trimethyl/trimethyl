@@ -5,10 +5,12 @@
 
 /**
  * @property config
- * @property [config.antiBounce=true] Add an anti bounce to avoid double triggering of open windows
+ * @property [config.antiBounce=true] 	Add an anti bounce to avoid double triggering of open windows
+ * @property [config.log=false]			Log the opening of controllers
  */
 exports.config = _.extend({
-	antiBounce: true
+	antiBounce: true,
+	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 
 var Event = require('T/event');
@@ -59,6 +61,10 @@ function open(name, args, openArgs, route, useNav) {
 	args = args || {};
 	openArgs = openArgs || {};
 	route = route || name;
+
+	if (exports.config.log) {
+		Ti.API.trace("Flow: opening controller <" + name + ">");
+	}
 
 	if (name in controllerBouncing) {
 		Ti.API.warn("Flow: Trying to open twice the controller <" + name + "> - avoided by anti bounce system");
