@@ -286,7 +286,8 @@
 	"xmlparser": {
 		"name": "XMLParser",
 		"description": "Parser for html/xml data which exposes the tags and gives you the ability to manage them through proxies",
-		"dependencies": ["support/xmlparser/proxies", "support/xmlparser/extract"]
+		"dependencies": ["support/xmlparser/proxies", "support/xmlparser/extract"],
+		"minsdk": "5.2.2.CAFFEINA-2"
 	},
 
 	"alloy/sync/api":{
