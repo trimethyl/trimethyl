@@ -156,14 +156,14 @@ exports.activate = function(opt) {
 	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function(e) {
-			Ti.API.debug('Notification: activation success', e);
+			Ti.API.debug('Notifications: activation success', e);
 			exports.trigger('activation.success', e);
 			opt.success(e);
 			_resolve(e);
 		};
 
 		var reject = function(e) {
-			Ti.API.error('Notification: activation error', e);
+			Ti.API.error('Notifications: activation error', e);
 			exports.trigger('activation.error', e);
 			opt.error(e);
 			_reject(e);
@@ -244,14 +244,14 @@ exports.subscribe = function(channel, data, opt) {
 	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function(e) {
-			Ti.API.debug('Notification: subscription success', e);
+			Ti.API.debug('Notifications: subscription success', e);
 			exports.trigger('subscription.success', e);
 			opt.success(e);
 			_resolve(e);
 		};
 
 		var reject = function(e) {
-			Ti.API.error('Notification: subscription error', e);
+			Ti.API.error('Notifications: subscription error', e);
 			exports.trigger('subscription.error', e);
 			opt.error(e);
 			_reject(e);
@@ -298,14 +298,14 @@ exports.unsubscribe = function(channel, data, opt) {
 	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function(e) {
-			Ti.API.debug('Notification: subscription success', e);
+			Ti.API.debug('Notifications: unsubscription success', e);
 			exports.trigger('unsubscription.success', e);
 			opt.success(e);
 			_resolve(e);
 		};
 
 		var reject = function(e) {
-			Ti.API.error('Notification: subscription error', e);
+			Ti.API.error('Notifications: unsubscription error', e);
 			exports.trigger('unsubscription.error', e);
 			opt.error(e);
 			_reject(e);
