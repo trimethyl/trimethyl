@@ -50,9 +50,10 @@ exports.unsubscribe = function(opt) {
 	}
 
 	HTTP.send({
-		url: exports.config.unsubscribeEndpoint + '/' + opt.deviceToken,
+		url: exports.config.unsubscribeEndpoint,
 		method: 'POST',
 		data: _.extend({}, opt.data, {
+			device_token: opt.deviceToken,
 			channel: opt.channel,
 			app_deploytype: Util.getDeployType(),
 		}),
