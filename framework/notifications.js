@@ -431,6 +431,66 @@ exports.addInteractiveNotificationCategory = function(id, dict) {
 	interactiveCategoriesCallbacks[ id ] = dict.callback;
 };
 
+/**
+ * Unmute all notifications
+ * @param {Object} data 		Additional data
+ */
+exports.unmute = function(data) {
+	return Q.promise(function(resolve, reject) {
+
+		if (!Ti.Network.online) {
+			return reject({
+				offline: true
+			});
+		}
+
+		exports.loadDriver(exports.config.driver).unmute({
+			deviceToken: exports.getRemoteDeviceUUID(),
+			data: data,
+			success: function(response) {
+				Event.trigger('notifications.unmute.success');
+				defer.resolve(response);
+			},
+			error: function(err) {
+				Event.trigger('notifications.unmute.error');
+				defer.reject(err);
+			}
+		});
+
+	});
+};
+
+
+/**
+ * Mute all notifications
+ * @param {Object} data 		Additional data
+ */
+exports.mute = function(data) {
+	return Q.promise(function(resolve, reject) {
+
+		if (!Ti.Network.online) {
+			return reject({
+				offline: true
+			});
+		}
+
+		exports.loadDriver(exports.config.driver).mute({
+			deviceToken: exports.getRemoteDeviceUUID(),
+			data: data,
+			success: function(response) {
+				Event.trigger('notifications.mute.success');
+				defer.resolve(response);
+			},
+			error: function(err) {
+				Event.trigger('notifications.mute.error');
+				defer.reject(err);
+			}
+		});
+
+	});
+};
+
+
 //////////
 // Init //
 //////////
