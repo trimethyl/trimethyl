@@ -68,7 +68,7 @@ function parse(xml, opts) {
 	DefaultProxies.opts = opts;
 	DefaultProxies.fontTransform = fontTransform;
 
-	var proxies   = _.extend(DefaultProxies.proxies, customProxies, opts.proxies);
+	var proxies = _.extend({}, DefaultProxies.proxies, customProxies, opts.proxies);
 
 	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
@@ -141,6 +141,7 @@ function parse(xml, opts) {
 		// if the block doesn't have a child but has text
 		if (!child && !!content.length) {
 			if (block.text.length != block.content.length) {
+				// Maybe don't override the content. Check if it doesn't break anything
 				proxy(_.extend(_.clone(block), {text: "", content: ""}));
 				tag(block.content);
 			} else {
@@ -222,17 +223,32 @@ function parse(xml, opts) {
 	function finalizeLabel() {
 		if (currentLabel == null) return;
 
-		if (opts.lineSpacing) {
+		if (opts.lineSpacing && OS_IOS) {
 			currentLabel.attributes.push({
-	            type: Ti.UI.iOS.ATTRIBUTE_BASELINE_OFFSET,
-	            value: opts.lineSpacing,
+	            type: Ti.UI.ATTRIBUTE_PARAGRAPH_STYLE,
+	            value: {
+	            	lineSpacing: opts.lineSpacing
+	            },
 	            range: [0,currentLabel.text.length]
 	        });
 		}
 
+		if (opts.characterSpacing && OS_IOS) {
+			currentLabel.attributes.push({
+				type: Ti.UI.ATTRIBUTE_KERN,
+				value: opts.characterSpacing,
+				range: [0,currentLabel.text.length]
+			});
+		}
+
 		// add attributedString to label
-		var label = Ti.UI.createLabel(_.extend({
-			attributedString: Ti.UI.createAttributedString(currentLabel),
+		var as = Ti.UI.createAttributedString(currentLabel);
+		var label = OS_IOS ? Ti.UI.createLabel(_.extend({
+			attributedString: as,
+			font: {fontSize: 14}
+		}, opts.textStyle)): Ti.UI.createLabel(_.extend({
+			lineSpacing: !OS_IOS ? opts.lineSpacing : null,
+			html: !OS_IOS ? currentLabel.text : null,
 			font: {fontSize: 14}
 		}, opts.textStyle));
 
@@ -240,9 +256,15 @@ function parse(xml, opts) {
 		// add label to container
 		container.add(label);
 		currentLabel = null;
+		label = null;
 	}
 
 	function linkHandler(e) {
-		if (e.url) alert(e.url);
+		if (null != opts.linkHandler && _.isFunction(opts.linkHandler)) {
+			opts.linkHandler(e);
+			return;
+		}
+
+		if (e.url) Ti.Platform.openURL(e.url);
 	}
 }
