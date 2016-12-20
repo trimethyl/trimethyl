@@ -53,22 +53,35 @@ PERMISSIONS_TYPES.forEach(function(type) {
 				break;
 		}
 
-		if (!_.isFunction(has) || !_.isFunction(request)) {
+		function requestHandler(res) {
+			if (res.success === true) {
+				success();
+			} else {
+				Ti.API.error('Permissions: Error while requesting ' + type.name + ' permissions:', res.error);
+				error({ message: L('error_' + type.name.toLowerCase() + '_permissions', 'Missing ' + type.name.toLowerCase() + ' permissions') });
+			}
+		}
+
+		if ((OS_IOS && (!_.isFunction(has) || !_.isFunction(request))) ||
+			(OS_ANDROID && ((!_.isFunction(Ti[type.proxy]["has" + type.name + "Permissions"]) || !_.isFunction(Ti[type.proxy]["request" + type.name + "Permissions"])))) ) {
+
 			Ti.API.debug('Either of the functions [Ti.' + type.proxy + '.has' + type.name + 'Permissions(), Ti.' + type.proxy + '.request' + type.name + 'Permissions()] is missing');
 			return success();
 		}
 
-		if (has() !== true) {
-			request(function(res) {
-				if (res.success === true) {
-					success();
-				} else {
-					Ti.API.error('Permissions: Error while requesting ' + type.name + ' permissions:', res.error);
-					error({ message: L('error_' + type.name.toLowerCase() + '_permissions', 'Missing ' + type.name.toLowerCase() + ' permissions') });
-				}
-			});
+		if (OS_IOS) {
+			if (has() !== true) {
+				request(requestHandler);
+			} else {
+				success();
+			}
 		} else {
-			success();
+			// When calling `has()` or `request()` on Android, code execution halts
+			if (Ti[type.proxy]["has" + type.name + "Permissions"]() !== true) {
+				Ti[type.proxy]["request" + type.name + "Permissions"](requestHandler);
+			} else {
+				success();
+			}
 		}
 	};
 });
