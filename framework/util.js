@@ -590,12 +590,17 @@ exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
  * @return {String}
  */
 exports.getResourcesDirectory = function() {
-	if (Ti.Shadow) {
-		return Ti.Filesystem.applicationDataDirectory + Ti.App.name + (OS_IOS ? '/iphone/' : '/android/');
+	if (OS_IOS) {
+		if (Ti.Shadow) {
+			return Ti.Filesystem.applicationDataDirectory + Ti.App.name + '/iphone/';
+		} else {
+			return Ti.Filesystem.resourcesDirectory;
+		}
 	} else {
-		return Ti.Filesystem.resourcesDirectory;
+		return Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, "").nativePath + (Ti.Shadow ? "/" : "");
 	}
 };
+
 
 /**
  * Compare two app versions
