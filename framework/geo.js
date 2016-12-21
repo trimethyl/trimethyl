@@ -13,12 +13,12 @@
  * @property {Boolean} [config.clusterRegionBounds=false] Tell the clustering to add the region information of its points.
  */
 exports.config = _.extend({
-    gpsAccuracy : 'ACCURACY_HIGH',
-    geocodeUseGoogle : true,
-    clusterPixelRadius : 30,
-    clusterRemoveOutOfBB : true,
-    clusterMaxDelta : 0.3,
-    clusterRegionBounds : false
+    gpsAccuracy: 'ACCURACY_HIGH',
+    geocodeUseGoogle: true,
+    clusterPixelRadius: 30,
+    clusterRemoveOutOfBB: true,
+    clusterMaxDelta: 0.3,
+    clusterRegionBounds: false
 }, Alloy.CFG.T ? Alloy.CFG.T.geo : {});
 
 var HTTP = require('T/http');
@@ -40,11 +40,9 @@ exports.event = function(name, cb) {
  */
 exports.authorizeLocationServices = function(opt) {
     opt = _.defaults(opt || {}, {
-        inBackground : false,
-        success : function() {
-        },
-        error : function() {
-        }
+        inBackground: false,
+        success: function() {},
+        error: function() {}
     });
 
     var authToCheck = Ti.Geolocation["AUTHORIZATION_" + (opt.inBackground ? "ALWAYS" : "WHEN_IN_USE")];
@@ -65,25 +63,24 @@ exports.authorizeLocationServices = function(opt) {
 
                     exports.authorizeLocationServices(opt);
                 });
-                Ti.Geolocation.requestLocationPermissions(authToCheck, function() {
-                });
+                Ti.Geolocation.requestLocationPermissions(authToCheck, function() {});
             } else {
                 opt.error({
-                    error : L('geo_ls_restricted', 'Location services unavailable.'),
-                    status : Ti.Geolocation.locationServicesAuthorization
+                    error: L('geo_ls_restricted', 'Location services unavailable.'),
+                    status: Ti.Geolocation.locationServicesAuthorization
                 });
             }
         } else {
             Ti.Geolocation.requestLocationPermissions(authToCheck, function(res) {
                 if (res.success !== true) {
                     opt.error({
-                        error : L('geo_ls_restricted', 'Location services unavailable.'),
-                        status : Ti.Geolocation.locationServicesAuthorization
+                        error: L('geo_ls_restricted', 'Location services unavailable.'),
+                        status: Ti.Geolocation.locationServicesAuthorization
                     });
                 } else if (Ti.Geolocation.locationServicesEnabled !== true) {
                     opt.error({
-                        error : L('geo_ls_restricted', 'Location services unavailable.'),
-                        status : Ti.Geolocation.locationServicesAuthorization
+                        error: L('geo_ls_restricted', 'Location services unavailable.'),
+                        status: Ti.Geolocation.locationServicesAuthorization
                     });
                 } else
                     opt.success();
@@ -91,8 +88,8 @@ exports.authorizeLocationServices = function(opt) {
         }
     } else if (Ti.Geolocation.locationServicesEnabled !== true)
         opt.error({
-            error : L('geo_ls_restricted', 'Location services unavailable.'),
-            status : Ti.Geolocation.locationServicesAuthorization
+            error: L('geo_ls_restricted', 'Location services unavailable.'),
+            status: Ti.Geolocation.locationServicesAuthorization
         });
     else
         opt.success();
@@ -104,16 +101,14 @@ exports.authorizeLocationServices = function(opt) {
  */
 exports.getCurrentPosition = function(opt) {
     opt = _.defaults(opt || {}, {
-        success : function() {
-        },
-        error : function() {
-        },
-        inBackground : false,
+        success: function() {},
+        error: function() {},
+        inBackground: false,
     });
 
     exports.authorizeLocationServices({
-        inBackground : opt.inBackground,
-        success : function() {
+        inBackground: opt.inBackground,
+        success: function() {
             Ti.Geolocation.getCurrentPosition(function(e) {
                 if (e.success && e.coords != null) {
                     opt.success(e.coords);
@@ -122,7 +117,7 @@ exports.getCurrentPosition = function(opt) {
                 }
             });
         },
-        error : opt.error
+        error: opt.error
     });
 };
 
@@ -134,29 +129,29 @@ exports.getCurrentPosition = function(opt) {
  */
 exports.startNavigator = function(lat, lng, mode) {
     var query = {
-        directionsmode : mode || 'walking',
-        daddr : lat + ',' + lng
+        directionsmode: mode || 'walking',
+        daddr: lat + ',' + lng
     };
 
     if (OS_IOS && Ti.Platform.canOpenURL('comgooglemapsurl://')) {
         // Prompt the user which service want to use.
         // We prefer Google Maps, end.
         Dialog.option(L('open_with', 'Open with...'), [{
-            title : 'Google Maps',
-            callback : function() {
+            title: 'Google Maps',
+            callback: function() {
                 Ti.Platform.openURL('comgooglemapsurl://' + Util.buildQuery(query));
             }
         }, {
-            title : 'Apple Maps',
-            callback : function() {
+            title: 'Apple Maps',
+            callback: function() {
                 Ti.Platform.openURL('http://maps.apple.com/' + Util.buildQuery(query));
             }
         }, {
-            title : L('cancel', 'Cancel'),
-            cancel : true
+            title: L('cancel', 'Cancel'),
+            cancel: true
         }]);
     } else {
-        Ti.Platform.openURL(( OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') + Util.buildQuery(query));
+        Ti.Platform.openURL((OS_IOS ? 'http://maps.apple.com/' : 'https://maps.google.com/maps/') + Util.buildQuery(query));
     }
 };
 
@@ -181,8 +176,8 @@ function parseComponents(cps) {
  */
 exports.geocode = function(opt) {
     _.defaults(opt, {
-        silent : true,
-        ttl : CACHE_TTL
+        silent: true,
+        ttl: CACHE_TTL
     });
 
     if (opt.ttl > CACHE_TTL) {
@@ -195,21 +190,21 @@ exports.geocode = function(opt) {
 
         if (_.isObject(opt.components)) {
             _.extend(data, {
-                components : parseComponents(opt.components)
+                components: parseComponents(opt.components)
             });
         }
 
         _.extend(data, {
-            sensor : 'false'
+            sensor: 'false'
         });
 
         HTTP.send({
-            url : 'http://maps.googleapis.com/maps/api/geocode/json',
-            data : data,
-            silent : opt.silent,
-            ttl : opt.ttl,
-            format : 'json',
-            success : function(res) {
+            url: 'http://maps.googleapis.com/maps/api/geocode/json',
+            data: data,
+            silent: opt.silent,
+            ttl: opt.ttl,
+            format: 'json',
+            success: function(res) {
                 if (res.status !== 'OK' || _.isEmpty(res.results)) {
                     if (_.isFunction(opt.error))
                         opt.error();
@@ -217,13 +212,13 @@ exports.geocode = function(opt) {
                 }
 
                 opt.success({
-                    success : true,
-                    latitude : res.results[0].geometry.location.lat,
-                    longitude : res.results[0].geometry.location.lng,
-                    formatted_address : res.results[0].formatted_address
+                    success: true,
+                    latitude: res.results[0].geometry.location.lat,
+                    longitude: res.results[0].geometry.location.lng,
+                    formatted_address: res.results[0].formatted_address
                 });
             },
-            error : opt.error
+            error: opt.error
         });
 
     } else {
@@ -236,9 +231,9 @@ exports.geocode = function(opt) {
             }
 
             opt.success({
-                success : true,
-                latitude : res.latitude,
-                longitude : res.longitude
+                success: true,
+                latitude: res.latitude,
+                longitude: res.longitude
             });
         });
     }
@@ -258,8 +253,8 @@ exports.geocode = function(opt) {
  */
 exports.reverseGeocode = function(opt) {
     _.defaults(opt, {
-        silent : true,
-        ttl : CACHE_TTL
+        silent: true,
+        ttl: CACHE_TTL
     });
 
     if (opt.ttl > CACHE_TTL) {
@@ -272,20 +267,20 @@ exports.reverseGeocode = function(opt) {
         var data = _.pick(opt, ['language']);
 
         _.extend(data, {
-            latlng : opt.lat + ',' + opt.lng,
-            sensor : 'false'
+            latlng: opt.lat + ',' + opt.lng,
+            sensor: 'false'
         });
 
         HTTP.send({
-            url : 'http://maps.googleapis.com/maps/api/geocode/json',
-            data : {
-                latlng : opt.lat + ',' + opt.lng,
-                sensor : 'false'
+            url: 'http://maps.googleapis.com/maps/api/geocode/json',
+            data: {
+                latlng: opt.lat + ',' + opt.lng,
+                sensor: 'false'
             },
-            silent : opt.silent,
-            ttl : opt.ttl,
-            format : 'json',
-            success : function(res) {
+            silent: opt.silent,
+            ttl: opt.ttl,
+            format: 'json',
+            success: function(res) {
                 if (res.status !== 'OK' || res.results.length === 0) {
                     if (_.isFunction(opt.error))
                         opt.error();
@@ -293,12 +288,12 @@ exports.reverseGeocode = function(opt) {
                 }
 
                 opt.success({
-                    success : true,
-                    address : res.results[0].formatted_address,
-                    results : res.results
+                    success: true,
+                    address: res.results[0].formatted_address,
+                    results: res.results
                 });
             },
-            error : opt.error
+            error: opt.error
         });
 
     } else {
@@ -311,9 +306,9 @@ exports.reverseGeocode = function(opt) {
             }
 
             opt.success({
-                success : true,
-                address : res.places[0].address,
-                results : res.places
+                success: true,
+                address: res.places[0].address,
+                results: res.places
             });
         });
     }
@@ -339,8 +334,8 @@ exports.reverseGeocode = function(opt) {
  */
 exports.autocomplete = function(opt) {
     _.defaults(opt, {
-        silent : true,
-        ttl : CACHE_TTL
+        silent: true,
+        ttl: CACHE_TTL
     });
 
     if (opt.ttl > CACHE_TTL) {
@@ -363,20 +358,20 @@ exports.autocomplete = function(opt) {
     var data = _.pick(opt, 'input', 'offset', 'location', 'radius', 'language', 'types');
     if (_.isObject(opt.components)) {
         _.extend(data, {
-            components : parseComponents(opt.components)
+            components: parseComponents(opt.components)
         });
     }
     _.extend(data, {
-        key : key
+        key: key
     });
 
     HTTP.send({
-        url : 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
-        data : data,
-        silent : opt.silent,
-        ttl : opt.ttl,
-        format : 'json',
-        success : function(res) {
+        url: 'https://maps.googleapis.com/maps/api/place/autocomplete/json',
+        data: data,
+        silent: opt.silent,
+        ttl: opt.ttl,
+        format: 'json',
+        success: function(res) {
             if (!res.predictions) {
                 if (_.isFunction(opt.error))
                     opt.error();
@@ -385,7 +380,7 @@ exports.autocomplete = function(opt) {
 
             opt.success(res.predictions);
         },
-        error : opt.error
+        error: opt.error
     });
 };
 
@@ -405,8 +400,8 @@ exports.autocomplete = function(opt) {
  */
 exports.getPlaceDetails = function(opt) {
     _.defaults(opt, {
-        silent : true,
-        ttl : CACHE_TTL
+        silent: true,
+        ttl: CACHE_TTL
     });
 
     if (opt.ttl > CACHE_TTL) {
@@ -428,16 +423,16 @@ exports.getPlaceDetails = function(opt) {
 
     var data = _.pick(opt, 'placeid', 'extensions', 'language');
     _.extend(data, {
-        key : key
+        key: key
     });
 
     HTTP.send({
-        url : 'https://maps.googleapis.com/maps/api/place/details/json',
-        data : data,
-        silent : opt.silent,
-        ttl : opt.ttl,
-        format : 'json',
-        success : function(res) {
+        url: 'https://maps.googleapis.com/maps/api/place/details/json',
+        data: data,
+        silent: opt.silent,
+        ttl: opt.ttl,
+        format: 'json',
+        success: function(res) {
             if (res.status !== 'OK' || _.isEmpty(res.result)) {
                 if (_.isFunction(opt.error))
                     opt.error();
@@ -446,7 +441,7 @@ exports.getPlaceDetails = function(opt) {
 
             opt.success(res.result);
         },
-        error : opt.error
+        error: opt.error
     });
 };
 
@@ -484,14 +479,14 @@ exports.distanceInKm = function(lat1, lon1, lat2, lon2) {
  */
 exports.markerCluster = function(event, markers, keys) {
     keys = _.defaults(keys || {}, {
-        latitude : 'lat',
-        longitude : 'lng',
-        id : 'id'
+        latitude: 'lat',
+        longitude: 'lng',
+        id: 'id'
     });
 
     var pins = {};
     var group = {};
-    var isBackbone = ( markers instanceof Backbone.Collection);
+    var isBackbone = (markers instanceof Backbone.Collection);
 
     // latR, lngR represents the current degrees visible
     var latR = (event.source.size.height || Alloy.Globals.SCREEN_HEIGHT) / event.latitudeDelta;
@@ -505,8 +500,8 @@ exports.markerCluster = function(event, markers, keys) {
         var tmp_lng = parseFloat(isBackbone === true ? m.get(keys.longitude) : m[keys.longitude]);
         if (tmp_lat < boundingBox[2] && tmp_lat > boundingBox[0] && tmp_lng > boundingBox[3] && tmp_lng < boundingBox[1]) {
             pins[m[keys.id]] = {
-                latitude : tmp_lat,
-                longitude : tmp_lng
+                latitude: tmp_lat,
+                longitude: tmp_lng
             };
         }
     }
@@ -515,8 +510,8 @@ exports.markerCluster = function(event, markers, keys) {
         var tmp_lat = parseFloat(isBackbone === true ? m.get(keys.latitude) : m[keys.latitude]);
         var tmp_lng = parseFloat(isBackbone === true ? m.get(keys.longitude) : m[keys.longitude]);
         pins[m[keys.id]] = {
-            latitude : tmp_lat,
-            longitude : tmp_lng
+            latitude: tmp_lat,
+            longitude: tmp_lng
         };
     }
 
@@ -551,9 +546,9 @@ exports.markerCluster = function(event, markers, keys) {
     // cycle all over pin and calculate the average of group pin
     _.each(group, function(g, id) {
         var gpin = {
-            latitude : 0.0,
-            longitude : 0.0,
-            count : _.keys(g).length
+            latitude: 0.0,
+            longitude: 0.0,
+            count: _.keys(g).length
         };
         if (exports.config.clusterRegionBounds)
             var _markers = [];
@@ -564,8 +559,8 @@ exports.markerCluster = function(event, markers, keys) {
             gpin.longitude += longitude;
             if (exports.config.clusterRegionBounds) {
                 _markers.push({
-                    latitude : latitude,
-                    longitude : longitude
+                    latitude: latitude,
+                    longitude: longitude
                 });
             }
         });
@@ -584,10 +579,10 @@ exports.markerCluster = function(event, markers, keys) {
     return _.map(pins, function(pin, id) {
         if (pin.count > 1) {
             return {
-                latitude : parseFloat(pin.latitude.toFixed(2)),
-                longitude : parseFloat(pin.longitude.toFixed(2)),
-                count : pin.count,
-                clusterBounds:pin.clusterBounds
+                latitude: parseFloat(pin.latitude.toFixed(2)),
+                longitude: parseFloat(pin.longitude.toFixed(2)),
+                count: pin.count,
+                clusterBounds: pin.clusterBounds
             };
         } else {
             // Ensure ID is a number
@@ -620,21 +615,21 @@ exports.checkForDependencies = function() {
 
     var errorMessage = null;
     switch (rc) {
-    case TiMap.SERVICE_MISSING:
-        errorMessage = L('googleplayservices_missing', 'Google Play services is missing. Please install Google Play services from the Google Play store in order to use the application.');
-        break;
-    case TiMap.SERVICE_VERSION_UPDATE_REQUIRED:
-        errorMessage = L('googleplayservices_outofdate', 'Google Play services is out of date. Please update Google Play services in order to use the application.');
-        break;
-    case TiMap.SERVICE_DISABLED:
-        errorMessage = L('googleplayservices_disabled', 'Google Play services is disabled. Please enable Google Play services in order to use the application.');
-        break;
-    case TiMap.SERVICE_INVALID:
-        errorMessage = L('googleplayservices_invalid', 'Google Play services cannot be authenticated. Reinstall Google Play services in order to use the application.');
-        break;
-    default:
-        errorMessage = L('googleplayservices_error', 'Google Play services generated an unknown error. Reinstall Google Play services in order to use the application.');
-        break;
+        case TiMap.SERVICE_MISSING:
+            errorMessage = L('googleplayservices_missing', 'Google Play services is missing. Please install Google Play services from the Google Play store in order to use the application.');
+            break;
+        case TiMap.SERVICE_VERSION_UPDATE_REQUIRED:
+            errorMessage = L('googleplayservices_outofdate', 'Google Play services is out of date. Please update Google Play services in order to use the application.');
+            break;
+        case TiMap.SERVICE_DISABLED:
+            errorMessage = L('googleplayservices_disabled', 'Google Play services is disabled. Please enable Google Play services in order to use the application.');
+            break;
+        case TiMap.SERVICE_INVALID:
+            errorMessage = L('googleplayservices_invalid', 'Google Play services cannot be authenticated. Reinstall Google Play services in order to use the application.');
+            break;
+        default:
+            errorMessage = L('googleplayservices_error', 'Google Play services generated an unknown error. Reinstall Google Play services in order to use the application.');
+            break;
     }
 
     // Open Play Store to download
@@ -656,10 +651,10 @@ exports.getRegionBounds = function(array, mulGap) {
     var lngs = _.pluck(array, 'longitude');
     var bb = [_.min(lats), _.min(lngs), _.max(lats), _.max(lngs)];
     return {
-        latitude : (bb[0] + bb[2]) / 2,
-        longitude : (bb[1] + bb[3]) / 2,
-        latitudeDelta : mulGap * (bb[2] - bb[0]),
-        longitudeDelta : mulGap * (bb[3] - bb[1])
+        latitude: (bb[0] + bb[2]) / 2,
+        longitude: (bb[1] + bb[3]) / 2,
+        latitudeDelta: mulGap * (bb[2] - bb[0]),
+        longitudeDelta: mulGap * (bb[3] - bb[1])
     };
 };
 
