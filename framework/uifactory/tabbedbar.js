@@ -26,24 +26,26 @@ module.exports = function(args) {
 
 	$this.setLabels = function(lbls) {
 		labels = [];
-		_.each(lbls, function(l){
+		_.each(lbls, function(l) {
 			labels.push(_.isObject(l) ? l.title : l);
 		});
 
-		var width = Math.floor(100 / labels.length) + '%';
+		var width = Math.floor(100 / labels.length);
+		var latest_width = width + (100 - (width * labels.length));
+
 		var $wrap = Ti.UI.createView({
 			layout: 'horizontal',
 		});
 
-		_.each(labels, function(l, i) {
-
+		_.each(labels, function(title, index) {
 			var lblArgs = _.extend({
 				color: $this.color || $this.tintColor,
 				font: $this.font,
 			}, $this.labelStyle, {
-				title: l,
-				index: i,
-				width: width,
+				title: title,
+				index: index,
+				// we have to fix the latest width because and floor(100/3)*3 = 99 < 100 
+				width: (index == labels.length-1 ? latest_width : width) + '%', 
 				height: Ti.UI.FILL,
 				left: 0,
 				right: -1
