@@ -33,6 +33,10 @@ module.exports = function(args) {
 		args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD;
 		break;
 
+		case 'phone':
+		args.keyboardType = Ti.UI.KEYBOARD_TYPE_PHONE_PAD;
+		break;
+
 		case 'email':
 		args.keyboardType = Ti.UI.KEYBOARD_TYPE_EMAIL;
 		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
