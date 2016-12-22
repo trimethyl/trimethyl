@@ -176,7 +176,7 @@ exports.activate = function(opt) {
 		}
 
 		var registerForPushNotifications = function() {
-			if (exports.PushModule.remoteNotificationsEnabled) {
+			if (exports.PushModule.remoteNotificationsEnabled && exports.PushModule.remoteDeviceUUID != null) {
 				resolve(exports.PushModule.remoteDeviceUUID);		
 			} else {
 				exports.PushModule.registerForPushNotifications(_.extend(exports.PushModuleOpt, {
