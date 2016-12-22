@@ -142,23 +142,23 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	// On Android, sometimes, this directory doesn't not exists
-	// And, creating on init doesn't work.
-	Ti.Filesystem.getFile(TMP_DIR).createDirectory();
-
-	var tmpFile = Ti.Filesystem.getFile(TMP_DIR, args.uniqid + '.html');
-	tmpFile.write(getHTML(args));
-
 	var $ui = Ti.UI.createWebView(_.extend({
 		disableBounce: true,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
-		backgroundColor: 'transparent',
-		url: tmpFile.nativePath
+		backgroundColor: 'transparent' //,
+		//borderRadius: 0.00001 // If the webview is not rendereing set border radius to forse software layer rendering
 	}, args));
 
-	tmpFile = null;
+	if (OS_IOS) {
+		$ui.html = getHTML(args);
+	} else {
+		$ui.addEventListener("postlayout", function render() {
+			$ui.removeEventListener("postlayout", render);
+			$ui.html = getHTML(args);
+		});
+	}
 
 	$ui.addEventListener('load', function() {
 		if (args.autoHeight) {
