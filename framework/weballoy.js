@@ -148,7 +148,7 @@ exports.createView = function(args) {
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
 		backgroundColor: 'transparent' //,
-		//borderRadius: 0.00001 // If the webview is not rendereing set border radius to forse software layer rendering
+		//borderRadius: 0.00001 // If the webview is not rendering set border radius to forse software layer rendering
 	}, args));
 
 	if (OS_IOS) {
