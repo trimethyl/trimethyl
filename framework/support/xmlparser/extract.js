@@ -59,7 +59,7 @@ function extract(xml, tagName) {
 			node.content = "";
 			return node;
 		}
-		match(/\w*?>\s*/);
+		match(/\w*?>/);
 
 		// content
 		node.content = xml.replace(new RegExp(closeTag[0]+"$"), '');
