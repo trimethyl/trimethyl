@@ -655,11 +655,6 @@ exports.download = function(url, file, success, error, ondatastream) {
 			tiFile = file;
 		}
 
-		if (tiFile.exists()) {
-			Ti.API.warn('HTTP: Previous file ' + tiFile.nativePath + ' exists and has been deleted');
-			tiFile.deleteFile();
-		}
-
 		send({
 			url: url,
 			cache: false,

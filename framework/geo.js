@@ -21,6 +21,8 @@ exports.config = _.extend({
 	clusterRegionBounds: false
 }, Alloy.CFG.T ? Alloy.CFG.T.geo : {});
 
+var MODULE_NAME = 'geo';
+
 var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
@@ -29,14 +31,35 @@ var Dialog = require('T/dialog');
 var CACHE_TTL = 2592000;
 
 /**
- * Attach event to current module
+ * Attach events to current module
+ * @param  {String}   	name 		Event key
+ * @param  {Function} 	cb 		Callback
  */
-exports.event = function(name, cb) {
-	Event.on('geo.' + name, cb);
+exports.on = exports.event = function(name, cb) {
+	Event.on(MODULE_NAME + '.' + name, cb);
 };
 
 /**
- * @param  {Object} opt
+ * Remove events to current module
+ * @param  {String}   	name 		Event key
+ * @param  {Function} 	cb 		Callback
+ */
+exports.off = function(name, cb) {
+	Event.off(MODULE_NAME + '.' + name, cb);
+};
+
+/**
+ * Trigger events from current module
+ * @param  {String}   	name 		Event key
+ * @param  {Function} 	cb 		The data
+ */
+exports.trigger = function(name, data) {
+	Event.trigger(MODULE_NAME + '.' + name, data);
+};
+
+/**
+ * @param {Object} opt
+ * return Q.promise
  */
 exports.authorizeLocationServices = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -45,55 +68,48 @@ exports.authorizeLocationServices = function(opt) {
 		error: function() {}
 	});
 
-	var authToCheck = Ti.Geolocation["AUTHORIZATION_" + (opt.inBackground ? "ALWAYS" : "WHEN_IN_USE")];
+	return Q.promise(function(_resolve, _reject) {
 
-	// The documentation for Android is lying:
-	// Ti.Geolocation.locationServicesEnabled will be false even if
-	// the service is available but the app has no location permissions!
-	// We have to call hasLocationPermissions() first...
+		var resolve = function(e) {
+			Ti.API.debug(MODULE_NAME + ': authorization success', e);
+			exports.trigger('authorization.success', e);
+			opt.success(e);
+			_resolve(e);
+		};
 
-	if (Ti.Geolocation.hasLocationPermissions(authToCheck) !== true) {
-		if (OS_IOS) {
-			// Theres a bug in Ti.Geolocation.requestLocationPermissions in iOS:
-			// the callback is not always called, see https://jira.appcelerator.org/browse/TIMOB-20002
+		var reject = function(e) {
+			Ti.API.error(MODULE_NAME + ': authorization error', e);
+			exports.trigger('authorization.error', e);
+			opt.error(e);
+			_reject(e);
+		};
 
-			if (Ti.Geolocation.locationServicesAuthorization === Ti.Geolocation.AUTHORIZATION_UNKNOWN) {
-				Ti.Geolocation.addEventListener('authorization', function onAuthChange() {
-					Ti.Geolocation.removeEventListener('authorization', onAuthChange);
+		var authToCheck = Ti.Geolocation["AUTHORIZATION_" + (opt.inBackground ? "ALWAYS" : "WHEN_IN_USE")];
 
-					exports.authorizeLocationServices(opt);
-				});
-				Ti.Geolocation.requestLocationPermissions(authToCheck, function() {});
-			} else {
-				opt.error({
-					error: L('geo_ls_restricted', 'Location services unavailable.'),
-					status: Ti.Geolocation.locationServicesAuthorization
-				});
-			}
+		// The documentation for Android is lying:
+		// Ti.Geolocation.locationServicesEnabled will be false even if
+		// the service is available but the app has no location permissions!
+		// We have to call hasLocationPermissions() first...
+
+		if (Ti.Geolocation.hasLocationPermissions(authToCheck)) {
+			resolve();
 		} else {
-			Ti.Geolocation.requestLocationPermissions(authToCheck, function(res) {
-				if (res.success !== true) {
-					opt.error({
+
+			Ti.Geolocation.requestLocationPermissions(authToCheck, function(e) {
+				if (e.success) {
+					resolve();
+				} else {
+					reject({
+						disabledBySystem: (Ti.Geolocation.locationServicesAuthorization),
+						disabledByApp: (Ti.Geolocation.locationServicesAuthorization == Ti.Geolocation.AUTHORIZATION_DENIED),
 						error: L('geo_ls_restricted', 'Location services unavailable.'),
-						status: Ti.Geolocation.locationServicesAuthorization
+						status: e.status
 					});
-				} else if (Ti.Geolocation.locationServicesEnabled !== true) {
-					opt.error({
-						error: L('geo_ls_restricted', 'Location services unavailable.'),
-						status: Ti.Geolocation.locationServicesAuthorization
-					});
-				} else
-				opt.success();
+				}
 			});
+
 		}
-	} else if (Ti.Geolocation.locationServicesEnabled !== true) {
-		opt.error({
-			error: L('geo_ls_restricted', 'Location services unavailable.'),
-			status: Ti.Geolocation.locationServicesAuthorization
-		});
-	} else {
-		opt.error();
-	}
+	});
 };
 
 /**
