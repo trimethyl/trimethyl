@@ -18,6 +18,8 @@ exports.config = _.extend({
 	fakeRemoteDeviceUUID: false
 }, Alloy.CFG.T ? Alloy.CFG.T.notifications : {});
 
+var MODULE_NAME = 'notifications';
+
 var Event = require('T/event');
 var Util = require('T/util');
 var Router = require('T/router');
@@ -44,7 +46,7 @@ if (OS_IOS) {
 } else if (OS_ANDROID) {
 	exports.PushModule = require(exports.config.androidModule);
 } else {
-	throw new Error("Notifications: unsupported platform");
+	throw new Error(MODULE_NAME + ': unsupported platform');
 }
 
 // The listeners for all received notification
@@ -100,14 +102,14 @@ exports.validateToken = function(token) {
  * listen to the global event "notifications.received"
  */
 exports.onReceived = function(e) {
-	Ti.API.info("Notifications: Received", e);
+	Ti.API.info(MODULE_NAME + ': Received', e);
 };
 
 /**
  * Load a driver of current module
  */
 exports.loadDriver = function(name) {
-	return Alloy.Globals.Trimethyl.loadDriver('notifications', name, {
+	return Alloy.Globals.Trimethyl.loadDriver(MODULE_NAME, name, {
 		subscribe: function(opt) {},
 		unsubscribe: function(opt) {}
 	});
@@ -119,7 +121,7 @@ exports.loadDriver = function(name) {
  * @param  {Function} 	cb 		Callback
  */
 exports.on = exports.event = function(name, cb) {
-	Event.on('notifications.' + name, cb);
+	Event.on(MODULE_NAME + '.' + name, cb);
 };
 
 /**
@@ -128,7 +130,7 @@ exports.on = exports.event = function(name, cb) {
  * @param  {Function} 	cb 		Callback
  */
 exports.off = function(name, cb) {
-	Event.off('notifications.' + name, cb);
+	Event.off(MODULE_NAME + '.' + name, cb);
 };
 
 /**
@@ -137,7 +139,7 @@ exports.off = function(name, cb) {
  * @param  {Function} 	cb 		The data
  */
 exports.trigger = function(name, data) {
-	Event.trigger('notifications.' + name, data);
+	Event.trigger(MODULE_NAME + '.' + name, data);
 };
 
 /**
@@ -156,21 +158,21 @@ exports.activate = function(opt) {
 	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function(e) {
-			Ti.API.debug('Notifications: activation success', e);
+			Ti.API.debug(MODULE_NAME + ': activation success', e);
 			exports.trigger('activation.success', e);
 			opt.success(e);
 			_resolve(e);
 		};
 
 		var reject = function(e) {
-			Ti.API.error('Notifications: activation error', e);
+			Ti.API.error(MODULE_NAME + ': activation error', e);
 			exports.trigger('activation.error', e);
 			opt.error(e);
 			_reject(e);
 		};
 
 		if (exports.config.fakeRemoteDeviceUUID) {
-			Ti.API.warn("Notifications: faking activation");
+			Ti.API.warn(MODULE_NAME + ': faking activation');
 			resolve( exports.config.fakeRemoteDeviceUUID );
 			return;
 		}
@@ -244,14 +246,14 @@ exports.subscribe = function(channel, data, opt) {
 	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function(e) {
-			Ti.API.debug('Notifications: subscription success', e);
+			Ti.API.debug(MODULE_NAME + ': subscription success', e);
 			exports.trigger('subscription.success', e);
 			opt.success(e);
 			_resolve(e);
 		};
 
 		var reject = function(e) {
-			Ti.API.error('Notifications: subscription error', e);
+			Ti.API.error(MODULE_NAME + ': subscription error', e);
 			exports.trigger('subscription.error', e);
 			opt.error(e);
 			_reject(e);
@@ -298,14 +300,14 @@ exports.unsubscribe = function(channel, data, opt) {
 	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function(e) {
-			Ti.API.debug('Notifications: unsubscription success', e);
+			Ti.API.debug(MODULE_NAME + ': unsubscription success', e);
 			exports.trigger('unsubscription.success', e);
 			opt.success(e);
 			_resolve(e);
 		};
 
 		var reject = function(e) {
-			Ti.API.error('Notifications: unsubscription error', e);
+			Ti.API.error(MODULE_NAME + ': unsubscription error', e);
 			exports.trigger('unsubscription.error', e);
 			opt.error(e);
 			_reject(e);
@@ -371,7 +373,7 @@ exports.incBadge = function(value) {
  */
 exports.getRemoteDeviceUUID = function() {
 	if (exports.config.fakeRemoteDeviceUUID) {
-		Ti.API.warn("Notifications: getRemoteDeviceUUID is returning a fake device token");
+		Ti.API.warn(MODULE_NAME + ': getRemoteDeviceUUID is returning a fake device token');
 		return exports.config.fakeRemoteDeviceUUID;
 	}
 
@@ -394,8 +396,8 @@ exports.isRemoteNotificationsEnabled = function() {
 
 // Create a UserNotificationAction Object based on a dictionary.
 function createIntNotifAction(opt) {
-	if (opt.id == null) throw new Error('Notifications: interactive notifications must have and ID');
-	if (opt.title == null) throw new Error('Notifications: interactive notifications must have a title');
+	if (opt.id == null) throw new Error(MODULE_NAME + ': interactive notifications must have and ID');
+	if (opt.title == null) throw new Error(MODULE_NAME + ': interactive notifications must have a title');
 
 	return Ti.App.iOS.createUserNotificationAction({
 		identifier: opt.id,
@@ -417,7 +419,7 @@ function createIntNotifAction(opt) {
  */
 exports.addInteractiveNotificationCategory = function(id, dict) {
 	if (false == INTERACTIVE_NOTIFICATIONS_CAPABLE) {
-		Ti.API.error("Notifications: unable to create an interactive notification category, not supported");
+		Ti.API.error(MODULE_NAME + ': unable to create an interactive notification category, not supported');
 		return;
 	}
 
@@ -501,7 +503,7 @@ if (INTERACTIVE_NOTIFICATIONS_CAPABLE) {
 		if (_.isFunction(func)) {
 			func(e);
 		} else {
-			Ti.API.error('Notifications: remote notification with an unregistered category (' + e.category + ')');
+			Ti.API.error(MODULE_NAME + ': remote notification with an unregistered category (' + e.category + ')');
 		}
 	});
 }
