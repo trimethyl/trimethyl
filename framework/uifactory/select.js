@@ -343,7 +343,7 @@ function dataPickerInterface(type, opt) {
 				if (_.isObject(row)) {
 					val = _.extend({}, row, {
 						index: rowIndex,
-						selected: (current != null && _.isEqual(current, (_.isObject(val) ? val.value : val) ))
+						selected: (current != null && _.isEqual(current, row.value))
 					});
 				} else {
 					val = {
