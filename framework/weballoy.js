@@ -147,7 +147,7 @@ exports.createView = function(args) {
 		enableZoomControls: false,
 		hideLoadIndicator: true,
 		scalesPageToFit: false,
-		backgroundColor: 'transparent' //,
+		backgroundColor: 'transparent',
 		//borderRadius: 0.00001 // If the webview is not rendering set border radius to forse software layer rendering
 	}, args));
 
