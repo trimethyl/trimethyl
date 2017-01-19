@@ -19,10 +19,10 @@ var CWD = process.cwd();
 var trimethyl_map = require('./map.json');
 
 // The src install path
-var DEFAULT_SOURCE_PATH = '/framework/';
+var DEFAULT_SOURCE_PATH = 'framework';
 
 // And the dest path in the project (except for Alloy adapters)
-var DEFAULT_DEST_PATH = '/app/lib/T/';
+var DEFAULT_DEST_PATH = 'app/lib/T';
 
 // Log an event to the CLI + GA, and miserably exit
 function error(msg, code, dont_exit) {
@@ -49,8 +49,8 @@ function addLibraryToHashMap(libs, lib_name, lib_required_by_lib_name, no_of_tab
 		error('Unable to find the referenced library "' + lib_name + '"', null, false);
 	}
 
-	var src_file = __dirname + DEFAULT_SOURCE_PATH + lib_name + '.js';
-	var dst_file = CWD + DEFAULT_DEST_PATH + lib_name + '.js';
+	var src_file = __dirname + '/' + DEFAULT_SOURCE_PATH + '/' + lib_name + '.js';
+	var dst_file = CWD + '/' + DEFAULT_DEST_PATH + '/' + lib_name + '.js';
 
 	// Overwrite default destination if specified in the library (Alloy adapters)
 	if (lib.destination) {
@@ -172,13 +172,13 @@ function preInstall() {
 }
 
 function ensureFilesystemStructure() {
-	// Esnure that app/lib exists
-	if (!fs.existsSync(CWD + '/app/lib')) {
-		fs.mkdirSync(CWD + '/app/lib');
-	}
-
-	fs.deleteDirSync(CWD + '/app/lib/T');
-	fs.mkdirSync(CWD + '/app/lib/T');
+	var dir = '';
+	DEFAULT_DEST_PATH.split('/').forEach(function(d) {
+		dir += '/' + d;
+		if (!fs.existsSync(CWD + dir)) {
+			fs.mkdirSync(CWD + dir);
+		}
+	});
 
 	// Copy a README that indicates that the directory is auto-generated
 	// and can be deleted in any moment from the installaer
