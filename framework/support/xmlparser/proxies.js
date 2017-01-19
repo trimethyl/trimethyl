@@ -104,35 +104,52 @@ exports.proxies = {
 	},
 	li: {
 		type: exports.TYPE_CUSTOM,
+		end: function(container) {
+			container.addTo = null;
+		},
 		handler: function(e, container) {
-			var row = Ti.UI.createView({width: Ti.UI.FILL, height: Ti.UI.SIZE});
+			var left = exports.opts.textStyle.left || 0;
+			var right = exports.opts.textStyle.right || 0;
+
+			var row = Ti.UI.createView({width: Ti.UI.FILL, height: Ti.UI.SIZE, layout: "composite"});
 			var bullet = Ti.UI.createLabel({
-				text: "• ", left: 0, top: 0,
+				text: "• ", left: left, top: 2,
 				font: exports.opts.font
 			});
-			var attrs = OS_IOS ? Ti.UI.createAttributedString({text: e.text, attributes: [{
-				type: Ti.UI.ATTRIBUTE_KERN,
-				value: exports.opts.characterSpacing,
-				range: [0, e.text ? e.text.length : 0]
-			},{
-				type: Ti.UI.ATTRIBUTE_PARAGRAPH_STYLE,
-				value: {
-					lineSpacing: exports.opts.lineSpacing
-				},
-				range: [0, e.text ? e.text.length : 0]
-			}]}) : null;
-
-			var text = Ti.UI.createLabel({
-				top: 5,
-				attributedString: attrs,
-				text: !OS_IOS ? e.text : null,
-				lineSpacing: !OS_IOS ? exports.opts.lineSpacing : null,
-				left: 20, right: 0, height: Ti.UI.SIZE,
-				font: exports.opts.textStyle ? exports.opts.textStyle.font : null
-			});
-
 			row.add(bullet);
-			row.add(text);
+
+			var rightView = Ti.UI.createView({height: Ti.UI.SIZE, left: 20, top: 5, right: 0});
+			row.add(rightView);
+
+			if (e.text) {
+				var attrs = OS_IOS ? Ti.UI.createAttributedString({text: e.text, attributes: [{
+					type: Ti.UI.ATTRIBUTE_KERN,
+					value: exports.opts.characterSpacing,
+					range: [0, e.text ? e.text.length : 0]
+				},{
+					type: Ti.UI.ATTRIBUTE_PARAGRAPH_STYLE,
+					value: {
+						lineSpacing: exports.opts.lineSpacing
+					},
+					range: [0, e.text ? e.text.length : 0]
+				}]}) : null;
+
+				var text = Ti.UI.createLabel({
+					top: 0,
+					attributedString: attrs,
+					lineSpacing: !OS_IOS ? exports.opts.lineSpacing : null,
+					left: 0, right: 0, height: Ti.UI.SIZE,
+					font: exports.opts.textStyle ? exports.opts.textStyle.font : null
+				});
+
+				if (!OS_IOS) text.text = e.text;
+				rightView.left = left + 20;
+				rightView.right = right;
+
+				rightView.add(text);
+			}
+
+			container.addTo = rightView;
 			container.add(row);
 		}
 	}

@@ -385,7 +385,7 @@ exports.getAppDataDirectory = function() {
 		if (OS_IOS) {
 			APPDATA_DIRECTORY = Ti.Filesystem.applicationSupportDirectory;
 		} else if (OS_ANDROID) {
-			APPDATA_DIRECTORY = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent() ? 'externalStorageDirectory' : 'applicationDataDirectory' ];
+			APPDATA_DIRECTORY = Ti.Filesystem.getFile(Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent() ? 'externalStorageDirectory' : 'applicationDataDirectory' ]).nativePath + "/";
 		} else {
 			APPDATA_DIRECTORY = Ti.Filesystem.applicationDataDirectory;
 		}

@@ -7,7 +7,7 @@
 /**
  * Dependencies
  */
-var Extract = require('T/support/xmlparser/extract');
+var Extract = require('T/support/xmlparser/extract').extract;
 var DefaultProxies = require('T/support/xmlparser/proxies');
 
 /**
@@ -16,36 +16,6 @@ var DefaultProxies = require('T/support/xmlparser/proxies');
 var viewCount = 0; // just a counter to have the number of created views
 var customProxies = {};
 var container = null;
-
-/**
- * Expose `parse`.
- */
-exports = parse;
-
-/**
- * Public methods
- */
-
-// Use this method to set your own proxies
-exports.overrideProxies = function(p) {
-	_.extend(customProxies, p);
-};
-
-// Use this method to set your own container view
-exports.setContainer = function(view) {
-	container = view;
-};
-
-// A getter for the container
-exports.getContainer = function() {
-	return container;
-};
-
-/**
- * Setting type constants
- */
-exports.TYPE_TEXT = 0;
-exports.TYPE_CUSTOM = 1;
 
 /**
  * Parse the given string of `xml`.
@@ -72,23 +42,22 @@ function parse(xml, opts) {
 
 	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
+	var androidHtml = "";
 	var tempAttributes = [];
 
-	this.container = container;
+	exports.container = container;
 
 	// strip comments and whitespaces
 	xml = xml.trim();
 	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br />');
 
 	// start processing
-	tag(xml);
+	if (OS_IOS) tag(xml);
+	else if (OS_ANDROID) androidTag(xml);
 
 	//finalize currentLabel if it's not null
 	finalizeLabel();
-
-	// return container view
 	return container;
-
 
 	/**
 	 * Tag.
@@ -96,6 +65,7 @@ function parse(xml, opts) {
 	function tag(data) {
 		var re = /^<([\w-:.]+)\s*/;
 		var m = re.exec(data);
+		var el;
 
 		// starts with simple text, could have children later
 		if (!m) {
@@ -112,7 +82,9 @@ function parse(xml, opts) {
 				data = "";
 			}
 
-			proxy({
+			Logger.debug("\n\nAdding text + tag\n", data);
+
+			el = proxy({
 				name: "span",
 				attributes: {},
 				start: 0,
@@ -134,23 +106,55 @@ function parse(xml, opts) {
 		// if the block has at least a child, iterate in it.
 		data = data.replace(data.slice(block.start, block.end - block.start), '');
 		if (!!child) {
-			proxy(block); // create proxy
+			el = proxy(block); // create proxy
 			tag(block.content);
 		}
 
-		// if the block doesn't have a child but has text
+		// if the block doesn't start with a child but has text
 		if (!child && !!content.length) {
 			if (block.text.length != block.content.length) {
 				// Maybe don't override the content. Check if it doesn't break anything
-				proxy(_.extend(_.clone(block), {text: "", content: ""}));
+				el = proxy(_.extend(_.clone(block), {text: "", content: ""}));
 				tag(block.content);
+
 			} else {
-				proxy(block); // create proxy
+				el = proxy(block); // create proxy∑
 			}
 		}
-		if (!child && ! content.length) proxy(block);
-		tag(data);
 
+		// i.e. <br/>
+		if (!child && !content.length) el = proxy(block);
+
+		if (el && el.end && _.isFunction(el.end)) {
+			finalizeLabel();
+			container.addTo = null;
+			el.end(container);
+		}
+
+		// continue with the rest of the xml
+		tag(data);
+		return;
+	}
+
+	function androidTag(data) {
+		var re = /^<([\w-:.]+)\s*/;
+		var m = re.exec(data);
+
+		// case when content starts with a child
+		var block 	= Extract(data,m[1]);
+
+		if (null == proxies[block.name]) block.name = "span";
+
+		if (proxies[block.name].type == exports.TYPE_TEXT) {
+			block.content = data.substr(block.start, block.end);
+		}
+		data = data.replace(data.slice(block.start, block.end - block.start), '');
+		proxy(block);
+
+		if (0 != data.length) {
+			androidTag(data);
+			return;
+		}
 		return;
 	}
 
@@ -168,23 +172,28 @@ function parse(xml, opts) {
 
 	function proxy(element) {
 		viewCount++;
+
 		if (null == proxies[element.name]) element.name = "span";
 
 		if (proxies[element.name].type == exports.TYPE_TEXT && _.isFunction(proxies[element.name].handler)) {
 			if (null == currentLabel) currentLabel = {text: "", attributes: []};
 
-			var t = proxies[element.name].handler(element, container);
-			currentLabel.text += t.text;
-			// fix t.attributes ranges
-			cascadingAttributes(t, element);
-		}
+			if (OS_IOS) {
+				// fix t.attributes ranges
+				var t = proxies[element.name].handler(element, container);
+				currentLabel.text += t.text;
+				cascadingAttributes(t, element);
+			} else {
+				androidHtml += element.content;
+			}
 
-		if (proxies[element.name].type == exports.TYPE_CUSTOM && _.isFunction(proxies[element.name].handler)) {
+		} else if (proxies[element.name].type == exports.TYPE_CUSTOM && _.isFunction(proxies[element.name].handler)) {
 			// check if currentLabel is null
 			finalizeLabel();
-
-			return proxies[element.name].handler(element, container);
+			proxies[element.name].handler(element, container);
 		}
+
+		return proxies[element.name];
 	}
 
 	function cascadingAttributes(e, element) {
@@ -221,16 +230,17 @@ function parse(xml, opts) {
 	}
 
 	function finalizeLabel() {
-		if (currentLabel == null) return;
+		if (null == currentLabel && OS_IOS) return;
+		if ("" == androidHtml && OS_ANDROID) return;
 
 		if (opts.lineSpacing && OS_IOS) {
 			currentLabel.attributes.push({
-	            type: Ti.UI.ATTRIBUTE_PARAGRAPH_STYLE,
-	            value: {
-	            	lineSpacing: opts.lineSpacing
-	            },
-	            range: [0,currentLabel.text.length]
-	        });
+				type: Ti.UI.ATTRIBUTE_PARAGRAPH_STYLE,
+				value: {
+					lineSpacing: opts.lineSpacing
+				},
+				range: [0,currentLabel.text.length]
+			});
 		}
 
 		if (opts.characterSpacing && OS_IOS) {
@@ -241,21 +251,30 @@ function parse(xml, opts) {
 			});
 		}
 
-		// add attributedString to label
-		var as = Ti.UI.createAttributedString(currentLabel);
-		var label = OS_IOS ? Ti.UI.createLabel(_.extend({
-			attributedString: as,
-			font: {fontSize: 14}
-		}, opts.textStyle)): Ti.UI.createLabel(_.extend({
-			lineSpacing: !OS_IOS ? opts.lineSpacing : null,
-			html: !OS_IOS ? currentLabel.text : null,
-			font: {fontSize: 14}
-		}, opts.textStyle));
+		var labelProperties = null;
 
+		if (OS_IOS) {
+			var as = Ti.UI.createAttributedString(currentLabel);
+			labelProperties = _.extend({
+				attributedString: as,
+				font: {fontSize: 14}
+			}, opts.textStyle);
+		} else {
+			labelProperties = _.extend({
+				lineSpacing: opts.lineSpacing,
+				html: androidHtml,
+				font: {fontSize: 14}
+			}, opts.textStyle);
+		}
+		var label = Ti.UI.createLabel(labelProperties);
 		label.addEventListener("link", linkHandler);
 		// add label to container
-		container.add(label);
+
+		if (container.addTo) container.addTo.add(label);
+		else container.add(label);
+
 		currentLabel = null;
+		androidHtml = "";
 		label = null;
 	}
 
@@ -268,3 +287,33 @@ function parse(xml, opts) {
 		if (e.url) Ti.Platform.openURL(e.url);
 	}
 }
+
+/**
+ * Expose `parse`.
+ */
+exports.process = parse;
+
+/**
+ * Public methods
+ */
+
+// Use this method to set your own proxies
+exports.overrideProxies = function(p) {
+	_.extend(customProxies, p);
+};
+
+// Use this method to set your own container view
+exports.setContainer = function(view) {
+	container = view;
+};
+
+// A getter for the container
+exports.getContainer = function() {
+	return container;
+};
+
+/**
+ * Setting type constants
+ */
+exports.TYPE_TEXT = 0;
+exports.TYPE_CUSTOM = 1;
