@@ -53,7 +53,12 @@ module.exports = function(args) {
 
 	});
 	_.extend(args, {
-
+		disableBounce : true,
+		willHandleTouches : true,
+		showScrollbars : false,
+		scalesPageToFit : false,
+		hideLoadIndicator : true,
+		enableZoomControls : false,
 	},
 	OS_ANDROID ? {
 		overScrollMode : Ti.UI.Android.OVER_SCROLL_NEVER,
@@ -70,11 +75,16 @@ module.exports = function(args) {
 	var trackURL = (args.url || "https://api.soundcloud.com/tracks/" + args.audioId + "&" + opts.join("&"));
 
 	if (yt.width == null) yt.width = args.width;
-	if (yt.height == null) yt.height = args.height;
+	if (yt.height == null) yt.height = args.height - 10;
 
 	args.height = +args.height + 5; // The height of the WebView must be just a little higher to prevent the scrolling inside
 	var $this = Ti.UI.createWebView(args);
-	$this.url = scPlayer + "/player?url="+ trackURL;
+	if (trackURL.indexOf(scPlayer) != -1 ) {
+		$this.url = trackURL;
+	}
+	else {
+		$this.url = scPlayer + "/player?url="+ trackURL;
+	}
 
 	$this.addEventListener("load", function() {
 		$this.evalJS('var elements = document.getElementsByClassName("mobilePrestitial"); while(elements.length > 0){ var parent = elements[0].parentNode; parent.removeChild(elements[0]); parent.parentNode.removeChild(parent);}');
@@ -93,4 +103,3 @@ module.exports = function(args) {
 		.replace(/:/g, "%3A");
 	}
 };
-
