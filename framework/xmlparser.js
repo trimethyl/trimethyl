@@ -82,8 +82,6 @@ function parse(xml, opts) {
 				data = "";
 			}
 
-			Logger.debug("\n\nAdding text + tag\n", data);
-
 			el = proxy({
 				name: "span",
 				attributes: {},
