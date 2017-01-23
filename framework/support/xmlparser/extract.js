@@ -6,7 +6,7 @@
 /**
  * Expose `extract`.
  */
-exports = extract;
+exports.extract = extract;
 
 /**
  * Parse the given string of `xml`.
@@ -33,7 +33,7 @@ function extract(xml, tagName) {
 	 	var openTag = reOpening.exec(xml);
 	 	var closeTag = closingTag(tagName);
 
-		xml = xml.substr(openTag.index, closeTag.index + closeTag[0].length - openTag.index);
+	 	xml = xml.substr(openTag.index, closeTag.index + closeTag[0].length - openTag.index);
 
 		if (!m) return;
 
@@ -59,12 +59,12 @@ function extract(xml, tagName) {
 			node.content = "";
 			return node;
 		}
+
 		match(/\w*?>/);
 
 		// content
 		node.content = xml.replace(new RegExp(closeTag[0]+"$"), '');
 		node.text = /([^<]*)/.exec(xml)[0];
-
 		return node;
 	}
 
