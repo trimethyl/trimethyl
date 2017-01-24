@@ -25,8 +25,10 @@ var Util = require('T/util');
 var Router = require('T/router');
 var Q = require('T/ext/q');
 
-// Because Ti.Goosh has the same syntax of Ti.Network, 
+// Because Ti.Goosh has the same syntax of Ti.Network,
 // we can just assign the module and use it in the same way
+
+var registered_for_push_notifications = false;
 
 /**
  * The module used for push notifications
@@ -51,7 +53,7 @@ if (OS_IOS) {
 
 // The listeners for all received notification
 exports.PushModuleOpt.callback = function(e) {
-	
+
 	// We must be sure that the processed payload is the same on every platform,
 	// for this reason we have to parse the JSON as described
 	// in Ti.Goosh documentation: https://github.com/caffeinalab/ti.goosh
@@ -178,10 +180,17 @@ exports.activate = function(opt) {
 		}
 
 		var registerForPushNotifications = function() {
-			exports.PushModule.registerForPushNotifications(_.extend(exports.PushModuleOpt, {
-				success: function(e) { resolve(e.deviceToken); },
-				error: reject
-			}));
+			if (registered_for_push_notifications) {
+				resolve( exports.PushModule.remoteDeviceUUID );
+			} else {
+				exports.PushModule.registerForPushNotifications(_.extend(exports.PushModuleOpt, {
+					success: function(e) { 
+						registered_for_push_notifications = true;
+						resolve(e.deviceToken); 
+					},
+					error: reject
+				}));
+			}
 		};
 
 		if (INTERACTIVE_NOTIFICATIONS_CAPABLE) {
@@ -200,10 +209,10 @@ exports.activate = function(opt) {
 
 			Ti.App.iOS.addEventListener('usernotificationsettings', userNotificationsCallback);
 			Ti.App.iOS.registerUserNotificationSettings({
-				types: [ 
-				Ti.App.iOS.USER_NOTIFICATION_TYPE_BADGE, 
-				Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT, 
-				Ti.App.iOS.USER_NOTIFICATION_TYPE_SOUND 
+				types: [
+				Ti.App.iOS.USER_NOTIFICATION_TYPE_BADGE,
+				Ti.App.iOS.USER_NOTIFICATION_TYPE_ALERT,
+				Ti.App.iOS.USER_NOTIFICATION_TYPE_SOUND
 				],
 				categories: interactiveCategories
 			});
