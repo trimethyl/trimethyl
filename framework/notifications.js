@@ -178,16 +178,10 @@ exports.activate = function(opt) {
 		}
 
 		var registerForPushNotifications = function() {
-			if (exports.PushModule.remoteNotificationsEnabled && exports.PushModule.remoteDeviceUUID != null) {
-				resolve(exports.PushModule.remoteDeviceUUID);		
-			} else {
-				exports.PushModule.registerForPushNotifications(_.extend(exports.PushModuleOpt, {
-					success: function(e) {
-						resolve(e.deviceToken);
-					},
-					error: reject
-				}));
-			}
+			exports.PushModule.registerForPushNotifications(_.extend(exports.PushModuleOpt, {
+				success: function(e) { resolve(e.deviceToken); },
+				error: reject
+			}));
 		};
 
 		if (INTERACTIVE_NOTIFICATIONS_CAPABLE) {
