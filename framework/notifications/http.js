@@ -66,7 +66,7 @@ exports.unsubscribe = function(opt) {
 };
 
 exports.unmute = function(opt) {
-	if (exports.config.activateEndpoint == null) {
+	if (exports.config.unmuteEndpoint == null) {
 		throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
 	}
 
@@ -89,7 +89,7 @@ exports.unmute = function(opt) {
 };
 
 exports.mute = function(opt) {
-	if (exports.config.deactivateEndpoint == null) {
+	if (exports.config.muteEndpoint == null) {
 		throw new Error("Notifications.HTTP: Invalid HTTP endpoint");
 	}
 
