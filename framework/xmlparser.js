@@ -259,7 +259,7 @@ function parse(xml, opts) {
 			}, opts.textStyle);
 		} else {
 			labelProperties = _.extend({
-				lineSpacing: opts.lineSpacing,
+				lineSpacing: {add: opts.lineSpacing, multiply: 1.2},
 				html: androidHtml,
 				font: {fontSize: 14}
 			}, opts.textStyle);
