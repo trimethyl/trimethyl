@@ -11,6 +11,8 @@
  * @property {String} [config.modelId="me"] The id for the user model.
  * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate.
  * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
+ * @property {Boolean} [config.useTouchID=false] Use TouchID to protected stored/offline login.
+ * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection. If false, the TouchID protection is used without prompts.
  */
 exports.config = _.extend({
 	loginUrl: '/login',
