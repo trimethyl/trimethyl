@@ -18,7 +18,9 @@ exports.config = _.extend({
 	modelId: 'me',
 	ignoreServerModelId: false,
 	useOAuth: false,
-	oAuthAccessTokenURL: '/oauth/access_token'
+	oAuthAccessTokenURL: '/oauth/access_token',
+	useTouchID: false,
+	useTouchIDPromptConfirmation: false
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
 var Q = require('T/ext/q');
@@ -26,6 +28,9 @@ var HTTP = require('T/http');
 var Event = require('T/event');
 var Cache = require('T/cache');
 var Util = require('T/util');
+var Dialog = require('T/dialog');
+
+var TouchID = Util.requireOrNull("ti.touchid");
 
 var OAuth = require('T/support/oauth');
 var Me = null;
@@ -154,6 +159,56 @@ function fetchUserModel(opt, dataFromServer) {
 	});
 }
 
+//////////////
+// Touch ID //
+//////////////
+
+/**
+ * Check if the TouchID is enabled and supported on the device and configuration.
+ * @return {Boolean}
+ */
+exports.isTouchIDSupported = function() {
+	return exports.config.useTouchID == true && TouchID != null && TouchID.isSupported();
+};
+
+/**
+ * Authenticately safely via TouchID.
+ * With "safely" we mean that in case of unsupported status of TouchID, the callback is always executed.
+ * @param  {Function} callback The callbacl to call on success.
+ */
+exports.safeAuthViaTouchID = function(callback) {
+	if (exports.isTouchIDSupported() && exports.getUseTouchID()) {
+		TouchID.authenticate({
+			reason: L('auth_touchid_reason'),
+			callback: function(e) { 
+				// We need setTimeout for thread crashes
+				setTimeout(function(){
+					if (e.success) {
+						callback({ touchID: true });
+					}
+				}, 0);
+			}
+		});
+	} else {
+		callback({ touchID: false });
+	}
+};
+
+/**
+ * Set the app to use the TouchID identification on stored and offline login (auto also).
+ * @param {Boolean} val The value.
+ */
+exports.setUseTouchID = function(val) {
+	Ti.App.Properties.setBool('auth.touchid.use', val);
+};
+
+/**
+ * Check if the app should use the TouchID identification.
+ * @param {Boolean} val The value.
+ */
+exports.getUseTouchID = function() {
+	return Ti.App.Properties.getBool('auth.touchid.use', false);
+};
 
 /**
  * Load a driver
@@ -231,11 +286,36 @@ exports.login = function(opt) {
 
 	.then(function() {
 		Ti.App.Properties.setString('auth.driver', opt.driver);
+	})
 
-		var payload = {
-			id: Me.id
-		};
+	.then(function() {
+		return Q.promise(function(resolve, reject) {
+			if (exports.isTouchIDSupported() && !opt.stored && exports.config.useTouchIDPromptConfirmation == true) {
+				Dialog.confirm(null, L("auth_touchid_confirmation_message"), [
+				{
+					title: L('yes', 'Yes'),
+					selected: true,
+					callback: function() {
+						exports.setUseTouchID(true);
+						resolve();
+					}
+				},
+				{
+					title: L('no', 'No'),
+					callback: function() {
+						exports.setUseTouchID(false);
+						resolve();
+					}
+				}
+				]);
+			} else {
+				resolve();
+			}
+		});
+	})
 
+	.then(function() {
+		var payload = { id: Me.id };
 		opt.success(payload);
 		if (opt.silent !== true) {
 			Event.trigger('auth.success', payload);
@@ -275,10 +355,12 @@ exports.storedLogin = function(opt) {
 	});
 
 	if (exports.isStoredLoginAvailable()) {
-		exports.login(_.extend(opt || {}, {
-			stored: true,
-			driver: getStoredDriverString()
-		}));
+		exports.safeAuthViaTouchID(function() {
+			exports.login(_.extend(opt || {}, {
+				stored: true,
+				driver: getStoredDriverString()
+			}));
+		});
 	} else {
 		opt.error();
 	}
@@ -308,19 +390,19 @@ exports.offlineLogin = function(opt) {
 	});
 
 	if (exports.isOfflineLoginAvailable()) {
+		exports.safeAuthViaTouchID(function() {
+			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 
-		Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+			var payload = {
+				id: Me.id,
+				offline: true
+			};
 
-		var payload = {
-			id: Me.id,
-			offline: true
-		};
-
-		opt.success(payload);
-		if (opt.silent !== true) {
-			Event.trigger('auth.success', payload);
-		}
-
+			opt.success(payload);
+			if (opt.silent !== true) {
+				Event.trigger('auth.success', payload);
+			}
+		});
 	} else {
 		opt.error();
 	}
@@ -370,29 +452,31 @@ exports.autoLogin = function(opt) {
 		if (exports.config.useOAuth == true && driver === 'bypass') {
 
 			if (OAuth.getAccessToken() != null) {
+				exports.safeAuthViaTouchID(function() {
 
-				fetchUserModel()
-				.then(function() {
-					if (timeouted) return;
+					fetchUserModel()
+					.then(function() {
+						if (timeouted) return;
 
-					var payload = {
-						id: Me.id,
-						oauth: true
-					};
+						var payload = {
+							id: Me.id,
+							oauth: true
+						};
 
-					opt.success(payload);
-					if (opt.silent !== true) {
-						Event.trigger('auth.success', payload);
-					}
+						opt.success(payload);
+						if (opt.silent !== true) {
+							Event.trigger('auth.success', payload);
+						}
 
-				})
-				.fail(function(err) {
-					opt.error(err);
-					if (opt.silent != true) {
-						Event.trigger('auth.error', err);
-					}
+					})
+					.fail(function(err) {
+						opt.error(err);
+						if (opt.silent != true) {
+							Event.trigger('auth.error', err);
+						}
+					});
+
 				});
-
 			} else {
 				opt.error();
 			}
@@ -403,6 +487,7 @@ exports.autoLogin = function(opt) {
 				exports.storedLogin({
 					success: function(payload) {
 						if (timeouted) return;
+
 						opt.success(payload);
 						if (opt.silent != true) {
 							Event.trigger('auth.success', payload);
@@ -417,11 +502,13 @@ exports.autoLogin = function(opt) {
 
 		}
 
-	} else {
+	} else /* is offline */ {
+
 		if (exports.isOfflineLoginAvailable()) {
 			exports.offlineLogin({
 				success: function(payload) {
 					if (timeouted) return;
+
 					opt.success(payload);
 					if (opt.silent != true) {
 						Event.trigger('auth.success', payload);
@@ -433,6 +520,7 @@ exports.autoLogin = function(opt) {
 		} else {
 			opt.error();
 		}
+
 	}
 };
 
@@ -474,8 +562,6 @@ exports.logout = function(callback) {
 		}
 	});
 };
-
-
 
 //////////
 // Init //
