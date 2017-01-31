@@ -156,7 +156,7 @@ exports.createView = function(args) {
 	} else {
 		$ui.addEventListener("postlayout", function render() {
 			$ui.removeEventListener("postlayout", render);
-			$ui.html = getHTML(args);
+			$ui.setHtml(getHTML(args));
 		});
 	}
 
