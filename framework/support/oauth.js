@@ -11,33 +11,32 @@ var Q = require('T/ext/q');
 var Util = require('T/util');
 var HTTP = require('T/http');
 
-
 /**
  * Retrieve the client ID of the OAuth read from the config
  * @return {String} The ID
  */
 exports.getClientID = function() {
-	return Ti.App.Properties.getString(storagePrefix + '.' + 'clientid') || 'app';
+	return require('T/auth').getPersistence().getString(storagePrefix + '.' + 'clientid') || 'app';
 };
 
 exports.getClientSecret = function() {
-	return Ti.App.Properties.getString(storagePrefix + '.' + 'clientsecret') || 'app-secret';
+	return require('T/auth').getPersistence().getString(storagePrefix + '.' + 'clientsecret') || 'app-secret';
 };
 
 exports.storeCredentials = function(data) {
 	Ti.API.trace('Auth: storing OAuth credentials', data);
-
-	Ti.App.Properties.setString(storagePrefix + '.' + 'access_token', data.access_token);
-	Ti.App.Properties.setString(storagePrefix + '.' + 'refresh_token', data.refresh_token);
-	Ti.App.Properties.setString(storagePrefix + '.' + 'expiration', Util.now() + data.expires_in);
+	var P = require('T/auth').getPersistence();
+	P.setString(storagePrefix + '.' + 'access_token', data.access_token);
+	P.setString(storagePrefix + '.' + 'refresh_token', data.refresh_token);
+	P.setString(storagePrefix + '.' + 'expiration', Util.now() + data.expires_in);
 };
 
 exports.resetCredentials = function() {
 	Ti.API.trace('Auth: resetting OAuth credentials');
-
-	Ti.App.Properties.removeProperty(storagePrefix + '.' + 'access_token');
-	Ti.App.Properties.removeProperty(storagePrefix + '.' + 'refresh_token');
-	Ti.App.Properties.removeProperty(storagePrefix + '.' + 'expiration');
+	var P = require('T/auth').getPersistence();
+	P.removeProperty(storagePrefix + '.' + 'access_token');
+	P.removeProperty(storagePrefix + '.' + 'refresh_token');
+	P.removeProperty(storagePrefix + '.' + 'expiration');
 };
 
 function hydratateRequest(req) {
@@ -96,11 +95,11 @@ exports.httpFilter = function(httpRequest) {
 };
 
 exports.getAccessToken = function() {
-	return Ti.App.Properties.getString(storagePrefix + '.' + 'access_token', null);
+	return require('T/auth').getPersistence().getString(storagePrefix + '.' + 'access_token', null);
 };
 
 exports.getRefreshToken = function() {
-	return Ti.App.Properties.getString(storagePrefix + '.' + 'refresh_token', null);
+	return require('T/auth').getPersistence().getString(storagePrefix + '.' + 'refresh_token', null);
 };
 
 exports.isAccessTokenExpired = function() {
@@ -108,7 +107,7 @@ exports.isAccessTokenExpired = function() {
 };
 
 exports.getRemainingAccessTokenExpirationTime = function() {
-	var expire = Ti.App.Properties.getString(storagePrefix + '.' + 'expiration') << 0;
+	var expire = require('T/auth').getPersistence().getString(storagePrefix + '.' + 'expiration') << 0;
 	if (expire == 0) return -1;
 
 	return expire - Util.now();

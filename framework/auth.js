@@ -25,6 +25,8 @@ exports.config = _.extend({
 	useTouchIDPromptConfirmation: false
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
+var MODULE_NAME = 'auth';
+
 var Q = require('T/ext/q');
 var HTTP = require('T/http');
 var Event = require('T/event');
@@ -32,10 +34,8 @@ var Cache = require('T/cache');
 var Util = require('T/util');
 var Dialog = require('T/dialog');
 
+var Securely = Util.requireOrNull('bencoding.securely');
 var TouchID = Util.requireOrNull("ti.touchid");
-
-var OAuth = require('T/support/oauth');
-var Me = null;
 
 /**
  * OAuth object instance of oauth module
@@ -49,17 +49,17 @@ exports.OAuth = OAuth;
  * Don't rely direcly on this property but use {@link getUser) instead
  * @type {Backbone.Model}
  */
-exports.me = Me;
+exports.me = null;
 
 ////////////
 // Driver //
 ////////////
 
 function getStoredDriverString() {
-	var hasDriver = Ti.App.Properties.hasProperty('auth.driver');
-	var hasMe = Ti.App.Properties.hasProperty('auth.me');
+	var hasDriver = authProperties.hasProperty('auth.driver');
+	var hasMe = authProperties.hasProperty('auth.me');
 	if (hasDriver && hasMe) {
-		return Ti.App.Properties.getString('auth.driver');
+		return authProperties.getString('auth.driver');
 	}
 }
 
@@ -144,14 +144,14 @@ function fetchUserModel(opt, dataFromServer) {
 			id = dataFromServer.id;
 		}
 
-		Me = Alloy.createModel('user', { id: id });
-		Me.fetch({
+		exports.me = Alloy.createModel('user', { id: id });
+		exports.me.fetch({
 			http: {
 				refresh: true,
 				cache: false,
 			},
 			success: function() {
-				Ti.App.Properties.setObject('auth.me', Me.toJSON());
+				authProperties.setObject('auth.me', exports.me.toJSON());
 				resolve();
 			},
 			error: function(model, err) {
@@ -237,7 +237,7 @@ exports.event = function(name, cb) {
  * @return {Backbone.Model}
  */
 exports.getUser = function(){
-	return Me;
+	return exports.me;
 };
 
 /**
@@ -245,7 +245,7 @@ exports.getUser = function(){
  * @return {Boolean}
  */
 exports.isLoggedIn = function() {
-	return Me !== null;
+	return exports.me !== null;
 };
 
 /**
@@ -254,8 +254,8 @@ exports.isLoggedIn = function() {
  * @return {Number}
  */
 exports.getUserID = function(){
-	if (Me === null) return 0;
-	return Me.id;
+	if (exports.me === null) return 0;
+	return exports.me.id;
 };
 
 /**
@@ -287,7 +287,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
-		Ti.App.Properties.setString('auth.driver', opt.driver);
+		authProperties.setString('auth.driver', opt.driver);
 	})
 
 	.then(function() {
@@ -317,7 +317,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
-		var payload = { id: Me.id };
+		var payload = { id: exports.me.id };
 		opt.success(payload);
 		if (opt.silent !== true) {
 			Event.trigger('auth.success', payload);
@@ -393,10 +393,10 @@ exports.offlineLogin = function(opt) {
 
 	if (exports.isOfflineLoginAvailable()) {
 		exports.safeAuthViaTouchID(function() {
-			Me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+			exports.me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
 
 			var payload = {
-				id: Me.id,
+				id: exports.me.id,
 				offline: true
 			};
 
@@ -461,7 +461,7 @@ exports.autoLogin = function(opt) {
 						if (timeouted) return;
 
 						var payload = {
-							id: Me.id,
+							id: exports.me.id,
 							oauth: true
 						};
 
@@ -547,10 +547,9 @@ exports.logout = function(callback) {
 		method: 'POST',
 		timeout: 3000,
 		complete: function() {
-			Me = null;
+			exports.me = null;
 
-			Ti.App.Properties.removeProperty('auth.me');
-			Ti.App.Properties.removeProperty('auth.driver');
+			authProperties.removeProperty('auth.me');
 
 			Cache.purge();
 
@@ -572,3 +571,29 @@ exports.logout = function(callback) {
 if (exports.config.useOAuth == true) {
 	HTTP.addFilter('oauth', OAuth.httpFilter);
 }
+
+//////////////////////
+// User persistence //
+//////////////////////
+
+if (Securely == null) {
+	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth is not secure");
+	authProperties = Ti.App.Properties;
+} else {
+
+	var passphrase = Ti.App.Properties.getString('auth.secret', Ti.App.id);
+	if (passphrase == Ti.App.id) {
+		Ti.API.warn(MODULE_NAME + ": your auth passphrase is not securet, please change it");
+	}
+
+	authProperties = securely.createProperties({
+		secret: passphrase
+	});
+
+}
+
+var authProperties = null;
+
+exports.getPersistence = function() {
+	return authProperties;
+};

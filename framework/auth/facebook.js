@@ -19,10 +19,14 @@ var _FB = require('T/fb'); // Use FB as an accessor
 var localOptions = null;
 
 function storeData() {
-	Ti.App.Properties.setObject('auth.facebook.data', {
+	require('T/auth').getPersistence().setObject('auth.facebook.data', {
 		accessToken: _FB.accessToken,
 		expirationDate: _FB.expirationDate
 	});
+}
+
+function getData() {
+	return require('T/auth').getPersistence().getObject('auth.facebook.data');
 }
 
 exports.login = function(opt) {
