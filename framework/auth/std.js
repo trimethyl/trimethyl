@@ -11,12 +11,26 @@ exports.config = _.extend({
 	loginUrl: false
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.std : {});
 
+var MODULE_DATA_NAME = 'auth.std.data';
+
+exports.__setParent = function(parent) {
+	exports.__parent = parent;
+};
+
 function getData() {
-	return require('T/auth').getPersistence().getObject('auth.std.data');
+	return exports.__parent.getPersistence().getObject(MODULE_DATA_NAME);
+}
+
+function hasData() {
+	return exports.__parent.getPersistence().hasProperty(MODULE_DATA_NAME);
 }
 
 function storeData(value) {
-	require('T/auth').getPersistence().setObject('auth.std.data', value);
+	exports.__parent.getPersistence().setObject(MODULE_DATA_NAME, value);
+}
+
+function removeData() {
+	exports.__parent.getPersistence().removeProperty(MODULE_DATA_NAME);
 }
 
 exports.login = function(opt) {
@@ -24,21 +38,21 @@ exports.login = function(opt) {
 		throw new Error('Auth: set data when calling Auth.login');
 	}
 
-	require('T/auth').getPersistence().setObject('auth.std.data', opt.data);
+	storeData(opt.data);
 	opt.success(opt.data);
 };
 
 exports.logout = function() {
-	require('T/auth').getPersistence().removeProperty('auth.std.data');
+	removeData();
 };
 
 exports.isStoredLoginAvailable = function() {
-	return require('T/auth').getPersistence().hasProperty('auth.std.data');
+	return hasData();
 };
 
 exports.storedLogin = function(opt) {
 	if (exports.isStoredLoginAvailable()) {
-		opt.success(require('T/auth').getPersistence().getObject('auth.std.data'));
+		opt.success(getData());
 	} else {
 		opt.error();
 	}

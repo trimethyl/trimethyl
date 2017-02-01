@@ -39,7 +39,7 @@ var Dialog = require('T/dialog');
 var Securely = Util.requireOrNull('bencoding.securely');
 var TouchID = Util.requireOrNull("ti.touchid");
 
-
+var authProperties = null;
 var currentUser = null;
 
 /**
@@ -48,6 +48,7 @@ var currentUser = null;
  * @type {Object}
  */
 exports.OAuth = require('T/support/oauth');
+exports.OAuth.__setParent(module.exports);
 
 ////////////
 // Driver //
@@ -159,6 +160,36 @@ function fetchUserModel(opt, dataFromServer) {
 	});
 }
 
+/**
+ * Return the persistence object with a Ti.App.Properties interface
+ * @return {Properties} [description]
+ */
+exports.getPersistence = function() {
+	return authProperties;
+};
+
+/**
+ * Load a driver
+ * @return {Object}
+ */
+exports.loadDriver = function(name) {
+	var driver = Alloy.Globals.Trimethyl.loadDriver('auth', name, {
+		login: function() {},
+		storedLogin: function() {},
+		isStoredLoginAvailable: function() {},
+		logout: function() {}
+	});
+	driver.__setParent(module.exports);
+	return driver;
+};
+
+/**
+ * Add an event to current module
+ */
+exports.event = function(name, cb) {
+	Event.on(MODULE_NAME + '.' + name, cb);
+};
+
 //////////////
 // Touch ID //
 //////////////
@@ -198,7 +229,7 @@ exports.authenticateViaTouchID = function(opt) {
 	}
 
 	if (exports.config.enforceTouchID == true) {
-		// System doesn't have touchID but we enforced its usage
+		Ti.API.warn(MODULE_NAME + ": the user has denied access to TouchID or device doesn't support TouchID, but current configuration is enforcing TouchID usage");
 		opt.error();
 	} else {
 		opt.success({ touchID: false });
@@ -216,26 +247,6 @@ exports.userWantsToUseTouchID = function(val) {
 	} else {
 		return Ti.App.Properties.getBool('auth.touchid.use', false);
 	}
-};
-
-/**
- * Load a driver
- * @return {Object}
- */
-exports.loadDriver = function(name) {
-	return Alloy.Globals.Trimethyl.loadDriver('auth', name, {
-		login: function() {},
-		storedLogin: function() {},
-		isStoredLoginAvailable: function() {},
-		logout: function() {}
-	});
-};
-
-/**
- * Add an event to current module
- */
-exports.event = function(name, cb) {
-	Event.on('auth.' + name, cb);
 };
 
 /**
@@ -297,8 +308,9 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
+		Ti.API.error(exports.config.useTouchIDPromptConfirmation, opt.stored, exports.isTouchIDSupported());
 		return Q.promise(function(resolve, reject) {
-			if (exports.isTouchIDSupported() && !opt.stored && exports.config.useTouchIDPromptConfirmation == true) {
+			if (exports.config.useTouchIDPromptConfirmation == true && !opt.stored && exports.isTouchIDSupported()) {
 				Dialog.confirm(null, L("auth_touchid_confirmation_message"), [
 				{
 					title: L('yes', 'Yes'),
@@ -455,79 +467,56 @@ exports.autoLogin = function(opt) {
 
 	opt.error = function() {
 		clearTimeout(errorTimeout);
-		 // reset to noop to prevent that is invoked lately
-		 success = Alloy.Globals.noop;
-		 error.apply(null, arguments);
-		};
+		success = Alloy.Globals.noop;
+		error.apply(null, arguments);
+	};
 
-		if (Ti.Network.online) {
+	if (Ti.Network.online) {
 
-			var driver = getStoredDriverString();
-			if (exports.config.useOAuth == true && driver === 'bypass') {
+		var driver = getStoredDriverString();
+		if (exports.config.useOAuth == true && driver === 'bypass') {
 
-				if (exports.OAuth.getAccessToken() != null) {
-					exports.authenticateViaTouchID({
-						success: function() {
+			if (exports.OAuth.getAccessToken() != null) {
+				exports.authenticateViaTouchID({
+					success: function() {
 
-							fetchUserModel()
-							.then(function() {
-								if (timeouted) return;
-
-								var payload = {
-									id: currentUser.id,
-									oauth: true
-								};
-
-								opt.success(payload);
-								if (opt.silent !== true) {
-									Event.trigger('auth.success', payload);
-								}
-							})
-							.fail(function(err) {
-								opt.error(err);
-								if (opt.silent != true) {
-									Event.trigger('auth.error', err);
-								}
-							});
-
-						},
-						error: function() {
-							// Not a real error, no object passing
-							opt.error();
-						}
-
-					});
-				} else {
-					// Not a real error, no object passing
-					opt.error();
-				}
-
-			} else {
-
-				if (exports.isStoredLoginAvailable()) {
-					exports.storedLogin({
-						success: function(payload) {
+						fetchUserModel()
+						.then(function() {
 							if (timeouted) return;
 
+							var payload = {
+								id: currentUser.id,
+								oauth: true
+							};
+
 							opt.success(payload);
-							if (opt.silent != true) {
+							if (opt.silent !== true) {
 								Event.trigger('auth.success', payload);
 							}
-						},
-						error: opt.error,
-						silent: true // manage internally
-					});
-				} else {
-					// Not a real error, no object passing
-					opt.error();
-				}
+						})
+						.fail(function(err) {
+							opt.error(err);
+							if (opt.silent != true) {
+								Event.trigger('auth.error', err);
+							}
+						});
 
+					},
+					error: function() {
+						// Not a real error, no object passing
+						opt.error();
+					}
+
+				});
+			} else {
+				// Not a real error, no object passing
+				opt.error();
 			}
 
-		} else /* is offline */ {
+		} else {
 
-			if (exports.isOfflineLoginAvailable()) {
-				exports.offlineLogin({
+			if (exports.isStoredLoginAvailable()) {
+				exports.storedLogin({
 					success: function(payload) {
 						if (timeouted) return;
 
@@ -545,7 +534,29 @@ exports.autoLogin = function(opt) {
 			}
 
 		}
-	};
+
+	} else /* is offline */ {
+
+		if (exports.isOfflineLoginAvailable()) {
+			exports.offlineLogin({
+				success: function(payload) {
+					if (timeouted) return;
+
+					opt.success(payload);
+					if (opt.silent != true) {
+						Event.trigger('auth.success', payload);
+					}
+				},
+				error: opt.error,
+					silent: true // manage internally
+				});
+		} else {
+			// Not a real error, no object passing
+			opt.error();
+		}
+
+	}
+};
 
 /**
  * Logout the user
@@ -597,16 +608,15 @@ if (exports.config.useOAuth == true) {
 // User persistence //
 //////////////////////
 
-var authProperties = null;
 
 if (Securely == null) {
-	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth is not secure");
+	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth storage is not secure");
 	authProperties = Ti.App.Properties;
 } else {
 
 	var passphrase = Ti.App.Properties.getString('auth.secret', Ti.App.id);
 	if (passphrase == Ti.App.id) {
-		Ti.API.warn(MODULE_NAME + ": your auth passphrase is not securet, please change it");
+		Ti.API.warn(MODULE_NAME + ": your auth secret is not secure, please change it");
 	}
 
 	authProperties = Securely.createProperties({
@@ -614,7 +624,3 @@ if (Securely == null) {
 	});
 
 }
-
-exports.getPersistence = function() {
-	return authProperties;
-};

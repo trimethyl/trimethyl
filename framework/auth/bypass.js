@@ -8,6 +8,10 @@
  */
 exports.config = {};
 
+exports.__setParent = function(parent) {
+	exports.__parent = parent;
+};
+
 exports.login = function(opt) {
 	opt.success(opt.data);
 };

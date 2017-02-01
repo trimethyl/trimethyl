@@ -13,20 +13,34 @@ exports.config = _.extend({
 	tokenName: 'access_token'
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
 
+var MODULE_DATA_NAME = 'auth.std.data';
+
+exports.__setParent = function(parent) {
+	exports.__parent = parent;
+};
+
 var Util = require('T/util');
 var _FB = require('T/fb'); // Use FB as an accessor
 
 var localOptions = null;
 
+function getData() {
+	return exports.__parent.getPersistence().getObject(MODULE_DATA_NAME);
+}
+
+function hasData() {
+	return exports.__parent.getPersistence().hasProperty(MODULE_DATA_NAME);
+}
+
 function storeData() {
-	require('T/auth').getPersistence().setObject('auth.facebook.data', {
+	exports.__parent.getPersistence().setObject(MODULE_DATA_NAME, {
 		accessToken: _FB.accessToken,
 		expirationDate: _FB.expirationDate
 	});
 }
 
-function getData() {
-	return require('T/auth').getPersistence().getObject('auth.facebook.data');
+function removeData() {
+	exports.__parent.getPersistence().removeProperty(MODULE_DATA_NAME);
 }
 
 exports.login = function(opt) {
@@ -48,7 +62,7 @@ exports.logout = function() {
 };
 
 exports.isStoredLoginAvailable = function() {
-	return _FB.loggedIn || Ti.App.Properties.hasProperty('auth.facebook.data');
+	return _FB.loggedIn || hasData();
 };
 
 exports.storedLogin = function(opt) {
