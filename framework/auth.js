@@ -11,38 +11,40 @@
  * @property {String} [config.modelId="me"] The id for the user model.
  * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate.
  * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
- * @property {Boolean} [config.useTouchID=false] Use TouchID to protected stored/offline login.
- * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection. If false, the TouchID protection is used without prompts.
+ * @property {Boolean} [config.useTouchID=false] Use TouchID to protect stored/offline login.
+ * @property {Boolean} [config.enforceTouchID=false] If true, disable the stored/offline login when TouchID is disabled or not supported.
+ * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection after the first signup. If false, the TouchID protection is used without prompts.
  */
-exports.config = _.extend({
-	loginUrl: '/login',
-	logoutUrl: '/logout',
-	modelId: 'me',
-	ignoreServerModelId: false,
-	useOAuth: false,
-	oAuthAccessTokenURL: '/oauth/access_token',
-	useTouchID: false,
-	useTouchIDPromptConfirmation: false
-}, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
+ exports.config = _.extend({
+ 	loginUrl: '/login',
+ 	logoutUrl: '/logout',
+ 	modelId: 'me',
+ 	ignoreServerModelId: false,
+ 	useOAuth: false,
+ 	oAuthAccessTokenURL: '/oauth/access_token',
+ 	useTouchID: false,
+ 	enforceTouchID: false,
+ 	useTouchIDPromptConfirmation: false,
+ }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
-var MODULE_NAME = 'auth';
+ var MODULE_NAME = 'auth';
 
-var Q = require('T/ext/q');
-var HTTP = require('T/http');
-var Event = require('T/event');
-var Cache = require('T/cache');
-var Util = require('T/util');
-var Dialog = require('T/dialog');
+ var Q = require('T/ext/q');
+ var HTTP = require('T/http');
+ var Event = require('T/event');
+ var Cache = require('T/cache');
+ var Util = require('T/util');
+ var Dialog = require('T/dialog');
 
-var Securely = Util.requireOrNull('bencoding.securely');
-var TouchID = Util.requireOrNull("ti.touchid");
+ var Securely = Util.requireOrNull('bencoding.securely');
+ var TouchID = Util.requireOrNull("ti.touchid");
 
 /**
  * OAuth object instance of oauth module
  * @see  support/oauth
  * @type {Object}
  */
-exports.OAuth = OAuth;
+exports.OAuth = require('T/support/oauth');
 
 /**
  * User model object
@@ -76,15 +78,14 @@ function driverLogin(opt) {
 	});
 }
 
-
 ///////////////////////
 // Server side login //
 ///////////////////////
 
 function serverLoginWithOAuth(opt, dataFromDriver) {
 	var oAuthPostData = {
-		client_id: OAuth.getClientID(),
-		client_secret: OAuth.getClientSecret(),
+		client_id: exports.OAuth.getClientID(),
+		client_secret: exports.OAuth.getClientSecret(),
 		grant_type: 'password',
 		username: '-',
 		password: '-'
@@ -97,7 +98,7 @@ function serverLoginWithOAuth(opt, dataFromDriver) {
 			data: _.extend({}, oAuthPostData, dataFromDriver),
 			suppressFilters: ['oauth'],
 			success: function(data) {
-				OAuth.storeCredentials(data);
+				exports.OAuth.storeCredentials(data);
 				resolve(data);
 			},
 			error: reject,
@@ -137,6 +138,7 @@ function apiLogin(opt, dataFromDriver) {
 
 function fetchUserModel(opt, dataFromServer) {
 	dataFromServer = dataFromServer || {};
+
 	return Q.promise(function(resolve, reject) {
 		var id = exports.config.modelId;
 
@@ -174,42 +176,50 @@ exports.isTouchIDSupported = function() {
 };
 
 /**
- * Authenticately safely via TouchID.
- * With "safely" we mean that in case of unsupported status of TouchID, the callback is always executed.
- * @param  {Function} callback The callbacl to call on success.
+ * Authenticately via TouchID.
+ * @param {Function} success The callback to call on success.
+ * @param {Function} error The callback to call on error.
  */
-exports.safeAuthViaTouchID = function(callback) {
-	if (exports.isTouchIDSupported() && exports.getUseTouchID()) {
-		TouchID.authenticate({
+exports.authenticateViaTouchID = function(opt) {
+	opt = _.defaults(opt || {}, {
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop,
+	});
+
+	if (exports.isTouchIDSupported() && exports.userWantsToUseTouchID()) {
+		return TouchID.authenticate({
 			reason: L('auth_touchid_reason'),
 			callback: function(e) { 
-				// We need setTimeout for thread crashes
 				setTimeout(function(){
 					if (e.success) {
-						callback({ touchID: true });
+						opt.success({ touchID: true });
+					} else {
+						opt.error(e);
 					}
 				}, 0);
 			}
 		});
+	}
+
+	if (exports.config.enforceTouchID == true) {
+		// System doesn't have touchID but we enforced its usage
+		opt.error();
 	} else {
-		callback({ touchID: false });
+		opt.success({ touchID: false });
 	}
 };
 
 /**
- * Set the app to use the TouchID identification on stored and offline login (auto also).
- * @param {Boolean} val The value.
+ * Set or get the TouchID use property.
+ * @param  {Boolean} val
+ * @return {Boolean}
  */
-exports.setUseTouchID = function(val) {
-	Ti.App.Properties.setBool('auth.touchid.use', val);
-};
-
-/**
- * Check if the app should use the TouchID identification.
- * @param {Boolean} val The value.
- */
-exports.getUseTouchID = function() {
-	return Ti.App.Properties.getBool('auth.touchid.use', false);
+exports.userWantsToUseTouchID = function(val) {
+	if (val !== undefined) {
+		Ti.App.Properties.setBool('auth.touchid.use', val);
+	} else {
+		return Ti.App.Properties.getBool('auth.touchid.use', false);
+	}
 };
 
 /**
@@ -298,14 +308,14 @@ exports.login = function(opt) {
 					title: L('yes', 'Yes'),
 					selected: true,
 					callback: function() {
-						exports.setUseTouchID(true);
+						exports.userWantsToUseTouchID(true);
 						resolve();
 					}
 				},
 				{
 					title: L('no', 'No'),
 					callback: function() {
-						exports.setUseTouchID(false);
+						exports.userWantsToUseTouchID(false);
 						resolve();
 					}
 				}
@@ -357,11 +367,14 @@ exports.storedLogin = function(opt) {
 	});
 
 	if (exports.isStoredLoginAvailable()) {
-		exports.safeAuthViaTouchID(function() {
-			exports.login(_.extend(opt || {}, {
-				stored: true,
-				driver: getStoredDriverString()
-			}));
+		exports.authenticateViaTouchID({
+			success: function() {
+				exports.login(_.extend(opt || {}, {
+					stored: true,
+					driver: getStoredDriverString()
+				}));
+			},
+			error: opt.error
 		});
 	} else {
 		opt.error();
@@ -392,18 +405,21 @@ exports.offlineLogin = function(opt) {
 	});
 
 	if (exports.isOfflineLoginAvailable()) {
-		exports.safeAuthViaTouchID(function() {
-			exports.me = Alloy.createModel('user', Ti.App.Properties.getObject('auth.me'));
+		exports.authenticateViaTouchID({
+			success: function() {
+				exports.me = Alloy.createModel('user', authProperties.getObject('auth.me'));
 
-			var payload = {
-				id: exports.me.id,
-				offline: true
-			};
+				var payload = {
+					id: exports.me.id,
+					offline: true
+				};
 
-			opt.success(payload);
-			if (opt.silent !== true) {
-				Event.trigger('auth.success', payload);
-			}
+				opt.success(payload);
+				if (opt.silent !== true) {
+					Event.trigger('auth.success', payload);
+				}
+			},
+			error: opt.error
 		});
 	} else {
 		opt.error();
@@ -444,49 +460,78 @@ exports.autoLogin = function(opt) {
 	opt.error = function() {
 		clearTimeout(errorTimeout);
 		 // reset to noop to prevent that is invoked lately
-		success = Alloy.Globals.noop;
-		error.apply(null, arguments);
-	};
+		 success = Alloy.Globals.noop;
+		 error.apply(null, arguments);
+		};
 
-	if (Ti.Network.online) {
+		if (Ti.Network.online) {
 
-		var driver = getStoredDriverString();
-		if (exports.config.useOAuth == true && driver === 'bypass') {
+			var driver = getStoredDriverString();
+			if (exports.config.useOAuth == true && driver === 'bypass') {
 
-			if (OAuth.getAccessToken() != null) {
-				exports.safeAuthViaTouchID(function() {
+				if (exports.OAuth.getAccessToken() != null) {
+					exports.authenticateViaTouchID({
+						success: function() {
 
-					fetchUserModel()
-					.then(function() {
-						if (timeouted) return;
+							fetchUserModel()
+							.then(function() {
+								if (timeouted) return;
 
-						var payload = {
-							id: exports.me.id,
-							oauth: true
-						};
+								var payload = {
+									id: exports.me.id,
+									oauth: true
+								};
 
-						opt.success(payload);
-						if (opt.silent !== true) {
-							Event.trigger('auth.success', payload);
+								opt.success(payload);
+								if (opt.silent !== true) {
+									Event.trigger('auth.success', payload);
+								}
+							})
+							.fail(function(err) {
+								opt.error(err);
+								if (opt.silent != true) {
+									Event.trigger('auth.error', err);
+								}
+							});
+
+						},
+						error: function() {
+							// Not a real error, no object passing
+							opt.error();
 						}
 
-					})
-					.fail(function(err) {
-						opt.error(err);
-						if (opt.silent != true) {
-							Event.trigger('auth.error', err);
-						}
 					});
+				} else {
+					// Not a real error, no object passing
+					opt.error();
+				}
 
-				});
 			} else {
-				opt.error();
+
+				if (exports.isStoredLoginAvailable()) {
+					exports.storedLogin({
+						success: function(payload) {
+							if (timeouted) return;
+
+							opt.success(payload);
+							if (opt.silent != true) {
+								Event.trigger('auth.success', payload);
+							}
+						},
+						error: opt.error,
+						silent: true // manage internally
+					});
+				} else {
+					// Not a real error, no object passing
+					opt.error();
+				}
+
 			}
 
-		} else {
+		} else /* is offline */ {
 
-			if (exports.isStoredLoginAvailable()) {
-				exports.storedLogin({
+			if (exports.isOfflineLoginAvailable()) {
+				exports.offlineLogin({
 					success: function(payload) {
 						if (timeouted) return;
 
@@ -499,32 +544,12 @@ exports.autoLogin = function(opt) {
 					silent: true // manage internally
 				});
 			} else {
+				// Not a real error, no object passing
 				opt.error();
 			}
 
 		}
-
-	} else /* is offline */ {
-
-		if (exports.isOfflineLoginAvailable()) {
-			exports.offlineLogin({
-				success: function(payload) {
-					if (timeouted) return;
-
-					opt.success(payload);
-					if (opt.silent != true) {
-						Event.trigger('auth.success', payload);
-					}
-				},
-				error: opt.error,
-				silent: true // manage internally
-			});
-		} else {
-			opt.error();
-		}
-
-	}
-};
+	};
 
 /**
  * Logout the user
@@ -554,7 +579,7 @@ exports.logout = function(callback) {
 			Cache.purge();
 
 			if (exports.config.useOAuth == true) {
-				OAuth.resetCredentials();
+				exports.OAuth.resetCredentials();
 			} else {
 				Ti.Network.removeHTTPCookiesForDomain(Util.getDomainFromURL(HTTP.config.base));
 			}
@@ -569,12 +594,14 @@ exports.logout = function(callback) {
 //////////
 
 if (exports.config.useOAuth == true) {
-	HTTP.addFilter('oauth', OAuth.httpFilter);
+	HTTP.addFilter('oauth', exports.OAuth.httpFilter);
 }
 
 //////////////////////
 // User persistence //
 //////////////////////
+
+var authProperties = null;
 
 if (Securely == null) {
 	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth is not secure");
@@ -586,13 +613,11 @@ if (Securely == null) {
 		Ti.API.warn(MODULE_NAME + ": your auth passphrase is not securet, please change it");
 	}
 
-	authProperties = securely.createProperties({
+	authProperties = Securely.createProperties({
 		secret: passphrase
 	});
 
 }
-
-var authProperties = null;
 
 exports.getPersistence = function() {
 	return authProperties;
