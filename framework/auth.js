@@ -15,29 +15,32 @@
  * @property {Boolean} [config.enforceTouchID=false] If true, disable the stored/offline login when TouchID is disabled or not supported.
  * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection after the first signup. If false, the TouchID protection is used without prompts.
  */
- exports.config = _.extend({
- 	loginUrl: '/login',
- 	logoutUrl: '/logout',
- 	modelId: 'me',
- 	ignoreServerModelId: false,
- 	useOAuth: false,
- 	oAuthAccessTokenURL: '/oauth/access_token',
- 	useTouchID: false,
- 	enforceTouchID: false,
- 	useTouchIDPromptConfirmation: false,
- }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
+exports.config = _.extend({
+	loginUrl: '/login',
+	logoutUrl: '/logout',
+	modelId: 'me',
+	ignoreServerModelId: false,
+	useOAuth: false,
+	oAuthAccessTokenURL: '/oauth/access_token',
+	useTouchID: false,
+	enforceTouchID: false,
+	useTouchIDPromptConfirmation: false,
+}, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
- var MODULE_NAME = 'auth';
+var MODULE_NAME = 'auth';
 
- var Q = require('T/ext/q');
- var HTTP = require('T/http');
- var Event = require('T/event');
- var Cache = require('T/cache');
- var Util = require('T/util');
- var Dialog = require('T/dialog');
+var Q = require('T/ext/q');
+var HTTP = require('T/http');
+var Event = require('T/event');
+var Cache = require('T/cache');
+var Util = require('T/util');
+var Dialog = require('T/dialog');
 
- var Securely = Util.requireOrNull('bencoding.securely');
- var TouchID = Util.requireOrNull("ti.touchid");
+var Securely = Util.requireOrNull('bencoding.securely');
+var TouchID = Util.requireOrNull("ti.touchid");
+
+
+var currentUser = null;
 
 /**
  * OAuth object instance of oauth module
@@ -45,13 +48,6 @@
  * @type {Object}
  */
 exports.OAuth = require('T/support/oauth');
-
-/**
- * User model object
- * Don't rely direcly on this property but use {@link getUser) instead
- * @type {Backbone.Model}
- */
-exports.me = null;
 
 ////////////
 // Driver //
@@ -146,14 +142,14 @@ function fetchUserModel(opt, dataFromServer) {
 			id = dataFromServer.id;
 		}
 
-		exports.me = Alloy.createModel('user', { id: id });
-		exports.me.fetch({
+		currentUser = Alloy.createModel('user', { id: id });
+		currentUser.fetch({
 			http: {
 				refresh: true,
 				cache: false,
 			},
 			success: function() {
-				authProperties.setObject('auth.me', exports.me.toJSON());
+				authProperties.setObject('auth.me', currentUser.toJSON());
 				resolve();
 			},
 			error: function(model, err) {
@@ -247,7 +243,7 @@ exports.event = function(name, cb) {
  * @return {Backbone.Model}
  */
 exports.getUser = function(){
-	return exports.me;
+	return currentUser;
 };
 
 /**
@@ -255,7 +251,7 @@ exports.getUser = function(){
  * @return {Boolean}
  */
 exports.isLoggedIn = function() {
-	return exports.me !== null;
+	return currentUser !== null;
 };
 
 /**
@@ -264,8 +260,8 @@ exports.isLoggedIn = function() {
  * @return {Number}
  */
 exports.getUserID = function(){
-	if (exports.me === null) return 0;
-	return exports.me.id;
+	if (currentUser === null) return 0;
+	return currentUser.id;
 };
 
 /**
@@ -327,7 +323,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
-		var payload = { id: exports.me.id };
+		var payload = { id: currentUser.id };
 		opt.success(payload);
 		if (opt.silent !== true) {
 			Event.trigger('auth.success', payload);
@@ -407,10 +403,10 @@ exports.offlineLogin = function(opt) {
 	if (exports.isOfflineLoginAvailable()) {
 		exports.authenticateViaTouchID({
 			success: function() {
-				exports.me = Alloy.createModel('user', authProperties.getObject('auth.me'));
+				currentUser = Alloy.createModel('user', authProperties.getObject('auth.me'));
 
 				var payload = {
-					id: exports.me.id,
+					id: currentUser.id,
 					offline: true
 				};
 
@@ -478,7 +474,7 @@ exports.autoLogin = function(opt) {
 								if (timeouted) return;
 
 								var payload = {
-									id: exports.me.id,
+									id: currentUser.id,
 									oauth: true
 								};
 
@@ -572,7 +568,7 @@ exports.logout = function(callback) {
 		method: 'POST',
 		timeout: 3000,
 		complete: function() {
-			exports.me = null;
+			currentUser = null;
 
 			authProperties.removeProperty('auth.me');
 
