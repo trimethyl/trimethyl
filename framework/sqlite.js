@@ -282,7 +282,7 @@ SQLite.prototype.getExequery = function() {
 		case 'select':
 		return [
 			'SELECT ' + (this.query.select === null ? '*' : _.map(this.query.select, function(v, k){ return k + ' AS ' + v; }).join(',')) +
-			' FROM ' + this.query.table +
+			' FROM [' + this.query.table + ']' +
 			whereClause +
 			(this.query.order === null ? '' : (' ORDER BY ' + this.query.order.key + ' ' + this.query.order.direction))
 		]
@@ -290,7 +290,7 @@ SQLite.prototype.getExequery = function() {
 
 		case 'update':
 		return [
-			'UPDATE ' + this.query.table +
+			'UPDATE [' + this.query.table + ']' +
 			' SET ' + (this.query.update.join(' = ?, ') + ' = ?') +
 			whereClause
 		]
@@ -299,19 +299,19 @@ SQLite.prototype.getExequery = function() {
 
 		case 'delete':
 		return [
-			'DELETE FROM ' + this.query.table +
+			'DELETE FROM [' + this.query.table + ']' +
 			whereClause
 		]
 		.concat(this.query.whereData);
 
 		case 'truncate':
 		return [
-			'TRUNCATE TABLE ' + this.query.table
+			'TRUNCATE TABLE [' + this.query.table + ']'
 		];
 
 		case 'insert':
 		return [
-			'INSERT INTO ' + this.query.table +
+			'INSERT INTO [' + this.query.table + ']' +
 			'(' + this.query.insert.join(',') + ') ' +
 			'VALUES (' + this.query.insert.map(function(){ return '?'; }) + ')'
 		]
