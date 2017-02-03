@@ -58,7 +58,11 @@ module.exports = function(args) {
 	html += '<script src="http://www.youtube.com/player_api"></script>';
 	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",' + JSON.stringify(yt) + '); }</script>';
 	html += '</body></html>';
-	$this.html = html;
+	if (OS_IOS) {
+		$this.html = html;
+	} else {
+		$this.setHtml(html);
+	}
 
 	return $this;
 };
