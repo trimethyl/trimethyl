@@ -308,7 +308,6 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
-		Ti.API.error(exports.config.useTouchIDPromptConfirmation, opt.stored, exports.isTouchIDSupported());
 		return Q.promise(function(resolve, reject) {
 			if (exports.config.useTouchIDPromptConfirmation == true && !opt.stored && exports.isTouchIDSupported()) {
 				Dialog.confirm(null, L("auth_touchid_confirmation_message"), [

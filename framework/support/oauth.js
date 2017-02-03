@@ -21,11 +21,11 @@ var HTTP = require('T/http');
  * @return {String} The ID
  */
 exports.getClientID = function() {
-	return exports.__parent.getPersistence().getString(MODULE_NAME + '.' + 'clientid');
+	return Ti.App.Properties.getString(MODULE_NAME + '.' + 'clientid');
 };
 
 exports.getClientSecret = function() {
-	return exports.__parent.getPersistence().getString(MODULE_NAME + '.' + 'clientsecret');
+	return Ti.App.Properties.getString(MODULE_NAME + '.' + 'clientsecret');
 };
 
 exports.storeCredentials = function(data) {
