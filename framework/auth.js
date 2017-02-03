@@ -313,7 +313,7 @@ exports.login = function(opt) {
 				Dialog.confirm(null, L("auth_touchid_confirmation_message"), [
 				{
 					title: L('yes', 'Yes'),
-					selected: true,
+					preferred: true,
 					callback: function() {
 						exports.userWantsToUseTouchID(true);
 						resolve();

@@ -122,7 +122,7 @@ exports.notifyUpdate = function(url, version_cb, success_cb) {
 				},
 				{
 					title: L('app_new_version_button_update', 'Update'),
-					selected: true,
+					preferred: true,
 					callback: function() {
 						GA.trackEvent('updatedialog', 'doit');
 						success_cb(response);

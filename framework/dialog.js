@@ -7,7 +7,7 @@
 function parseDict(dict) {
 	return {
 		cancel: _.indexOf(dict, _.findWhere(dict, { cancel: true })),
-		selectedIndex: _.indexOf(dict, _.findWhere(dict, { selected: true })),
+		preferred: _.indexOf(dict, _.findWhere(dict, { preferred: true })),
 		destructive: _.indexOf(dict, _.findWhere(dict, { destructive: true })),
 	};
 }
@@ -124,7 +124,7 @@ function confirmYes(title, message, callback, buttonTitle) {
 		{
 			title: buttonTitle || L('yes', 'Yes'),
 			callback: callback,
-			selected: true
+			preferred: true
 		}
 	]);
 }
