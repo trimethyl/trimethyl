@@ -124,7 +124,7 @@
 	},
 	"notifications":{
 		"name": "Notifications",
-		"description": "Push notifications module with interactive notification supports handling all platforms with one single interface, and communicating with several online service (Parse or CloudPush) or with your custom server.",
+		"description": "Push notifications module with interactive notification supports handling all platforms with one single interface, and communicating with several online service or with your custom server.",
 		"dependencies": ["event","util","router","ext/q"],
 		"modules": ["ti.goosh:android"]
 	},
@@ -137,11 +137,6 @@
 		"name": "Notifications.Cloud",
 		"description": "Driver based on CloudPush of Appcelerator.",
 		"modules": ["ti.cloud:commonjs"]
-	},
-	"notifications/parse":{
-		"name": "Notifications.Parse",
-		"description": "Driver for Parse.",
-		"dependencies": ["http"]
 	},
 	"permissions":{
 		"name": "Permissions",
