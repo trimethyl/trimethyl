@@ -16,16 +16,12 @@ var Q = require('T/ext/q');
 var Util = require('T/util');
 var HTTP = require('T/http');
 
-/**
- * Retrieve the client ID of the OAuth read from the config
- * @return {String} The ID
- */
 exports.getClientID = function() {
-	return Ti.App.Properties.getString(MODULE_NAME + '.' + 'clientid');
+	return exports.__parent.config.oAuthClientID;
 };
 
 exports.getClientSecret = function() {
-	return Ti.App.Properties.getString(MODULE_NAME + '.' + 'clientsecret');
+	return exports.__parent.config.oAuthClientSecret;
 };
 
 exports.storeCredentials = function(data) {

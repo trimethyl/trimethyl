@@ -123,7 +123,7 @@ exports.facebook = function(args) {
 
 	// Fallback
 	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
-		app_id: Ti.App.Properties.getString('ti.facebook.appid', (Alloy.CFG.T.fb || Alloy.CFG.T.facebook || {}).app_id),
+		app_id: (Alloy.CFG.T.fb || Alloy.CFG.T.facebook || {}).app_id,
 		display: 'touch',
 		redirect_uri: args.redirect_uri || Ti.App.url,
 		href: args.url

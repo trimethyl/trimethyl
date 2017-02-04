@@ -11,6 +11,7 @@
  * @property {Boolean} [config.clusterRemoveOutOfBB=true] Tell the clustering to remove pins that are out of the bounding box.
  * @property {Number} [config.clusterMaxDelta=0.3] The value before the clustering is off.
  * @property {Boolean} [config.clusterRegionBounds=false] Tell the clustering to add the region information of its points.
+ * @property {String} [config.googleApiKey=null] Optional Google API key for some methods.
  */
 exports.config = _.extend({
 	gpsAccuracy: 'ACCURACY_HIGH',
@@ -18,7 +19,8 @@ exports.config = _.extend({
 	clusterPixelRadius: 30,
 	clusterRemoveOutOfBB: true,
 	clusterMaxDelta: 0.3,
-	clusterRegionBounds: false
+	clusterRegionBounds: false,
+	googleApiKey: null
 }, Alloy.CFG.T ? Alloy.CFG.T.geo : {});
 
 var MODULE_NAME = 'geo';
@@ -358,7 +360,7 @@ exports.autocomplete = function(opt) {
 		opt.ttl = CACHE_TTL;
 	}
 
-	var key = Ti.App.Properties.getString('google.places.api.key');
+	var key = exports.config.googleApiKey;
 	if (!key) {
 		throw new Error('This method needs a Google Maps API key to work');
 	}
@@ -422,7 +424,7 @@ exports.getPlaceDetails = function(opt) {
 		opt.ttl = CACHE_TTL;
 	}
 
-	var key = Ti.App.Properties.getString('google.places.api.key');
+	var key = exports.config.googleApiKey;
 	if (!key) {
 		throw new Error('This method needs a Google Maps API key to work');
 	}

@@ -13,7 +13,7 @@ exports.config = _.extend({
 	tokenName: 'access_token'
 }, (Alloy.CFG.T && Alloy.CFG.T.auth) ? Alloy.CFG.T.auth.facebook : {});
 
-var MODULE_DATA_NAME = 'auth.std.data';
+var MODULE_DATA_NAME = 'auth.facebook.data';
 
 exports.__setParent = function(parent) {
 	exports.__parent = parent;
@@ -57,7 +57,7 @@ exports.login = function(opt) {
 };
 
 exports.logout = function() {
-	Ti.App.Properties.removeProperty('auth.facebook.data');
+	exports.__parent.getPersistence().removeProperty(MODULE_DATA_NAME);
 	_FB.logout();
 };
 

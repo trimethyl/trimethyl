@@ -7,24 +7,34 @@
  * @property config
  * @property {String} [config.loginUrl="/login"] The URL called by login().
  * @property {String} [config.logoutUrl="/logout"] The URL called by logout().
- * @property {Boolean} [config.ignoreServerModelId=false] Force the module to use the configured modelId to fetch and store the user model.
  * @property {String} [config.modelId="me"] The id for the user model.
+ * @property {Boolean} [config.ignoreServerModelId=false] Force the module to use the configured modelId to fetch and store the user model.
+ * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
  * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate.
  * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
+ * @property {String} [config.oAuthClientID="app"] OAuth client ID
+ * @property {String} [config.oAuthClientSecret="secret"] OAuth client secret.
  * @property {Boolean} [config.useTouchID=false] Use TouchID to protect stored/offline login.
  * @property {Boolean} [config.enforceTouchID=false] If true, disable the stored/offline login when TouchID is disabled or not supported.
  * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection after the first signup. If false, the TouchID protection is used without prompts.
  */
 exports.config = _.extend({
+
 	loginUrl: '/login',
 	logoutUrl: '/logout',
 	modelId: 'me',
 	ignoreServerModelId: false,
+	encryptionKey: null,
+
 	useOAuth: false,
 	oAuthAccessTokenURL: '/oauth/access_token',
+	oAuthClientID: 'app',
+	oAuthClientSecret: 'secret',
+
 	useTouchID: false,
 	enforceTouchID: false,
 	useTouchIDPromptConfirmation: false,
+
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
 var MODULE_NAME = 'auth';
@@ -612,14 +622,9 @@ if (Securely == null) {
 	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth storage is not secure");
 	authProperties = Ti.App.Properties;
 } else {
-
-	var passphrase = Ti.App.Properties.getString('auth.secret', Ti.App.id);
-	if (passphrase == Ti.App.id) {
-		Ti.API.warn(MODULE_NAME + ": your auth secret is not secure, please change it");
-	}
-
 	authProperties = Securely.createProperties({
-		secret: passphrase
+		secret: exports.config.encryptionKey,
+		allowSync: true,
+		debug: !ENV_PRODUCTION,
 	});
-
 }

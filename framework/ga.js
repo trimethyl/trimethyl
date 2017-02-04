@@ -5,10 +5,12 @@
 
 /**
  * @property config
- * @property {String} [config.log=false] Log the queries
+ * @property {String} [config.ua=null]		The Google Analytics UA
+ * @property {String} [config.log=false] 	Log the queries
  * @type {Object}
  */
 exports.config = _.extend({
+	ua: null,
 	log: false
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
@@ -193,24 +195,13 @@ exports.setTrackerUA = function(ua) {
 // Init //
 //////////
 
-var ua = null;
-
-if (Ti.App.Properties.hasProperty('ga.ua')) {
-	ua = Ti.App.Properties.getString('ga.ua', null);
-} else {
-	if (exports.config.ua != null) {
-		Ti.API.warn('GA: Setting UA in the config.json is DEPRECATED, set it in the tiapp.xml');
-		ua = exports.config.ua; 
-	}
-}
-
-if (ua != null) {
+if (exports.config.ua != null) {
 	if (AnalyticsGoogle != null) {
-		exports.setTrackerUA(ua);
+		exports.setTrackerUA(exports.config.ua);
 		AnalyticsGoogle.setTrackUncaughtExceptions();
 	} else {
 		Ti.API.error('GA: initialization failed, unable to find module');
 	}
 } else {
-	Ti.API.warn('GA: initialization failed, invalid UA');
+	Ti.API.error('GA: initialization failed, invalid UA');
 }
