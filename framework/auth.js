@@ -49,6 +49,10 @@ var Dialog = require('T/dialog');
 var Securely = Util.requireOrNull('bencoding.securely');
 var TouchID = Util.requireOrNull("ti.touchid");
 
+if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
+	TouchID.setAuthenticationPolicy(TouchID.AUTHENTICATION_POLICY_BIOMETRICS);
+}
+
 var authProperties = null;
 var currentUser = null;
 
@@ -235,7 +239,7 @@ exports.authenticateViaTouchID = function(opt) {
 		
 		return TouchID.authenticate({
 			reason: L('auth_touchid_reason'),
-			callback: function(e) { 
+			callback: function(e) {
 				setTimeout(function(){
 					if (e.success) {
 						clearTimeout(exports.authenticateViaTouchID.timeout);
