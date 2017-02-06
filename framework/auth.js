@@ -245,7 +245,7 @@ exports.authenticateViaTouchID = function(opt) {
 						clearTimeout(exports.authenticateViaTouchID.timeout);
 						opt.success({ touchID: true });
 					} else {
-						opt.error(e);
+						opt.error();
 					}
 				}, 0);
 			}
