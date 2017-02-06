@@ -49,7 +49,7 @@ var Dialog = require('T/dialog');
 var Securely = Util.requireOrNull('bencoding.securely');
 var TouchID = Util.requireOrNull("ti.touchid");
 
-if (exports.config.useTouchID == true && TouchID != null) {
+if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
 	TouchID.setAuthenticationPolicy(TouchID.AUTHENTICATION_POLICY_BIOMETRICS);
 }
 
