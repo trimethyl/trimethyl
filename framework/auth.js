@@ -220,15 +220,25 @@ exports.isTouchIDSupported = function() {
 exports.authenticateViaTouchID = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
-		error: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
 	});
 
+	clearTimeout(exports.authenticateViaTouchID.timeout);
+
 	if (exports.isTouchIDSupported() && exports.userWantsToUseTouchID()) {
+
+		if (opt.timeout != null) {
+			exports.authenticateViaTouchID.timeout = setTimeout(function() {
+				TouchID.invalidate();
+			}, opt.timeout);
+		}
+		
 		return TouchID.authenticate({
 			reason: L('auth_touchid_reason'),
 			callback: function(e) { 
 				setTimeout(function(){
 					if (e.success) {
+						clearTimeout(exports.authenticateViaTouchID.timeout);
 						opt.success({ touchID: true });
 					} else {
 						opt.error(e);
@@ -385,6 +395,7 @@ exports.storedLogin = function(opt) {
 
 	if (exports.isStoredLoginAvailable()) {
 		exports.authenticateViaTouchID({
+			timeout: opt.timeout,
 			success: function() {
 				exports.login(_.extend(opt || {}, {
 					stored: true,
@@ -423,6 +434,7 @@ exports.offlineLogin = function(opt) {
 
 	if (exports.isOfflineLoginAvailable()) {
 		exports.authenticateViaTouchID({
+			timeout: opt.timeout,
 			success: function() {
 				currentUser = Alloy.createModel('user', authProperties.getObject('auth.me'));
 
@@ -487,6 +499,7 @@ exports.autoLogin = function(opt) {
 
 			if (exports.OAuth.getAccessToken() != null) {
 				exports.authenticateViaTouchID({
+					timeout: opt.timeout,
 					success: function() {
 
 						fetchUserModel()
@@ -526,6 +539,7 @@ exports.autoLogin = function(opt) {
 
 			if (exports.isStoredLoginAvailable()) {
 				exports.storedLogin({
+					timeout: opt.timeout,
 					success: function(payload) {
 						if (timeouted) return;
 
@@ -548,6 +562,7 @@ exports.autoLogin = function(opt) {
 
 		if (exports.isOfflineLoginAvailable()) {
 			exports.offlineLogin({
+				timeout: opt.timeout,
 				success: function(payload) {
 					if (timeouted) return;
 
