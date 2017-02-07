@@ -185,20 +185,23 @@ module.exports = function(args) {
 
 
 		var activityButtons = [];
+		$this.menuItems = [];
 
 		$this.setActivityProperties({
 			onCreateOptionsMenu: function(e) {
 				_.each(activityButtons, function(btn) {
-					var menuItem = e.menu.add({
+					var menuItem = e.menu.add(_.extend({
 						title: btn.title || '',
 						icon: btn.icon || btn.image || '',
 						actionView: btn.actionView,
 						showAsAction: btn.showAsAction != null ? btn.showAsAction : Ti.Android.SHOW_AS_ACTION_ALWAYS
+					}, btn.itemId != null ? { itemId: btn.itemId } : {}));
+					menuItem.addEventListener('click', function(e){
+						if (_.isFunction(btn.click)) btn.click(e);
+						if (_.isFunction($this[btn.click])) $this[btn.click](e);
+						if (_.isFunction(btn.fireEvent)) btn.fireEvent('click', e);
 					});
-					menuItem.addEventListener('click', function(){
-						if (_.isFunction(btn.click)) btn.click();
-						if (_.isFunction(btn.fireEvent)) btn.fireEvent('click');
-					});
+					$this.menuItems.push(menuItem);
 				});
 			}
 		});
@@ -224,6 +227,7 @@ module.exports = function(args) {
 		 */
 		$this.setActivityButton = function(opt) {
 			activityButtons = [];
+			$this.menuItems = [];
 			$this.addActivityButton(opt);
 		};
 
