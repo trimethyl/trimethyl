@@ -1,9 +1,13 @@
 /**
  * @module  uifactory/window
- * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
+ * @author  Flavio De Stefano <andrea.jonus@caffeina.com>
  */
 
 var UIUtil = require('T/uiutil');
+var ABX = null;
+
+var LOGNAME = "UIFactory/Window";
 
 module.exports = function(args) {
 	_.defaults(args, {
@@ -19,6 +23,13 @@ module.exports = function(args) {
 		 * @property {Boolean} [backButtonDisabled=false]
 		 */
 		backButtonDisabled: false,
+
+		/**
+		 * **(Android only)** Use the ActionBarExtras module by Ricardo Alcocer (if included in tiapp.xml)
+		 * @property {Boolean} [useActionBarExtras=false]
+		 * @see {@link https://github.com/ricardoalcocer/actionbarextras}
+		 */
+		useActionBarExtras: false,
 
 		/**
 		 * View {@link #setDeferredBackgroundImage}
@@ -137,6 +148,13 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
+		if (args.useActionBarExtras == true) {
+			ABX = Util.requireOrNull("com.alcoapps.actionbarextras");
+			if (ABX == null) {
+				Ti.API.error(LOGNAME + ': com.alcoapps.actionbarextras has been required but is not included in the project.');
+			}
+		}
+
 		/**
 		 * Set the properties for the Activity
 		 * @method setActivityProperties
@@ -156,12 +174,12 @@ module.exports = function(args) {
 		 */
 		$this.setActionBarProperties = function(props, callback) {
 			onOpen(function(){
-				if ($this.activity.actionBar == null) return;
+				if ($this.actionBar == null) return;
 
 				_.each(props, function(v, k) {
-					$this.activity.actionBar[k] = v;
+					$this.actionBar[k] = v;
 				});
-				if (_.isFunction(callback)) callback($this.activity.actionBar);
+				if (_.isFunction(callback)) callback($this.actionBar);
 			});
 		};
 
@@ -258,6 +276,15 @@ module.exports = function(args) {
 	if (args.backgroundCoverImage != null) $this.setBackgroundCoverImage(args.backgroundCoverImage);
 
 	if (OS_ANDROID) {
+
+		// Set the window's action bar
+		onOpen(function() {
+			if (ABX != null) {
+				$this.actionBar = ABX;
+			} else if ($this.activity != null && $this.activity.actionBar != null) {
+				$this.actionBar = $this.activity.actionBar;
+			}
+		});
 
 		$this.processTitles();
 		if (_.isFunction($this.activity.invalidateOptionsMenu)) {
