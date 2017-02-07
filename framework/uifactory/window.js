@@ -185,23 +185,42 @@ module.exports = function(args) {
 
 
 		var activityButtons = [];
-		$this.menuItems = [];
+		$this.menuItems = {};
 
 		$this.setActivityProperties({
 			onCreateOptionsMenu: function(e) {
 				_.each(activityButtons, function(btn) {
-					var menuItem = e.menu.add(_.extend({
+					var attrs = _.extend({
 						title: btn.title || '',
 						icon: btn.icon || btn.image || '',
 						actionView: btn.actionView,
-						showAsAction: btn.showAsAction != null ? btn.showAsAction : Ti.Android.SHOW_AS_ACTION_ALWAYS
-					}, btn.itemId != null ? { itemId: btn.itemId } : {}));
+						showAsAction: btn.showAsAction != null ? btn.showAsAction : Ti.Android.SHOW_AS_ACTION_ALWAYS,
+						visible: btn.visible != null ? btn.visible : true
+					}, btn.itemId != null ? { itemId: btn.itemId } : {});
+
+					var menuItem = e.menu.add(attrs);
+
 					menuItem.addEventListener('click', function(e){
 						if (_.isFunction(btn.click)) btn.click(e);
 						if (_.isFunction($this[btn.click])) $this[btn.click](e);
 						if (_.isFunction(btn.fireEvent)) btn.fireEvent('click', e);
 					});
-					$this.menuItems.push(menuItem);
+
+					if (!_.isEmpty(btn.fontIcon) && args.useActionBarExtras == true && $this.actionBar != null) {
+						if (btn.itemId != null) {
+							$this.actionBar.setMenuItemIcon(_.extend(_.pick(btn, 'color', 'size', 'fontFamily'), {
+								menu: e.menu,
+								menuItem: menuItem,
+								icon: btn.fontIcon
+							}));
+						} else {
+							Ti.API.warn(LOGNAME + ': Missing itemId from menu item. Cannot set the icon.');
+						}
+					}
+
+					if (btn.itemId != null) {
+						$this.menuItems[btn.itemId] = menuItem;
+					}
 				});
 			}
 		});
@@ -227,7 +246,7 @@ module.exports = function(args) {
 		 */
 		$this.setActivityButton = function(opt) {
 			activityButtons = [];
-			$this.menuItems = [];
+			$this.menuItems = {};
 			$this.addActivityButton(opt);
 		};
 
