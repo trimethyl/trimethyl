@@ -315,11 +315,14 @@ module.exports = function(args) {
 		}
 
 		if (args.displayHomeAsUp === true && args.exitOnClose !== true) {
-			$this.setActionBarProperties({
-				displayHomeAsUp: true,
-				onHomeIconItemSelected: function() {
+			onOpen(function(){
+				// Get the real actionbar from the activity
+				if ($this.activity.actionBar == null) return;
+
+				$this.activity.actionBar.displayHomeAsUp = true;
+				$this.activity.actionBar.onHomeIconItemSelected = function() {
 					$this.close();
-				}
+				};
 			});
 		}
 
