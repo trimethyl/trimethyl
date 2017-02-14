@@ -294,7 +294,6 @@ HTTPRequest.prototype.send = function() {
 HTTPRequest.prototype._send = function() {
 	var self = this;
 
-
 	var client = Ti.Network.createHTTPClient({
 		timeout: this.timeout,
 		cache: false,
