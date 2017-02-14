@@ -38,11 +38,21 @@
         <key>UIStatusBarStyle</key>
         <string>UIStatusBarStyleDefault</string>
         <key>NSLocationAlwaysUsageDescription</key>
-        <string>
-          Specify the reason for accessing the user's location information.
-          This appears in the alert dialog when asking the user for permission to
-          access their location.
-        </string>
+        <string>Hello</string>
+        <key>NSLocationWhenInUseUsageDescription</key>
+        <string>Hello</string>
+        <key>NSCalendarsUsageDescription</key>
+        <string>Hello</string>
+        <key>NSPhotoLibraryUsageDescription</key>
+        <string>Hello</string>
+        <key>NSMicrophoneUsageDescription</key>
+        <string>Hello</string>
+        <key>NSAppleMusicUsageDescription</key>
+        <string>Hello</string>
+        <key>NSCameraUsageDescription</key>
+        <string>Hello</string>
+        <key>NSContactsUsageDescription</key>
+        <string>Hello</string>
         <key>FacebookAppID</key>
         <string>1177649278931976</string>
         <key>FacebookDisplayName</key>

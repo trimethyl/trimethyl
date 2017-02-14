@@ -6,7 +6,7 @@
 				"log": true
 			}
 		},
-		"ui-tests": [ "select", "calendar", "weballoy", "camera", "animator", "notifications" ]
+		"ui-tests": [ "select", "calendar", "weballoy", "camera", "animator", "notifications", "geo" ]
 	},
 	"env:development": {},
 	"env:test": {},

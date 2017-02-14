@@ -8,10 +8,13 @@ var Logger = T('logger');
 var Moment = require('alloy/moment');
 var Dialog = T('dialog');
 var Filesystem = T('filesystem');
+var Geo = T('geo');
 
 var G = {};
 
-exports.http_json_parsing = function() {
+exports.methods = {};
+
+exports.methods.http_json_parsing = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
 			url: 'http://demo1916598.mockable.io/hello',
@@ -24,7 +27,7 @@ exports.http_json_parsing = function() {
 	});
 };
 
-exports.http_cache = function() {
+exports.methods.http_cache = function() {
 	return Q.promise(function(resolve, reject) {
 		var a = HTTP.send({
 			url: 'http://demo1916598.mockable.io/ttl-unit-test',
@@ -41,7 +44,7 @@ exports.http_cache = function() {
 	});
 };
 
-exports.http_download = function() {
+exports.methods.http_download = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.download('https://unsplash.it/800/800', 'test.jpg', function(file) {
 			if (file == null || !file.exists()) return reject('File not exists');
@@ -50,14 +53,14 @@ exports.http_download = function() {
 	});
 };
 
-exports.sqlite_open = function() {
+exports.methods.sqlite_open = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db = new SQLite('test');
 		resolve();
 	});
 };
 
-exports.sqlite_execute = function() {
+exports.methods.sqlite_execute = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db.execute('DROP TABLE IF EXISTS x');
 		G.db.execute('CREATE TABLE x (id INTEGER PRIMARY KEY, text TEXT)');
@@ -65,7 +68,7 @@ exports.sqlite_execute = function() {
 	});
 };
 
-exports.sqlite_insert = function() {
+exports.methods.sqlite_insert = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db.table('x').insert({ id: 1, text: 'trimethyl' }).exec();
 		G.db.table('x').insert({ id: 2, text: 'alloy' }).exec();
@@ -73,7 +76,7 @@ exports.sqlite_insert = function() {
 	});
 };
 
-exports.sqlite_select_val = function() {
+exports.methods.sqlite_select_val = function() {
 	return Q.promise(function(resolve, reject) {
 		var val = G.db.table('x').select('text').where({ id: 1 }).val();
 		if (val != 'trimethyl') {
@@ -83,7 +86,7 @@ exports.sqlite_select_val = function() {
 	});
 };
 
-exports.sqlite_select_all = function() {
+exports.methods.sqlite_select_all = function() {
 	return Q.promise(function(resolve, reject) {
 		var rows = G.db.table('x').select('text').orderBy('id').all();
 		if (rows[0].text != 'trimethyl' || rows[1].text != 'alloy') {
@@ -93,7 +96,7 @@ exports.sqlite_select_all = function() {
 	});
 };
 
-exports.sqlite_should_throw_errors = function() {
+exports.methods.sqlite_should_throw_errors = function() {
 	return Q.promise(function(resolve, reject) {
 		try {
 			G.db.table('notexists').select().all();
@@ -104,7 +107,7 @@ exports.sqlite_should_throw_errors = function() {
 	});
 };
 
-exports.routing_base = function() {
+exports.methods.routing_base = function() {
 	return Q.promise(function(resolve, reject) {
 		var timeout = setTimeout(function() { reject(); }, 500);
 		Router.on('/test', function() {
@@ -115,7 +118,7 @@ exports.routing_base = function() {
 	});
 };
 
-exports.util_build_query = function() {
+exports.methods.util_build_query = function() {
 	return Q.promise(function(resolve, reject) {
 		var built = Util.buildQuery({
 			a: 1,
@@ -131,7 +134,7 @@ exports.util_build_query = function() {
 	});
 };
 
-exports.util_parse_as_x_callback_url = function() {
+exports.methods.util_parse_as_x_callback_url = function() {
 	return Q.promise(function(resolve, reject) {
 		var actual = Util.parseAsXCallbackURL('trimethyltest://tester:passtest@caffeina:26000/test?first=this&second="that"&third={what:"dunno"}');
 		var expected = {
@@ -169,7 +172,7 @@ exports.util_parse_as_x_callback_url = function() {
 	});
 };
 
-exports.logger_methods = function() {
+exports.methods.logger_methods = function() {
 	return Q.promise(function(resolve, reject) {
 		try {
 
@@ -187,7 +190,7 @@ exports.logger_methods = function() {
 	});
 };
 
-exports.filesystem_write = function() {
+exports.methods.filesystem_write = function() {
 	return Q.promise(function(resolve, reject) {
 		var test_file = Ti.Filesystem.getFile(Util.getAppDataDirectory(), 'trimethyl_test_file');
 		Filesystem.write({

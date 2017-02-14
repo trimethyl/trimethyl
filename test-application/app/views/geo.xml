@@ -1,0 +1,7 @@
+<Alloy>
+	<Window id="win" layout="vertical" title="Notifications">
+		<View height="40" />
+		<Button title="Activate (in background)" id="activateBgBtn" top="10" />
+		<Button title="Activate" id="activateBtn" top="10" />
+	</Window>
+</Alloy>

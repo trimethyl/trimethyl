@@ -1,6 +1,6 @@
 var Q = T('ext/q');
 
-var UT = require('unit-tests');
+var UT = require('unit-tests').methods;
 var UTKeys = Object.keys(UT);
 
 function log(text, color, top) {
@@ -14,6 +14,8 @@ function log(text, color, top) {
 
 function doNextTest() {
 	var key = UTKeys.shift();
+	if (key == null) return;
+
 	var fn = UT[key];
 
 	log('Starting test ' + key.toUpperCase() + '...', '#fff', 5);
