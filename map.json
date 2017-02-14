@@ -97,7 +97,7 @@
 	"geo":{
 		"name": "Geo",
 		"description": "Geographic API proxy including geocoding features using Google, and map additional features like internal marker clustering.",
-		"dependencies": ["http","util","event","dialog"],
+		"dependencies": ["http","util","event","dialog","ext/q"],
 		"modules": ["ti.map:iphone","ti.map:android"]
 	},
 	"http":{
