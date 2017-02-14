@@ -28,7 +28,6 @@
     "notifications",
     "notifications/http",
     "notifications/cloud",
-    "notifications/parse",
     "permissions",
     "prop",
     "router",
@@ -59,6 +58,7 @@
     "uifactory/zoomimageview",
     "uiutil",
     "util",
+    "validator",
     "weballoy",
     "xmlparser",
     "alloy/sync/api",
@@ -74,6 +74,6 @@
     "support/xmlparser/extract",
     "support/xmlparser/proxies"
   ],
-  "version": "5.6.0",
-  "install_date": 1477652417314
+  "version": "6.1.1",
+  "install_date": 1487093275104
 }

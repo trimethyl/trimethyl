@@ -37,6 +37,12 @@
         <false/>
         <key>UIStatusBarStyle</key>
         <string>UIStatusBarStyleDefault</string>
+        <key>NSLocationAlwaysUsageDescription</key>
+        <string>
+          Specify the reason for accessing the user's location information.
+          This appears in the alert dialog when asking the user for permission to
+          access their location.
+        </string>
         <key>FacebookAppID</key>
         <string>1177649278931976</string>
         <key>FacebookDisplayName</key>
@@ -84,6 +90,14 @@
     <module platform="iphone">dk.napp.social</module>
     <module platform="android">facebook</module>
     <module platform="android">ti.goosh</module>
+    <module platform="iphone">ti.touchid</module>
+    <module platform="android">ti.touchid</module>
+    <module platform="iphone">bencoding.securely</module>
+    <module platform="android">bencoding.securely</module>
+<!--     <module platform="android">lucadamico.android.calendar</module> -->
+    <module platform="android">ti.map</module>
+    <module platform="android">org.iotashan.TiTouchImageView</module>
+    <module platform="android">ti.ga</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>
@@ -92,7 +106,7 @@
     <target device="mobileweb">false</target>
     <target device="windows">false</target>
   </deployment-targets>
-  <sdk-version>5.5.1.CAFFEINA-2</sdk-version>
+  <sdk-version>6.0.0.CAFFEINA-1</sdk-version>
   <plugins>
     <plugin version="1.0">ti.alloy</plugin>
   </plugins>
