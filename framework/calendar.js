@@ -3,6 +3,12 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Titanium.Calendar;
+
 /**
  * @property config
  */

@@ -3,6 +3,12 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Ti.Geolocation;
+
 /**
  * @property config
  * @property {String} [config.gpsAccuracy="ACCURACY_HIGH"] Accuracy of localization. Must be one of `'ACCURACY_HIGH'` and `'ACCURACY_LOW'`
@@ -29,6 +35,8 @@ var HTTP = require('T/http');
 var Util = require('T/util');
 var Event = require('T/event');
 var Dialog = require('T/dialog');
+
+var Q = require('T/ext/q');
 
 var CACHE_TTL = 2592000;
 
@@ -86,7 +94,12 @@ exports.authorizeLocationServices = function(opt) {
 			_reject(e);
 		};
 
-		var authToCheck = Ti.Geolocation["AUTHORIZATION_" + (opt.inBackground ? "ALWAYS" : "WHEN_IN_USE")];
+		var authToCheck = null;
+		if (opt.inBackground) {
+			authToCheck = Ti.Geolocation.AUTHORIZATION_ALWAYS;
+		} else {
+			authToCheck = Ti.Geolocation.AUTHORIZATION_WHEN_IN_USE;
+		}
 
 		// The documentation for Android is lying:
 		// Ti.Geolocation.locationServicesEnabled will be false even if

@@ -3,6 +3,13 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Ti.Network;
+Ti.Network.registerForPushNotifications;
+
 /**
  * @property config
  * @property {String} 	[config.driver="http"] 					The driver to use.

@@ -3,6 +3,12 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Ti.App.Properties;
+
 /**
  * @property config
  * @property {String} [config.loginUrl="/login"] The URL called by login().

@@ -3,6 +3,14 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Titanium.Media;
+Titanium.Media.showCamera;
+Titanium.Media.openPhotoGallery;
+
 var Dialog = require('T/dialog');
 var Util = require('T/util');
 var Permissions = require('T/permissions');
@@ -27,12 +35,8 @@ function getPhoto(method, opt, callback) {
 			}
 		});
 
-		// for some reason, when we try to call those methods dynamically
-		// (Ti.Media[methodName]() in special), Titanium will throw an error.
-		switch (method) {
-			case 'showCamera':       Ti.Media.showCamera(opt); break;
-			case 'openPhotoGallery': Ti.Media.openPhotoGallery(opt); break;
-		}
+		Ti.Media[ method ](opt);
+		
 	}, function(err) {
 		Ti.API.error('Camera: Error', err);
 		Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));

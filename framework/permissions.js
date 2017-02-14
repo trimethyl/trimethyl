@@ -3,6 +3,16 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Ti.Calendar;
+Ti.Media;
+Ti.Contacts;
+Ti.Geolocation;
+Ti.Filesystem;
+
 /**
  * @property config
  */
@@ -23,8 +33,8 @@ PERMISSIONS_TYPES.forEach(function(type) {
 		success = _.isFunction(success) ? success : Alloy.Globals.noop;
 		error = _.isFunction(error) ? error : Alloy.Globals.noop;
 
-		// for some reason, when we try to call those methods dynamically
-		// (Ti.Media[methodName]() in special), Titanium will throw an error.
+
+
 		var has, request;
 		switch (type.name) {
 			case 'Calendar':
@@ -58,30 +68,22 @@ PERMISSIONS_TYPES.forEach(function(type) {
 				success();
 			} else {
 				Ti.API.error('Permissions: Error while requesting ' + type.name + ' permissions:', res.error);
-				error({ message: L('error_' + type.name.toLowerCase() + '_permissions', 'Missing ' + type.name.toLowerCase() + ' permissions') });
+				error({ 
+					message: L('error_' + type.name.toLowerCase() + '_permissions', 'Missing ' + type.name.toLowerCase() + ' permissions') 
+				});
 			}
 		}
 
-		if ((OS_IOS && (!_.isFunction(has) || !_.isFunction(request))) ||
-			(OS_ANDROID && ((!_.isFunction(Ti[type.proxy]["has" + type.name + "Permissions"]) || !_.isFunction(Ti[type.proxy]["request" + type.name + "Permissions"])))) ) {
-
+		if (false == _.isFunction(Ti[type.proxy]["has" + type.name + "Permissions"]) || false == _.isFunction(Ti[type.proxy]["request" + type.name + "Permissions"])) {
 			Ti.API.debug('Either of the functions [Ti.' + type.proxy + '.has' + type.name + 'Permissions(), Ti.' + type.proxy + '.request' + type.name + 'Permissions()] is missing');
-			return success();
+			success();
+			return;
 		}
 
-		if (OS_IOS) {
-			if (has() !== true) {
-				request(requestHandler);
-			} else {
-				success();
-			}
+		if (Ti[type.proxy]["has" + type.name + "Permissions"]() !== true) {
+			Ti[type.proxy]["request" + type.name + "Permissions"](requestHandler);
 		} else {
-			// When calling `has()` or `request()` on Android, code execution halts
-			if (Ti[type.proxy]["has" + type.name + "Permissions"]() !== true) {
-				Ti[type.proxy]["request" + type.name + "Permissions"](requestHandler);
-			} else {
-				success();
-			}
+			success();
 		}
 	};
 });
