@@ -30,38 +30,11 @@ var PERMISSIONS_TYPES = [
 
 PERMISSIONS_TYPES.forEach(function(type) {
 	exports['request' + type.name + 'Permissions'] = function(success, error) {
-		success = _.isFunction(success) ? success : Alloy.Globals.noop;
-		error = _.isFunction(error) ? error : Alloy.Globals.noop;
-
-
-
-		var has, request;
-		switch (type.name) {
-			case 'Calendar':
-				has     = Ti.Calendar.hasCalendarPermissions;
-				request = Ti.Calendar.requestCalendarPermissions;
-				break;
-
-			case 'Camera':
-				has     = Ti.Media.hasCameraPermissions;
-				request = Ti.Media.requestCameraPermissions;
-				break;
-
-			case 'Contacts':
-				has     = Ti.Contacts.hasContactsPermissions;
-				request = Ti.Contacts.requestContactsPermissions;
-				break;
-
-			case 'Location':
-				has     = Ti.Geolocation.hasLocationPermissions;
-				request = Ti.Geolocation.requestLocationPermissions;
-				break;
-
-			case 'Storage':
-				has     = Ti.Filesystem.hasStoragePermissions;
-				request = Ti.Filesystem.requestStoragePermissions;
-				break;
-		}
+		success = success || Alloy.Globals.noop;
+		error = error || Alloy.Globals.noop;
+		
+		var has = "has" + type.name + "Permissions";
+		var request = "request" + type.name + "Permissions";
 
 		function requestHandler(res) {
 			if (res.success === true) {
@@ -74,14 +47,14 @@ PERMISSIONS_TYPES.forEach(function(type) {
 			}
 		}
 
-		if (false == _.isFunction(Ti[type.proxy]["has" + type.name + "Permissions"]) || false == _.isFunction(Ti[type.proxy]["request" + type.name + "Permissions"])) {
-			Ti.API.debug('Either of the functions [Ti.' + type.proxy + '.has' + type.name + 'Permissions(), Ti.' + type.proxy + '.request' + type.name + 'Permissions()] is missing');
+		if (false === _.isFunction(Ti[type.proxy][has]) || false === _.isFunction(Ti[type.proxy][request])) {
+			Ti.API.debug('Either of the functions [Ti.' + type.proxy + '.' + has + ', Ti.' + type.proxy + '.' + request + '] is missing');
 			success();
 			return;
 		}
 
-		if (Ti[type.proxy]["has" + type.name + "Permissions"]() !== true) {
-			Ti[type.proxy]["request" + type.name + "Permissions"](requestHandler);
+		if (Ti[type.proxy][has]() !== true) {
+			Ti[type.proxy][request](requestHandler);
 		} else {
 			success();
 		}
