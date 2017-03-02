@@ -1,5 +1,6 @@
 "Label":{
 	font:{
+		fontFamily: 'Menlo',
 		fontSize: 12
 	},
 	left: 10,

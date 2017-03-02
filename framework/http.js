@@ -6,12 +6,14 @@
 /**
  * @property config
  * @property {String}  config.base The base URL of the API
- * @property {Number}  [config.timeout=30000] Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
+ * @property {Number}  [config.timeout=30000] Global timeout for the reques. after this value 
+ * (express in milliseconds) the requests throw an error.
  * @property {Object}  [config.headers={}] Global headers for all requests.
  * @property {Object}  [config.useCache=true] Global cache flag.
  * @property {Object}  [config.offlineCache=false] Global offline cache.
  * @property {Boolean} [config.log=false] Log the requests.
  * @property {Boolean} [config.bodyEncodingInJSON=false] Force to encoding in JSON of body data is the input is a JS object.
+ * @property {Boolean} [config.sslPinning=false] If this value is an array, it must contain the domains on which to apply SSL pinning. If this value is true, SSL pinning is applied on base HTTP domain. Certificates must be located in /app/assets/certs and named as the the domain name without extension. (example: "/app/assets/certs/youtube.com")
  */
 exports.config = _.extend({
 	base: '',
@@ -20,14 +22,18 @@ exports.config = _.extend({
 	useCache: true,
 	offlineCache: false,
 	log: false,
-	bodyEncodingInJSON: false
+	bodyEncodingInJSON: false,
+	sslPinning: false
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
+
+var MODULE_NAME = 'http';
 
 var Event = require('T/event');
 var Util = require('T/util');
-var Cache = require('T/cache');
 var Q = require('T/ext/q');
 var Permissions = require('T/permissions');
+
+var securityManager = null;
 
 function extractHTTPText(data, info) {
 	if (info != null && data != null) {
@@ -41,7 +47,7 @@ function extractHTTPText(data, info) {
 function HTTPRequest(opt) {
 	var self = this;
 	if (opt.url == null) {
-		throw new Error('HTTP.Request: URL not set');
+		throw new Error(MODULE_NAME + '.Request: URL not set');
 	}
 
 	this.opt = opt;
@@ -59,6 +65,9 @@ function HTTPRequest(opt) {
 	// Construct headers: global + per-domain + local
 	this.headers = _.extend({}, exports.getHeaders(), exports.getHeaders(this.domain), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
+
+	this.configureSSLPinning();
+	this.securityManager = opt.securityManager || securityManager;
 
 	// Rebuild the URL if is a GET and there's data
 	if (opt.data != null) {
@@ -86,8 +95,42 @@ function HTTPRequest(opt) {
 	this.defer.promise.catch(function() { self._onError.apply(self, arguments); });
 	this.defer.promise.finally(function() { self._onFinally.apply(self, arguments); });
 
-	Ti.API.debug('HTTP: <' + this.uniqueId + '>', this.method, this.url, this.data);
+	Ti.API.debug(MODULE_NAME + ': <' + this.uniqueId + '>', this.method, this.url, this.data);
 }
+
+HTTPRequest.prototype.configureSSLPinning = function() {
+	if (securityManager != null) return;
+
+	if (exports.config.sslPinning == false) return;
+
+	var AppcHttps = Util.requireOrNull('appcelerator.https');
+	if (AppcHttps == null) {
+		return Ti.API.error(MODULE_NAME + ': SSL pinning requires appcelerator.https module');
+	}
+
+	if (_.isArray(exports.config.sslPinning)) {
+		securityManager = AppcHttps.createX509CertificatePinningSecurityManager(_.map(exports.config.sslPinning, function(domain) {
+			var path = Util.getResourcesDirectory() + "/certs/" + domain;
+			if (Ti.Filesystem.getFile(path).exists() == false) {
+				throw new Error(MODULE_NAME + ': certificate for SSL pinning not found (' + domain + ')');
+			}
+			return {
+				url: "https://" + domain,
+				serverCertificate: path
+			};
+		}));
+	} else if (exports.config.sslPinning == true) {
+		var domain = Util.getDomainFromURL(config.base);
+		var path = Util.getResourcesDirectory() + "/certs/" + domain;
+		if (Ti.Filesystem.getFile(path).exists() == false) {
+			throw new Error(MODULE_NAME + ': certificate for base SSL pinning not found (' + domain + ')');
+		}
+		securityManager = AppcHttps.createX509CertificatePinningSecurityManager([{
+			url: "https://" + Util.getDomainFromURL(config.base),
+			serverCertificate: path
+		}]);
+	}
+};
 
 HTTPRequest.prototype.toString = function() {
 	return this.hash;
@@ -97,45 +140,45 @@ HTTPRequest.prototype._maybeCacheResponse = function(data) {
 	if (this.method !== 'GET') return;
 
 	if (exports.config.useCache === false) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache has been disabled globally');
+		Ti.API.trace(MODULE_NAME + ': <' + this.uniqueId + '> cache has been disabled globally');
 		return;
 	}
 
 	if (this.opt.cache === false) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> set cache has been disabled for this request');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> set cache has been disabled for this request');
 		return;
 	}
 
 	if (this.responseInfo.ttl <= 0) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> set cache is not applicable');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> set cache is not applicable');
 		return;
 	}
 
-	Cache.set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
+	require('T/cache').set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
 };
 
 HTTPRequest.prototype.getCachedResponse = function() {
 	if (this.method !== 'GET') return null;
 
 	if (exports.config.useCache === false) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache has been disabled globally');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> cache has been disabled globally');
 		return null;
 	}
 
 	if (this.opt.cache === false || this.opt.refresh === true) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> get cache has been disabled for this request');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> get cache has been disabled for this request');
 		return null;
 	}
 
-	this.cachedData = Cache.get(this.hash);
+	this.cachedData = require('T/cache').get(this.hash);
 	if (this.cachedData == null) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> cache is missing');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> cache is missing');
 		return null;
 	}
 
 	// We got cache
 
-	Ti.API.trace('HTTP: <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
+	Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
 
 	if (this.cachedData.info.format === 'blob') {
 		return this.cachedData.value;
@@ -146,7 +189,7 @@ HTTPRequest.prototype.getCachedResponse = function() {
 
 HTTPRequest.prototype._getResponseInfo = function() {
 	if (this.client == null || this.client.readyState <= 1) {
-		throw new Error('HTTP.Request: Client is null or not ready');
+		throw new Error(MODULE_NAME + ': Client is null or not ready');
 	}
 
 	var headers = {
@@ -181,19 +224,19 @@ HTTPRequest.prototype._getResponseInfo = function() {
 
 HTTPRequest.prototype._onSuccess = function() {
 	if (this.endTime != null) {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success (in ' + (this.endTime - this.startTime) + 'ms)');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> response success (in ' + (this.endTime - this.startTime) + 'ms)');
 	} else {
-		Ti.API.trace('HTTP: <' + this.uniqueId + '> response success');
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> response success');
 	}
 
 	if (exports.config.log === true) {
 		// Log response from server
-		Ti.API.trace('HTTP: <' + this.uniqueId + '>', arguments[0]);
+		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '>', arguments[0]);
 	}
 
 	if (OS_ANDROID && this.client != null) {
 		if ((this.client.status >= 300 && this.client.status < 400) && this.client.location != this.url) {
-			Ti.API.trace('HTTP: <' + this.uniqueId + '> following redirect to ' + this.client.location);
+			Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> following redirect to ' + this.client.location);
 
 			exports.send(_.extend(this.opt, { url: this.client.location }));
 			return;
@@ -206,7 +249,7 @@ HTTPRequest.prototype._onSuccess = function() {
 };
 
 HTTPRequest.prototype._onError = function(err) {
-	Ti.API.error('HTTP: <' + this.uniqueId + '>', err);
+	Ti.API.error(MODULE_NAME + ':  <' + this.uniqueId + '>', err);
 
 	if (_.isFunction(this.opt.error)) {
 		this.opt.error.apply(this, arguments);
@@ -226,7 +269,7 @@ HTTPRequest.prototype._whenComplete = function(e) {
 
 	// Fire the global event
 	if (this.opt.silent !== true) {
-		Event.trigger('http.end', {
+		Event.trigger(MODULE_NAME + '.end', {
 			hash: this.hash,
 			eventName: this.opt.eventName
 		});
@@ -286,7 +329,7 @@ HTTPRequest.prototype.send = function() {
 	promise
 	.then(self._send.bind(self))
 	.fail(function(ex) {
-		Ti.API.error('HTTP: <' + self.uniqueId + '> filter rejection', ex);
+		Ti.API.error(MODULE_NAME + ':  <' + self.uniqueId + '> filter rejection', ex);
 		self.defer.reject(ex);
 	});
 };
@@ -294,10 +337,12 @@ HTTPRequest.prototype.send = function() {
 HTTPRequest.prototype._send = function() {
 	var self = this;
 
-	var client = Ti.Network.createHTTPClient({
+	var client = Ti.Network.createHTTPClient(_.extend({
 		timeout: this.timeout,
 		cache: false,
-	});
+	}, 
+	this.securityManager ? { securityManager: this.securityManager } : {}
+	));
 
 	client.onload = client.onerror = function(e) { self._whenComplete(e); };
 
@@ -305,7 +350,7 @@ HTTPRequest.prototype._send = function() {
 	exports.addToQueue(this);
 
 	if (this.opt.silent !== true) {
-		Event.trigger('http.start', {
+		Event.trigger(MODULE_NAME + '.start', {
 			hash: this.hash,
 			eventName: this.opt.eventName
 		});
@@ -352,7 +397,7 @@ HTTPRequest.prototype.resolve = function() {
 
 	} else {
 
-		Event.trigger('http.offline');
+		Event.trigger(MODULE_NAME + '.offline');
 
 		if (exports.config.offlineCache === true || this.opt.offlineCache === true) {
 			cache = this.getCachedResponse();
@@ -379,7 +424,7 @@ HTTPRequest.prototype.resolve = function() {
 HTTPRequest.prototype.abort = function() {
 	if (this.client != null) {
 		this.client.abort();
-		Ti.API.debug('HTTP: <' + this.uniqueId + '> aborted!');
+		Ti.API.debug(MODULE_NAME + ':  <' + this.uniqueId + '> aborted!');
 	}
 };
 
@@ -424,7 +469,7 @@ exports.removeFilter = function(name, func) {
  * Attach events to current module
  */
 exports.event = function(name, cb) {
-	Event.on('http.' + name, cb);
+	Event.on(MODULE_NAME + '.' + name, cb);
 };
 
 /**
@@ -689,7 +734,6 @@ exports.exportCookiesToSystem = function(domain) {
 		Ti.Network.addSystemCookie(c);
 	});
 };
-
 
 //////////
 // Init //

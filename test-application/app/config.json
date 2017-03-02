@@ -1,9 +1,10 @@
 {
 	"global": {
-		"initController": "notifications",
+		"initController": "",
 		"T":{
 			"http":{
-				"log": true
+				"log": true,
+				"sslPinning": ["google.com","facebook.com"]
 			}
 		},
 		"ui-tests": [ "select", "calendar", "weballoy", "camera", "animator", "notifications", "geo" ]

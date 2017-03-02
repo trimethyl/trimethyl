@@ -104,10 +104,12 @@
     <module platform="android">ti.touchid</module>
     <module platform="iphone">bencoding.securely</module>
     <module platform="android">bencoding.securely</module>
-<!--     <module platform="android">lucadamico.android.calendar</module> -->
+    <module platform="android">appcelerator.https</module>
+    <!--     <module platform="android">lucadamico.android.calendar</module> -->
     <module platform="android">ti.map</module>
     <module platform="android">org.iotashan.TiTouchImageView</module>
     <module platform="android">ti.ga</module>
+    <module platform="iphone">appcelerator.https</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>

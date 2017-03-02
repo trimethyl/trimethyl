@@ -14,7 +14,7 @@ var G = {};
 
 exports.methods = {};
 
-exports.methods.http_json_parsing = function() {
+exports.methods.http_should_parse_json = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
 			url: 'http://demo1916598.mockable.io/hello',
@@ -27,7 +27,40 @@ exports.methods.http_json_parsing = function() {
 	});
 };
 
-exports.methods.http_cache = function() {
+exports.methods.http_ssl_pinning_should_not_affect_other_https = function() {
+	return Q.promise(function(resolve, reject) {
+		HTTP.send({
+			url: 'https://imgix.com',
+			success: resolve,
+			error: reject
+		});
+	});
+};
+
+exports.methods.http_ssl_pinning_should_pass = function() {
+	return Q.promise(function(resolve, reject) {
+		HTTP.send({
+			url: 'https://google.com',
+			success: resolve,
+			error: reject
+		});
+	});
+};
+
+exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
+	return Q.promise(function(resolve, reject) {
+		HTTP.send({
+			url: 'https://facebook.com',
+			success: reject,
+			error: function(err) {
+				console.log(err);
+				resolve();
+			}
+		});
+	});
+};
+
+exports.methods.http_should_cache = function() {
 	return Q.promise(function(resolve, reject) {
 		var a = HTTP.send({
 			url: 'http://demo1916598.mockable.io/ttl-unit-test',
@@ -44,7 +77,7 @@ exports.methods.http_cache = function() {
 	});
 };
 
-exports.methods.http_download = function() {
+exports.methods.http_should_download = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.download('https://unsplash.it/800/800', 'test.jpg', function(file) {
 			if (file == null || !file.exists()) return reject('File not exists');
@@ -53,14 +86,14 @@ exports.methods.http_download = function() {
 	});
 };
 
-exports.methods.sqlite_open = function() {
+exports.methods.sqlite_should_open = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db = new SQLite('test');
 		resolve();
 	});
 };
 
-exports.methods.sqlite_execute = function() {
+exports.methods.sqlite_should_execute = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db.execute('DROP TABLE IF EXISTS x');
 		G.db.execute('CREATE TABLE x (id INTEGER PRIMARY KEY, text TEXT)');
@@ -68,7 +101,7 @@ exports.methods.sqlite_execute = function() {
 	});
 };
 
-exports.methods.sqlite_insert = function() {
+exports.methods.sqlite_should_insert = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db.table('x').insert({ id: 1, text: 'trimethyl' }).exec();
 		G.db.table('x').insert({ id: 2, text: 'alloy' }).exec();
@@ -76,7 +109,7 @@ exports.methods.sqlite_insert = function() {
 	});
 };
 
-exports.methods.sqlite_select_val = function() {
+exports.methods.sqlite_should_select_val = function() {
 	return Q.promise(function(resolve, reject) {
 		var val = G.db.table('x').select('text').where({ id: 1 }).val();
 		if (val != 'trimethyl') {
@@ -86,7 +119,7 @@ exports.methods.sqlite_select_val = function() {
 	});
 };
 
-exports.methods.sqlite_select_all = function() {
+exports.methods.sqlite_should_select_all = function() {
 	return Q.promise(function(resolve, reject) {
 		var rows = G.db.table('x').select('text').orderBy('id').all();
 		if (rows[0].text != 'trimethyl' || rows[1].text != 'alloy') {
@@ -107,7 +140,7 @@ exports.methods.sqlite_should_throw_errors = function() {
 	});
 };
 
-exports.methods.routing_base = function() {
+exports.methods.routing_should_work = function() {
 	return Q.promise(function(resolve, reject) {
 		var timeout = setTimeout(function() { reject(); }, 500);
 		Router.on('/test', function() {
@@ -118,7 +151,7 @@ exports.methods.routing_base = function() {
 	});
 };
 
-exports.methods.util_build_query = function() {
+exports.methods.util_should_build_query = function() {
 	return Q.promise(function(resolve, reject) {
 		var built = Util.buildQuery({
 			a: 1,
@@ -134,7 +167,7 @@ exports.methods.util_build_query = function() {
 	});
 };
 
-exports.methods.util_parse_as_x_callback_url = function() {
+exports.methods.util_should_parse_as_x_callback_url = function() {
 	return Q.promise(function(resolve, reject) {
 		var actual = Util.parseAsXCallbackURL('trimethyltest://tester:passtest@caffeina:26000/test?first=this&second="that"&third={what:"dunno"}');
 		var expected = {
@@ -172,7 +205,7 @@ exports.methods.util_parse_as_x_callback_url = function() {
 	});
 };
 
-exports.methods.logger_methods = function() {
+exports.methods.logger_methods_should_work = function() {
 	return Q.promise(function(resolve, reject) {
 		try {
 
@@ -190,7 +223,7 @@ exports.methods.logger_methods = function() {
 	});
 };
 
-exports.methods.filesystem_write = function() {
+exports.methods.filesystem_should_write = function() {
 	return Q.promise(function(resolve, reject) {
 		var test_file = Ti.Filesystem.getFile(Util.getAppDataDirectory(), 'trimethyl_test_file');
 		Filesystem.write({

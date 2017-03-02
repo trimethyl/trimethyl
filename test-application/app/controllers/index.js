@@ -1,7 +1,7 @@
 var Q = T('ext/q');
 
-var UT = require('unit-tests').methods;
-var UTKeys = Object.keys(UT);
+var UT = require('unit-tests');
+var UTMethodsKeys = null;
 
 function log(text, color, top) {
 	Ti.API.log(text);
@@ -13,12 +13,12 @@ function log(text, color, top) {
 }
 
 function doNextTest() {
-	var key = UTKeys.shift();
+	var key = UTMethodsKeys.shift();
 	if (key == null) return;
 
-	var fn = UT[key];
-
 	log('Starting test ' + key.toUpperCase() + '...', '#fff', 5);
+
+	var fn = UT.methods[key];
 
 	Q.when(fn(),
 	function() {
@@ -39,6 +39,7 @@ $.window.setActivityButton( $.uiTestsBtn );
 
 $.testsBtn.addEventListener('click', function(e) {
 	$.sview.removeAllChildren();
+	UTMethodsKeys = Object.keys(UT.methods);
 	doNextTest();
 });
 
