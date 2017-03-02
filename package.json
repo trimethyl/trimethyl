@@ -36,7 +36,9 @@
   "scripts": {
     "hint": "jshint framework --exclude framework/ext",
     "gendoc": "./gendoc.sh",
-    "patch": "./publisher.sh patch"
+    "patch": "./publisher.sh patch",
+    "minor": "./publisher.sh minor",
+    "major": "./publisher.sh major"
   },
   "bin": {
     "trimethyl": "./cli.js"
