@@ -340,7 +340,7 @@ exports.login = function(opt) {
 	.then(function() {
 		return Q.promise(function(resolve, reject) {
 			if (exports.config.useTouchIDPromptConfirmation == true && !opt.stored && exports.isTouchIDSupported()) {
-				Dialog.confirm(null, L("auth_touchid_confirmation_message"), [
+				Dialog.confirm("Touch ID", L("auth_touchid_confirmation_message"), [
 				{
 					title: L('yes', 'Yes'),
 					preferred: true,
