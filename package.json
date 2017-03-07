@@ -61,7 +61,8 @@
   "devDependencies": {
     "jsdoc": "^3.4.0",
     "jsdoc-dash-template": "^1.2.0",
-    "jshint": "^2.9.2"
+    "jshint": "^2.9.2",
+    "sqlite3": "^3.1.8"
   },
   "jshintConfig": {
     "-W041": false
