@@ -1,9 +1,13 @@
 /**
  * @module  uifactory/window
- * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
+ * @author  Flavio De Stefano <andrea.jonus@caffeina.com>
  */
 
 var UIUtil = require('T/uiutil');
+var ABX = null;
+
+var LOGNAME = "UIFactory/Window";
 
 module.exports = function(args) {
 	_.defaults(args, {
@@ -19,6 +23,13 @@ module.exports = function(args) {
 		 * @property {Boolean} [backButtonDisabled=false]
 		 */
 		backButtonDisabled: false,
+
+		/**
+		 * **(Android only)** Use the ActionBarExtras module by Ricardo Alcocer (if included in tiapp.xml)
+		 * @property {Boolean} [useActionBarExtras=false]
+		 * @see {@link https://github.com/ricardoalcocer/actionbarextras}
+		 */
+		useActionBarExtras: false,
 
 		/**
 		 * View {@link #setDeferredBackgroundImage}
@@ -137,6 +148,13 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
+		if (args.useActionBarExtras == true) {
+			ABX = Util.requireOrNull("com.alcoapps.actionbarextras");
+			if (ABX == null) {
+				Ti.API.error(LOGNAME + ': com.alcoapps.actionbarextras has been required but is not included in the project.');
+			}
+		}
+
 		/**
 		 * Set the properties for the Activity
 		 * @method setActivityProperties
@@ -156,31 +174,53 @@ module.exports = function(args) {
 		 */
 		$this.setActionBarProperties = function(props, callback) {
 			onOpen(function(){
-				if ($this.activity.actionBar == null) return;
+				if ($this.actionBar == null) return;
 
 				_.each(props, function(v, k) {
-					$this.activity.actionBar[k] = v;
+					$this.actionBar[k] = v;
 				});
-				if (_.isFunction(callback)) callback($this.activity.actionBar);
+				if (_.isFunction(callback)) callback($this.actionBar);
 			});
 		};
 
 
 		var activityButtons = [];
+		$this.menuItems = {};
 
 		$this.setActivityProperties({
 			onCreateOptionsMenu: function(e) {
 				_.each(activityButtons, function(btn) {
-					var menuItem = e.menu.add({
+					var attrs = _.extend({
 						title: btn.title || '',
 						icon: btn.icon || btn.image || '',
 						actionView: btn.actionView,
-						showAsAction: btn.showAsAction != null ? btn.showAsAction : Ti.Android.SHOW_AS_ACTION_ALWAYS
+						showAsAction: btn.showAsAction != null ? btn.showAsAction : Ti.Android.SHOW_AS_ACTION_ALWAYS,
+						visible: btn.visible != null ? btn.visible : true
+					}, btn.itemId != null ? { itemId: btn.itemId } : {});
+
+					var menuItem = e.menu.add(attrs);
+
+					menuItem.addEventListener('click', function(e){
+						if (_.isFunction(btn.click)) btn.click(e);
+						if (_.isFunction($this[btn.click])) $this[btn.click](e);
+						if (_.isFunction(btn.fireEvent)) btn.fireEvent('click', e);
 					});
-					menuItem.addEventListener('click', function(){
-						if (_.isFunction(btn.click)) btn.click();
-						if (_.isFunction(btn.fireEvent)) btn.fireEvent('click');
-					});
+
+					if (!_.isEmpty(btn.fontIcon) && args.useActionBarExtras == true && $this.actionBar != null) {
+						if (btn.itemId != null) {
+							$this.actionBar.setMenuItemIcon(_.extend(_.pick(btn, 'color', 'size', 'fontFamily'), {
+								menu: e.menu,
+								menuItem: menuItem,
+								icon: btn.fontIcon
+							}));
+						} else {
+							Ti.API.warn(LOGNAME + ': Missing itemId from menu item. Cannot set the icon.');
+						}
+					}
+
+					if (btn.itemId != null) {
+						$this.menuItems[btn.itemId] = menuItem;
+					}
 				});
 			}
 		});
@@ -206,6 +246,7 @@ module.exports = function(args) {
 		 */
 		$this.setActivityButton = function(opt) {
 			activityButtons = [];
+			$this.menuItems = {};
 			$this.addActivityButton(opt);
 		};
 
@@ -259,17 +300,29 @@ module.exports = function(args) {
 
 	if (OS_ANDROID) {
 
+		// Set the window's action bar
+		onOpen(function() {
+			if (ABX != null) {
+				$this.actionBar = ABX;
+			} else if ($this.activity != null && $this.activity.actionBar != null) {
+				$this.actionBar = $this.activity.actionBar;
+			}
+		});
+
 		$this.processTitles();
 		if (_.isFunction($this.activity.invalidateOptionsMenu)) {
 			$this.activity.invalidateOptionsMenu();
 		}
 
 		if (args.displayHomeAsUp === true && args.exitOnClose !== true) {
-			$this.setActionBarProperties({
-				displayHomeAsUp: true,
-				onHomeIconItemSelected: function() {
+			onOpen(function(){
+				// Get the real actionbar from the activity
+				if ($this.activity.actionBar == null) return;
+
+				$this.activity.actionBar.displayHomeAsUp = true;
+				$this.activity.actionBar.onHomeIconItemSelected = function() {
 					$this.close();
-				}
+				};
 			});
 		}
 
