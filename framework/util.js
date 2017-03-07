@@ -573,7 +573,7 @@ var DATABASE_DIRECTORY = null;
 exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
 	if (DATABASE_DIRECTORY === null) {
 		if (OS_IOS) {
-			var db = Ti.Database.open('test');
+			var db = require('T/db').open('test');
 			var path = db.file.resolve().split('/'); path.pop();
 			db.close();
 			DATABASE_DIRECTORY = path.join('/') + '/';

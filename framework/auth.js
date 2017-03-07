@@ -3,19 +3,12 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/*
-Include methods used in this module dynamically to avoid that Titanium 
-static analysis doesn't include native-language methods.
- */
-Ti.App.Properties;
-
 /**
  * @property config
  * @property {String} [config.loginUrl="/login"] The URL called by login().
  * @property {String} [config.logoutUrl="/logout"] The URL called by logout().
  * @property {String} [config.modelId="me"] The id for the user model.
  * @property {Boolean} [config.ignoreServerModelId=false] Force the module to use the configured modelId to fetch and store the user model.
- * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
  * @property {Boolean} [config.useOAuth=false] Use OAuth method to authenticate.
  * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
  * @property {String} [config.oAuthClientID="app"] OAuth client ID
@@ -30,7 +23,6 @@ exports.config = _.extend({
 	logoutUrl: '/logout',
 	modelId: 'me',
 	ignoreServerModelId: false,
-	encryptionKey: null,
 
 	useOAuth: false,
 	oAuthAccessTokenURL: '/oauth/access_token',
@@ -52,14 +44,13 @@ var Cache = require('T/cache');
 var Util = require('T/util');
 var Dialog = require('T/dialog');
 
-var Securely = Util.requireOrNull('bencoding.securely');
+var Prop = require('T/prop');
 var TouchID = Util.requireOrNull("ti.touchid");
 
 if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
 	TouchID.setAuthenticationPolicy(TouchID.AUTHENTICATION_POLICY_BIOMETRICS);
 }
 
-var authProperties = null;
 var currentUser = null;
 
 /**
@@ -75,10 +66,10 @@ exports.OAuth.__setParent(module.exports);
 ////////////
 
 function getStoredDriverString() {
-	var hasDriver = authProperties.hasProperty('auth.driver');
-	var hasMe = authProperties.hasProperty('auth.me');
+	var hasDriver = Prop.hasProperty('auth.driver');
+	var hasMe = Prop.hasProperty('auth.me');
 	if (hasDriver && hasMe) {
-		return authProperties.getString('auth.driver');
+		return Prop.getString('auth.driver');
 	}
 }
 
@@ -170,7 +161,7 @@ function fetchUserModel(opt, dataFromServer) {
 				cache: false,
 			},
 			success: function() {
-				authProperties.setObject('auth.me', currentUser.toJSON());
+				Prop.setObject('auth.me', currentUser.toJSON());
 				resolve();
 			},
 			error: function(model, err) {
@@ -179,14 +170,6 @@ function fetchUserModel(opt, dataFromServer) {
 		});
 	});
 }
-
-/**
- * Return the persistence object with a Ti.App.Properties interface
- * @return {Properties} [description]
- */
-exports.getPersistence = function() {
-	return authProperties;
-};
 
 /**
  * Load a driver
@@ -273,9 +256,9 @@ exports.authenticateViaTouchID = function(opt) {
  */
 exports.userWantsToUseTouchID = function(val) {
 	if (val !== undefined) {
-		Ti.App.Properties.setBool('auth.touchid.use', val);
+		Prop.setBool('auth.touchid.use', val);
 	} else {
-		return Ti.App.Properties.getBool('auth.touchid.use', false);
+		return Prop.getBool('auth.touchid.use', false);
 	}
 };
 
@@ -334,7 +317,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
-		authProperties.setString('auth.driver', opt.driver);
+		Prop.setString('auth.driver', opt.driver);
 	})
 
 	.then(function() {
@@ -424,7 +407,7 @@ exports.storedLogin = function(opt) {
  * @return {Boolean}
  */
 exports.isOfflineLoginAvailable = function() {
-	return Ti.App.Properties.hasProperty('auth.me');
+	return Prop.hasProperty('auth.me');
 };
 
 /**
@@ -446,7 +429,7 @@ exports.offlineLogin = function(opt) {
 		exports.authenticateViaTouchID({
 			timeout: opt.timeout,
 			success: function() {
-				currentUser = Alloy.createModel('user', authProperties.getObject('auth.me'));
+				currentUser = Alloy.createModel('user', Prop.getObject('auth.me'));
 
 				var payload = {
 					id: currentUser.id,
@@ -615,7 +598,7 @@ exports.logout = function(callback) {
 		complete: function() {
 			currentUser = null;
 
-			authProperties.removeProperty('auth.me');
+			Prop.removeProperty('auth.me');
 
 			Cache.purge();
 
@@ -636,20 +619,4 @@ exports.logout = function(callback) {
 
 if (exports.config.useOAuth == true) {
 	HTTP.addFilter('oauth', exports.OAuth.httpFilter);
-}
-
-//////////////////////
-// User persistence //
-//////////////////////
-
-
-if (Securely == null) {
-	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth storage is not secure");
-	authProperties = Ti.App.Properties;
-} else {
-	authProperties = Securely.createProperties({
-		secret: exports.config.encryptionKey,
-		allowSync: true,
-		debug: !ENV_PRODUCTION,
-	});
 }

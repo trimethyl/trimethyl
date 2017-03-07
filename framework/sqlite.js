@@ -8,12 +8,14 @@
  * @property {Boolean} [config.log=false]
  */
 exports.config = _.extend({
-	log: false
+	log: false,
 }, Alloy.CFG.T ? Alloy.CFG.T.sqlite : {});
 
 var Util = require('T/util');
 
-var LOGNAME = 'SQLite';
+var MODULE_NAME = 'sqlite';
+
+var DatabaseModule = require('T/db');
 
 function SQLite(name, file) {
 	this.query = null;
@@ -22,7 +24,7 @@ function SQLite(name, file) {
 
 	// Install the database from a file if needed, and close it immediately.
 	if (file != null) {
-		this.db = Ti.Database.install(file, name);
+		this.db = DatabaseModule.install(file, name);
 
 		this.close();
 	}
@@ -327,9 +329,9 @@ SQLite.prototype.getExequery = function() {
  */
 SQLite.prototype.open = function() {
 	try {
-		this.db = Ti.Database.open(this.name);
+		this.db = DatabaseModule.open(this.name);
 	} catch (ex) {
-		Ti.API.error(LOGNAME + ': Error while opening the database: ' + ex);
+		Ti.API.error(MODULE_NAME + ': Error while opening the database: ' + ex);
 	}
 };
 
@@ -341,21 +343,21 @@ SQLite.prototype.close = function() {
 	try {
 		this.db.close();
 	} catch (ex) {
-		Ti.API.error(LOGNAME + ': Error while closing the database: ' + ex);
+		Ti.API.error(MODULE_NAME + ': Error while closing the database: ' + ex);
 	}
 };
 
 /**
  * Executes a query.
- * Important: this method differs from SQLite.run() for the fact that it leaves the database open, and returns the result of the call to Ti.Database.DB.execute().
+ * Important: this method differs from SQLite.run() for the fact that it leaves the database open, and returns the result of the call to DatabaseModule.DB.execute().
  * @method execute
  * @alias exec
  * @param {String} query
  * @param {Vararg} values
- * @return {Ti.Database.ResultSet}
+ * @return {DatabaseModule.ResultSet}
  */
 SQLite.prototype.execute = SQLite.prototype.exec = function() {
-	Ti.API.warn(LOGNAME + ': WARNING: if you use .execute(), you will have to close the result set and the database manually!');
+	Ti.API.warn(MODULE_NAME + ': WARNING: if you use .execute(), you will have to close the result set and the database manually!');
 
 	var q = null;
 
@@ -366,7 +368,7 @@ SQLite.prototype.execute = SQLite.prototype.exec = function() {
 		this.query = null; // Reset query
 	}
 
-	if (exports.config.log) Ti.API.debug(LOGNAME + ':', q);
+	if (exports.config.log) Ti.API.debug(MODULE_NAME + ':', q);
 
 	this.open();
 	return Function.prototype.apply.call(this.db.execute, this.db, q);
@@ -376,7 +378,7 @@ SQLite.prototype.execute = SQLite.prototype.exec = function() {
  * Execute a query and apply a transformation function to the result set, then close the set and the database.
  * @param {String} [query]
  * @param {Vararg} [values]
- * @param {Function} fn The transformation function to apply to the dataset. It will be passed a `dataset` argument, which is an instance of Ti.Database.ResultSet, and it should return the transformed result.
+ * @param {Function} fn The transformation function to apply to the dataset. It will be passed a `dataset` argument, which is an instance of DatabaseModule.ResultSet, and it should return the transformed result.
  * @return The result of fn
  */
 SQLite.prototype.transform = function() {
@@ -395,7 +397,7 @@ SQLite.prototype.transform = function() {
 		this.query = null; // Reset query
 	}
 
-	if (exports.config.log) Ti.API.debug(LOGNAME + ':', q);
+	if (exports.config.log) Ti.API.debug(MODULE_NAME + ':', q);
 
 	this.open();
 	var dataset = Function.prototype.apply.call(this.db.execute, this.db, q);
@@ -426,7 +428,7 @@ SQLite.prototype.run = function() {
 		this.query = null; // Reset query
 	}
 
-	if (exports.config.log) Ti.API.debug(LOGNAME + ':', arguments);
+	if (exports.config.log) Ti.API.debug(MODULE_NAME + ':', arguments);
 
 	var row = Function.prototype.apply.call(this.db.execute, this.db, q);
 

@@ -13,24 +13,26 @@ exports.config = _.extend({
 
 var MODULE_DATA_NAME = 'auth.std.data';
 
+var Prop = require('T/prop');
+
 exports.__setParent = function(parent) {
 	exports.__parent = parent;
 };
 
 function getData() {
-	return exports.__parent.getPersistence().getObject(MODULE_DATA_NAME);
+	return Prop.getObject(MODULE_DATA_NAME);
 }
 
 function hasData() {
-	return exports.__parent.getPersistence().hasProperty(MODULE_DATA_NAME);
+	return Prop.hasProperty(MODULE_DATA_NAME);
 }
 
 function storeData(value) {
-	exports.__parent.getPersistence().setObject(MODULE_DATA_NAME, value);
+	Prop.setObject(MODULE_DATA_NAME, value);
 }
 
 function removeData() {
-	exports.__parent.getPersistence().removeProperty(MODULE_DATA_NAME);
+	Prop.removeProperty(MODULE_DATA_NAME);
 }
 
 exports.login = function(opt) {

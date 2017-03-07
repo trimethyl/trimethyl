@@ -3,12 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/*
-Include methods used in this module dynamically to avoid that Titanium 
-static analysis doesn't include native-language methods.
- */
-Ti.Database;
-
 var SQLite = require('T/sqlite');
 var Util = require('T/util');
 

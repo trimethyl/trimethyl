@@ -72,8 +72,9 @@
     "ext/nlp-i18n/it",
     "support/oauth",
     "support/xmlparser/extract",
-    "support/xmlparser/proxies"
+    "support/xmlparser/proxies",
+    "db"
   ],
   "version": "7.0.0",
-  "install_date": 1488456032541
+  "install_date": 1488885102773
 }

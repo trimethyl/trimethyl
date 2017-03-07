@@ -110,6 +110,9 @@
     <module platform="android">org.iotashan.TiTouchImageView</module>
     <module platform="android">ti.ga</module>
     <module platform="iphone">appcelerator.https</module>
+    <module platform="android">lucadamico.android.calendar</module>
+    <module platform="iphone">appcelerator.encrypteddatabase</module>
+    <module platform="android">appcelerator.encrypteddatabase</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>

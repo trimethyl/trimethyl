@@ -8,6 +8,8 @@ var baseDomain = null;
 
 var MODULE_NAME = 'oauth';
 
+var Prop = require('T/prop');
+
 exports.__setParent = function(parent) {
 	exports.__parent = parent;
 };
@@ -17,16 +19,16 @@ var Util = require('T/util');
 var HTTP = require('T/http');
 
 exports.getClientID = function() {
-	return exports.__parent.config.oAuthClientID;
+	return exports.__parent.oAuthClientID;
 };
 
 exports.getClientSecret = function() {
-	return exports.__parent.config.oAuthClientSecret;
+	return exports.__parent.oAuthClientSecret;
 };
 
 exports.storeCredentials = function(data) {
 	Ti.API.trace('Auth: storing OAuth credentials', data);
-	var P = exports.__parent.getPersistence();
+	var P = Prop.getPersistence();
 	P.setString(MODULE_NAME + '.' + 'access_token', data.access_token);
 	P.setString(MODULE_NAME + '.' + 'refresh_token', data.refresh_token);
 	P.setString(MODULE_NAME + '.' + 'expiration', Util.now() + data.expires_in);
@@ -34,7 +36,7 @@ exports.storeCredentials = function(data) {
 
 exports.resetCredentials = function() {
 	Ti.API.trace('Auth: resetting OAuth credentials');
-	var P = exports.__parent.getPersistence();
+	var P = Prop.getPersistence();
 	P.removeProperty(MODULE_NAME + '.' + 'access_token');
 	P.removeProperty(MODULE_NAME + '.' + 'refresh_token');
 	P.removeProperty(MODULE_NAME + '.' + 'expiration');
@@ -69,7 +71,7 @@ exports.httpFilter = function(httpRequest) {
 			isRequestingToken = true;
 
 			HTTP.send({
-				url: exports.__parent.config.oAuthAccessTokenURL,
+				url: exports.__parent.oAuthAccessTokenURL,
 				method: 'POST',
 				data: oAuthPostData,
 				suppressFilters: ['oauth'],
@@ -94,11 +96,11 @@ exports.httpFilter = function(httpRequest) {
 };
 
 exports.getAccessToken = function() {
-	return exports.__parent.getPersistence().getString(MODULE_NAME + '.' + 'access_token', null);
+	return Prop.getPersistence().getString(MODULE_NAME + '.' + 'access_token', null);
 };
 
 exports.getRefreshToken = function() {
-	return exports.__parent.getPersistence().getString(MODULE_NAME + '.' + 'refresh_token', null);
+	return Prop.getPersistence().getString(MODULE_NAME + '.' + 'refresh_token', null);
 };
 
 exports.isAccessTokenExpired = function() {
@@ -106,7 +108,7 @@ exports.isAccessTokenExpired = function() {
 };
 
 exports.getRemainingAccessTokenExpirationTime = function() {
-	var expire = exports.__parent.getPersistence().getString(MODULE_NAME + '.' + 'expiration') << 0;
+	var expire = Prop.getPersistence().getString(MODULE_NAME + '.' + 'expiration') << 0;
 	if (expire == 0) return -1;
 
 	return expire - Util.now();

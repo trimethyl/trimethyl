@@ -15,6 +15,8 @@ exports.config = _.extend({
 
 var MODULE_DATA_NAME = 'auth.facebook.data';
 
+var Prop = require('T/prop');
+
 exports.__setParent = function(parent) {
 	exports.__parent = parent;
 };
@@ -25,22 +27,22 @@ var _FB = require('T/fb'); // Use FB as an accessor
 var localOptions = null;
 
 function getData() {
-	return exports.__parent.getPersistence().getObject(MODULE_DATA_NAME);
+	return Prop.getObject(MODULE_DATA_NAME);
 }
 
 function hasData() {
-	return exports.__parent.getPersistence().hasProperty(MODULE_DATA_NAME);
+	return Prop.hasProperty(MODULE_DATA_NAME);
 }
 
 function storeData() {
-	exports.__parent.getPersistence().setObject(MODULE_DATA_NAME, {
+	Prop.setObject(MODULE_DATA_NAME, {
 		accessToken: _FB.accessToken,
 		expirationDate: _FB.expirationDate
 	});
 }
 
 function removeData() {
-	exports.__parent.getPersistence().removeProperty(MODULE_DATA_NAME);
+	Prop.removeProperty(MODULE_DATA_NAME);
 }
 
 exports.login = function(opt) {
@@ -57,7 +59,7 @@ exports.login = function(opt) {
 };
 
 exports.logout = function() {
-	exports.__parent.getPersistence().removeProperty(MODULE_DATA_NAME);
+	Prop.removeProperty(MODULE_DATA_NAME);
 	_FB.logout();
 };
 
