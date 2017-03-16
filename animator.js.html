@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: animator.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: animator.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  animator
+ * @author 	Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+var Matrix = require('T/matrix');
+
+/**
+ * Animate a view from `A` to `B` properties. 
+ * It puts the `A` properties before the animations starts, then it animates to `B`.
+ * @param  {Ti.UI.View}   	view 						The view to animate
+ * @param  {Object}   		a 							Initial state
+ * @param  {Object}   		b        				Final state
+ * @param  {Function} 		[callback=null] 		Callback to execute when animation ends
+ */
+exports.animateFromTo = function(view, a, b, callback) {
+	callback = callback || Alloy.Globals.noop;
+	view.applyProperties(a);
+	_.defer(function(){
+		view.animate(b, callback);
+	});
+};
+
+/**
+ * Fade in the view
+ * @param {Object} 			opt
+ * @param {Ti.UI.View} 		opt.view 					The view to animate
+ * @param {Number} 			[opt.duration=400] 		The duration in ms
+ * @param {Function} 		[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeIn = function(opt) {
+	_.defaults(opt, {
+		duration: 400
+	});
+
+	return exports.animateFromTo(opt.view,
+	{ 
+		opacity: 0 
+	},
+	{ 
+		opacity: 1, 
+		duration: opt.duration
+	},
+	opt.callback);
+};
+
+/**
+ * Fade out the view
+ * @param {Object} 			opt
+ * @param {Ti.UI.View} 		opt.view 					The view to animate
+ * @param {Number} 			[opt.duration=400] 		The duration in ms
+ * @param {Function} 		[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeOut = function(opt) {
+	_.defaults(opt, {
+		duration: 400
+	});
+
+	return  exports.animateFromTo(opt.view,
+	{ 
+		opacity: 1 
+	},
+	{ 
+		opacity: 0, 
+		duration: opt.duration
+	},
+	opt.callback);
+};
+
+/**
+ * Fade in the view applying a matrix transformation
+ * @param {Object} 				opt
+ * @param {Ti.UI.View} 			opt.view 					The view to animate
+ * @param {Ti.UI.2DMatrix} 	opt.startTransform 		The initial matrix
+ * @param {Ti.UI.2DMatrix}		opt.endTransform			The final matrix
+ * @param {Number} 				[opt.duration=400] 		The duration in ms
+ * @param {Function} 			[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeInWithTransform = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+	});
+
+	return exports.animateFromTo(opt.view,
+	{ 
+		opacity: 0, 
+		transform: opt.startTransform
+	},
+	{ 
+		opacity: 1, 
+		transform: opt.endTransform,
+		duration: opt.duration
+	},
+	opt.callback);
+};
+
+/**
+ * Fade in the view with an offset from up
+ * @param {Object} 			opt
+ * @param {Ti.UI.View} 		opt.view 					The view to animate
+ * @param {Number} 			[duration=400] 			The duration in ms
+ * @param {Number} 			[opt.offset=50] 			The offset to apply when animation starts
+ * @param {Function} 		[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeInUp = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return exports.fadeInWithTransform({
+		view: opt.view,
+		startTransform: Matrix.i().t(0, -opt.offset).matrix,
+		endTransform: Matrix.i().matrix,
+		duration: opt.duration
+	}, opt.callback);
+};
+
+/**
+ * Fade in the view with an offset from left
+ * @param {Object}			opt
+ * @param {Ti.UI.View} 		opt.view 					The view to animate
+ * @param {Number} 			[opt.duration=400] 		The duration in ms
+ * @param {Number} 			[opt.offset=50] 			The offset to apply when animation starts
+ * @param {Function} 		[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeInLeft = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return exports.fadeInWithTransform({
+		view: opt.view,
+		startTransform: Matrix.i().t(-opt.offset, 0).matrix,
+		endTransform: Matrix.i().matrix,
+		duration: opt.duration
+	}, opt.callback);
+};
+
+/**
+ * Fade in the view with an offset from bottom
+ * @param {Object}			opt
+ * @param {Ti.UI.View} 		opt.view 					The view to animate
+ * @param {Number} 			[opt.duration=400] 		The duration in ms
+ * @param {Number} 			[opt.offset=50] 			The offset to apply when animation starts
+ * @param {Function} 		[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeInBottom = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return exports.fadeInWithTransform({
+		view: opt.view,
+		startTransform: Matrix.i().t(0, opt.offset).matrix,
+		endTransform: Matrix.i().matrix,
+		duration: opt.duration
+	}, opt.callback);
+};
+
+/**
+ * Fade in the view with an offset from right
+ * @param {Object}			opt
+ * @param {Ti.UI.View} 		opt.view 					The view to animate
+ * @param {Number} 			[opt.duration=400] 		The duration in ms
+ * @param {Number} 			[opt.offset=50] 			The offset to apply when animation starts
+ * @param {Function} 		[opt.callback=null]		Callback to execute when animation ends
+ */
+exports.fadeInRight = function(opt) {
+	_.defaults(opt, {
+		duration: 400,
+		offset: 50
+	});
+
+	return exports.fadeInWithTransform({
+		view: opt.view,
+		startTransform: Matrix.i().t(opt.offset, 0).matrix,
+		endTransform: Matrix.i().matrix,
+		duration: opt.duration
+	}, opt.callback);
+};
+
+/**
+ * Indefinitely move up and down a view
+ * @param {Object} 				opt
+ * @param {Ti.UI.View} 			opt.view 					The view to animate
+ * @param {Number} 				[opt.duration=1000] 		The duration of the animation
+ * @param {Number} 				[opt.y=10] 					How many pixel move up and down
+ * @return {Function} 			A function that can be used to stop the animation calling its `stop()` method
+ */
+exports.upAndDown = function(opt) {
+	var self = {};
+	var run = true;
+
+	// This is the return value, and it's a function
+	// that simply set the internal flag `run` to false,
+	// to stop the animation
+	self.stop = function() {
+		run = false;
+	};
+
+	_.defaults(opt, {
+		duration: 1000,
+		y: 10
+	});
+
+	var index = 0;
+	(function loop() {
+		if (run === false) return;
+
+		// Switch 1 to 0 and 0 to 1
+		index = (index + 1) % 2;
+
+		_.defer(function(){	
+			var newY = index ? opt.y : 0;
+
+			opt.view.animate({
+				transform: Matrix.i().t(0, newY).matrix,
+				duration: opt.duration
+			}, loop);
+		});
+	})();
+
+	return self;
+};
+
+/**
+ * Treat the view to animate like a normal falling object
+ * @param {Object} 				opt
+ * @param {Ti.UI.View} 			opt.view 							The view to animate
+ * @param {Number} 				[opt.friction=0.6] 				The friction to apply when the object touch the ground
+ * @param {Number} 				[opt.potentialEnergy=10] 		The initial potential energy of the object
+ * @param {Number} 				[opt.y=60] 							The initial height of the object
+ * @param {Number}				[opt.gravity=9.81]				The world gravity
+ * @param {Function} 			[opt.callback=null]				Callback to execute when animation ends
+ * @return {Function} 			A function that can be used to stop the animation calling its `stop()` method
+ */
+exports.fallDownForGravity = function(opt) {
+	var self = {};
+	var run = true;
+	var timeout = null;
+
+	// This is the return value, and it's a function
+	// that simply set the internal flag `run` to false and clear the timeout
+	// to stop the animation
+	self.stop = function() {
+		clearTimeout(timeout);
+		run = false;
+	};
+
+	_.defaults(opt, {
+		friction: 0.6,
+		potentialEnergy: 10,
+		y: 60,
+		gravity: 9.81,
+		callback: Alloy.Globals.noop
+	});
+
+	// Initial potential energy
+	var U = Number(opt.potentialEnergy);
+
+	// Calculate the animation duration based on the gravity
+	var animationDuration = 1000 * (2 / opt.gravity);
+	
+	// Index var represents how many time the object reached the floor
+	var index = -1;
+	var y = null;
+
+	(function loop() {
+		if (run === false) return;
+
+		// If our potential energy is zero, stop everything
+		if (U === 0) {
+			opt.callback();
+			return;
+		}
+
+		_.defer(function() {
+			index++;
+
+			if (index % 2 === 1) {
+				U =  Math.floor( U - (U * opt.friction) );
+				y = opt.y - ((U / opt.potentialEnergy) * opt.y);
+			} else {
+				y = opt.y;
+			}
+
+			// If we are contrasting the gravity, ease-in. Out otherwise
+			var curve = Titanium.UI[ "ANIMATION_CURVE_EASE_" + (index % 2 === 0 ? "IN" : "OUT") ];
+			
+			opt.view.animate({
+				duration: animationDuration,
+				curve: curve,
+				transform: Matrix.i().t(0, y).matrix
+			}, loop);
+
+		});
+	})();
+
+	return self;
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: uifactory/tabbedbar.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: uifactory/tabbedbar.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  uifactory/tabbedbar
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+module.exports = function(args) {
+	args = args || {};
+	_.defaults(args, {
+		height: 34,
+		tintColor: '#000',
+		labelStyle: {},
+		borderColor: args.tintColor,
+		borderWidth: 1,
+		borderRadius: 10
+	});
+
+	var $this = Ti.UI.createView(args);
+
+	var labels = [];
+	var labelIndex = 0;
+	var UIWrapLabels = null;
+
+	$this.getLabels = function() {
+		return labels;
+	};
+
+	$this.setLabels = function(lbls) {
+		labels = [];
+		_.each(lbls, function(l) {
+			labels.push(_.isObject(l) ? l.title : l);
+		});
+
+		var width = Math.floor(100 / labels.length);
+		var latest_width = width + (100 - (width * labels.length));
+
+		var $wrap = Ti.UI.createView({
+			layout: 'horizontal',
+		});
+
+		_.each(labels, function(title, index) {
+			var lblArgs = _.extend({
+				color: $this.color || $this.tintColor,
+				font: $this.font,
+			}, $this.labelStyle, {
+				title: title,
+				index: index,
+				// we have to fix the latest width because and floor(100/3)*3 = 99 &lt; 100 
+				width: (index == labels.length-1 ? latest_width : width) + '%', 
+				height: Ti.UI.FILL,
+				left: 0,
+				right: -1
+			});
+
+			$wrap.add(Ti.UI.createButton(lblArgs));
+		});
+
+		if (UIWrapLabels !== null) $this.remove(UIWrapLabels);
+		$this.add($wrap);
+		UIWrapLabels = $wrap;
+	};
+
+	$this.getIndex = function() {
+		return labelIndex;
+	};
+
+	$this.setIndex = function(i) {
+		i = parseInt(i, 10);
+		if (!_.isNumber(i)) {
+			Ti.API.error('UIFactory.Tabbedbar: new index value is not a number');
+			return;
+		}
+
+		labelIndex = +i;
+		_.each(UIWrapLabels &amp;&amp; UIWrapLabels.children ? UIWrapLabels.children : [], function($c, i) {
+			if (+i === labelIndex) {
+				$c.applyProperties({
+					backgroundColor: $this.tintColor,
+					color: $this.activeColor || $this.backgroundColor || '#fff',
+					active: false
+				});
+			} else {
+				$c.applyProperties({
+					backgroundColor: 'transparent',
+					color: $this.color || $this.tintColor,
+					active: true
+				});
+			}
+		});
+	};
+
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
+
+	$this.addEventListener('click', function(e){
+		if (e.source.index == null) return;
+		$this.setIndex(+e.source.index);
+	});
+
+	if (args.labels != null) $this.setLabels(args.labels);
+	$this.setIndex(args.index || 0);
+
+	return $this;
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

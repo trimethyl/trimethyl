@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: filesystem.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: filesystem.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+* @module  filesystem
+* @author  Andrea Jonus &lt;andrea.jonus@caffeina.com>
+* @author  Flavio De Stefano &lt;flavio.destefano@caffeina.com>
+*/
+
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Ti.Filesystem;
+
+var Permissions = require('T/permissions/storage');
+
+function recursiveIterator(file) {
+	return _.map(file.getDirectoryListing(), function(item) {
+		var curFile = Ti.Filesystem.getFile(file.nativePath, item);
+		if (curFile.isDirectory()) {
+			return {
+				path: curFile.nativePath,
+				content: recursiveIterator( curFile )
+			};
+		} else {
+			return {
+				path: curFile.nativePath
+			};
+		}
+	});
+}
+
+function canWrite(file) {
+	return (OS_IOS || (file.exists() &amp;&amp; file.writable) || (OS_ANDROID &amp;&amp; file.parent.writable));
+}
+
+/**
+ * Lists the content of a directory and all its subdirectories.
+ * Returns a list of objects with the structure `{path: "", content: []}`
+ *
+ * Returns `null` if the specified path does not point to an existing directory.
+ *
+ * @param {String} path
+ */
+exports.listDirectoryRecursive = function(path) {
+	var file = Ti.Filesystem.getFile(path);
+	if (!file.isDirectory()) {
+		return null;
+	}
+
+	return recursiveIterator(file);
+};
+
+/**
+ * Move a file or a directory to a new path. Overwrite the destination path if the flag is set to true.
+ *
+ * Returns true if the operation was successful.
+ *
+ * @param {String} src		the path of the file/directory to move
+ * @param {String} dest		the destination path
+ * @param {Boolean} ow 		set to true to overwrite destination path
+ * @returns {Boolean}
+ */
+exports.move = function(src, dest, ow) {
+	var srcFile = Ti.Filesystem.getFile(src);
+	if (!srcFile.exists()) {
+		return false;
+	}
+
+	var destFile = Ti.Filesystem.getFile(dest);
+	if (ow === true &amp;&amp; destFile.exists()) {
+		destFile.deleteFile();
+	}
+
+	return srcFile.move(dest);
+};
+
+/**
+ * Get the size of a directory in bytes
+ * @param {String} path
+ * @return {Number}
+ */
+exports.getSize = function(path) {
+	var file = path.nativePath ? path : Ti.Filesystem.getFile(path);
+	if (!file.isDirectory()) {
+		return file.size;
+	}
+
+	return _.reduce(file.getDirectoryListing(), function(carry, f) {
+		carry += exports.getSize( Ti.Filesystem.getFile(file.nativePath, f) );
+		return carry;
+	}, 0);
+};
+
+/**
+ * Writes the specified data to a file, after checking storage permissions. This operation is asynchronous.
+ * @param {Object} opt
+ * @param {Titanium.Filesystem.File} opt.file 						The file to modify
+ * @param {String/Titanium.Filesystem.File/Titanium.Blob} opt.data 	Data to write, as a String, Blob or File object.
+ * @param {Function} [opt.success] 									The callback to invoke on success.
+ * @param {Function} [opt.error] 									The callback to invoke on error.
+ * @param {Boolean} [opt.append] 									If true, append the data to the end of the file.
+ * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-write}
+ */
+exports.write = function(opt) {
+	_.defaults(opt, {
+		append: false,
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
+	});
+
+	function writeFile() {
+		var res = opt.file.write(opt.data, !!opt.append);
+
+		if (res) opt.success();
+		else opt.error();
+	}
+
+	if (canWrite(opt.file)) {
+		writeFile();
+	} else {
+		Permissions.request(writeFile, opt.error);
+	}
+};
+
+/**
+ * Creates a directory, after checking storage permissions. This operation is asynchronous.
+ * @param {Object} opt
+ * @param {Titanium.Filesystem.File} opt.file 	The file object that identifies the directory to create.
+ * @param {Function} [opt.success] 				The callback to invoke on success.
+ * @param {Function} [opt.error] 				The callback to invoke on error.
+ * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-createDirectory}
+ */
+exports.createDirectory = function(opt) {
+	_.defaults(opt, {
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
+	});
+
+	function writeDir() {
+		if (opt.file.exists() &amp;&amp; opt.file.isDirectory()) {
+			Ti.API.warn('Filesystem: directory already exists. Skipping.');
+			opt.success();
+		} else {
+			var res = opt.file.createDirectory();
+
+			if (res) opt.success();
+			else opt.error();
+		}
+	}
+
+	if (canWrite(opt.file)) {
+		writeDir();
+	} else {
+		Permissions.request(writeDir, opt.error);
+	}
+};
+
+/**
+ * Deletes a directory, after checking storage permissions. This operation is asynchronous.
+ * @param {Object} opt
+ * @param {Titanium.Filesystem.File} opt.file 	The file object that identifies the directory to delete.
+ * @param {Function} [opt.success] 				The callback to invoke on success.
+ * @param {Function} [opt.error] 				The callback to invoke on error.
+ * @param {Boolean} [opt.recursive] 			Pass true to recursively delete any directory contents.
+ * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-deleteDirectory}
+ */
+exports.deleteDirectory = function(opt) {
+	_.defaults(opt, {
+		success: Alloy.Globals.noop,
+		error: Alloy.Globals.noop
+	});
+
+	function deleteDir() {
+		var res = opt.file.deleteDirectory(opt.recursive);
+
+		if (res) opt.success();
+		else opt.error();
+	}
+
+	if (canWrite(opt.file)) {
+		if (!opt.file.exists()) {
+			Ti.API.warn('Filesystem: directory does not exist. Skipping.');
+			opt.success();
+		} else {
+			deleteDir();
+		}
+	} else {
+		Permissions.request(deleteDir, opt.error);
+	}
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

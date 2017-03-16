@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: xmlparser.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: xmlparser.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @author Ani Sinanaj
+ * @module xmlparser
+ * @dependencies: xmlparser/extract, xmlparser/proxies
+ */
+
+/**
+ * Dependencies
+ */
+var Extract = require('T/support/xmlparser/extract').extract;
+var DefaultProxies = require('T/support/xmlparser/proxies');
+
+/**
+ * Global variables
+ */
+var viewCount = 0; // just a counter to have the number of created views
+var customProxies = {};
+var container = null;
+
+/**
+ * Parse the given string of `xml`.
+ *
+ * @param {String} xml
+ * @return {Object}
+ * @api public
+ */
+function parse(xml, opts) {
+	opts = opts || {};
+	var fontTransform = _.extend({
+		italic: {
+			fontStyle: 'italic'
+		},
+		bold: {
+			fontWeight: 'bold'
+		}
+	}, opts.fontTransform);
+
+	DefaultProxies.opts = opts;
+	DefaultProxies.fontTransform = fontTransform;
+
+	var proxies = _.extend({}, DefaultProxies.proxies, customProxies, opts.proxies);
+
+	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
+	var currentLabel; // variable to use for constucting multi style labels
+	var androidHtml = "";
+	var tempAttributes = [];
+
+	exports.container = container;
+
+	// strip comments and whitespaces
+	xml = xml.trim();
+	xml = xml.replace(/&lt;!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '&lt;br />');
+
+	// start processing
+	if (OS_IOS) tag(xml);
+	else if (OS_ANDROID) androidTag(xml);
+
+	//finalize currentLabel if it's not null
+	finalizeLabel();
+	return container;
+
+	/**
+	 * Tag.
+	 */
+	function tag(data) {
+		var re = /^&lt;([\w-:.]+)\s*/;
+		var m = re.exec(data);
+		var el;
+
+		// starts with simple text, could have children later
+		if (!m) {
+			// check if there are children
+			var c = /&lt;([\w-:.]+)\s*/.exec(data);
+			var text = data;
+
+			if(c != null &amp;&amp; c[0] != null) {
+				// split, process, loop
+				text = text.substr(0,c.index);
+				data = data.substr(c.index);
+
+			} else {
+				data = "";
+			}
+
+			el = proxy({
+				name: "span",
+				attributes: {},
+				start: 0,
+				end: data.length,
+				text: text,
+				content: data
+			}); // create proxy
+
+			// loop
+			if(0 != data.length) tag(data);
+			return;
+		}
+
+		// case when content starts with a child
+		var block 	= Extract(data,m[1]);
+		var child 	= re.exec(block.content);
+		var content = block.content;
+
+		// if the block has at least a child, iterate in it.
+		data = data.replace(data.slice(block.start, block.end - block.start), '');
+		if (!!child) {
+			el = proxy(block); // create proxy
+			tag(block.content);
+		}
+
+		// if the block doesn't start with a child but has text
+		if (!child &amp;&amp; !!content.length) {
+			if (block.text.length != block.content.length) {
+				// Maybe don't override the content. Check if it doesn't break anything
+				el = proxy(_.extend(_.clone(block), {text: "", content: ""}));
+				tag(block.content);
+
+			} else {
+				el = proxy(block); // create proxy∑
+			}
+		}
+
+		// i.e. &lt;br/>
+		if (!child &amp;&amp; !content.length) el = proxy(block);
+
+		if (el &amp;&amp; el.end &amp;&amp; _.isFunction(el.end)) {
+			finalizeLabel();
+			container.addTo = null;
+			el.end(container);
+		}
+
+		// continue with the rest of the xml
+		tag(data);
+		return;
+	}
+
+	function androidTag(data) {
+		var re = /^&lt;([\w-:.]+)\s*/;
+		var m = re.exec(data);
+
+		// case when content starts with a child
+		var block 	= Extract(data,m[1]);
+
+		if (null == proxies[block.name]) block.name = "span";
+
+		if (proxies[block.name].type == exports.TYPE_TEXT) {
+			block.content = data.substr(block.start, block.end);
+		}
+		data = data.replace(data.slice(block.start, block.end - block.start), '');
+		proxy(block);
+
+		if (0 != data.length) {
+			androidTag(data);
+			return;
+		}
+		return;
+	}
+
+	/**
+	 * Strip.
+	 */
+
+	function strip(val) {
+		return val.replace(/^['"]|['"]$/g, '');
+	}
+
+	/**
+	 * .
+	 */
+
+	function proxy(element) {
+		viewCount++;
+
+		if (null == proxies[element.name]) element.name = "span";
+
+		if (proxies[element.name].type == exports.TYPE_TEXT &amp;&amp; _.isFunction(proxies[element.name].handler)) {
+			if (null == currentLabel) currentLabel = {text: "", attributes: []};
+
+			if (OS_IOS) {
+				// fix t.attributes ranges
+				var t = proxies[element.name].handler(element, container);
+				currentLabel.text += t.text;
+				cascadingAttributes(t, element);
+			} else {
+				androidHtml += element.content;
+			}
+
+		} else if (proxies[element.name].type == exports.TYPE_CUSTOM &amp;&amp; _.isFunction(proxies[element.name].handler)) {
+			// check if currentLabel is null
+			finalizeLabel();
+			proxies[element.name].handler(element, container);
+		}
+
+		return proxies[element.name];
+	}
+
+	function cascadingAttributes(e, element) {
+		if (e.text == "") {
+			tempAttributes = concatAttributes(tempAttributes, e.attributes);
+		} else {
+			var start = currentLabel.text.length - e.text.length, length = e.text.length;
+			tempAttributes = concatAttributes(tempAttributes, e.attributes);
+
+			_.each(tempAttributes, function(a) {
+				a.range = [start, length];
+				currentLabel.attributes.push(a);
+			});
+
+			if(element.content.length == element.text.length) tempAttributes = [];
+		}
+	}
+
+	function concatAttributes(haystack, needles) {
+		var attrs = [];
+		_.each(haystack, function(attr) {
+			_.each(needles, function(needle, index) {
+				if (attr.type == needle.type) {
+					switch(attr.type) {
+						case Ti.UI.ATTRIBUTE_FONT:
+							attr.value = _.extend(attr.value, needle.value);
+							needles.splice(index,1);
+							break;
+					}
+				}
+			});
+		});
+		return haystack.concat(needles);
+	}
+
+	function finalizeLabel() {
+		if (null == currentLabel &amp;&amp; OS_IOS) return;
+		if ("" == androidHtml &amp;&amp; OS_ANDROID) return;
+
+		if (opts.lineSpacing &amp;&amp; OS_IOS) {
+			currentLabel.attributes.push({
+				type: Ti.UI.ATTRIBUTE_PARAGRAPH_STYLE,
+				value: {
+					lineSpacing: opts.lineSpacing
+				},
+				range: [0,currentLabel.text.length]
+			});
+		}
+
+		if (opts.characterSpacing &amp;&amp; OS_IOS) {
+			currentLabel.attributes.push({
+				type: Ti.UI.ATTRIBUTE_KERN,
+				value: opts.characterSpacing,
+				range: [0,currentLabel.text.length]
+			});
+		}
+
+		var labelProperties = null;
+
+		if (OS_IOS) {
+			var as = Ti.UI.createAttributedString(currentLabel);
+			labelProperties = _.extend({
+				attributedString: as,
+				font: {fontSize: 14}
+			}, opts.textStyle);
+		} else {
+			labelProperties = _.extend({
+				lineSpacing: {add: opts.lineSpacing, multiply: 1.2},
+				html: androidHtml,
+				font: {fontSize: 14}
+			}, opts.textStyle);
+		}
+		var label = Ti.UI.createLabel(labelProperties);
+		label.addEventListener("link", linkHandler);
+		// add label to container
+
+		if (container.addTo) container.addTo.add(label);
+		else container.add(label);
+
+		currentLabel = null;
+		androidHtml = "";
+		label = null;
+	}
+
+	function linkHandler(e) {
+		if (null != opts.linkHandler &amp;&amp; _.isFunction(opts.linkHandler)) {
+			opts.linkHandler(e);
+			return;
+		}
+
+		if (e.url) Ti.Platform.openURL(e.url);
+	}
+}
+
+/**
+ * Expose `parse`.
+ */
+exports.process = parse;
+
+/**
+ * Public methods
+ */
+
+// Use this method to set your own proxies
+exports.overrideProxies = function(p) {
+	_.extend(customProxies, p);
+};
+
+// Use this method to set your own container view
+exports.setContainer = function(view) {
+	container = view;
+};
+
+// A getter for the container
+exports.getContainer = function() {
+	return container;
+};
+
+/**
+ * Setting type constants
+ */
+exports.TYPE_TEXT = 0;
+exports.TYPE_CUSTOM = 1;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

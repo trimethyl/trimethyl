@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: uiutil.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: uiutil.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  uiutil
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+var Image = require('T/image');
+var HTTP = require('T/http');
+
+/**
+ * Parse an array or a Backbone.Collection and populate a ListView with this values.
+ *
+ * @param {Object} C Array or Backbone.Collection
+ * @param {Object} opt Options
+ * @param {Function} opt.datasetCb You must provide a callback to fill the ListItem, like this:
+ *
+ * ```
+ * return {
+ *	   properties: {
+ *	      height: 52,
+ *			itemId: el.id,
+ *			searchableText: el.get('city')
+ *		},
+ *		title: { text: el.get('title') },
+ *		address: { text: el.get('address')+', '+el.get('city') }
+ *	}
+ * ```
+ *
+ * @param {Object} opt.groupBy See `_.groupBy`
+ * @param {Function} opt.headerViewCb A callback to generate the headerView for the ListView.
+ * @param {Boolean} opt.sectionIndex If `true`, provide the **alphabet on the right** functionality.
+ * @param {Ti.UI.ListView} [$ui] The ListView to populate.
+ * @return {Array}
+ */
+exports.populateListViewFromCollection = function(C, opt, $ui) {
+	var sec = [];
+
+	if (opt.groupBy != null &amp;&amp; opt.groupBy != false) {
+
+		var array = (C instanceof Backbone.Collection) ? C.groupBy(opt.groupBy) : ( _.isArray(C) ? _.groupBy(C, opt.groupBy) : C );
+		sec = _.map(array, function(els, key) {
+			var hViewExtend = _.isFunction(opt.headerViewCb) ? { headerView: opt.headerViewCb(key) } : { headerTitle: key };
+
+			return Ti.UI.createListSection(_.extend({
+				items: _.map(els, opt.datasetCb),
+			}, hViewExtend));
+		});
+
+		if (OS_IOS &amp;&amp; $ui != null &amp;&amp; opt.sectionIndex == true) {
+			$ui.sectionIndexTitles = _.map(Object.keys(array), function(u, k) {
+				return {
+					title: u,
+					index: k
+				};
+			});
+		}
+
+	} else {
+		sec = [ Ti.UI.createListSection({
+			items: (C instanceof Backbone.Collection) ? C.map(opt.datasetCb) : _.map(C, opt.datasetCb)
+		}) ];
+	}
+
+	if ($ui != null) $ui.sections = sec;
+	return sec;
+};
+
+
+
+/**
+* Set the background image with cover method
+* @param {String} url
+*/
+exports.setBackgroundCoverForView = function($this, url, callback) {
+	if ($this.size == null || $this.size.width == 0 || $this.size.height == 0) {
+
+		$this.addEventListener('postlayout', function postlayout() {
+			$this.removeEventListener('postlayout', postlayout);
+			if ($this.size != null &amp;&amp; $this.size.width != 0 &amp;&amp; $this.size.height != 0) {
+				exports.setBackgroundCoverForView($this, url, callback);
+			}
+		});
+
+		return;
+	}
+
+	var filename = null;
+	if (_.isString(url)) {
+		filename = url;
+	} else {
+		filename = url.name;
+	}
+
+	var w = $this.size.width, h = $this.size.height;
+	var hashedCachedName = Ti.Utils.md5HexDigest(filename) + '_' + (w+'x'+h) + '.png';
+	var cachedFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, hashedCachedName);
+
+	var onBlobReady = function(blob) {
+		// Cache the file to avoid future calls
+		Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory).createDirectory();
+
+		var cachedFileStatus = Image.process({
+			blob: blob,
+			width: w,
+			height: h,
+			retina: true,
+			file: cachedFile
+		});
+
+		if (cachedFileStatus != false &amp;&amp; cachedFileStatus.nativePath) {
+			callback(cachedFileStatus.nativePath);
+		} else {
+			Ti.API.error('UIUtil: Can\'t write cover file for url &lt;' + url + '>');
+		}
+	};
+
+	if (cachedFile.exists()) {
+		callback(cachedFile.nativePath);
+
+	} else {
+
+		if (_.isString(url) &amp;&amp; /^https?\:\/\//.test(url)) {
+			HTTP.send({
+				url: url,
+				format: 'blob',
+				cache: false,
+				refresh: true,
+				silent: true
+			}).success(function(data) {
+				onBlobReady(data);
+			}).error(function() {
+				Ti.API.error('UIUtil: URL &lt;' + url + '> can\'t be downloaded');
+			});
+
+		} else {
+
+			var tiFile = null;
+
+			if (_.isString(url)) {
+				if (OS_ANDROID) url = url.replace(/^\//, '');
+				tiFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, url);
+			} else {
+				tiFile = url;
+			}
+
+			if (tiFile.exists()) {
+				var blob = tiFile.read();
+				if (blob != null) {
+					onBlobReady(blob);
+				} else {
+					Ti.API.error('UIUtil: File &lt;' + url + '> exists but is unreadable');
+				}
+			} else {
+				Ti.API.error('UIUtil: File &lt;' + url + '> doesn\'t exists');
+			}
+		}
+
+	}
+
+};
+
+/**
+ * Build a Toolbar
+ * @return {Ti.UI.iOS.Toolbar}
+ */
+exports.buildKeyboardToolbar = function(opt) {
+	var $doneBtn = Ti.UI.createButton({
+		title: L('done', 'Done'),
+		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+	});
+	$doneBtn.addEventListener('click', opt.done);
+
+	var $cancelBtn = Ti.UI.createButton({
+		title: L('cancel', 'Cancel'),
+	});
+	$cancelBtn.addEventListener('click', opt.cancel);
+
+	return Ti.UI.iOS.createToolbar({
+		borderTop: true,
+		borderBottom: true,
+		items:[
+		$cancelBtn,
+		Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+		$doneBtn
+		]
+	});
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: weballoy.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: weballoy.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  weballoy
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+/**
+ * @property config
+ * @property {String} [config.jsExt=".jslocal"] The extension to use for Javascript files
+ */
+exports.config = _.extend({
+	jsExt: '.jslocal'
+}, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
+
+var libDir = [];
+var helpers = {};
+var fonts = [];
+
+var TMP_DIR = Ti.Filesystem.tempDirectory + '/weballoy';
+
+function embedFile(f) {
+	if (_.isEmpty(f)) return null;
+
+	var file = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, f);
+	if ( ! file.exists()) return null;
+
+	return file;
+}
+
+function getFileText(f) {
+	var file = embedFile(f);
+	if (file == null) return '';
+	return file.read().text;
+}
+
+function embedCSS(f) {
+	var file = embedFile(f);
+	if (file == null) return '';
+	return '&lt;link rel="stylesheet" href="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '" />';
+}
+
+function embedJS(f) {
+	var file = embedFile(f);
+	if (file == null) return '';
+	return '&lt;script src="' + file.nativePath + (ENV_DEVELOPMENT ? '?v='+Math.random() : '') + '">&lt;/script>';
+}
+
+function embedFont(f) {
+	var file = embedFile(f.src);
+	if (file == null) return '';
+	return '&lt;style>@font-face { font-family: "' + f.name + '"; font-weight: ' + f.weight + '; src: url("' + f.src + '"); }&lt;/style>';
+}
+
+function getHTML(opt) {
+	var tpl_data = _.extend({}, helpers, opt.webdata);
+
+	// Include head (styles)
+	var html = '&lt;!DOCTYPE html>&lt;html>&lt;head>&lt;meta charset="utf-8" />';
+	html += '&lt;meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />';
+	html += '&lt;style>body{-webkit-text-size-adjust:none;}&lt;/style>'; //iOS auto expand font BUG
+
+	// Install the global event handler for this specific WebView
+	html += '&lt;script>window.WebAlloy={run:function(name,data){Ti.App.fireEvent("__weballoy_'+opt.uniqid+'",{name:name,data:data});}};&lt;/script>';
+
+	// Include fonts
+	_.each(fonts, function(f) {
+		html += embedFont(f);
+	});
+
+	// Include global css
+	html += embedCSS('web/app.css');
+	if (opt.name) {
+		html += embedCSS('web/styles/' + opt.name + '.css');
+	}
+
+	html += '&lt;/head>&lt;body>';
+
+	html += _.template(getFileText('web/app.tpl'))(tpl_data);
+
+	// Include template
+	html += '&lt;div id="main" class="' + (opt.htmlClass || '') + '">';
+
+	if (opt.content) {
+		html += _.template(opt.content)(tpl_data);
+	} else if (opt.name) {
+		html += _.template(getFileText('web/views/' + opt.name + '.tpl'))(tpl_data);
+	}
+
+	html += '&lt;/div>';
+
+	// Include libs
+	_.each(libDir, function(js) {
+		html += embedJS(js);
+	});
+
+	// Include footer
+	html += embedJS('web/app' + exports.config.jsExt);
+	if (opt.name) {
+		html += embedJS('web/controllers/' + opt.name + exports.config.jsExt);
+	}
+
+	html += '&lt;/body>&lt;/html>';
+
+	tpl = null;
+	return html;
+}
+
+/**
+ * Add an helper for the WebView
+ * The methods `embedCSS` and `embedJS` are automatically exposed
+ * @param {String} 		name   The name of the helper
+ * @param {Function} 	method The callback
+ */
+exports.addHelper = function(name, method) {
+	helpers[name] = method;
+};
+
+/**
+ * Add a font dynamically loaded with font-face in CSS
+ * @param {String} 		name   		The name of the font
+ * @param {String} 		weight 		The weight of the font
+ * @param {String}		filename 	The filename of the font (must be located in `app/assets/fonts`)
+ */
+exports.addFont = function(name, weight, filename) {
+	var tiFile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'fonts/' + filename);
+	if ( ! tiFile.exists()) {
+		Ti.API.debug('Weballoy: File not found (' + tiFile.nativePath + ')');
+		return false;
+	}
+
+	fonts.push({
+		name: name,
+		weight: weight,
+		src: tiFile.nativePath
+	});
+};
+
+/**
+ * @param  {Object} args Arguments for the view.
+ * @return {Ti.UI.WebView}
+ */
+exports.createView = function(args) {
+	args = args || {};
+	args.uniqid = _.uniqueId();
+
+	var $ui = Ti.UI.createWebView(_.extend({
+		disableBounce: true,
+		enableZoomControls: false,
+		hideLoadIndicator: true,
+		scalesPageToFit: false,
+		backgroundColor: 'transparent',
+		//borderRadius: 0.00001 // If the webview is not rendering set border radius to forse software layer rendering
+	}, args));
+
+	if (OS_IOS) {
+		$ui.html = getHTML(args);
+	} else {
+		$ui.addEventListener("postlayout", function render() {
+			$ui.removeEventListener("postlayout", render);
+			$ui.setHtml(getHTML(args));
+		});
+	}
+
+	$ui.addEventListener('load', function() {
+		if (args.autoHeight) {
+			$ui.height = Math.floor( $ui.evalJS('document.documentElement.offsetHeight') );
+		}
+		if (_.isFunction(args.onLoad)) {
+			args.onLoad.call($ui);
+		}
+	});
+
+	$ui._ = function(js) {
+		return $ui.evalJS(js);
+	};
+
+	$ui.call = function() {
+		var args = _.map(Array.prototype.slice.call(arguments, 1), function(a) { return JSON.stringify(a); });
+		return $ui._( arguments[0] + '(' + args.join(',') + ')' );
+	};
+
+	$ui.$ = function(selector) {
+		return {
+			call: function() {
+				var args = _.map(Array.prototype.slice.call(arguments, 1), function(a) { return JSON.stringify(a); });
+				return $ui._( 'document.querySelector("' + selector + '").' + arguments[0] + '(' + args.join(',') + ')' );
+			},
+			get: function(name) {
+				return $ui._( 'document.querySelector("' + selector + '").' + name );
+			},
+			set: function(name, value) {
+				return $ui._( 'document.querySelector("' + selector + '").' + name + ' = ' + JSON.stringify(value) );
+			}
+		};
+	};
+
+	$ui.render = function(data) {
+		$ui.$('#main').set('innerHTML', $ui.tpl(_.extend({}, helpers, data)));
+	};
+
+	// Install the API listener
+	if (args.webapi != null) {
+
+		var webapiListener = function(event) {
+			if (!_.isFunction(args.webapi[event.name])) return;
+			args.webapi[event.name].call($ui, event.data);
+		};
+
+		Ti.App.addEventListener('__weballoy_' + args.uniqid, webapiListener);
+		$ui.webapiUnbind = function() {
+			Ti.App.removeEventListener('__weballoy_' + args.uniqid, webapiListener);
+		};
+	}
+
+	return $ui;
+};
+
+
+/*
+Init
+*/
+
+var jsFiles = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing();
+_.each(jsFiles, function(js) {
+	libDir.push('web/lib/' + js);
+});
+
+// Expose those properties in the helpers
+helpers.embedCSS = embedCSS;
+helpers.embedJS = embedJS;
+
+// Clear
+Ti.Filesystem.getFile(TMP_DIR).deleteDirectory(true);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

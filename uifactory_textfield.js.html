@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: uifactory/textfield.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: uifactory/textfield.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  uifactory/textfield
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+var UIUtil = require('T/uiutil');
+
+module.exports = function(args) {
+	_.defaults(args, {
+
+		/**
+		 * @property {String} textType
+		 * Can be
+		 *
+		 * * `email`
+		 * * `password`
+		 * * `passwordEye`
+		 *
+		 * to adjust the keyboard or the mask automatically.
+		 */
+		textType: 'text',
+
+		/**
+		 * @property {Boolean} [useDoneToolbar=false] Add a default toolbar with a *Done* button that simply blur the TextField.
+		 */
+		useDoneToolbar: false,
+	});
+
+
+	switch (args.textType) {
+
+		case 'number':
+		args.keyboardType = Ti.UI.KEYBOARD_DECIMAL_PAD;
+		break;
+
+		case 'phone':
+		args.keyboardType = Ti.UI.KEYBOARD_TYPE_PHONE_PAD;
+		break;
+
+		case 'email':
+		args.keyboardType = Ti.UI.KEYBOARD_TYPE_EMAIL;
+		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
+		args.autocorrect = false;
+		break;
+
+		case 'password':
+		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
+		args.autocorrect = false;
+		args.passwordMask = true;
+		break;
+
+		case 'passwordEye':
+		args.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE;
+		args.autocorrect = false;
+		args.passwordMask = true;
+		break;
+	}
+
+	var $this = Ti.UI.createTextField(args);
+
+
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
+
+	// Password Eye
+	if (OS_IOS &amp;&amp; args.textType === 'passwordEye') {
+		var $eyeButton = Ti.UI.createButton({
+			image: args.passwordEyeImage || '/images/T/eye.png',
+			height: 40,
+			width: 60,
+			top: 0,
+			right: 0,
+			bottom: 0,
+			opacity: 0.2,
+			active: false,
+			tintColor: $this.color
+		});
+		$this.applyProperties({
+			rightButtonPadding: 0,
+			rightButtonMode: Ti.UI.INPUT_BUTTONMODE_ALWAYS,
+			rightButton: $eyeButton
+		});
+		$eyeButton.addEventListener('click', function(){
+			$eyeButton.active = !$eyeButton.active;
+			$eyeButton.opacity = $eyeButton.active ? 1 : 0.2;
+			$this.passwordMask = !$eyeButton.active;
+			$this.value = _.clone($this.value); // this fix a strange font-change behaviour
+		});
+	}
+
+
+	if (OS_IOS &amp;&amp; args.useDoneToolbar === true) {
+		$this.keyboardToolbar = UIUtil.buildKeyboardToolbar({
+			done: function() {
+				$this.fireEvent('toolbar.done');
+				$this.blur();
+			},
+			cancel: function() {
+				$this.fireEvent('toolbar.cancel');
+				$this.blur();
+			}
+		});
+	}
+
+	return $this;
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: app.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: app.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  app
+ * @author 	Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+/**
+ * @property config
+ * @property {Boolean} [config.enqueueRouteWithUniversalLink=true] 	Auto enqueue route with Universal link
+ * @property {Boolean} [config.enqueueRouteWithDeepLink=true] 			Auto enqueue route with deep link
+ */
+exports.config = _.extend({
+	enqueueRouteWithUniversalLink: true,
+	enqueueRouteWithDeepLink: true,
+}, Alloy.CFG.T ? Alloy.CFG.T.app : {});
+
+var Util = require('T/util');
+var Router = require('T/router');
+
+/**
+ * A static method used to convert a Universal link to a route
+ * With its default implementation, the original incoming string is return.
+ * You can override this function to get a different behaviour
+ * @param  {String} url The URL
+ * @return {String} The route
+ */
+exports.universalLinkToRoute = function(url) { return url; };
+
+/**
+ * A static method used to convert a Deep link to a route
+ * With its default implementation, the original incoming string is return
+ * You can override this function to get a different behaviour
+ * @param  {String} url The URL
+ * @return {String} The route
+ */
+exports.deepLinkToRoute = function(url) { return url; };
+
+/**
+ * Check if the first opening of the app.  
+ * Call {@link setFirstUse} to set the first use of the app.
+ * @param {String} [prefix=""] A prefix to apply
+ * @return {Boolean}
+ */
+exports.isFirstUse = function(prefix) {
+	prefix = prefix || '';
+	return !Ti.App.Properties.hasProperty('app.firstuse' + prefix);
+};
+
+/**
+ * Set the app first usage date.
+ * @param {String} [prefix=""] A prefix to apply
+ * Use in conjunction with {@link isFirstUse}
+ */
+exports.setFirstUse = function(prefix) {
+	prefix = prefix || '';
+	Ti.App.Properties.setString('app.firstuse' + prefix, Util.now());
+};
+
+/**
+ * Check on the App/Play store (or on a your distributed URL) if new version of this app has been released.
+ * If it is, a dialog is shown to prompt the user for the update.
+ * On iOS, all three parameters are auto-generated based on the app ID to check against the App Store.
+ * On Android, there's no a reliable method to check this on the Play Store, so you have to 
+ * specify it manually the URL (maybe on a server where you handle the current version) and the other two parameters.
+ * For In-House applications or Development application, you have to do the same.
+ * @param  {String} 		[url=null]					The URL to use to check for the update.
+ * @param  {Function} 	[version_cb=null]			The function to call that handle the parsing of the response: it must returns the version.
+ * @param  {Function} 	[success_cb=null]			The function to call when the user click: "Update"
+ */
+exports.notifyUpdate = function(url, version_cb, success_cb) {
+	if (!Ti.Network.online) return;
+
+	var HTTP = require('T/http');
+	var Dialog = require('T/dialog');
+	var GA = require('T/ga');
+
+	if (url == null) {
+		if (OS_IOS) {
+			url = 'https://itunes.apple.com/lookup?bundleId=' + Ti.App.id;
+		} else {
+			return null;
+		}
+	}
+
+	version_cb = version_cb || function(response) {
+		if (OS_IOS) {
+			return (response.results &amp;&amp; response.results[0]) ? response.results[0].version : null;
+		} else {
+			return null;
+		}
+	};
+
+	success_cb = success_cb || function(response) {
+		Util.openInStore((function() {
+			if (OS_IOS) return response.results[0].trackId;
+			else return null;
+		})() );
+	};
+
+	HTTP.send({
+		url: url,
+		cache: false,
+		format: 'json',
+		success: function(response) {
+			if (response == null || !_.isObject(response)) return;
+
+			var new_version = version_cb(response);
+			var version_compare = Util.compareVersions(new_version, Ti.App.version);
+
+			Ti.API.info('Util: App store version is ' + new_version);
+			Ti.API.info('Util: Current version is ' + Ti.App.version);
+
+			if (version_compare > 0) {
+				var title = L('app_new_version_title', 'Update available');
+				var message = String.format(L('app_new_version_message', 'A new version of %s is available: %s'), Ti.App.name, new_version);
+
+				Dialog.confirm(title, message, [
+				{
+					title: L('app_new_version_button_later', 'Later'),
+					callback: function() {
+						GA.trackEvent('updatedialog', 'later');
+					}
+				},
+				{
+					title: L('app_new_version_button_update', 'Update'),
+					preferred: true,
+					callback: function() {
+						GA.trackEvent('updatedialog', 'doit');
+						success_cb(response);
+					}
+				}
+				]);
+			}
+		}
+	});
+};
+
+
+//////////
+// Init //
+//////////
+
+if (OS_IOS) {
+
+	if (exports.config.enqueueRouteWithDeepLink) {
+		// The "resume" event is to handle all incoming deep links
+		Ti.App.addEventListener('resumed', function() {
+			var url = Util.parseSchema();
+			Ti.API.info('App: Resumed with schema &lt;' + url + '>');
+			
+			if (url != null) {
+				Router.enqueue( exports.deepLinkToRoute(url) );
+			}
+		});
+	}
+
+	if (exports.config.enqueueRouteWithUniversalLink) {
+		// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
+		Ti.App.iOS.addEventListener('continueactivity', function(e) {
+			if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
+			
+			if (e.webpageURL != null) {
+				Router.enqueue( exports.universalLinkToRoute(e.webpageURL) );
+			}
+		});
+	}
+
+}
+
+var url = Util.parseSchema();
+
+if (url != null) {
+	Ti.API.info('App: Started with schema &lt;' + url + '>');
+
+	if (exports.config.enqueueRouteWithDeepLink) {
+		Router.enqueue( exports.deepLinkToRoute(url) );
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

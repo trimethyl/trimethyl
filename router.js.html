@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: router.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: router.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  router
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+/**
+ * @property config
+ * @property {String} config.protocol  			Force all protocol different from this to be discarded
+ */
+exports.config = _.extend({
+	protocol: null,
+}, Alloy.CFG.T ? Alloy.CFG.T.router : {});
+
+var Util = require('T/util');
+var Flow = require('T/flow');
+var Q = require('T/ext/q');
+
+var routeRegistry = [];
+
+/**
+ * @property queue
+ * The route queue
+ * @type {Array}
+ */
+exports.queue = [];
+
+/**
+ * @property bypassQueue
+ * Set this property to `true` to dispatch the enqueued url instantly.
+ * @type {Boolean}
+ */
+exports.bypassQueue = false;
+
+/**
+ * @property currentUrl
+ * Latest URL dispatched
+ * @type {String}
+ */
+exports.currentUrl = null;
+
+/**
+ * @property currentRoute
+ * Latest Route (not URL) dispatched
+ * @type {Object}
+ */
+exports.currentRoute = null;
+
+/**
+ * @property stack
+ * All routes in a stack
+ * @type {Array}
+ */
+exports.stack = [];
+
+/**
+ * Register a route with defined callbacks
+ *
+ * @param {Object} key The route name.
+ * It can be:
+ *
+ * * `String`: (exact route match)
+ * * `RegExp`: is evaluated with the argument and the matches are passed to the callback
+ * * `Function`: must return a `non-undefined` value to be executed. That value is passed to the callback
+ *
+ * @param  {Function}	callback  		The callback
+ */
+exports.on = function() {
+	var middlewares = _.toArray(arguments);
+	var key = middlewares.shift();
+	var callback = middlewares.pop();
+
+	routeRegistry.push({
+		key: key,
+		callback: callback,
+		middlewares: middlewares
+	});
+};
+
+/**
+ * Dispatch the router
+ *
+ * This function call the defined function with `Router.on`
+ *
+ * The param `this` represents an XCallback-URL Object for selected route.
+ *
+ * See https://github.com/FokkeZB/UTiL/blob/master/XCallbackURL/XCallbackURL.js for more details.
+ *
+ * The arguments passed are the matches for your regex definition (if present)
+ *
+ * @param  {String} url 		The route
+ */
+exports.dispatch = function(url, data) {
+	Ti.API.debug('Router: dispatching &lt;' + url + '>');
+
+	var callbackURL = Util.parseAsXCallbackURL(url);
+	callbackURL.path = callbackURL.path.replace(/\/$/g, '');
+
+	if (callbackURL.protocol &amp;&amp; exports.config.protocol) {
+		if (exports.config.protocol !== callbackURL.protocol) {
+			Ti.API.warn('Router: protocol mismatch');
+			return false;
+		}
+	}
+
+	callbackURL.data = data;
+
+	var run = false;
+	var matches = null;
+	var routeDefinition = null;
+
+	// Check the route to dispatch
+	for (var i in routeRegistry) {
+		routeDefinition = routeRegistry[i];
+
+		if (_.isString(routeDefinition.key)) {
+			// Regular string equals
+			run = (routeDefinition.key === callbackURL.path);
+		} else if (_.isRegExp(routeDefinition.key)) {
+			// Regular expression complex match
+			matches = callbackURL.path.match(routeDefinition.key);
+			run = !!(matches);
+			if (matches) matches.shift();
+		} else if (_.isFunction(routeDefinition.key)) {
+			// Function match
+			matches = routeDefinition.key(callbackURL.path);
+			run = (matches !== undefined);
+		}
+
+		if (run === true) break;
+	}
+
+	if (run === true) {
+		Ti.API.debug('Router: matched on &lt;' + routeDefinition.key + ', ' + JSON.stringify(matches) + '>');
+
+		if (_.isFunction(routeDefinition.callback)) {
+
+			exports.stack.push(url);
+			exports.currentUrl = url;
+			exports.currentRoute = routeDefinition;
+
+			if (routeDefinition.middlewares.length > 0) {
+
+				routeDefinition.middlewares.reduce(function(soFar, f) {
+					return soFar.then( f.bind(callbackURL) );
+				}, Q(matches))
+				.then(function() {
+					routeDefinition.callback.apply(callbackURL, matches);
+				})
+				.catch(function(err) {
+					Ti.API.error('Router: error during route dispatcher', err);
+				});
+
+			} else {
+				routeDefinition.callback.apply(callbackURL, matches);
+			}
+
+		} else if (_.isObject(routeDefinition.callback)) {
+
+			if (routeDefinition.callback.alias != null) {
+				exports.dispatch(routeDefinition.callback.alias);
+			}
+
+		}
+	} else {
+		Ti.API.warn('Router: no match for &lt;' + url + '>');
+	}
+
+	return run;
+};
+
+/**
+ * @link #dispatch
+ */
+exports.go = exports.dispatch;
+
+/**
+ * @param  {String} url The route
+ */
+exports.enqueue = function(url) {
+	Ti.API.debug('Router: enqueuing &lt;' + url + '>');
+
+	if (exports.bypassQueue) {
+		exports.dispatch(url);
+	} else {
+		exports.queue.push(url);
+	}
+};
+
+/**
+ * @param  {Array} array
+ */
+exports.appendToQueue = function(array) {
+	exports.queue = exports.queue.concat(array);
+};
+
+/**
+ * Dispatch the queue
+ * @param  {Boolean} bypassFromNow Indicate if (from now) should not enqueue routes but dispatch directly
+ */
+exports.dispatchQueue = function(bypassFromNow) {
+	var e = null;
+	while ((e = exports.queue.shift()) != null) {
+		Ti.API.debug('Router: dequeuing &lt;' + e + '>');
+		exports.dispatch(e);
+	}
+	exports.bypassQueue = !!bypassFromNow;
+};
+
+/**
+ * Make an alias route
+ * @param  {String} url
+ * @param  {String} newUrl
+ */
+exports.alias = function(url, newUrl) {
+	exports.on(url, {
+		alias: newUrl
+	});
+};
+
+/**
+ * Create the routes for a model
+ * @param  {String} single The name for the model
+ * @param  {String} [plural] The name for the model, plural.
+ */
+exports.autoMapModel = function(single, plural) {
+	plural = plural || single+'s';
+
+	exports.on('/' + plural, function() {
+		Flow.open(plural, {}, {}, this.source);
+	});
+
+	exports.on(new RegExp('/' + plural + '/([0-9]+)'), function(id) {
+		Flow.open(single, {
+			id: id
+		}, {}, this.source);
+	});
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

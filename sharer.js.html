@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: sharer.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: sharer.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  sharer
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+/**
+ * @property config
+ */
+exports.config = _.extend({
+}, Alloy.CFG.T ? Alloy.CFG.T.sharer : {});
+
+
+var Util = require('T/util');
+var GA = require('T/ga');
+var Dialog = require('T/dialog');
+
+var globalCallback = null; // Handle all callbacks
+
+function onSocialComplete(e) {
+	if (!_.isFunction(globalCallback)) return;
+
+	e.type = 'complete';
+	if (e.activityName) e.platform = e.activityName;
+	globalCallback(e);
+}
+
+function onSocialCancel(e) {
+	if (!_.isFunction(globalCallback)) return;
+
+	e.type = 'cancelled';
+	if (e.activityName) e.platform = e.activityName;
+	globalCallback(e);
+}
+
+function parseArgs(args) {
+	if (!_.isObject(args)) return {};
+	args = _.clone(args);
+
+	if (args.image != null) {
+		if (_.isObject(args.image)) {
+			if (args.image.resolve) {
+				args.imageBlob = args.image;
+				args.image = args.imageBlob.resolve();
+			} else if (args.image.nativePath) {
+				args.imageBlob = args.image;
+				args.image = args.imageBlob.nativePath;
+			} else {
+				delete args.image;
+			}
+		} else if (_.isString(args.image) &amp;&amp; args.image.indexOf('://') !== -1) {
+			args.imageUrl = args.image;
+		}
+	}
+
+	if (args.link != null) {
+		args.url = args.link;
+		delete args.link;
+	}
+
+	if (args.removeIcons === 'ALL') args.removeIcons = 'print,sms,copy,contact,camera,readinglist';
+
+	if (args.text != null &amp;&amp; args.url != null) {
+		args.fullText = args.text + ' ' + args.url;
+	} else if (args.text != null) {
+		args.fullText = args.text;
+	} else if (args.url != null) {
+		args.fullText = args.url;
+	}
+
+	if (_.isFunction(args.callback)) {
+		globalCallback = args.callback;
+		delete args.callback;
+	}
+
+	return args;
+}
+
+
+/**
+ * Share on Facebook
+ * @param {Object} args
+ */
+exports.facebook = function(args) {
+	args = parseArgs(args);
+	GA.social('facebook', 'share', args.url);
+
+	// Native iOS dialog
+	if (OS_IOS &amp;&amp; (dkNappSocial != null &amp;&amp; dkNappSocial.isFacebookSupported()) &amp;&amp;
+		false === /https?\:\/\/(www\.)?facebook\.com/.test(args.url) // BUG: iOS share dialog doesn't share Facebook links
+	) {
+		dkNappSocial.facebook({
+			text: args.text,
+			image: args.image,
+			url: args.url
+		});
+		return true;
+	}
+
+	// SDK
+	if (FB != null) {
+		FB.presentShareDialog({
+			link: args.url,
+			title: args.title,
+			description: args.description || args.text
+		});
+		return true;
+	}
+
+	// Android Native intent
+	if (OS_ANDROID) {
+		try {
+			var intent = Ti.Android.createIntent({
+				action: Ti.Android.ACTION_SEND,
+				packageName: 'com.facebook.katana',
+				type: 'text/plain'
+			});
+			intent.putExtra(Ti.Android.EXTRA_TEXT, args.url);
+			Ti.Android.currentActivity.startActivity(intent);
+
+			return true;
+		} catch (err) {}
+	}
+
+	// Fallback
+	Ti.Platform.openURL('http://www.facebook.com/dialog/share' + Util.buildQuery({
+		app_id: (Alloy.CFG.T.fb || Alloy.CFG.T.facebook || {}).appID,
+		display: 'touch',
+		redirect_uri: args.redirect_uri || Ti.App.url,
+		href: args.url
+	}));
+};
+
+
+/**
+ * Share on Twitter
+ * @param {Object} args
+ */
+exports.twitter = function(args) {
+	args = parseArgs(args);
+	GA.social('twitter', 'share', args.url);
+
+	var text = (args.tweetText || args.text);
+	var textWithUrl = text;
+	if (args.url != null) {
+		textWithUrl = text ? (text + ' (' + args.url + ')') : args.url;
+	}
+
+	// Native iOS Dialog
+	if (OS_IOS &amp;&amp; (dkNappSocial != null &amp;&amp; dkNappSocial.isTwitterSupported())) {
+		dkNappSocial.twitter({
+			text: text,
+			image: args.image,
+			url: args.url
+		});
+		return true;
+	}
+
+	// iOS Tweetbot App
+	if (OS_IOS) {
+		var tweetbotNativeURL = 'tweetbot:///post' + Util.buildQuery({
+			text: textWithUrl
+		});
+		if (Ti.Platform.canOpenURL(tweetbotNativeURL)) {
+			Ti.Platform.openURL(tweetbotNativeURL);
+			return true;
+		}
+	}
+
+	// iOS Twitter App
+	if (OS_IOS) {
+		var twitterNativeURL = 'twitter://post' + Util.buildQuery({
+			message: textWithUrl
+		});
+		if (Ti.Platform.canOpenURL(twitterNativeURL)) {
+			Ti.Platform.openURL(twitterNativeURL);
+			return true;
+		}
+	}
+
+	// Fallback
+	Ti.Platform.openURL('http://www.twitter.com/intent/tweet' + Util.buildQuery({
+		 text: text,
+		 url: args.url
+	}));
+};
+
+
+/**
+ * Share via Mail
+ * @param {Object} args
+ */
+exports.email = exports.mail = function(args) {
+	args = parseArgs(args);
+	GA.social('email', 'sent', args.url);
+
+	var $dialog = Ti.UI.createEmailDialog({
+		subject: args.subject || args.title,
+		messageBody: args.fullText,
+		toRecipients: args.mailTo || []
+	});
+
+	if (args.imageBlob != null) {
+		$dialog.addAttachment(args.imageBlob);
+	}
+
+	$dialog.addEventListener('complete', function(e) {
+		if (e.result !== this.CANCELLED) {
+			onSocialComplete({
+				success: (e.result === this.SENT),
+				platform: 'email'
+			});
+		} else {
+			onSocialCancel({
+				success: false,
+				platform: 'email'
+			});
+		}
+	});
+
+	$dialog.open();
+};
+
+
+/**
+ * Share on Google Plus
+ * @param {Object} args
+ */
+exports.googleplus = function(args) {
+	args = parseArgs(args);
+	GA.social('googleplus', 'share', args.url);
+
+	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
+		url: args.url
+	}));
+
+	return true;
+};
+
+
+/**
+ * Share via Whatsapp
+ * @param {Object} args
+ */
+exports.whatsapp = function(args) {
+	args = parseArgs(args);
+	GA.social('whatsapp', 'share', args.url);
+
+	// Native protocol binding
+	if (OS_IOS) {
+		Util.openURL('whatsapp://send?text=' + args.fullText, function() {
+			Dialog.confirmYes(
+				L('app_not_installed', 'App not installed'),
+				String.format(L('app_install_question', 'You must install %s to proceed.'), 'Whatsapp'),
+			function() {
+				Util.openInStore('310633997');
+			}, L('install_app', 'Install app'));
+		});
+
+		return true;
+	}
+
+	// Android Intent using package
+	if (OS_ANDROID) {
+		try {
+			var intent = Ti.Android.createIntent({
+				action: Ti.Android.ACTION_SEND,
+				type: 'text/plain',
+				packageName: 'com.whatsapp'
+			});
+			intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
+			Ti.Android.currentActivity.startActivity(intent, L('share', 'Share'));
+
+			return true;
+		} catch (err) {
+			Dialog.confirmYes(L('app_not_installed', 'App not installed'), String.format(L('app_install_question', 'Do you want to install %s?'), 'Whatsapp'), function() {
+				Util.openInStore('com.whatsapp');
+			}, L('install_app', 'Install app'));
+		}
+	}
+};
+
+/**
+ * Share via Telegram
+ * @param {Object} args
+ */
+exports.telegram = function(args) {
+	args = parseArgs(args);
+	GA.social('telegram', 'share', args.url);
+
+	Ti.Platform.openURL('https://telegram.me/share/url' + Util.buildQuery({
+		url: args.url,
+		text: args.text
+	}));
+
+	return true;
+};
+
+
+/**
+ * Share via Messages
+ * @param {Object} args
+ */
+exports.message = exports.sms = function(args) {
+	args = parseArgs(args);
+	GA.social('message', 'sent', args.url);
+
+	// iOS Native modal
+	if (OS_IOS &amp;&amp; benCodingSMS !== null) {
+		var recipients = null;
+		if (args.recipients != null) recipients = _.isArray(args.recipients) ? args.recipients : [ args.recipients ];
+
+		var $dialog = benCodingSMS.createSMSDialog({
+			toRecipients: recipients,
+			messageBody: args.fullText
+		});
+
+		$dialog.addEventListener('completed', function(){
+			onSocialComplete({
+				success: true,
+				platform: 'messages'
+			});
+		});
+
+		$dialog.addEventListener('cancelled', function(){
+			onSocialCancel({
+				success: false,
+				platform: 'messages'
+			});
+		});
+
+		$dialog.addEventListener('error', function(){
+			onSocialComplete({
+				success: false,
+				platform: 'messages'
+			});
+		});
+
+		$dialog.open({
+			animated: true
+		});
+
+		return true;
+	}
+
+	// Android Native
+	if (OS_ANDROID) {
+		var url = 'sms:';
+		if (args.recipients != null) url += _.isArray(args.recipients) ? args.recipients[0] : args.recipients;
+
+		url += Util.buildQuery({
+			body: args.fullText
+		});
+
+		return Ti.Platform.openURL(url);
+	}
+};
+
+
+/**
+ * Share using iOS ActivityPopover or Android Intents
+ * @param {Object} args
+ */
+exports.activity = function(args) {
+	args = parseArgs(args);
+
+	// iOS Activity native
+	if (OS_IOS &amp;&amp; dkNappSocial != null) {
+		dkNappSocial[ Ti.Platform.osname === 'ipad' ? 'activityPopover' : 'activityView' ]({
+			text: args.text,
+			title: args.title,
+			image: args.image,
+			removeIcons: args.removeIcons,
+			view: args.view,
+			url: args.url
+		}, args.customIcons || []);
+
+		return true;
+	}
+
+	// Android intents
+	if (OS_ANDROID) {
+		var intent = Ti.Android.createIntent({ action: Ti.Android.ACTION_SEND });
+		if (args.fullText) intent.putExtra(Ti.Android.EXTRA_TEXT, args.fullText);
+		if (args.title) intent.putExtra(Ti.Android.EXTRA_TITLE, args.title);
+		if (args.image) intent.putExtraUri(Ti.Android.EXTRA_STREAM, args.image);
+
+		Ti.Android.currentActivity.startActivity(Ti.Android.createIntentChooser(intent, L('share', 'Share')));
+
+		return true;
+	}
+};
+
+
+/*
+Init
+*/
+
+var FB = Util.requireOrNull('T/fb');
+if (FB != null) {
+	FB.addEventListener('shareCompleted', onSocialComplete);
+}
+
+if (OS_IOS) {
+
+	var benCodingSMS = Util.requireOrNull('bencoding.sms');
+
+	var dkNappSocial = Util.requireOrNull('dk.napp.social');
+	if (dkNappSocial != null) {
+		dkNappSocial.addEventListener('complete', onSocialComplete);
+		dkNappSocial.addEventListener('cancelled', onSocialCancel);
+	}
+
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

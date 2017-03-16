@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: uifactory/label.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: uifactory/label.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module  uifactory/label
+ * @author  Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ *
+ * Add support for very basic HTML.
+ *
+ * For now, supports `&lt;b>&lt;i>&lt;u>&lt;br>&lt;p>` tags.
+ *
+ * If you specify `fontTransform` property in the arguments,
+ * the specified transformation is applied to current font.
+ * For example:
+ *
+ * ```
+ * italic: {
+ *		fontStyle: 'italic'
+ *	},
+ *	bold: {
+ *		fontFamily: 'Arial-Bold'
+ *	}
+ *	```
+ *
+ * It's useful if you haven't a regular font syntax.
+ *
+ */
+
+// Thanks to @lastguest: https://gist.github.com/lastguest/10277461
+function simpleHTMLParser(text) {
+	var tags_rx = /&lt;\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm, partial, tag, temp_style;
+	var last_idx = 0, last_text_idx = 0;
+	var style = [], style_stack = [], clean_text = [];
+
+	while ((tag=tags_rx.exec(text))!==null) {
+		partial = text.substr(last_idx, tag.index - last_idx);
+		clean_text.push(partial);
+		last_text_idx += partial.length;
+
+		if (tag[1][0] === '/'){
+			temp_style = style_stack.pop();
+			temp_style.length = last_text_idx - temp_style.start;
+			style.push(temp_style);
+		} else {
+			style_stack.push({
+				type: tag[1],
+				start: last_text_idx,
+			});
+		}
+		last_idx = tags_rx.lastIndex;
+	}
+
+	clean_text.push(text.substr(last_idx));
+
+	return {
+		text: clean_text.join(''),
+		style: style
+	};
+}
+
+module.exports = function(args) {
+	args = args || {};
+	var $this = Ti.UI.createLabel(args);
+
+	var fontTransform = _.extend({
+		italic: {
+			fontStyle: 'italic'
+		},
+		bold: {
+			fontWeight: 'bold'
+		}
+	}, args.fontTransform);
+
+	$this.addEventListener('link', function(e) {
+		Ti.Platform.openURL(e.url);
+	});
+
+	/**
+	 * Set the HTML
+	* @param {String} value
+	*/
+	$this.setHtml = function(value, parser) {
+		var htmlToAttrMap = {
+			'u': {
+				type: Ti.UI.ATTRIBUTE_UNDERLINES_STYLE,
+				value: Ti.UI.ATTRIBUTE_UNDERLINE_STYLE_SINGLE
+			},
+			'i': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.italic)
+			},
+			'em': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.italic)
+			},
+			'b': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.bold)
+			},
+			'strong': {
+				type: Ti.UI.ATTRIBUTE_FONT,
+				value: _.extend({}, args.font, fontTransform.bold)
+			},
+			'a': {
+				type: Ti.UI.ATTRIBUTE_LINK
+			}
+		};
+
+		value = value.replace(/&lt;br\/?>/g, '\n');
+		value = value.replace(/&lt;p>/g, '').replace(/&lt;\/p>/g, '\n\n');
+		var parseResult = simpleHTMLParser(value);
+
+		if (_.isFunction(parser)) {
+			parseResult.text = parser( parseResult.text );
+		}
+
+		var attributedString = {
+			text: parseResult.text,
+			attributes: []
+		};
+
+		_.each(parseResult.style, function(v){
+			// Replace href
+			var vh = /\s*href=\\?"([^\\"]+)\\?"/i.exec(v.type); // NOTE: this regexp doesn't allow backslashes (\) in the url
+			var href = null;
+			if (vh) {
+				v.type = v.type.replace(vh[0], '');
+				href = vh[1];
+			}
+
+			if (htmlToAttrMap[v.type] != null) {
+				attributedString.attributes.push(_.extend({}, htmlToAttrMap[v.type], {
+					range: [ v.start, v.length ]
+				}, href ? {
+					value: href
+				} : {}));
+			}
+		});
+
+		$this.setAttributedString(Ti.UI.createAttributedString(attributedString));
+	};
+
+	//////////////////////
+	// Parse arguments //
+	//////////////////////
+
+	if (args.html != null) $this.setHtml(args.html);
+
+	return $this;
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

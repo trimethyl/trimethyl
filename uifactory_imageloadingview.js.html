@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: uifactory/imageloadingview.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: uifactory/imageloadingview.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+* @module  	uifactory/imageloadingview
+* @author  	Andrea Jonus &lt;andrea.jonus@caffeina.it>
+*/
+
+module.exports = function(args) {
+	var hasWidth = args.width ? true : false;
+	var hasHeight = args.height ? true : false;
+
+	_.defaults(args, {
+		height: Ti.UI.SIZE,
+		width: Ti.UI.SIZE,
+
+		/**
+		* Sets the style of the activity indicator.
+		* @property {Number} [indicatorStyle=DARK]
+		*/
+		indicatorStyle: OS_ANDROID ? Ti.UI.ActivityIndicatorStyle.DARK : Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
+
+		/**
+		* Sets the message of the activity indicator.
+		* @property {Number} [indicatorMessage]
+		*/
+		indicatorMessage: null,
+
+		/**
+		* Sets the message's color of the activity indicator.
+		* @property {Number} [indicatorColor]
+		*/
+		indicatorColor: null
+
+	});
+
+	var img = args.image;
+	var viewArgs = _.pick(args, ['height', 'width', 'left', 'top', 'right', 'bottom']);
+	var imageArgs = _.omit(_.extend(args, {
+		opacity: 0,
+		image: null,
+	}), ['height', 'width', 'left', 'top', 'right', 'bottom']);
+	var indicatorArgs = {
+		style: args.indicatorStyle,
+		message: args.indicatorMessage,
+		color: args.indicatorColor
+	};
+
+	var $this = Ti.UI.createView(viewArgs);
+	$this.__indicator = Ti.UI.createActivityIndicator(indicatorArgs);
+	$this.__image = Ti.UI.createImageView(imageArgs);
+	$this.add($this.__image);
+
+	var indicatorVisible = false;
+
+	/**
+	* Show an activity indicator, hiding the displayed image
+	* @method  showIndicator
+	*/
+	$this.showIndicator = function() {
+		if (indicatorVisible === true) return;
+		indicatorVisible = true;
+
+		$this.add($this.__indicator);
+		$this.__indicator.applyProperties({
+			height: 50,
+			width: 50,
+			opacity: 0
+		});
+		$this.__indicator.show();
+	};
+
+	/**
+	* Hide this ImageView's activity indicator
+	* @method  hideIndicator
+	*/
+	$this.hideIndicator = function() {
+		if (indicatorVisible === false) return;
+		indicatorVisible = false;
+
+		$this.__indicator.hide();
+		$this.__image.opacity = 1;
+		$this.remove($this.__indicator);
+	};
+
+	/**
+	* Toggle the visibility of this ImageView's activity indicator
+	* @method  toggleIndicator
+	* @param {boolean} visible
+	*/
+	$this.toggleIndicator = function(visible) {
+		if (visible) $this.showIndicator();
+		else $this.hideIndicator();
+	};
+
+	/**
+	* Sets the image of this ImageView
+	* @method  setImage
+	* @param {String|Titanium.Blob|Titanium.Filesystem.File} image
+	*/
+	$this.setImage = function(image) {
+		$this.__image.image = image;
+	};
+
+	/**
+	* Returns the image of this ImageView
+	* @method getImage
+	* @returns {String|Titanium.Blob|Titanium.Filesystem.File}
+	*/
+	$this.getImage = function() {
+		return $this.__image.image;
+	};
+
+	///////////
+	// Init //
+	///////////
+
+	$this.__image.image = img;
+
+	$this.__image.addEventListener('load', function() {
+		if (hasHeight &amp;&amp; hasWidth) {
+			$this.__image.height = $this.rect.height;
+			$this.__image.width = $this.rect.width;
+		} else if (hasHeight) {
+			$this.__image.height = $this.rect.height;
+			$this.width = Ti.UI.SIZE;
+		} else if (hasWidth) {
+			$this.__image.width = $this.rect.width;
+			$this.height = Ti.UI.SIZE;
+		}
+
+		$this.hideIndicator();
+	});
+
+	$this.showIndicator();
+
+	return $this;
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

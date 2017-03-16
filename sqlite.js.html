@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: sqlite.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: sqlite.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module sqlite
+ * @author Flavio De Stefano &lt;flavio.destefano@caffeinalab.com>
+ */
+
+/**
+ * @property config
+ * @property {Boolean} [config.log=false]
+ */
+exports.config = _.extend({
+	log: false,
+}, Alloy.CFG.T ? Alloy.CFG.T.sqlite : {});
+
+var Util = require('T/util');
+
+var MODULE_NAME = 'sqlite';
+
+var DatabaseModule = require('T/db');
+
+function SQLite(name, file) {
+	this.query = null;
+	this.name = name;
+	this.db = null;
+
+	// Install the database from a file if needed, and close it immediately.
+	if (file != null) {
+		this.db = DatabaseModule.install(file, name);
+
+		this.close();
+	}
+}
+
+/**
+ * Returns a new instance of SQLite opened from a file identified by the path argument.
+ * @method fromFile
+ * @static
+ * @param  {String} path
+ * @return {SQLite}
+ */
+SQLite.fromFile = function(path) {
+	var file = Ti.Filesystem.getFile(path);
+	var name = file.name.replace(/\..+$/, '');
+
+	var destination_file = Ti.Filesystem.getFile(Util.getDatabaseDirectory() + '/' + name + '.sql');
+
+	if (destination_file.exists()) destination_file.deleteFile();
+	destination_file.write(file);
+
+	// I know, this functions seems a bit an hack, but the API is inconsistent:
+	// On iOS, open doesn't recognize a path, so we have to copy the SQL file in the exact location, then pass the name.
+	// On Android, it simply works with open + file, but we have to copy to external storage if present.
+
+	if (OS_IOS) {
+		return new SQLite(name);
+	} else if (OS_ANDROID) {
+		return new SQLite(destination_file);
+	}
+};
+
+/**
+ * Start a chain to query informations
+ * @method table
+ * @param  {String} name The table name
+ * @return {SQLite}
+ */
+SQLite.prototype.table = function(name) {
+	this.query = {
+		method: 'select',
+		table: name,
+		where: [],
+		whereData: [],
+		select: null,
+		update: null,
+		updateData: [],
+		order: null,
+		insert: null,
+		insertData: []
+	};
+	return this;
+};
+
+/**
+ * Select attributes
+ * @method select
+ * @return {SQLite}
+ */
+SQLite.prototype.select = function() {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	this.query.method = 'select';
+
+	var args = _.toArray(arguments);
+	if (args.length === 0) {
+
+		/*
+		.select()
+		*/
+		this.query.select = null;
+
+	} else if (args.length > 1) {
+
+		/*
+		.select('id', 'title', 'order')
+		*/
+		this.query.select = _.object(args, args);
+
+	} else {
+
+		if (_.isArray(args[0])) {
+
+			/*
+			.select(['id', 'title', 'order'])
+			*/
+			this.query.select = _.object(args[0], args[0]);
+
+		} else if (_.isObject(args[0])) {
+
+			/*
+			.select({
+				"_alias": "alias",
+				"_id": "id"
+			})
+			*/
+			this.query.select = args[0];
+
+		} else {
+
+			/*
+			.select('id')
+			*/
+			this.query.select = _.object([args[0]], [args[0]]);
+
+		}
+
+	}
+
+	return this;
+};
+
+/**
+ * Update attributes.
+ * @method update
+ * @param  {Object} obj
+ * @return {SQLite}
+ */
+SQLite.prototype.update = function(obj) {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	/*
+	.update({
+		value: 2,
+		other_value: 3
+	})
+	*/
+	this.query.method = 'update';
+	this.query.update = _.keys(obj);
+	this.query.updateData = _.values(obj);
+
+	return this;
+};
+
+/**
+ * Perform a delete table.
+ * @method delete
+ * @return {SQLite}
+ */
+SQLite.prototype.delete = function() {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	this.query.method = 'delete';
+
+	return this;
+};
+
+
+/**
+ * Order the results in the select.
+ * @method order
+ * @alias orderBy
+ * @return {SQLite}
+ */
+SQLite.prototype.order = SQLite.prototype.orderBy = function(key, direction) {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	this.query.order = {
+		key: key,
+		direction: direction || 'ASC'
+	};
+
+	return this;
+};
+
+/**
+ * Perform a truncate table.
+ * @method truncate
+ * @return {SQLite}
+ */
+SQLite.prototype.truncate = function() {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	this.query.method = 'truncate';
+
+	return this;
+};
+
+/**
+ * Add where clauses.
+ * @method where
+ * @alias andWhere
+ * @return {SQLite}
+ */
+SQLite.prototype.where = SQLite.prototype.andWhere = function() {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	var args = _.toArray(arguments);
+	if (args.length === 1) {
+
+		/*
+		.where({
+			id: 2,
+			id_sub: 3
+		})
+		*/
+		if (_.isObject(args[0])) {
+			this.query.where = _.map(_.keys(args[0]), function(k) { return k + ' = ?'; });
+			this.query.whereData = _.values(args[0]);
+		} else if (_.isString(args[0])) {
+			this.query.where.push(args[0]);
+		}
+
+	} else if (args.length === 2) {
+
+		/*
+		.where('id', 2)
+		*/
+		this.query.where.push(args[0] + ' = ?');
+		this.query.whereData.push(args[1]);
+
+	} else if (args.length === 3) {
+
+		/*
+		.where('string', 'LIKE', 'test')
+		*/
+		this.query.where.push(args[0] + ' ' + args[1] + ' ?');
+		this.query.whereData.push(args[2]);
+
+	}
+
+	return this;
+};
+
+/**
+ * Insert values
+ * @method insert
+ * @return {SQLite}
+ */
+SQLite.prototype.insert = function(obj) {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	/*
+	.insert({
+		value: 2,
+		other_value: 3
+	})
+	*/
+	this.query.method = 'insert';
+	this.query.insert = _.keys(obj);
+	this.query.insertData = _.values(obj);
+
+	return this;
+};
+
+/**
+ * Returns the query to pass to native module
+ * @method getExequery
+ * @return {Array}
+ */
+SQLite.prototype.getExequery = function() {
+	if (this.query === null) throw new Error('Start a query chain with .table() method');
+
+	var whereClause = (this.query.where.length > 0 ? (' WHERE ' + this.query.where.join(' AND ')) : '');
+	switch (this.query.method) {
+
+		case 'select':
+		return [
+			'SELECT ' + (this.query.select === null ? '*' : _.map(this.query.select, function(v, k){ return k + ' AS ' + v; }).join(',')) +
+			' FROM [' + this.query.table + ']' +
+			whereClause +
+			(this.query.order === null ? '' : (' ORDER BY ' + this.query.order.key + ' ' + this.query.order.direction))
+		]
+		.concat(this.query.whereData);
+
+		case 'update':
+		return [
+			'UPDATE [' + this.query.table + ']' +
+			' SET ' + (this.query.update.join(' = ?, ') + ' = ?') +
+			whereClause
+		]
+		.concat(this.query.updateData)
+		.concat(this.query.whereData);
+
+		case 'delete':
+		return [
+			'DELETE FROM [' + this.query.table + ']' +
+			whereClause
+		]
+		.concat(this.query.whereData);
+
+		case 'truncate':
+		return [
+			'TRUNCATE TABLE [' + this.query.table + ']'
+		];
+
+		case 'insert':
+		return [
+			'INSERT INTO [' + this.query.table + ']' +
+			'(' + this.query.insert.join(',') + ') ' +
+			'VALUES (' + this.query.insert.map(function(){ return '?'; }) + ')'
+		]
+		.concat(this.query.insertData);
+
+	}
+};
+
+/**
+ * Open the database.
+ * Important: ALWAYS close the database after you are done with it.
+ * @method open
+ */
+SQLite.prototype.open = function() {
+	try {
+		this.db = DatabaseModule.open(this.name);
+	} catch (ex) {
+		Ti.API.error(MODULE_NAME + ': Error while opening the database: ' + ex);
+	}
+};
+
+/**
+ * Close the database
+ * @method close
+ */
+SQLite.prototype.close = function() {
+	try {
+		this.db.close();
+	} catch (ex) {
+		Ti.API.error(MODULE_NAME + ': Error while closing the database: ' + ex);
+	}
+};
+
+/**
+ * Executes a query.
+ * Important: this method differs from SQLite.run() for the fact that it leaves the database open, and returns the result of the call to DatabaseModule.DB.execute().
+ * @method execute
+ * @alias exec
+ * @param {String} query
+ * @param {Vararg} values
+ * @return {DatabaseModule.ResultSet}
+ */
+SQLite.prototype.execute = SQLite.prototype.exec = function() {
+	Ti.API.warn(MODULE_NAME + ': WARNING: if you use .execute(), you will have to close the result set and the database manually!');
+
+	var q = null;
+
+	if (this.query === null) {
+		q = arguments;
+	} else {
+		q = this.getExequery();
+		this.query = null; // Reset query
+	}
+
+	if (exports.config.log) Ti.API.debug(MODULE_NAME + ':', q);
+
+	this.open();
+	return Function.prototype.apply.call(this.db.execute, this.db, q);
+};
+
+/**
+ * Execute a query and apply a transformation function to the result set, then close the set and the database.
+ * @param {String} [query]
+ * @param {Vararg} [values]
+ * @param {Function} fn The transformation function to apply to the dataset. It will be passed a `dataset` argument, which is an instance of DatabaseModule.ResultSet, and it should return the transformed result.
+ * @return The result of fn
+ */
+SQLite.prototype.transform = function() {
+	var _arguments = _.toArray(arguments);
+	var transform = _arguments.pop();
+	if (!_.isFunction(transform)) {
+		throw new Error('SQLite: last argument of SQLite.transform must be a Function');
+	}
+
+	var q = null;
+
+	if (this.query === null) {
+		q = _arguments;
+	} else {
+		q = this.getExequery();
+		this.query = null; // Reset query
+	}
+
+	if (exports.config.log) Ti.API.debug(MODULE_NAME + ':', q);
+
+	this.open();
+	var dataset = Function.prototype.apply.call(this.db.execute, this.db, q);
+
+	var res = transform(dataset);
+
+	dataset.close();
+	this.close();
+
+	return res;
+};
+
+/**
+ * Run a query chain. Also accepts a query string.
+ * @method run
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.run = function() {
+	this.open();
+
+	var q = null;
+
+	if (this.query === null) {
+		q = arguments;
+	} else {
+		q = this.getExequery();
+		this.query = null; // Reset query
+	}
+
+	if (exports.config.log) Ti.API.debug(MODULE_NAME + ':', arguments);
+
+	var row = Function.prototype.apply.call(this.db.execute, this.db, q);
+
+	if (row != null) {
+		row.close();
+	}
+
+	this.close();
+};
+
+/**
+ * Returns a single value
+ * @method value
+ * @alias val
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.value = SQLite.prototype.val = function() {
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		if (row.validRow === false) return null;
+
+		return row.field(0);
+	});
+
+	return this.transform.apply(this, _args);
+};
+
+/**
+ * Returns a single object (row)
+ * @method single
+ * @alias row
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.single = SQLite.prototype.row = function() {
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		if (row.validRow === false) return null;
+
+		var obj = {};
+		for (var i = 0; i &lt; row.fieldCount; i++) {
+			obj[row.fieldName(i)] = row.field(i);
+		}
+
+		return obj;
+	});
+
+	return this.transform.apply(this, _args);
+};
+
+/**
+ * Returns a list of single values
+ * @method list
+ * @alias array
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.list = SQLite.prototype.array = function() {
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		var list = [];
+		while (row.validRow === true) {
+			list.push(row.field(0));
+			row.next();
+		}
+		return list;
+	});
+
+	return this.transform.apply(this, _args);
+};
+
+/**
+ * Returns a list of objects (row)
+ * @method all
+ * @alias rows
+ * @param {String} query
+ * @param {Vararg} values
+ */
+SQLite.prototype.all = SQLite.prototype.rows = function() {
+	var _args = _.toArray(arguments);
+	_args.push(function(row) {
+		var list = [];
+		var fieldNames = [];
+		while (row.validRow === true) {
+			var obj = {};
+			for (var i = 0; i &lt; row.fieldCount; i++) {
+				fieldNames[i] = fieldNames[i] || row.fieldName(i);
+				obj[fieldNames[i]] = row.field(i);
+			}
+			list.push(obj);
+			row.next();
+		}
+		return list;
+	});
+
+	return this.transform.apply(this, _args);
+};
+
+/**
+ * Loop over query
+ * @method loop
+ * @param {String} [query]
+ * @param {Vararg} [values]
+ * @param {Function} fn The function to loop over the query result
+ */
+SQLite.prototype.loop = function() {
+	var _args = _.toArray(arguments);
+	var loopFn = _args.pop();
+	if (!_.isFunction(loopFn)) {
+		throw new Error('SQLite: last argument of SQLite.loop must be a Function');
+	}
+
+	this.transform.apply(this, _args.concat(function(row) {
+		var fieldNames = [];
+		while (row.validRow === true) {
+			var obj = {};
+			for (var i = 0; i &lt; row.fieldCount; i++) {
+				fieldNames[i] = fieldNames[i] || row.fieldName(i);
+				obj[fieldNames[i]] = row.field(i);
+			}
+			loopFn(obj);
+			row.next();
+		}
+	}));
+};
+
+module.exports = SQLite;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-animator.html">animator</a></li><li><a href="module-app.html">app</a></li><li><a href="module-auth.html">auth</a></li><li><a href="module-auth_bypass.html">auth/bypass</a></li><li><a href="module-auth_facebook.html">auth/facebook</a></li><li><a href="module-auth_std.html">auth/std</a></li><li><a href="module-cache.html">cache</a></li><li><a href="module-cache_database.html">cache/database</a></li><li><a href="module-calendar.html">calendar</a></li><li><a href="module-camera.html">camera</a></li><li><a href="module-db.html">db</a></li><li><a href="module-device.html">device</a></li><li><a href="module-dialog.html">dialog</a></li><li><a href="module-event.html">event</a></li><li><a href="module-fb.html">fb</a></li><li><a href="module-filesystem.html">filesystem</a></li><li><a href="module-flow.html">flow</a></li><li><a href="module-forcetouchmenu.html">forcetouchmenu</a></li><li><a href="module-ga.html">ga</a></li><li><a href="module-geo.html">geo</a></li><li><a href="module-http.html">http</a></li><li><a href="module-image.html">image</a></li><li><a href="module-logger.html">logger</a></li><li><a href="module-logger_api.html">logger/api</a></li><li><a href="module-logger_telegram.html">logger/telegram</a></li><li><a href="module-matrix.html">matrix</a></li><li><a href="module-notifications.html">notifications</a></li><li><a href="module-notifications_cloud.html">notifications/cloud</a></li><li><a href="module-notifications_http.html">notifications/http</a></li><li><a href="module-prop.html">prop</a></li><li><a href="module-router.html">router</a></li><li><a href="module-sharer.html">sharer</a></li><li><a href="module-sounds.html">sounds</a></li><li><a href="module-spotlight.html">spotlight</a></li><li><a href="module-sqlite.html">sqlite</a></li><li><a href="module-support_oauth.html">support/oauth</a></li><li><a href="module-support_xmlparser_extract.html">support/xmlparser/extract</a></li><li><a href="module-support_xmlparser_proxies.html">support/xmlparser/proxies</a></li><li><a href="module-trimethyl.html">trimethyl</a></li><li><a href="module-uifactory.html">uifactory</a></li><li><a href="module-uifactory_backgroundview.html">uifactory/backgroundview</a></li><li><a href="module-uifactory_button.html">uifactory/button</a></li><li><a href="module-uifactory_dateselect.html">uifactory/dateselect</a></li><li><a href="module-uifactory_iframe.html">uifactory/iframe</a></li><li><a href="module-uifactory_imageloadingview.html">uifactory/imageloadingview</a></li><li><a href="module-uifactory_imageview.html">uifactory/imageview</a></li><li><a href="module-uifactory_label.html">uifactory/label</a></li><li><a href="module-uifactory_listview.html">uifactory/listview</a></li><li><a href="module-uifactory_navigationwindow.html">uifactory/navigationwindow</a></li><li><a href="module-uifactory_select.html">uifactory/select</a></li><li><a href="module-uifactory_soundcloudclassicwebview.html">uifactory/soundcloudclassicwebview</a></li><li><a href="module-uifactory_tabbedbar.html">uifactory/tabbedbar</a></li><li><a href="module-uifactory_textarea.html">uifactory/textarea</a></li><li><a href="module-uifactory_textfield.html">uifactory/textfield</a></li><li><a href="module-uifactory_timeselect.html">uifactory/timeselect</a></li><li><a href="module-uifactory_view.html">uifactory/view</a></li><li><a href="module-uifactory_window.html">uifactory/window</a></li><li><a href="module-uifactory_youtubevideowebview.html">uifactory/youtubevideowebview</a></li><li><a href="module-uifactory_zoomimageview.html">uifactory/zoomimageview</a></li><li><a href="module-uiutil.html">uiutil</a></li><li><a href="module-util.html">util</a></li><li><a href="module-validator.html">validator</a></li><li><a href="module-weballoy.html">weballoy</a></li><li><a href="module-xmlparser.html">xmlparser</a></li><li><a href="permissions.module_calendar.html">calendar</a></li><li><a href="permissions.module_contacts.html">contacts</a></li><li><a href="permissions.module_storage.html">storage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addSyncForModel">addSyncForModel</a></li><li><a href="global.html#getInfoForModel">getInfoForModel</a></li><li><a href="global.html#getSyncs">getSyncs</a></li><li><a href="global.html#postponedSync">postponedSync</a></li><li><a href="global.html#removeModelInfo">removeModelInfo</a></li><li><a href="global.html#removeSyncRow">removeSyncRow</a></li><li><a href="global.html#saveModelInfo">saveModelInfo</a></li><li><a href="global.html#SQLREST">SQLREST</a></li><li><a href="global.html#updateLocal">updateLocal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 16:29:13 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
