@@ -146,6 +146,11 @@
 		"description": "Driver based on CloudPush of Appcelerator.",
 		"modules": ["ti.cloud:commonjs"]
 	},
+	"offline/sqlrest":{
+		"name": "Offline.SQLRest",
+		"description": "Support for offline adapter",
+		"dependencies": ["sqlite","util","ext/q"]
+	},
 	"permissions/camera":{
 		"name": "Permissions.Camera",
 		"description": "Handle permissions requests for different modules with all platforms."
@@ -216,6 +221,10 @@
 		"name": "UIFactory.DateSelect",
 		"description": "Date select façade",
 		"dependencies": ["dialog","util"]
+	},
+	"uifactory/iframe":{
+		"name": "UIFactory.Iframe",
+		"description": "Iframe façade"
 	},
 	"uifactory/imageview":{
 		"name": "UIFactory.ImageView",
@@ -335,6 +344,13 @@
 		"description": "A sync for Backbone to work with RESTful APIs.",
 		"dependencies": ["http","util"],
 		"destination": "/app/lib/alloy/sync/rest.js"
+	},
+
+	"alloy/sync/offline":{
+		"name": "Offline Alloy Adapter",
+		"description": "A sync for Offline adapter.",
+		"dependencies": ["offline/sqlrest"],
+		"destination": "/app/lib/alloy/sync/offline.js"
 	},
 
 	"ext/async":{
