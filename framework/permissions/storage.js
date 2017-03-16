@@ -26,7 +26,7 @@ exports.request = function(success, error) {
 		return;
 	}
 
-	if (hasFn !== true) {
+	if (hasFn() !== true) {
 		requestFn(requestHandler);
 	} else {
 		success();
