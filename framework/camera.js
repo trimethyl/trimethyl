@@ -13,7 +13,7 @@ Titanium.Media.openPhotoGallery;
 
 var Dialog = require('T/dialog');
 var Util = require('T/util');
-var Permissions = require('T/permissions');
+var Permissions = require('T/permissions/camera');
 
 /**
  * Call showCamera or openPhotoGallery using same options
@@ -23,7 +23,7 @@ var Permissions = require('T/permissions');
  * @param  {Function} callback  Success callback
  */
 function getPhoto(method, opt, callback) {
-	Permissions.requestCameraPermissions(function() {
+	Permissions.request(function() {
 		opt = _.extend({}, opt, {
 			mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
 			saveToPhotoGallery: (method === 'showCamera'),
