@@ -7,5 +7,3 @@ var $page = T('weballoy').createView({
 });
 
 $.win.add($page);
-
-$.args.nav.openWindow( $.win );

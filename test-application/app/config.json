@@ -7,7 +7,16 @@
 				"sslPinning": ["google.com","facebook.com"]
 			}
 		},
-		"ui-tests": [ "select", "calendar", "weballoy", "camera", "animator", "notifications", "geo" ]
+		"ui-tests": [ 
+			"select", 
+			"calendar", 
+			"weballoy", 
+			"camera", 
+			"animator", 
+			"notifications", 
+			"geo",
+			"permissions"
+		]
 	},
 	"env:development": {},
 	"env:test": {},

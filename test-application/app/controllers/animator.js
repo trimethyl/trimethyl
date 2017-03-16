@@ -29,5 +29,3 @@ var block = Ti.UI.createView({
 	backgroundColor: 'red'
 });
 $.win.add(block);
-
-$.args.nav.openWindow( $.win );

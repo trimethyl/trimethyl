@@ -1,0 +1,5 @@
+<Alloy>
+	<Window id="win" backgroundColor="#000" title="Permissions">
+		<ScrollView id="sview" layout="vertical" />
+	</Window>
+</Alloy>

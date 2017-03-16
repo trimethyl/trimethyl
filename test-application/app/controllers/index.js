@@ -7,7 +7,6 @@ function log(text, color, top) {
 	Ti.API.log(text);
 	$.sview.add($.UI.create('Label', {
 		text: text,
-		top: top || 0,
 		color: color
 	}));
 }
@@ -16,7 +15,7 @@ function doNextTest() {
 	var key = UTMethodsKeys.shift();
 	if (key == null) return;
 
-	log('Starting test ' + key.toUpperCase() + '...', '#fff', 5);
+	log(key + '...', 'white');
 
 	var fn = UT.methods[key];
 
@@ -48,18 +47,10 @@ $.uiTestsBtn.addEventListener('click', function(e) {
 		return {
 			title: name,
 			callback: function() {
-				Alloy.createController(name, {
-					nav: $.nav
-				});
+				$.nav.openWindow( Alloy.createController(name).getView() );
 			}
 		};
 	}).concat({ title: 'Cancel', cancel: true }));
 });
 
 $.nav.open();
-
-if (Alloy.CFG.initController) {
-	Alloy.createController(Alloy.CFG.initController, {
-		nav: $.nav
-	});
-}

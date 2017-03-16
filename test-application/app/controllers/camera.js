@@ -9,5 +9,3 @@ $.win.addEventListener('open', function showDialog() {
 		$.photoPreview.image = res.media;
 	});
 });
-
-$.args.nav.openWindow( $.win );

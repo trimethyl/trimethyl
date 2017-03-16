@@ -35,5 +35,3 @@ Notifications.addInteractiveNotificationCategory("test", [
 ]);
 
 Notifications.activate();
-
-$.args.nav.openWindow( $.win );
