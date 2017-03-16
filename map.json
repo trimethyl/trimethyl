@@ -163,10 +163,6 @@
 		"name": "Permissions.Storage",
 		"description": "Handle permissions requests for different modules with all platforms."
 	},
-	"permissions/location":{
-		"name": "Permissions.Location",
-		"description": "Handle permissions requests for different modules with all platforms."
-	},
 	"permissions/calendar":{
 		"name": "Permissions.Calendar",
 		"description": "Handle permissions requests for different modules with all platforms."
