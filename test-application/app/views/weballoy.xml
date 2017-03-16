@@ -1,4 +1,3 @@
 <Alloy>
-	<Window id="win" backgroundColor="#fff">
-	</Window>
+	<Window id="win" backgroundColor="#fff" title="Weballoy" />
 </Alloy>

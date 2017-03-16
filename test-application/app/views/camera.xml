@@ -1,5 +1,5 @@
 <Alloy>
-	<Window id="win" backgroundColor="#fff">
+	<Window id="win" backgroundColor="#fff" title="Camera">
 		<ImageView id="photoPreview" backgroundColor="#000" />
 	</Window>
 </Alloy>

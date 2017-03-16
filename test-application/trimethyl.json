@@ -11,6 +11,7 @@
     "cache/database",
     "calendar",
     "camera",
+    "db",
     "device",
     "dialog",
     "event",
@@ -28,7 +29,11 @@
     "notifications",
     "notifications/http",
     "notifications/cloud",
-    "permissions",
+    "offline/sqlrest",
+    "permissions/camera",
+    "permissions/contacts",
+    "permissions/storage",
+    "permissions/calendar",
     "prop",
     "router",
     "sharer",
@@ -40,6 +45,7 @@
     "uifactory/backgroundview",
     "uifactory/button",
     "uifactory/dateselect",
+    "uifactory/iframe",
     "uifactory/imageview",
     "uifactory/imageloadingview",
     "uifactory/label",
@@ -64,6 +70,7 @@
     "alloy/sync/api",
     "alloy/sync/hateoas",
     "alloy/sync/rest",
+    "alloy/sync/offline",
     "ext/async",
     "ext/q",
     "ext/underscore.string",
@@ -72,9 +79,8 @@
     "ext/nlp-i18n/it",
     "support/oauth",
     "support/xmlparser/extract",
-    "support/xmlparser/proxies",
-    "db"
+    "support/xmlparser/proxies"
   ],
-  "version": "7.0.0",
-  "install_date": 1488885102773
+  "version": "8.0.0",
+  "install_date": 1489676760954
 }

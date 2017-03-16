@@ -31,7 +31,7 @@ var MODULE_NAME = 'http';
 var Event = require('T/event');
 var Util = require('T/util');
 var Q = require('T/ext/q');
-var Permissions = require('T/permissions');
+var PermissionsStorage = require('T/permissions/storage');
 
 var securityManager = null;
 
@@ -719,7 +719,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 		});
 	};
 
-	Permissions.requestStoragePermissions(doDownload, error);
+	PermissionsStorage.request(doDownload, error);
 };
 
 /**

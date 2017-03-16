@@ -3,17 +3,11 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-/*
-Include methods used in this module dynamically to avoid that Titanium 
-static analysis doesn't include native-language methods.
- */
-Titanium.Media;
-Titanium.Media.showCamera;
-Titanium.Media.openPhotoGallery;
+var MODULE_NAME = 'camera';
 
 var Dialog = require('T/dialog');
 var Util = require('T/util');
-var Permissions = require('T/permissions');
+var Permissions = require('T/permissions/camera');
 
 /**
  * Call showCamera or openPhotoGallery using same options
@@ -23,22 +17,25 @@ var Permissions = require('T/permissions');
  * @param  {Function} callback  Success callback
  */
 function getPhoto(method, opt, callback) {
-	Permissions.requestCameraPermissions(function() {
+	Permissions.request(function() {
+
 		opt = _.extend({}, opt, {
 			mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
-			saveToPhotoGallery: (method === 'showCamera'),
+			saveToPhotoGallery: true,
 			success: callback,
-			cancel: function(e) { Ti.API.warn('Camera: Cancelled', e); },
+			cancel: function(e) { 
+				Ti.API.warn(MODULE_NAME + ': Cancelled', e); 
+			},
 			error: function(err) {
-				Ti.API.error('Camera: Error', err);
+				Ti.API.error(MODULE_NAME + ': Error', err);
 				Util.errorAlert(L('unexpected_error', 'Unexpected error'));
 			}
 		});
 
-		Ti.Media[ method ](opt);
+		method(opt);
 		
 	}, function(err) {
-		Ti.API.error('Camera: Error', err);
+		Ti.API.error(MODULE_NAME + ': Error', err);
 		Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));
 	});
 }
@@ -50,7 +47,7 @@ function getPhoto(method, opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.takePhoto = function(opt, callback) {
-	getPhoto('showCamera', opt, callback);
+	getPhoto(Titanium.Media.showCamera, opt, callback);
 };
 
 /**
@@ -60,7 +57,7 @@ exports.takePhoto = function(opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.choosePhoto = function(opt, callback) {
-	getPhoto('openPhotoGallery', opt, callback);
+	getPhoto(Titanium.Media.openPhotoGallery, opt, callback);
 };
 
 /**
@@ -71,17 +68,17 @@ exports.choosePhoto = function(opt, callback) {
  */
 exports.selectPhoto = function(opt, callback) {
 	Dialog.option(L('select_photo_source'), [
-		{
-			title: L('take_photo', 'Take photo'),
-			callback: function() { exports.takePhoto(opt, callback); }
-		},
-		{
-			title: L('choose_existing_photo', 'Choose existing photo'),
-			callback: function() { exports.choosePhoto(opt, callback); }
-		},
-		{
-			title: L('cancel'),
-			cancel: true
-		}
+	{
+		title: L('take_photo', 'Take photo'),
+		callback: function() { exports.takePhoto(opt, callback); }
+	},
+	{
+		title: L('choose_existing_photo', 'Choose existing photo'),
+		callback: function() { exports.choosePhoto(opt, callback); }
+	},
+	{
+		title: L('cancel'),
+		cancel: true
+	}
 	]);
 };

@@ -10,7 +10,7 @@ static analysis doesn't include native-language methods.
  */
 Ti.Filesystem;
 
-var Permissions = require('T/permissions');
+var Permissions = require('T/permissions/storage');
 
 function recursiveIterator(file) {
 	return _.map(file.getDirectoryListing(), function(item) {
@@ -117,7 +117,7 @@ exports.write = function(opt) {
 	if (canWrite(opt.file)) {
 		writeFile();
 	} else {
-		Permissions.requestStoragePermissions(writeFile, opt.error);
+		Permissions.request(writeFile, opt.error);
 	}
 };
 
@@ -150,7 +150,7 @@ exports.createDirectory = function(opt) {
 	if (canWrite(opt.file)) {
 		writeDir();
 	} else {
-		Permissions.requestStoragePermissions(writeDir, opt.error);
+		Permissions.request(writeDir, opt.error);
 	}
 };
 
@@ -184,6 +184,6 @@ exports.deleteDirectory = function(opt) {
 			deleteDir();
 		}
 	} else {
-		Permissions.requestStoragePermissions(deleteDir, opt.error);
+		Permissions.request(deleteDir, opt.error);
 	}
 };

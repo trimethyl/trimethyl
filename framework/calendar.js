@@ -17,7 +17,7 @@ exports.config = _.extend({
 
 var Util = require('T/util');
 var Moment = require('alloy/moment');
-var Permissions = require('T/permissions');
+var Permissions = require('T/permissions/calendar');
 var Dialog = require('T/dialog');
 
 var RRule = require('T/ext/rrule');
@@ -433,7 +433,7 @@ exports.deleteCalendar = function(c) {
  * @param  {Function} error
  */
 exports.requestPermissions = function(success, error) {
-	return Permissions.requestCalendarPermissions(success, error);
+	return Permissions.request(success, error);
 };
 
 /**

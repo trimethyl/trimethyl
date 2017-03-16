@@ -17,5 +17,3 @@ $.activateBtn.addEventListener('click', function() {
 		inBackground: false
 	});
 });
-
-$.args.nav.openWindow( $.win );

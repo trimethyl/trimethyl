@@ -48,14 +48,14 @@
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",
-		"dependencies": ["permissions","util","ext/rrule"],
+		"dependencies": ["permissions/calendar","util","ext/rrule"],
 		"modules": ["lucadamico.android.calendar:android"],
 		"minsdk": "6.0.0"
 	},
 	"camera":{
 		"name": "Camera",
 		"description": "Helper for Camera access.",
-		"dependencies": ["util","dialog", "permissions"]
+		"dependencies": ["util","dialog", "permissions/camera"]
 	},
 	"db":{
 		"name": "DB",
@@ -84,7 +84,7 @@
 	"filesystem":{
 		"name": "Filesystem",
 		"description": "Filesystem proxy adding convenience methods about directories.",
-		"dependencies": ["permissions"]
+		"dependencies": ["permissions/storage"]
 	},
 	"flow":{
 		"name": "Flow",
@@ -110,7 +110,7 @@
 	"http":{
 		"name": "HTTP",
 		"description": "HTTP requests in a clear interface with automatic internal cache control, automatic body encoding based on content, middleware filters and optional SSL pinning.",
-		"dependencies": ["event","util","cache","ext/q","permissions"],
+		"dependencies": ["event","util","cache","ext/q","permissions/storage"],
 		"modules": ["appcelerator.https:iphone", "appcelerator.https:android"]
 	},
 	"image":{
@@ -146,8 +146,25 @@
 		"description": "Driver based on CloudPush of Appcelerator.",
 		"modules": ["ti.cloud:commonjs"]
 	},
-	"permissions":{
-		"name": "Permissions",
+	"offline/sqlrest":{
+		"name": "Offline.SQLRest",
+		"description": "Support for offline adapter",
+		"dependencies": ["sqlite","util","ext/q"]
+	},
+	"permissions/camera":{
+		"name": "Permissions.Camera",
+		"description": "Handle permissions requests for different modules with all platforms."
+	},
+	"permissions/contacts":{
+		"name": "Permissions.Contacts",
+		"description": "Handle permissions requests for different modules with all platforms."
+	},
+	"permissions/storage":{
+		"name": "Permissions.Storage",
+		"description": "Handle permissions requests for different modules with all platforms."
+	},
+	"permissions/calendar":{
+		"name": "Permissions.Calendar",
 		"description": "Handle permissions requests for different modules with all platforms."
 	},
 	"prop":{
@@ -200,6 +217,10 @@
 		"name": "UIFactory.DateSelect",
 		"description": "Date select façade",
 		"dependencies": ["dialog","util"]
+	},
+	"uifactory/iframe":{
+		"name": "UIFactory.Iframe",
+		"description": "Iframe façade"
 	},
 	"uifactory/imageview":{
 		"name": "UIFactory.ImageView",
@@ -319,6 +340,13 @@
 		"description": "A sync for Backbone to work with RESTful APIs.",
 		"dependencies": ["http","util"],
 		"destination": "/app/lib/alloy/sync/rest.js"
+	},
+
+	"alloy/sync/offline":{
+		"name": "Offline Alloy Adapter",
+		"description": "A sync for Offline adapter.",
+		"dependencies": ["offline/sqlrest"],
+		"destination": "/app/lib/alloy/sync/offline.js"
 	},
 
 	"ext/async":{

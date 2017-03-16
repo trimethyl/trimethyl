@@ -186,5 +186,3 @@ if (_.isEqual(expected_values, current_invalid_values)) {
 		text: 'Set Invalid result: FAIL'
 	});
 }
-
-$.args.nav.openWindow( $.win );
