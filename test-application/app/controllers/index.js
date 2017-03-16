@@ -7,6 +7,7 @@ function log(text, color, top) {
 	Ti.API.log(text);
 	$.sview.add($.UI.create('Label', {
 		text: text,
+		top: top || 1,
 		color: color
 	}));
 }
@@ -15,18 +16,18 @@ function doNextTest() {
 	var key = UTMethodsKeys.shift();
 	if (key == null) return;
 
-	log(key + '...', 'white');
+	log(key.toUpperCase(), 'white', 10);
 
 	var fn = UT.methods[key];
 
 	Q.when(fn(),
 	function() {
-		log('PASSED', 'green');
+		log('passed', 'green');
 		doNextTest();
 	},
 	function(err) {
 		Ti.API.error(err);
-		log('REJECTED: ' + (err.message ? err.message : err.toString()), 'red');
+		log('rejected: ' + (err.message ? err.message : err.toString()), 'red');
 		doNextTest();
 	}
 	);
