@@ -449,7 +449,7 @@ SQLite.prototype.run = function() {
 SQLite.prototype.value = SQLite.prototype.val = function() {
 	var _args = _.toArray(arguments);
 	_args.push(function(row) {
-		if (row.validRow === false) return null;
+		if (row.isValidRow() === false) return null;
 
 		return row.field(0);
 	});
@@ -467,7 +467,7 @@ SQLite.prototype.value = SQLite.prototype.val = function() {
 SQLite.prototype.single = SQLite.prototype.row = function() {
 	var _args = _.toArray(arguments);
 	_args.push(function(row) {
-		if (row.validRow === false) return null;
+		if (row.isValidRow() === false) return null;
 
 		var obj = {};
 		for (var i = 0; i < row.fieldCount; i++) {
@@ -491,7 +491,7 @@ SQLite.prototype.list = SQLite.prototype.array = function() {
 	var _args = _.toArray(arguments);
 	_args.push(function(row) {
 		var list = [];
-		while (row.validRow === true) {
+		while (row.isValidRow() === true) {
 			list.push(row.field(0));
 			row.next();
 		}
@@ -513,7 +513,7 @@ SQLite.prototype.all = SQLite.prototype.rows = function() {
 	_args.push(function(row) {
 		var list = [];
 		var fieldNames = [];
-		while (row.validRow === true) {
+		while (row.isValidRow() === true) {
 			var obj = {};
 			for (var i = 0; i < row.fieldCount; i++) {
 				fieldNames[i] = fieldNames[i] || row.fieldName(i);
@@ -544,7 +544,7 @@ SQLite.prototype.loop = function() {
 
 	this.transform.apply(this, _args.concat(function(row) {
 		var fieldNames = [];
-		while (row.validRow === true) {
+		while (row.isValidRow() === true) {
 			var obj = {};
 			for (var i = 0; i < row.fieldCount; i++) {
 				fieldNames[i] = fieldNames[i] || row.fieldName(i);
