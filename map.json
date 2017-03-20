@@ -195,7 +195,8 @@
 	},
 	"sqlite":{
 		"name": "SQLite",
-		"description": "SQLite abstraction layer providing a fluent interface to do query and fetch data from a remote/local SQLite database."
+		"description": "SQLite abstraction layer providing a fluent interface to do query and fetch data from a remote/local SQLite database.",
+		"dependencies": ["db"]
 	},
 	"uifactory":{
 		"name": "UIFactory",
