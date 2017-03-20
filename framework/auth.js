@@ -155,15 +155,15 @@ function fetchUserModel(opt, dataFromServer) {
 			id = dataFromServer.id;
 		}
 
-		currentUser = Alloy.createModel('user', { id: id });
-		currentUser.fetch({
+		var user = Alloy.createModel('user', { id: id });
+		user.fetch({
 			http: {
 				refresh: true,
 				cache: false,
 			},
 			success: function() {
-				Prop.setObject('auth.me', currentUser.toJSON());
-				resolve();
+				Prop.setObject('auth.me', user.toJSON());
+				resolve(user);
 			},
 			error: function(model, err) {
 				reject(err);
@@ -337,6 +337,10 @@ exports.login = function(opt) {
 	.then(function(dataFromServer) {
 		return (opt.fetchUserFunction || fetchUserFunction)(opt, dataFromServer);
 	})
+
+	.then(function(user) {
+		currentUser = user;
+	}) 
 
 	.then(function() {
 		Prop.setString('auth.driver', opt.driver);
