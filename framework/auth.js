@@ -52,7 +52,7 @@ if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
 }
 
 var currentUser = null;
-var fetchUserFunction = null;
+var fetchUserFunction = fetchUserModel;
 
 /**
  * OAuth object instance of oauth module
@@ -172,12 +172,6 @@ function fetchUserModel(opt, dataFromServer) {
 	});
 }
 
-function switchFetchFunction(fetch) {
-	if (_.isFunction(fetch)) return fetch;
-	if (!_.isFunction(fetchUserFunction)) fetchUserFunction = fetchUserModel;
-
-	return fetchUserFunction;
-}
 
 /**
  * Load a driver
@@ -203,9 +197,21 @@ exports.event = function(name, cb) {
 
 /**
  * Sets fetch function to override the default one
+ * @param {Function} fn
  */
-exports.setFetchFunction = function(fn) {
+exports.setFetchUserFunction = function(fn) {
+	if (!_.isFunction(fn)) {
+		return Ti.API.error('Passed argument in setFetchUserFunction is not a function');
+	}
+
 	fetchUserFunction = fn;
+};
+
+/**
+ * Reset the fetch function to the default one
+ */
+exports.resetFetchUserFunction = function() {
+	fetchUserFunction = fetchUserModel;
 };
 
 //////////////
@@ -329,7 +335,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function(dataFromServer) {
-		return switchFetchFunction(opt.fetchUserFunction)(opt, dataFromServer);
+		return (opt.fetchUserFunction || fetchUserFunction)(opt, dataFromServer);
 	})
 
 	.then(function() {
@@ -512,7 +518,7 @@ exports.autoLogin = function(opt) {
 					timeout: opt.timeout,
 					success: function() {
 
-						switchFetchFunction(opt.fetchUserFunction)()
+						(opt.fetchUserFunction || fetchUserFunction)()
 						.then(function() {
 							if (timeouted) return;
 
