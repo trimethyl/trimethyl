@@ -1,7 +1,7 @@
 {
   "name": "trimethyl",
   "description": "Alloy+Titanium toolchain with superpowers",
-  "version": "9.0.3",
+  "version": "9.0.4",
   "author": "Flavio De Stefano <flavio.destefano@caffeina.com>",
   "contributors": [
     {
