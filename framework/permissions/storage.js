@@ -3,9 +3,6 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
-var hasFn = Ti.Filesystem.hasStoragePermissions;
-var requestFn = Ti.Filesystem.requestStoragePermissions;
-
 exports.request = function(success, error) {
 	success = success || Alloy.Globals.noop;
 	error = error || Alloy.Globals.noop;
@@ -21,13 +18,13 @@ exports.request = function(success, error) {
 		}
 	}
 
-	if (false === _.isFunction(hasFn) || false === _.isFunction(requestFn)) {
+	if (false === _.isFunction(Ti.Filesystem.hasStoragePermissions) || false === _.isFunction(Ti.Filesystem.requestStoragePermissions)) {
 		success();
 		return;
 	}
 
-	if (hasFn() !== true) {
-		requestFn(requestHandler);
+	if (Ti.Filesystem.hasStoragePermissions() !== true) {
+		Ti.Filesystem.requestStoragePermissions(requestHandler);
 	} else {
 		success();
 	}
