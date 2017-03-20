@@ -52,6 +52,7 @@ if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
 }
 
 var currentUser = null;
+var fetchFunction = null;
 
 /**
  * OAuth object instance of oauth module
@@ -171,6 +172,13 @@ function fetchUserModel(opt, dataFromServer) {
 	});
 }
 
+function switchFetchFunction(fetch) {
+	if (_.isFunction(fetch)) return fetch;
+	if (_.isFunction(fetchFunction)) return fetchFunction;
+
+	return switchFetchFunction;
+}
+
 /**
  * Load a driver
  * @return {Object}
@@ -191,6 +199,13 @@ exports.loadDriver = function(name) {
  */
 exports.event = function(name, cb) {
 	Event.on(MODULE_NAME + '.' + name, cb);
+};
+
+/**
+ * Sets fetch function to override the default one
+ */
+exports.setFetchFunction = function(fn) {
+	fetchFunction = fn;
 };
 
 //////////////
@@ -300,6 +315,7 @@ exports.login = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop,
+		fetch: null,
 		silent: false,
 		driver: 'bypass'
 	});
@@ -313,7 +329,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function(dataFromServer) {
-		return fetchUserModel(opt, dataFromServer);
+		return switchFetchFunction(opt.fetch)(opt, dataFromServer);
 	})
 
 	.then(function() {
@@ -461,6 +477,7 @@ exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop,
+		fetch: null,
 		timeout: 10000,
 		silent: false
 	});
@@ -495,7 +512,7 @@ exports.autoLogin = function(opt) {
 					timeout: opt.timeout,
 					success: function() {
 
-						fetchUserModel()
+						switchFetchFunction()()
 						.then(function() {
 							if (timeouted) return;
 
