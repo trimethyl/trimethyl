@@ -52,6 +52,7 @@ if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
 }
 
 var currentUser = null;
+var fetchUserFunction = fetchUserModel;
 
 /**
  * OAuth object instance of oauth module
@@ -154,15 +155,15 @@ function fetchUserModel(opt, dataFromServer) {
 			id = dataFromServer.id;
 		}
 
-		currentUser = Alloy.createModel('user', { id: id });
-		currentUser.fetch({
+		var user = Alloy.createModel('user', { id: id });
+		user.fetch({
 			http: {
 				refresh: true,
 				cache: false,
 			},
 			success: function() {
-				Prop.setObject('auth.me', currentUser.toJSON());
-				resolve();
+				Prop.setObject('auth.me', user.toJSON());
+				resolve(user);
 			},
 			error: function(model, err) {
 				reject(err);
@@ -170,6 +171,7 @@ function fetchUserModel(opt, dataFromServer) {
 		});
 	});
 }
+
 
 /**
  * Load a driver
@@ -191,6 +193,25 @@ exports.loadDriver = function(name) {
  */
 exports.event = function(name, cb) {
 	Event.on(MODULE_NAME + '.' + name, cb);
+};
+
+/**
+ * Sets fetch function to override the default one
+ * @param {Function} fn
+ */
+exports.setFetchUserFunction = function(fn) {
+	if (!_.isFunction(fn)) {
+		return Ti.API.error('Passed argument in setFetchUserFunction is not a function');
+	}
+
+	fetchUserFunction = fn;
+};
+
+/**
+ * Reset the fetch function to the default one
+ */
+exports.resetFetchUserFunction = function() {
+	fetchUserFunction = fetchUserModel;
 };
 
 //////////////
@@ -300,6 +321,7 @@ exports.login = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop,
+		fetchUserFunction: null,
 		silent: false,
 		driver: 'bypass'
 	});
@@ -313,8 +335,12 @@ exports.login = function(opt) {
 	})
 
 	.then(function(dataFromServer) {
-		return fetchUserModel(opt, dataFromServer);
+		return (opt.fetchUserFunction || fetchUserFunction)(opt, dataFromServer);
 	})
+
+	.then(function(user) {
+		currentUser = user;
+	}) 
 
 	.then(function() {
 		Prop.setString('auth.driver', opt.driver);
@@ -461,6 +487,7 @@ exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop,
+		fetchUserFunction: null,
 		timeout: 10000,
 		silent: false
 	});
@@ -495,7 +522,7 @@ exports.autoLogin = function(opt) {
 					timeout: opt.timeout,
 					success: function() {
 
-						fetchUserModel()
+						(opt.fetchUserFunction || fetchUserFunction)()
 						.then(function() {
 							if (timeouted) return;
 
