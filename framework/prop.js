@@ -8,6 +8,7 @@
  */
 exports.config = _.extend({
 	encryptionKey: null,
+	allowSync: true
 }, Alloy.CFG.T ? Alloy.CFG.T.prop : {});
 
 var MODULE_NAME = 'prop';
@@ -22,7 +23,7 @@ if (Securely == null) {
 } else {
 	module.exports = Securely.createProperties({
 		secret: exports.config.encryptionKey,
-		allowSync: true,
+		allowSync: exports.config.allowSync,
 		debug: !ENV_PRODUCTION,
 	});
 }
