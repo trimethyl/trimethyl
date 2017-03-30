@@ -55,7 +55,7 @@ module.exports = function(args) {
 	html += '<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />';
 	html += '<style>html,body{padding:0;background:black;margin:0;overflow:hidden;}</style>';
 	html += '</head><body><div id="player"></div>';
-	html += '<script src="http://www.youtube.com/player_api"></script>';
+	html += '<script src="https://www.youtube.com/player_api"></script>';
 	html += '<script>function onYouTubePlayerAPIReady() { window.player = new YT.Player("player",' + JSON.stringify(yt) + '); }</script>';
 	html += '</body></html>';
 	if (OS_IOS) {
