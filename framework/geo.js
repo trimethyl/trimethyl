@@ -231,7 +231,7 @@ exports.geocode = function(opt) {
 		});
 
 		HTTP.send({
-			url: 'http://maps.googleapis.com/maps/api/geocode/json',
+			url: 'https://maps.googleapis.com/maps/api/geocode/json',
 			data: data,
 			silent: opt.silent,
 			ttl: opt.ttl,
@@ -303,7 +303,7 @@ exports.reverseGeocode = function(opt) {
 		});
 
 		HTTP.send({
-			url: 'http://maps.googleapis.com/maps/api/geocode/json',
+			url: 'https://maps.googleapis.com/maps/api/geocode/json',
 			data: {
 				latlng: opt.lat + ',' + opt.lng,
 				sensor: 'false'
