@@ -110,7 +110,7 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 
 	if (_.isArray(exports.config.sslPinning)) {
 		securityManager = AppcHttps.createX509CertificatePinningSecurityManager(_.map(exports.config.sslPinning, function(domain) {
-			var path = Util.getResourcesDirectory() + "/certs/" + domain;
+			var path = Util.getResourcesDirectory() + "certs/" + domain;
 			if (Ti.Filesystem.getFile(path).exists() == false) {
 				throw new Error(MODULE_NAME + ': certificate for SSL pinning not found (' + domain + ')');
 			}
@@ -121,7 +121,7 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 		}));
 	} else if (exports.config.sslPinning == true) {
 		var domain = Util.getDomainFromURL(config.base);
-		var path = Util.getResourcesDirectory() + "/certs/" + domain;
+		var path = Util.getResourcesDirectory() + "certs/" + domain;
 		if (Ti.Filesystem.getFile(path).exists() == false) {
 			throw new Error(MODULE_NAME + ': certificate for base SSL pinning not found (' + domain + ')');
 		}
