@@ -52,8 +52,7 @@ function parse(xml, opts) {
 	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br />');
 
 	// start processing
-	if (OS_IOS) tag(xml);
-	else if (OS_ANDROID) androidTag(xml);
+	tag(xml);
 
 	//finalize currentLabel if it's not null
 	finalizeLabel();
@@ -63,6 +62,10 @@ function parse(xml, opts) {
 	 * Tag.
 	 */
 	function tag(data) {
+		if (data == null) {
+			return;
+		}
+
 		var re = /^<([\w-:.]+)\s*/;
 		var m = re.exec(data);
 		var el;
@@ -92,7 +95,7 @@ function parse(xml, opts) {
 			}); // create proxy
 
 			// loop
-			if(0 != data.length) tag(data);
+			if(data == null || 0 != data.length) tag(data);
 			return;
 		}
 
@@ -134,28 +137,6 @@ function parse(xml, opts) {
 		return;
 	}
 
-	function androidTag(data) {
-		var re = /^<([\w-:.]+)\s*/;
-		var m = re.exec(data);
-
-		// case when content starts with a child
-		var block 	= Extract(data,m[1]);
-
-		if (null == proxies[block.name]) block.name = "span";
-
-		if (proxies[block.name].type == exports.TYPE_TEXT) {
-			block.content = data.substr(block.start, block.end);
-		}
-		data = data.replace(data.slice(block.start, block.end - block.start), '');
-		proxy(block);
-
-		if (0 != data.length) {
-			androidTag(data);
-			return;
-		}
-		return;
-	}
-
 	/**
 	 * Strip.
 	 */
@@ -176,14 +157,10 @@ function parse(xml, opts) {
 		if (proxies[element.name].type == exports.TYPE_TEXT && _.isFunction(proxies[element.name].handler)) {
 			if (null == currentLabel) currentLabel = {text: "", attributes: []};
 
-			if (OS_IOS) {
-				// fix t.attributes ranges
-				var t = proxies[element.name].handler(element, container);
-				currentLabel.text += t.text;
-				cascadingAttributes(t, element);
-			} else {
-				androidHtml += element.content;
-			}
+			// fix t.attributes ranges
+			var t = proxies[element.name].handler(element, container);
+			currentLabel.text += t.text;
+			cascadingAttributes(t, element);
 
 		} else if (proxies[element.name].type == exports.TYPE_CUSTOM && _.isFunction(proxies[element.name].handler)) {
 			// check if currentLabel is null
@@ -228,8 +205,7 @@ function parse(xml, opts) {
 	}
 
 	function finalizeLabel() {
-		if (null == currentLabel && OS_IOS) return;
-		if ("" == androidHtml && OS_ANDROID) return;
+		if (null == currentLabel) return;
 
 		if (opts.lineSpacing && OS_IOS) {
 			currentLabel.attributes.push({
@@ -250,20 +226,28 @@ function parse(xml, opts) {
 		}
 
 		var labelProperties = null;
+		var as = null;
 
 		if (OS_IOS) {
-			var as = Ti.UI.createAttributedString(currentLabel);
+			as = Ti.UI.createAttributedString(currentLabel);
 			labelProperties = _.extend({
 				attributedString: as,
 				font: {fontSize: 14}
 			}, opts.textStyle);
 		} else {
+			// Android crashes if an attribute of AttributedString has no type.
+			currentLabel.attributes = _.filter(currentLabel.attributes, function(attr) {
+				return attr.type != null;
+			});
+
+			as = Ti.UI.createAttributedString(currentLabel);
 			labelProperties = _.extend({
 				lineSpacing: {add: opts.lineSpacing, multiply: 1.2},
-				html: androidHtml,
+				attributedString: as,
 				font: {fontSize: 14}
 			}, opts.textStyle);
 		}
+
 		var label = Ti.UI.createLabel(labelProperties);
 		label.addEventListener("link", linkHandler);
 		// add label to container
