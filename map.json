@@ -159,6 +159,10 @@
 		"name": "Permissions.Contacts",
 		"description": "Handle permissions requests for different modules with all platforms."
 	},
+	"permissions/phone":{
+		"name": "Permissions.Phone",
+		"description": "Handle permissions requests for different modules with all platforms."
+	},
 	"permissions/storage":{
 		"name": "Permissions.Storage",
 		"description": "Handle permissions requests for different modules with all platforms."
@@ -304,7 +308,7 @@
 	"util":{
 		"name": "Util",
 		"description": "Simply, utilities.",
-		"dependencies": ["dialog"],
+		"dependencies": ["dialog", "permissions/phone"],
 		"modules": ["ti.safaridialog:iphone"]
 	},
 	"validator":{
