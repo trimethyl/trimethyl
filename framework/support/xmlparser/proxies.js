@@ -118,7 +118,7 @@ exports.proxies = {
 			});
 			row.add(bullet);
 
-			var rightView = Ti.UI.createView({height: Ti.UI.SIZE, left: 20, top: 5, right: 0});
+			var rightView = Ti.UI.createView({height: Ti.UI.SIZE, left: 20, top: OS_IOS ? 5 : 0, right: 0});
 			row.add(rightView);
 
 			if (e.text) {
