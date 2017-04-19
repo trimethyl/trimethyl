@@ -104,6 +104,8 @@ function getHTML(opt) {
 	return html;
 }
 
+exports.getHTML = getHTML;
+
 /**
  * Add an helper for the WebView
  * The methods `embedCSS` and `embedJS` are automatically exposed

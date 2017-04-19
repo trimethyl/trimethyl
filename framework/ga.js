@@ -129,7 +129,7 @@ exports.social = exports.trackSocial;
  * @param  {String} [name=""] Name
  * @param  {String} [lbl=""] Label
  */
-exports.trackTiming = function(cat, time, name, lbl){
+exports.trackTiming = function(cat, time, name, lbl) {
 	if (tracker === null) return;
 	var obj;
 

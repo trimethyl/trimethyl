@@ -443,7 +443,6 @@ program.command('update').alias('r').description('Do a full upgrade of Trimethyl
 	child_process.exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
 });
 
-
 ///////////
 // Start //
 ///////////
