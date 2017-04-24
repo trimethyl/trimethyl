@@ -523,6 +523,10 @@ exports.autoLogin = function(opt) {
 					success: function() {
 
 						(opt.fetchUserFunction || fetchUserFunction)()
+						.then(function(user) {
+							currentUser = user;
+							return Q.resolve();
+						}) 
 						.then(function() {
 							if (timeouted) return;
 
