@@ -578,15 +578,10 @@ var DATABASE_DIRECTORY = null;
  */
 exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
 	if (DATABASE_DIRECTORY === null) {
-		if (OS_IOS) {
-			var db = require('T/db').open('test');
-			var path = db.file.resolve().split('/'); path.pop();
-			db.close();
-			DATABASE_DIRECTORY = path.join('/') + '/';
-		} else if (OS_ANDROID) {
-			DATABASE_DIRECTORY = Ti.Filesystem[ Ti.Filesystem.isExternalStoragePresent() ? 'externalStorageDirectory' : 'applicationDataDirectory' ] + '/databases';
-			try { Ti.Filesystem.getFile(DATABASE_DIRECTORY).createDirectory(); } catch (err) {}
-		}
+		var db = require('T/db').open('test');
+		var path = db.file.resolve().split('/'); path.pop();
+		db.close();
+		DATABASE_DIRECTORY = path.join('/') + '/';
 	}
 	return DATABASE_DIRECTORY;
 };

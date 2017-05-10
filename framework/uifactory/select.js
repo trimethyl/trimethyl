@@ -343,7 +343,7 @@ function dataPickerInterface(type, opt) {
 				if (_.isObject(row)) {
 					val = _.extend({}, row, {
 						index: rowIndex,
-						selected: (current != null && _.isEqual(current, row.value))
+						selected: (current != null && row != null && _.isEqual(current, row.value))
 					});
 				} else {
 					val = {
@@ -372,9 +372,9 @@ function dataPickerInterface(type, opt) {
 				self.indexes[columnIndex] = row.index;
 				self.titles[columnIndex] = row.title;
 			} else {
-				self.value[columnIndex] = rows[0].value;
+				self.value[columnIndex] = rows[0] ? rows[0].value : null;
 				self.indexes[columnIndex] = 0;
-				self.titles[columnIndex] = rows[0].title;
+				self.titles[columnIndex] = rows[0] ? rows[0].title : null;
 			}
 		});
 

@@ -368,7 +368,7 @@ SQLREST.prototype._persist = function(response) {
 		return promise.then(function(response) {
 
 			// Update the timestamp
-			var mId = String(response[model.idAttribute]);
+			var mId = String(response[model.idAttribute || 'id']);
 			var mTable = config.collection_name;
 
 			if (getInfoForModel({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
