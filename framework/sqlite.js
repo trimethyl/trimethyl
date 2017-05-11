@@ -404,7 +404,7 @@ SQLite.prototype.transform = function() {
 
 	var res = transform(dataset);
 
-	dataset.close();
+	if (dataset) dataset.close();
 	this.close();
 
 	return res;
