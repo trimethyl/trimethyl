@@ -151,6 +151,12 @@
 		"description": "Support for offline adapter",
 		"dependencies": ["sqlite","util","ext/q"]
 	},
+	"payments":{
+		"name": "Payments",
+		"description": "In-app Payments for both platforms",
+		"dependencies": ["util","ext/q"],
+		"modules": ["ti.inappbilling:android", "ti.storekit:iphone"]
+	},
 	"permissions/camera":{
 		"name": "Permissions.Camera",
 		"description": "Handle permissions requests for different modules with all platforms."
