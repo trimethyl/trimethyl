@@ -5,8 +5,8 @@
 
 /**
  * * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
- * * @property {Boolean} [config.allowSync=true] Sync the keychain values using iCloud.
- * * @property {String} [config.method="dynamic"] Method to use for the secret, "dynamic" can be synced, "random" cannot
+ * * @property {Bool} [config.allowSync=true] Whether to sync data with iCloud
+ * * @property {String} [config.method="dynamic"] What method to use for the key, "dynamic" can be synced, "random" cannot
  */
 exports.config = _.extend({
 	encryptionKey: null,
@@ -18,7 +18,7 @@ var MODULE_NAME = 'prop';
 
 var Util = require('T/util');
 var Securely = Util.requireOrNull('bencoding.securely');
-$.generator = null;
+exports.generator = null;
 
 if (Securely == null) {
 	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth storage is not secure");
@@ -55,7 +55,7 @@ function initWithStaticAndDynamicKeys() {
 
 	// Saving dynamic key in keychain with key "Ti.App.id" and secret the static `encryptionKey`
 	if (!starter.hasProperty(id)) {
-		var key = _.isFunction($.generator) ? $.generator(key) : Securely.generateRandomKey();
+		var key = _.isFunction(exports.generator) ? exports.generator(key) : Securely.generateRandomKey();
 		starter.setString(id, key);
 		encKey = key;
 	} else {
@@ -71,7 +71,7 @@ function initWithStaticAndDynamicKeys() {
 }
 
 function scrambleKey(key) {
-	if (_.isFunction($.generator)) return $.generator(key);
+	if (_.isFunction(exports.generator)) return exports.generator(key);
 	var stringCrypto = Securely.createStringCrypto();
 	key = key + installId();
 	key = stringCrypto.AESEncrypt(exports.config.encryptionKey, key);
@@ -97,8 +97,8 @@ function installId() {
  * Public functions
  */
 
-module.exports.setGenerator = function(fn) {
-	$.generator = _.isFunction(fn) ? fn : null;
+exports.setGenerator = function(fn) {
+	exports.generator = _.isFunction(fn) ? fn : null;
 };
 
-module.exports.installId = installId();
+exports.installId = installId();
