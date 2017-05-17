@@ -6,12 +6,10 @@
 /**
  * * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
  * * @property {Bool} [config.allowSync=true] Whether to sync data with iCloud
- * * @property {String} [config.method="dynamic"] What method to use for the key, "dynamic" can be synced, "random" cannot
  */
 exports.config = _.extend({
 	encryptionKey: null,
-	allowSync: true,
-	method: "dynamic"
+	allowSync: true
 }, Alloy.CFG.T ? Alloy.CFG.T.prop : {});
 
 var MODULE_NAME = 'prop';
@@ -24,23 +22,12 @@ if (Securely == null) {
 	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth storage is not secure");
 	module.exports = Ti.App.Properties;
 } else {
-	if (exports.config.method == "random") module.exports = initWithDynamicKey();
-	else module.exports = initWithStaticAndDynamicKeys();
+	module.exports = initWithStaticAndDynamicKeys();
 }
 
 /**
  * Private functions
  */
-
-function initWithDynamicKey() {
-	var key = scrambleKey(exports.config.encryptionKey);
-
-	return Securely.createProperties({
-		secret: key,
-		allowSync: false,
-		debug: !ENV_PRODUCTION
-	});
-}
 
 function initWithStaticAndDynamicKeys() {
 	var stringCrypto = Securely.createStringCrypto();
@@ -70,25 +57,12 @@ function initWithStaticAndDynamicKeys() {
 	});
 }
 
-function scrambleKey(key) {
-	if (_.isFunction(exports.generator)) return exports.generator(key);
-	var stringCrypto = Securely.createStringCrypto();
-	key = key + installId();
-	key = stringCrypto.AESEncrypt(exports.config.encryptionKey, key);
-	return key;
-}
-
 function installId() {
 	if (OS_IOS) return Ti.App.installId;
-
-	var iid = Ti.Filesystem.getFile(Util.getAppDataDirectory(), 'iid');
-	if (iid.exists()) {
-		return iid.read().text;
-	}
+	if (Ti.App.Properties.hasProperty("uuid")) return Ti.App.Properties.getString("uuid");
 
 	var key = Securely.generateRandomKey();
-	iid.open(Titanium.Filesystem.MODE_WRITE);
-	iid.write(key, false);
+	Ti.App.Properties.setString("uuid", key);
 
 	return key;
 }
