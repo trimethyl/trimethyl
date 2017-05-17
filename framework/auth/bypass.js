@@ -23,6 +23,9 @@ exports.isStoredLoginAvailable = function() {
 	return true;
 };
 
+exports.storeData = function() {
+};
+
 exports.storedLogin = function(opt) {
 	opt.success();
 };

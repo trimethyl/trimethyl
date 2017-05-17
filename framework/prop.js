@@ -5,8 +5,8 @@
 
 /**
  * * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
- * * @property {Bool} [config.allowSync=true] Whether to sync data with iCloud
- * * @property {String} [config.method="dynamic"] What method to use for the key, "dynamic" can be synced, "random" cannot
+ * * @property {Boolean} [config.allowSync=true] Sync the keychain values using iCloud.
+ * * @property {String} [config.method="dynamic"] Method to use for the secret, "dynamic" can be synced, "random" cannot
  */
 exports.config = _.extend({
 	encryptionKey: null,
