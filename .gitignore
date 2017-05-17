@@ -5,3 +5,4 @@ test-application/Resources
 test-application/platform
 test-application/features
 test-application/app/lib/T
+yarn.lock

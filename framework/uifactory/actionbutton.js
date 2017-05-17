@@ -1,6 +1,7 @@
 /**
  * @module  uifactory/backgroundview
- * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
+ * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
 module.exports = function(args) {
@@ -75,10 +76,10 @@ module.exports = function(args) {
 	// Init //
 	//////////
 
-	$this.loaderView = Ti.UI.createActivityIndicator({
+	$this.loaderView = Ti.UI.createActivityIndicator(_.extend({
 		left: $this.imageOffset,
-		width: $this.imageSize
-	});
+		width: $this.imageSize,
+	}, $this.indicatorColor != null ? { indicatorColor: $this.indicatorColor } : {}));
 	$this.add( $this.loaderView );
 
 	$this.imageView = Ti.UI.createImageView({

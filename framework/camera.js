@@ -3,6 +3,12 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+/*
+Include methods used in this module dynamically to avoid that Titanium 
+static analysis doesn't include native-language methods.
+ */
+Ti.Media;
+
 var MODULE_NAME = 'camera';
 
 var Dialog = require('T/dialog');
@@ -31,8 +37,11 @@ function getPhoto(method, opt, callback) {
 				Util.errorAlert(L('unexpected_error', 'Unexpected error'));
 			}
 		});
-
-		method(opt);
+		if (method == Ti.Media.showCamera) {
+			Ti.Media.showCamera(opt);
+		} else if (method == Ti.Media.openPhotoGallery) {
+			Ti.Media.openPhotoGallery(opt);
+		}
 		
 	}, function(err) {
 		Ti.API.error(MODULE_NAME + ': Error', err);
