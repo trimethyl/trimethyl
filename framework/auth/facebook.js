@@ -34,12 +34,12 @@ function hasData() {
 	return Prop.hasProperty(MODULE_DATA_NAME);
 }
 
-function storeData() {
+exports.storeData = function() {
 	Prop.setObject(MODULE_DATA_NAME, {
 		accessToken: _FB.accessToken,
 		expirationDate: _FB.expirationDate
 	});
-}
+};
 
 function removeData() {
 	Prop.removeProperty(MODULE_DATA_NAME);
@@ -49,7 +49,6 @@ exports.login = function(opt) {
 	localOptions = opt; // store globally
 
 	if (_FB.loggedIn) {
-		storeData();
 		var res = {};
 		res[exports.config.tokenName] = _FB.accessToken;
 		localOptions.success(res);
@@ -69,7 +68,6 @@ exports.isStoredLoginAvailable = function() {
 
 exports.storedLogin = function(opt) {
 	if (_FB.loggedIn) {
-		storeData();
 		var res = {};
 		res[exports.config.tokenName] = _FB.accessToken;
 		opt.success(res);
@@ -85,9 +83,7 @@ Init
 _FB.addLoginListener(function(e) {
 	Ti.API.debug('Auth.Facebook: login fired', e);
 
-	if (e.success) {
-		storeData();
-	} else {
+	if (!e.success) {
 		// If there's some errors, reset
 		exports.logout();
 	}

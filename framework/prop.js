@@ -5,6 +5,7 @@
 
 /**
  * * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
+ * * @property {Boolean} [config.allowSync=true] Sync the keychain values using iCloud.
  */
 exports.config = _.extend({
 	encryptionKey: null,

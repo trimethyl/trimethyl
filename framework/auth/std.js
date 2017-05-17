@@ -27,20 +27,19 @@ function hasData() {
 	return Prop.hasProperty(MODULE_DATA_NAME);
 }
 
-function storeData(value) {
-	Prop.setObject(MODULE_DATA_NAME, value);
-}
-
 function removeData() {
 	Prop.removeProperty(MODULE_DATA_NAME);
 }
+
+exports.storeData = function(value) {
+	Prop.setObject(MODULE_DATA_NAME, value);
+};
 
 exports.login = function(opt) {
 	if (opt.data == null) {
 		throw new Error('Auth: set data when calling Auth.login');
 	}
 
-	storeData(opt.data);
 	opt.success(opt.data);
 };
 

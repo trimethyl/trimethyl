@@ -87,6 +87,11 @@ function driverLogin(opt) {
 	});
 }
 
+function driverStoreData(opt) {
+	var driver = exports.loadDriver(opt.driver);
+	driver.storeData(opt.data);
+}
+
 ///////////////////////
 // Server side login //
 ///////////////////////
@@ -182,7 +187,8 @@ exports.loadDriver = function(name) {
 		login: function() {},
 		storedLogin: function() {},
 		isStoredLoginAvailable: function() {},
-		logout: function() {}
+		logout: function() {},
+		storeData: function() {}
 	});
 	driver.__setParent(module.exports);
 	return driver;
@@ -323,6 +329,7 @@ exports.login = function(opt) {
 		error: Alloy.Globals.noop,
 		fetchUserFunction: null,
 		silent: false,
+		remember: true,
 		driver: 'bypass'
 	});
 
@@ -348,28 +355,45 @@ exports.login = function(opt) {
 
 	.then(function() {
 		return Q.promise(function(resolve, reject) {
-			if (exports.config.useTouchIDPromptConfirmation == true && !opt.stored && exports.isTouchIDSupported()) {
+			if (
+				exports.config.useTouchIDPromptConfirmation == true && 
+				exports.isTouchIDSupported() && 
+				opt.stored != true				
+			) {
 				Dialog.confirm("Touch ID", L("auth_touchid_confirmation_message"), [
 				{
 					title: L('yes', 'Yes'),
 					preferred: true,
 					callback: function() {
 						exports.userWantsToUseTouchID(true);
-						resolve();
+						resolve({ 
+							touchIDEnrolled: true 
+						});
 					}
 				},
 				{
 					title: L('no', 'No'),
 					callback: function() {
 						exports.userWantsToUseTouchID(false);
-						resolve();
+						resolve({ 
+							touchIDEnrolled: false
+						});
 					}
 				}
 				]);
 			} else {
-				resolve();
+				resolve({
+					touchIDEnrolled: false 
+				});
 			}
 		});
+	})
+
+	.then(function(e) {
+		if (e.remember != true) return;
+		if (e.touchIDEnrolled == true || exports.config.enforceTouchID != true) {
+			driverStoreData(opt);
+		}
 	})
 
 	.then(function() {
