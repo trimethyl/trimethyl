@@ -390,7 +390,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function(e) {
-		if (e.remember != true) return;
+		if (opt.remember != true) return;
 		if (e.touchIDEnrolled == true || exports.config.enforceTouchID != true) {
 			driverStoreData(opt);
 		}
