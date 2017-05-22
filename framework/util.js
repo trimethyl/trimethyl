@@ -3,8 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-var Permissions = require('T/permissions/phone');
-
 /**
  * Require a module, or return a null object
  * @param  {String} name
@@ -410,12 +408,14 @@ exports.dial = function(tel) {
 	if (OS_IOS) {
 		exports.openURL('tel:' + telString, null, errString);
 	} else if (OS_ANDROID) {
-		Permissions.request(function() {
+		require('T/permissions/phone').request()
+		.then(function() {
 			exports.startActivity({
 				action: Ti.Android.ACTION_CALL,
 				data: 'tel:' + telString
 			}, errString);
-		}, function() {
+		})
+		.catch(function() {
 			exports.errorAlert(errString);
 		});
 	}
