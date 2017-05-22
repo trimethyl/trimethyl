@@ -38,10 +38,10 @@
 	"cache":{
 		"name": "Cache",
 		"description": "Store informations temporarily using different storages.",
-		"dependencies": ["cache/database"]
+		"dependencies": ["cache/sqlite"]
 	},
-	"cache/database":{
-		"name": "Cache.Database",
+	"cache/sqlite":{
+		"name": "Cache.SQLite",
 		"description": "Cache driver with SQLite",
 		"dependencies": ["sqlite","util","filesystem"]
 	},

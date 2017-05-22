@@ -8,7 +8,7 @@
     "auth/facebook",
     "auth/std",
     "cache",
-    "cache/database",
+    "cache/sqlite",
     "calendar",
     "camera",
     "db",
@@ -30,8 +30,10 @@
     "notifications/http",
     "notifications/cloud",
     "offline/sqlrest",
+    "payments",
     "permissions/camera",
     "permissions/contacts",
+    "permissions/phone",
     "permissions/storage",
     "permissions/calendar",
     "prop",
@@ -76,11 +78,8 @@
     "ext/underscore.string",
     "ext/rrule",
     "ext/nlp",
-    "ext/nlp-i18n/it",
-    "support/oauth",
-    "support/xmlparser/extract",
-    "support/xmlparser/proxies"
+    "ext/nlp-i18n/it"
   ],
-  "version": "9.1.2",
-  "install_date": 1495443886939
+  "version": "10.0.0",
+  "install_date": 1495448419742
 }
