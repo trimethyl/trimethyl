@@ -4,10 +4,10 @@
 */
 
 /**
- * @property {String} [config.encryptionKey=null] Secret to use in keychain encryption.
- * @property {Bool} [config.allowSync=true] Whether to sync data with iCloud
- * @property {String [config.accessGroup=null] Access groups can be used to share keychain items among two or more applications
- * @property {Boolean} [config.encryptFieldNames=false] When set to true, Securely will create an MD5 hash using the provided secret for all property names.
+ * @property {String} [config.encryptionKey=null] Secret to use to encrypt data
+ * @property {Bool} [config.allowSync=true] Whether to sync data with iCloud (only available on iOS)
+ * @property {String [config.accessGroup=null] Access groups can be used to share keychain items among two or more applications (only available on iOS)
+ * @property {Boolean} [config.encryptFieldNames=false] When set to true, Securely will create an MD5 hash using the provided secret for all property names (only available on Android)
  * @property {Method} [config.method="dynamic"] If "static", config.encryptionKey will be used as a secret. If "dynamic", a dynamic generated key will be used as a secret.
  */
 exports.config = _.extend({
