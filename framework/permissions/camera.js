@@ -6,6 +6,8 @@
 
 var MODULE_NAME = 'Permissions.Camera';
 
+var Q = require('T/ext/q');
+
 exports.request = function(success, error) {
 	return Q.promise(function(_resolve, _reject) {
 
@@ -31,14 +33,14 @@ exports.request = function(success, error) {
 		}
 
 		if (
-			false === _.isFunction(Ti.camera.hasCameraPermissions) || 
-			false === _.isFunction(Ti.camera.requestCameraPermissions)
+			false === _.isFunction(Ti.Media.hasCameraPermissions) || 
+			false === _.isFunction(Ti.Media.requestCameraPermissions)
 		) {
 			return resolve();
 		}
 
-		if (Ti.camera.hasCameraPermissions() !== true) {
-			return Ti.camera.requestCameraPermissions(requestHandler);
+		if (Ti.Media.hasCameraPermissions() !== true) {
+			return Ti.Media.requestCameraPermissions(requestHandler);
 		}
 
 		resolve();

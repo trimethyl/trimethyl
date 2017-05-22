@@ -5,6 +5,8 @@
 
 var MODULE_NAME = 'Permissions.Storage';
 
+var Q = require('T/ext/q');
+
 exports.request = function(success, error) {
 	return Q.promise(function(_resolve, _reject) {
 
