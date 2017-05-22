@@ -578,7 +578,7 @@ SQLREST.prototype.readOffline = function(opt) {
 				resp = [parseResponse(response)];
 			}
 
-			self.model.add(resp);
+			self.model.reset(resp);
 
 			if (_.isFunction(opt.success)) {
 				opt.success(self.model);
