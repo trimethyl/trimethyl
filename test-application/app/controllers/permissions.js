@@ -16,7 +16,7 @@ function onError() {
 }
 
 $.win.addEventListener('open', function() {
-	['calendar','storage','camera','contacts'].forEach(function(e) {
+	['calendar','storage','camera','contacts','phone'].forEach(function(e) {
 		require('T/permissions/' + e).request(onSuccess.bind(e), onError.bind(e));
 	});
 });
