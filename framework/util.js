@@ -517,9 +517,7 @@ exports.encodeHtmlEntity = function(str) {
  * @return {String} The hash
  */
 exports.hashJavascriptObject = function(obj) {
-	if (obj == null) return 'null';
-	if (_.isArray(obj) || _.isObject(obj)) return JSON.stringify(obj);
-	return obj.toString();
+	return Ti.Utils.md5HexDigest( JSON.stringify(obj) || 'null' );
 };
 
 /**

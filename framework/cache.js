@@ -5,10 +5,10 @@
 
 /**
  * @property config
- * @property {String} [config.driver="database"] 	The driver to use
+ * @property {String} [config.driver="sqlite"] 	The driver to use
  */
 exports.config = _.extend({
-	driver: 'database'
+	driver: 'sqlite'
 }, Alloy.CFG.T ? Alloy.CFG.T.cache : {});
 
 /**
