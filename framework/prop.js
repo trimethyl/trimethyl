@@ -52,6 +52,7 @@ function initWithStaticKey() {
 		secret: exports.config.encryptionKey,
 		accessGroup: exports.config.accessGroup,
 		allowSync: exports.config.allowSync,
+		encryptFieldNames: exports.config.encryptFieldNames,
 		debug: !ENV_PRODUCTION
 	});
 }
@@ -75,6 +76,7 @@ function initWithDynamicKey() {
 		secret: final_key,
 		accessGroup: exports.config.accessGroup,
 		allowSync: exports.config.allowSync,
+		encryptFieldNames: exports.config.encryptFieldNames,
 		debug: !ENV_PRODUCTION
 	});
 }
