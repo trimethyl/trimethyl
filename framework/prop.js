@@ -71,6 +71,7 @@ function initWithDynamicKey() {
 	}
 
 	return Securely.createProperties({
+		identifier: Ti.App.id + '_dynamic',
 		secret: final_key,
 		accessGroup: exports.config.accessGroup,
 		allowSync: exports.config.allowSync,
