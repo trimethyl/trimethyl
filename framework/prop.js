@@ -22,7 +22,7 @@ var Securely = Util.requireOrNull('bencoding.securely');
 var generator = null;
 
 if (Securely == null) {
-	Ti.API.warn(MODULE_NAME + ": you are not including the security module, your auth storage is not secure");
+	Ti.API.warn(MODULE_NAME + ': you are not including the security module, your auth storage is not secure');
 	module.exports = Ti.App.Properties;
 } else {
 	module.exports = initWithStaticAndDynamicKeys();
@@ -35,6 +35,7 @@ if (Securely == null) {
 function initWithStaticAndDynamicKeys() {
 	var stringCrypto = Securely.createStringCrypto();
 	var id = Ti.Utils.sha256(Ti.App.id);
+	
 	var encKey = null;
 	
 	var starter = Securely.createProperties({
