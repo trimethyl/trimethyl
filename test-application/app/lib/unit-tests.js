@@ -9,6 +9,7 @@ var Moment = require('alloy/moment');
 var Dialog = T('dialog');
 var Filesystem = T('filesystem');
 var Geo = T('geo');
+var Prop = T('prop');
 
 var G = {};
 
@@ -55,23 +56,6 @@ exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
 			error: function(err) {
 				console.log(err);
 				resolve();
-			}
-		});
-	});
-};
-
-exports.methods.http_should_cache = function() {
-	return Q.promise(function(resolve, reject) {
-		var a = HTTP.send({
-			url: 'http://demo1916598.mockable.io/ttl-unit-test',
-			success: function() {
-				var b = HTTP.send({
-					url: 'http://demo1916598.mockable.io/ttl-unit-test',
-					success: function() {
-						if (b.cachedData == null) return reject('Cache is not here');
-						resolve();
-					}
-				});
 			}
 		});
 	});
@@ -232,5 +216,14 @@ exports.methods.filesystem_should_write = function() {
 			success: resolve,
 			error: reject
 		});
+	});
+};
+
+exports.methods.test_prop = function() {
+	return Q.promise(function(resolve, reject) {
+		Prop.setString('test', 'uno');
+		var value = Prop.getString('test');
+		if (value != 'uno') return reject();
+		resolve();
 	});
 };
