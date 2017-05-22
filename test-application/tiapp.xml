@@ -113,6 +113,7 @@
     <module platform="android">lucadamico.android.calendar</module>
     <module platform="iphone">appcelerator.encrypteddatabase</module>
     <module platform="android">appcelerator.encrypteddatabase</module>
+    <module platform="android">ti.inappbilling</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>
@@ -121,7 +122,7 @@
     <target device="mobileweb">false</target>
     <target device="windows">false</target>
   </deployment-targets>
-  <sdk-version>6.0.0.CAFFEINA-1</sdk-version>
+  <sdk-version>6.0.4.CAFFEINA-1</sdk-version>
   <plugins>
     <plugin version="1.0">ti.alloy</plugin>
   </plugins>

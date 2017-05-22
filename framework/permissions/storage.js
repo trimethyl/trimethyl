@@ -3,29 +3,43 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var MODULE_NAME = 'Permissions.Storage';
+
 exports.request = function(success, error) {
-	success = success || Alloy.Globals.noop;
-	error = error || Alloy.Globals.noop;
+	return Q.promise(function(_resolve, _reject) {
 
-	function requestHandler(res) {
-		if (res.success === true) {
-			success();
-		} else {
-			Ti.API.error('Permissions: Error while requesting storage permissions:', res.error);
-			error({ 
-				message: L('error_storage_permissions', 'Missing storage permissions') 
-			});
+		var resolve = function() { 
+			if (success != null) success.apply(null, arguments);
+			_resolve.apply(null, arguments); 
+		};
+		
+		var reject = function() { 
+			if (error != null) error.apply(null, arguments);
+			_reject.apply(null, arguments); 
+		};
+
+		function requestHandler(e) {
+			if (e.success === true) {
+				resolve();
+			} else {
+				Ti.API.error(MODULE_NAME + ': Error while requesting Storage permissions - ' + e.error);
+				reject({ 
+					message: L('error_storage_permissions', 'Missing storage permissions') 
+				});
+			}
 		}
-	}
 
-	if (false === _.isFunction(Ti.Filesystem.hasStoragePermissions) || false === _.isFunction(Ti.Filesystem.requestStoragePermissions)) {
-		success();
-		return;
-	}
+		if (
+			false === _.isFunction(Ti.Filesystem.hasStoragePermissions) || 
+			false === _.isFunction(Ti.Filesystem.requestStoragePermissions)
+		) {
+			return resolve();
+		}
 
-	if (Ti.Filesystem.hasStoragePermissions() !== true) {
-		Ti.Filesystem.requestStoragePermissions(requestHandler);
-	} else {
-		success();
-	}
+		if (Ti.Filesystem.hasStoragePermissions() !== true) {
+			return Ti.Filesystem.requestStoragePermissions(requestHandler);
+		}
+
+		resolve();
+	});
 };

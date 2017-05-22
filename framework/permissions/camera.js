@@ -1,31 +1,46 @@
+
 /**
- * @module  permissions.calendar
+ * @module  permissions.camera
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var MODULE_NAME = 'Permissions.Camera';
+
 exports.request = function(success, error) {
-	success = success || Alloy.Globals.noop;
-	error = error || Alloy.Globals.noop;
+	return Q.promise(function(_resolve, _reject) {
 
-	function requestHandler(res) {
-		if (res.success === true) {
-			success();
-		} else {
-			Ti.API.error('Permissions: Error while requesting camera permissions:', res.error);
-			error({ 
-				message: L('error_camera_permissions', 'Missing camera permissions') 
-			});
+		var resolve = function() { 
+			if (success != null) success.apply(null, arguments);
+			_resolve.apply(null, arguments); 
+		};
+		
+		var reject = function() { 
+			if (error != null) error.apply(null, arguments);
+			_reject.apply(null, arguments); 
+		};
+
+		function requestHandler(e) {
+			if (e.success === true) {
+				resolve();
+			} else {
+				Ti.API.error(MODULE_NAME + ': Error while requesting camera permissions - ' + e.error);
+				reject({ 
+					message: L('error_camera_permissions', 'Missing camera permissions') 
+				});
+			}
 		}
-	}
 
-	if (false === _.isFunction(Ti.Media.hasCameraPermissions) || false === _.isFunction(Ti.Media.requestCameraPermissions)) {
-		success();
-		return;
-	}
+		if (
+			false === _.isFunction(Ti.camera.hasCameraPermissions) || 
+			false === _.isFunction(Ti.camera.requestCameraPermissions)
+		) {
+			return resolve();
+		}
 
-	if (Ti.Media.hasCameraPermissions() !== true) {
-		Ti.Media.requestCameraPermissions(requestHandler);
-	} else {
-		success();
-	}
+		if (Ti.camera.hasCameraPermissions() !== true) {
+			return Ti.camera.requestCameraPermissions(requestHandler);
+		}
+
+		resolve();
+	});
 };

@@ -3,29 +3,43 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var MODULE_NAME = 'Permissions.Contacts';
+
 exports.request = function(success, error) {
-	success = success || Alloy.Globals.noop;
-	error = error || Alloy.Globals.noop;
+	return Q.promise(function(_resolve, _reject) {
 
-	function requestHandler(res) {
-		if (res.success === true) {
-			success();
-		} else {
-			Ti.API.error('Permissions: Error while requesting contacts permissions:', res.error);
-			error({ 
-				message: L('error_contacts_permissions', 'Missing contacts permissions') 
-			});
+		var resolve = function() { 
+			if (success != null) success.apply(null, arguments);
+			_resolve.apply(null, arguments); 
+		};
+		
+		var reject = function() { 
+			if (error != null) error.apply(null, arguments);
+			_reject.apply(null, arguments); 
+		};
+
+		function requestHandler(e) {
+			if (e.success === true) {
+				resolve();
+			} else {
+				Ti.API.error(MODULE_NAME + ': Error while requesting Contacts permissions - ' + e.error);
+				reject({ 
+					message: L('error_contacts_permissions', 'Missing Contacts permissions') 
+				});
+			}
 		}
-	}
 
-	if (false === _.isFunction(Ti.Media.hasContactsPermissions) || false === _.isFunction(Ti.Media.requestContactsPermissions)) {
-		success();
-		return;
-	}
+		if (
+			false === _.isFunction(Ti.Contacts.hasContactsPermissions) || 
+			false === _.isFunction(Ti.Contacts.requestContactsPermissions)
+		) {
+			return resolve();
+		}
 
-	if (Ti.Media.hasContactsPermissions() !== true) {
-		Ti.Media.requestContactsPermissions(requestHandler);
-	} else {
-		success();
-	}
+		if (Ti.Contacts.hasContactsPermissions() !== true) {
+			return Ti.Contacts.requestContactsPermissions(requestHandler);
+		}
+
+		resolve();
+	});
 };
