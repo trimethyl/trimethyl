@@ -11,6 +11,7 @@ var prompt = require('prompt');
 var ga = require('universal-analytics')(package.ua);
 var child_process = require('child_process');
 var async = require('async');
+var md5 = require('md5');
 
 // Current directory
 var CWD = process.cwd();
@@ -180,25 +181,6 @@ function ensureFilesystemStructure() {
 			fs.mkdirSync(CWD + dir);
 		}
 	});
-
-	// Copy a README that indicates that the directory is auto-generated
-	// and can be deleted in any moment from the installaer
-	fs.copyFileSync(__dirname + '/INSTALLATION_README', CWD + '/app/lib/T/README');
-}
-
-function copyLibToFilesystem(lib, callback) {
-	// Check the filesystem structure before copying the file
-	var dir_name = path.dirname(lib.dst_file);
-	if (!fs.existsSync(dir_name)) {
-		fs.createDirSync(dir_name);
-	}
-
-	// Just print a beatiful graph
-	var tabs_to_print = lib.no_of_tabs ? new Array(Math.max(0, (lib.no_of_tabs || 0) - 1) * 3 ).join(' ') + '└' + new Array(3).join('─') : '';
-	process.stdout.write(tabs_to_print.grey + 'Copying '.grey + lib.name.bold.white + (' (' + lib.size + ')\n').grey );
-
-	// And copy the file
-	fs.copyFile(lib.src_file, lib.dst_file, callback);
 }
 
 // Just add to the tiapp.xml (the module could be installed globally, 
@@ -291,11 +273,42 @@ function preInstallLib(lib, callback) {
 }
 
 function installLib(lib, callback) {
-	copyLibToFilesystem(lib, callback);
+	// Check the filesystem structure before copying the file
+	var tn = lib.no_of_tabs ? 
+		new Array(Math.max(0, (lib.no_of_tabs || 0) - 1) * 3 ).join(' ') + '└' + new Array(3).join('─') 
+		: '';
+
+	function effectiveCopy() {
+		process.stdout.write(tn.grey + 'Copying '.grey + lib.name.bold.white + (' (' + lib.size + ')\n').grey );
+		var dir_name = path.dirname(lib.dst_file);
+		if (!fs.existsSync(dir_name)) {
+			fs.createDirSync(dir_name);
+		}
+		fs.copyFile(lib.src_file, lib.dst_file, callback);
+	}
+
+	// And copy the file
+	if (fs.existsSync(lib.dst_file)) {
+		fs.readFile(lib.src_file, function(err, src_buf) {
+			fs.readFile(lib.dst_file, function(err, dst_buf) {
+				if (err != null || (md5(src_buf) != md5(dst_buf))) {
+					effectiveCopy();	
+				} else {
+					callback();
+				}
+			});
+		});
+	} else {
+		effectiveCopy();
+	}
 }
 
 function finishInstallation(libs) {
 	ga.event("installation", "end").send();
+
+	// Copy a README that indicates that the directory is auto-generated
+	// and can be deleted in any moment from the installaer
+	fs.copyFileSync(__dirname + '/INSTALLATION_README', CWD + '/app/lib/T/README');
 
 	// Change the installed version and the current installation date
 	app_trimethyl_config.version = package.version;
