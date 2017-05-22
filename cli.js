@@ -128,6 +128,7 @@ function writeConfig() {
 // Add a module to app_trimethyl_config
 function addModule(name) {
 	app_trimethyl_config.libs.push(name);
+	app_trimethyl_config.libs = _.uniq(app_trimethyl_config.libs);
 }
 
 // This method check if a config file is found.
@@ -402,18 +403,35 @@ program.command('list').alias('ls').description('List all Trimethyl available mo
 // Add command //
 /////////////////
 
-program.command('add [name]').alias('a').description('Add a Trimethyl module to your config').action(function(name) {
+program.command('add [name]')
+.alias('a')
+.option('--all', 'Add all libraries')
+.description('Add a Trimethyl module to your config')
+.action(function(name) {
 	ga.pageview("/add/" + name).send();
 
-	if (trimethyl_map[name] == null) {
-		error('<' + name + '> is not a valid Trimethyl library.');
+	if (this.all) {
+
+		_.each(trimethyl_map, function(m,mk) {
+			if (!m.internal) {
+				addModule(mk);
+			}
+		});
+
+	} else {
+
+		if (trimethyl_map[name] == null) {
+			error('<' + name + '> is not a valid Trimethyl library.');
+		}
+
+		if (trimethyl_map[name].internal) {
+			error('<' + name + '> is an internal library.');
+		}
+
+		addModule(name);
+
 	}
 
-	if (trimethyl_map[name].internal) {
-		error('<' + name + '> is an internal library.');
-	}
-
-	addModule(name);
 	writeConfig();
 });
 
