@@ -235,3 +235,11 @@ exports.autoMapModel = function(single, plural) {
 		}, {}, this.source);
 	});
 };
+
+/**
+ * Get the route registry
+ * @return {Array}
+ */
+exports.getRegistry = function() {
+	return routeRegistry;
+};
