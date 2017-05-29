@@ -1,9 +1,10 @@
 /**
  * @module  permissions.storage
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
+ * @author 	Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
-var MODULE_NAME = 'Permissions.Storage';
+var MODULE_NAME = 'permissions.storage';
 
 var Q = require('T/ext/q');
 

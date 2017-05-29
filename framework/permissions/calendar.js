@@ -1,9 +1,10 @@
 /**
  * @module  permissions.calendar
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
+ * @author 	Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
-var MODULE_NAME = 'Permissions.Calendar';
+var MODULE_NAME = 'permissions.calendar';
 
 var Q = require('T/ext/q');
 

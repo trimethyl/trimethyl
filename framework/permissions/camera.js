@@ -1,10 +1,10 @@
-
 /**
  * @module  permissions.camera
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
+ * @author 	Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
-var MODULE_NAME = 'Permissions.Camera';
+var MODULE_NAME = 'permissions.camera';
 
 var Q = require('T/ext/q');
 

@@ -1,9 +1,10 @@
 /**
  * @module  permissions.phone
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
+ * @author 	Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
-var MODULE_NAME = 'Permissions.Phone';
+var MODULE_NAME = 'permissions.phone';
 
 var Q = require('T/ext/q');
 

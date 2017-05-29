@@ -1,9 +1,10 @@
 /**
  * @module  permissions.contacts
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
+ * @author 	Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
-var MODULE_NAME = 'Permissions.Contacts';
+var MODULE_NAME = 'permissions.contacts';
 
 var Q = require('T/ext/q');
 
