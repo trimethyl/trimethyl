@@ -354,50 +354,56 @@ SQLREST.prototype._persist = function(response) {
 	var model = this.model;
 	var config = this.config;
 
-	var promises = null;
+	function updateInfo(response) {
+		// Update the timestamp
+		var mId = String(response[model.idAttribute || 'id']);
+		var mTable = config.collection_name;
 
-	if (model instanceof Backbone.Model) {
-		promises = [ updateLocal(model, response) ];
-	} else {
-		promises = _.map(response, function(attrs) {
-			return updateLocal(new model.model(), attrs);
-		});
+		if (getInfoForModel({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
+			DB.table(config.infoTableName)
+			.where({
+				m_id: mId,
+				m_table: mTable
+			})
+			.update({
+				timestamp: Util.now()
+			})
+			.run();
+		} else {
+			DB.table(config.infoTableName)
+			.insert({
+				m_id: mId,
+				m_table: mTable,
+				file_name: config.file_name,
+				offline: 0,
+				timestamp: Util.now()
+			})
+			.run();
+		}
 	}
 
-	return _.reduce(_.map(promises, function(promise) {
-		return promise.then(function(response) {
+	return Q.allSettled(function() {
+		var promises = [];
 
-			// Update the timestamp
-			var mId = String(response[model.idAttribute || 'id']);
-			var mTable = config.collection_name;
+		if (model instanceof Backbone.Model) {
+			promises.push(updateLocal(model, response)
+				.then(updateInfo));
+		} else {
+			promises = _.map(response, function(attrs) {
+				return updateLocal(new model.model(), attrs)
+				.then(updateInfo);
+			});
+		}
 
-			if (getInfoForModel({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
-				DB.table(config.infoTableName)
-				.where({
-					m_id: mId,
-					m_table: mTable
-				})
-				.update({
-					timestamp: Util.now()
-				})
-				.run();
-			} else {
-				DB.table(config.infoTableName)
-				.insert({
-					m_id: mId,
-					m_table: mTable,
-					file_name: config.file_name,
-					offline: 0,
-					timestamp: Util.now()
-				})
-				.run();
+		return promises;
+	}())
+	.then(function(res_arr) {
+		_.each(res_arr, function(res) {
+			if (res.state === "rejected") {
+				Ti.API.error(LOGNAME + ': could not update the local copy of the model with name ' + config.collection_name + ': ' + res.reason);
 			}
-		})
-		.catch(function(err) {
-			Ti.API.error(LOGNAME + ': could not update the local copy of the model with name ' + config.collection_name + ': ' + err);
 		});
-	}), Q.when, Q())
-	.then(function() {
+
 		// Pass on the original response
 		return response;
 	});
@@ -413,7 +419,11 @@ SQLREST.prototype._retrieve = function(opt) {
 			if (self._isLocalValid()) {
 				Local.sync('read', self.model, _.extend({}, opt, {
 					success: function(response) {
-						resolve(parseResponse(response));
+						if (!_.isEmpty(response)) {
+							resolve(parseResponse(response));
+						} else {
+							reject({ message: LOGNAME + ': Model <' + self.config.collection_name + '/' + self.model.id + '> empty.' });
+						}
 					},
 					error: reject
 				}));
@@ -578,7 +588,7 @@ SQLREST.prototype.readOffline = function(opt) {
 				resp = [parseResponse(response)];
 			}
 
-			self.model.add(resp);
+			self.model.reset(resp);
 
 			if (_.isFunction(opt.success)) {
 				opt.success(self.model);
