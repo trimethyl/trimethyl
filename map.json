@@ -45,6 +45,11 @@
 		"description": "Cache driver with SQLite",
 		"dependencies": ["sqlite","util","filesystem"]
 	},
+	"cache/prop":{
+		"name": "Cache.Prop",
+		"description": "Cache driver with Properties",
+		"dependencies": ["util","filesystem"]
+	},
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",
