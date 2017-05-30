@@ -128,21 +128,30 @@ function parseResponse(obj) {
 	return new_obj;
 }
 
-/** Get the info table row for this model */
-function getInfoForModel(model) {
-	return DB.table(exports.config.infoTableName)
-	.where({
-		m_id: String(model.id),
-		m_table: model.config.adapter.collection_name
-	})
-	.select()
-	.single();
+/** Get the info table row for this model/collection */
+function getInfo(model) {
+	if (model instanceof Backbone.Collection) {
+		return DB.table(exports.config.infoTableName)
+		.where({
+			m_table: model.config.adapter.collection_name
+		})
+		.select()
+		.all();
+	} else if (model instanceof Backbone.Model || _.isObject(model)) {
+		return DB.table(exports.config.infoTableName)
+		.where({
+			m_id: String(model.id),
+			m_table: model.config.adapter.collection_name
+		})
+		.select()
+		.single();
+	}
 }
 
 /** Save the timestamp and offline status for a model */
 function saveModelInfo(id, config, offline) {
 	// Logger.debug('Saving ' + config.collection_name + '/' + id + ' offline ' + value + '...');
-	if (getInfoForModel({ id: id, config: {adapter: { collection_name : config.collection_name }}}) != null) {
+	if (getInfo({ id: id, config: {adapter: { collection_name : config.collection_name }}}) != null) {
 		DB.table(config.infoTableName)
 		.where({
 			m_id: String(id),
@@ -261,7 +270,7 @@ function updateLocal(model, attributes, opt) {
 /** Return true if this model is present in the sync table and valid for local fetch operations */
 SQLREST.prototype._isLocalValid = function() {
 	var self = this;
-	var info_row = getInfoForModel(self.model);
+	var info_row = getInfo(self.model);
 
 	return info_row != null && ((Boolean(info_row.offline) && info_row.timestamp != null) || info_row.timestamp + self.config.ttl > Util.now());
 };
@@ -359,7 +368,7 @@ SQLREST.prototype._persist = function(response) {
 		var mId = String(response[model.idAttribute || 'id']);
 		var mTable = config.collection_name;
 
-		if (getInfoForModel({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
+		if (getInfo({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
 			DB.table(config.infoTableName)
 			.where({
 				m_id: mId,
@@ -564,7 +573,7 @@ SQLREST.prototype.setOffline = function(value) {
 };
 
 SQLREST.prototype.isOffline = function() {
-	var row = getInfoForModel(this.model);
+	var row = getInfo(this.model);
 
 	return (row != null) && Boolean(row.offline);
 };
@@ -573,29 +582,6 @@ SQLREST.prototype.readOffline = function(opt) {
 	var self = this;
 	opt = opt || {};
 
-	var localOpt = _.extend({}, opt, {
-		query: 'SELECT target.* FROM ' + self.config.collection_name + ' target LEFT JOIN ' +
-		self.config.infoTableName + ' info ON target.' + (self.config.idAttribute || 'id') +
-		' = info.m_id WHERE info.offline = 1',
-		success: function(response) {
-			Ti.API.debug(LOGNAME + ': offline collection ' + self.config.collection_name + ' retrieved from localAdapter.');
-
-			var resp = [];
-
-			if (response.length) {
-				resp = _.map(response, parseResponse);
-			} else if (!_.isEmpty(response)) {
-				resp = [parseResponse(response)];
-			}
-
-			self.model.reset(resp);
-
-			if (_.isFunction(opt.success)) {
-				opt.success(self.model);
-			}
-		}
-	});
-
 	// Fix for this adapter and the REST adapter.
 	if (self.model instanceof Backbone.Model) {
 		Ti.API.error(LOGNAME + ': method "readOffline" not supported for models.');
@@ -603,9 +589,33 @@ SQLREST.prototype.readOffline = function(opt) {
 		if (_.isFunction(opt.success)) {
 			return opt.success({});
 		}
+	} else {
+		var info_rows = getInfo(self.model);
+
+		Local.sync('read', self.model, _.extend({}, opt, {
+			success: function(response) {
+				Ti.API.debug(LOGNAME + ': offline collection ' + self.config.collection_name + ' retrieved from localAdapter.');
+
+				var resp = [];
+
+				if (response.length) {
+					resp = _.map(response, parseResponse);
+				} else if (!_.isEmpty(response)) {
+					resp = [parseResponse(response)];
+				}
+
+				self.model.reset(_.filter(resp, function(r_model) {
+					var row = _.findWhere(info_rows, { m_id: String(r_model[self.model.idAttribute || 'id']), m_table: String(self.config.collection_name) });
+					return row != null && row.offline;
+				}));
+
+				if (_.isFunction(opt.success)) {
+					opt.success(self.model);
+				}
+			}
+		}));
 	}
 
-	Local.sync('read', self.model, localOpt);
 };
 
 SQLREST.prototype.destroyOffline = function(opt) {
