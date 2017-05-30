@@ -43,9 +43,6 @@ var TABLES = {
 	}
 };
 
-var Local = null;
-var Remote = null;
-
 var DB = new SQLite('_alloy_');
 
 /** Initialize the tables for sync and timestamp references */
@@ -88,8 +85,8 @@ function SQLREST(model) {
 		Ti.Network.addEventListener('change', Alloy.Globals.offline_listener);
 	}
 
-	Local = require('alloy/sync/' + this.config.localAdapter);
-	Remote = require('alloy/sync/' + this.config.remoteAdapter);
+	this.Local = require('alloy/sync/' + this.config.localAdapter);
+	this.Remote = require('alloy/sync/' + this.config.remoteAdapter);
 }
 
 function deepClone(object) {
@@ -129,20 +126,20 @@ function parseResponse(obj) {
 }
 
 /** Get the info table row for this model/collection */
-function getInfo(model) {
+function getInfo(model, opt) {
 	if (model instanceof Backbone.Collection) {
 		return DB.table(exports.config.infoTableName)
-		.where({
+		.where(_.extend({
 			m_table: model.config.adapter.collection_name
-		})
+		}, opt))
 		.select()
 		.all();
 	} else if (model instanceof Backbone.Model || _.isObject(model)) {
 		return DB.table(exports.config.infoTableName)
-		.where({
+		.where(_.extend({
 			m_id: String(model.id),
 			m_table: model.config.adapter.collection_name
-		})
+		}, opt))
 		.select()
 		.single();
 	}
@@ -236,9 +233,9 @@ function removeSyncRow(row) {
 }
 
 /** Postponed sync call for models in the sync table */
-function postponedSync(method, model, opt) {
+function postponedSync(method, model, adapter, opt) {
 	return Q.promise(function(resolve, reject) {
-		Remote.sync(method, model, _.extend({}, opt, {
+		adapter.sync(method, model, _.extend({}, opt, {
 			success: function(response) {
 				resolve({ message: 'Success on postponed call to ' + method + ' for ' + model.id });
 			},
@@ -256,11 +253,11 @@ function postponedSync(method, model, opt) {
 }
 
 /** Get a promise for the local update of a model */
-function updateLocal(model, attributes, opt) {
+function updateLocal(model, attributes, adapter, opt) {
 	attributes = attributes || model.toJSON();
 
 	return Q.promise(function(resolve, reject) {
-		Local.sync('update', model.clone().set(stringifyResponse(attributes)), _.extend({}, opt, {
+		adapter.sync('update', model.clone().set(stringifyResponse(attributes)), _.extend({}, opt, {
 			success: resolve,
 			error: reject
 		}));
@@ -297,7 +294,7 @@ SQLREST.prototype._push = function() {
 			Ti.API.error(LOGNAME + ' error while parsing model data: ', err);
 		}
 
-		return postponedSync(row.method, new_model, row.options)
+		return postponedSync(row.method, new_model, self.Remote, row.options)
 		.then(function(response) {
 			Ti.API.debug(LOGNAME + ': ' + response.message);
 
@@ -314,7 +311,7 @@ SQLREST.prototype._pull = function(opt) {
 	var self = this;
 
 	return Q.promise(function(resolve, reject) {
-		Remote.sync('read', self.model, _.extend({}, opt, {
+		self.Remote.sync('read', self.model, _.extend({}, opt, {
 			cache: false,
 			success: resolve,
 			error: reject
@@ -323,7 +320,7 @@ SQLREST.prototype._pull = function(opt) {
 };
 
 SQLREST.prototype._update = function(opt) {
-	return updateLocal(this.model, null, opt);
+	return updateLocal(this.model, null, this.Local, opt);
 };
 
 SQLREST.prototype._destroy = function(opt) {
@@ -337,7 +334,7 @@ SQLREST.prototype._destroy = function(opt) {
 				removeModelInfo(mod);
 				_.each(getSyncs(mod), removeSyncRow);
 
-				Local.sync('delete', mod, _.extend({}, opt, {
+				self.Local.sync('delete', mod, _.extend({}, opt, {
 					success: resolve,
 					error: reject
 				}));
@@ -350,7 +347,7 @@ SQLREST.prototype._destroy = function(opt) {
 			removeModelInfo(self.model);
 			_.each(getSyncs(self.model), removeSyncRow);
 
-			Local.sync('delete', self.model, _.extend({}, opt, {
+			self.Local.sync('delete', self.model, _.extend({}, opt, {
 				success: resolve,
 				error: reject
 			}));
@@ -360,8 +357,9 @@ SQLREST.prototype._destroy = function(opt) {
 
 /** Persist a model/collection in the local storage of choice */
 SQLREST.prototype._persist = function(response) {
-	var model = this.model;
-	var config = this.config;
+	var self = this;
+	var model = self.model;
+	var config = self.config;
 
 	function updateInfo(response) {
 		// Update the timestamp
@@ -395,11 +393,12 @@ SQLREST.prototype._persist = function(response) {
 		var promises = [];
 
 		if (model instanceof Backbone.Model) {
-			promises.push(updateLocal(model, response)
+			promises.push(updateLocal(model, response, self.Local)
 				.then(updateInfo));
 		} else {
 			promises = _.map(response, function(attrs) {
-				return updateLocal(new model.model(), attrs)
+
+				return updateLocal(new model.model(), attrs, self.Local)
 				.then(updateInfo);
 			});
 		}
@@ -426,7 +425,7 @@ SQLREST.prototype._retrieve = function(opt) {
 		return Q.promise(function(resolve, reject) {
 			// Check if we can use the local copy
 			if (self._isLocalValid()) {
-				Local.sync('read', self.model, _.extend({}, opt, {
+				self.Local.sync('read', self.model, _.extend({}, opt, {
 					success: function(response) {
 						if (!_.isEmpty(response)) {
 							resolve(parseResponse(response));
@@ -590,30 +589,46 @@ SQLREST.prototype.readOffline = function(opt) {
 			return opt.success({});
 		}
 	} else {
-		var info_rows = getInfo(self.model);
+		var info_rows = getInfo(self.model, { offline: 1 });
 
-		Local.sync('read', self.model, _.extend({}, opt, {
-			success: function(response) {
-				Ti.API.debug(LOGNAME + ': offline collection ' + self.config.collection_name + ' retrieved from localAdapter.');
-
-				var resp = [];
-
-				if (response.length) {
-					resp = _.map(response, parseResponse);
-				} else if (!_.isEmpty(response)) {
-					resp = [parseResponse(response)];
-				}
-
-				self.model.reset(_.filter(resp, function(r_model) {
-					var row = _.findWhere(info_rows, { m_id: String(r_model[self.model.idAttribute || 'id']), m_table: String(self.config.collection_name) });
-					return row != null && row.offline;
-				}));
-
-				if (_.isFunction(opt.success)) {
-					opt.success(self.model);
-				}
+		if (_.isEmpty(info_rows)) {
+			if (_.isFunction(opt.success)) {
+				opt.success(self.model);
 			}
-		}));
+
+			return;
+		}
+
+		var response = [];
+
+		var promises = _.map(info_rows, function(row) {
+			var temp_model = new self.model.model();
+			temp_model.id = row.m_id;
+
+			return Q.promise(function(resolve, reject) {
+				self.Local.sync('read', temp_model, {
+					id: row.m_id, // SQL adapter compatibility
+					success: function(res) {
+						response.push(parseResponse(res));
+						resolve();
+					},
+					error: function(err) {
+						Ti.API.error(LOGNAME + ': error reading model ' + temp_model.id + ' from localAdapter:', err);
+
+						reject(err);
+					}
+				});
+			});
+		});
+
+		Q.allSettled(promises)
+		.then(function() {
+			self.model.reset(response);
+
+			if (_.isFunction(opt.success)) {
+				opt.success(self.model);
+			}
+		});
 	}
 
 };
