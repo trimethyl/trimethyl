@@ -78,8 +78,9 @@
     "ext/underscore.string",
     "ext/rrule",
     "ext/nlp",
-    "ext/nlp-i18n/it"
+    "ext/nlp-i18n/it",
+    "cache/prop"
   ],
   "version": "10.0.0",
-  "install_date": 1495468535152
+  "install_date": 1496228998048
 }

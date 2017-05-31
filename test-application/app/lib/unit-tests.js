@@ -5,17 +5,27 @@ var SQLite = T('sqlite');
 var Router = T('router');
 var Util = T('util');
 var Logger = T('logger');
-var Moment = require('alloy/moment');
 var Dialog = T('dialog');
 var Filesystem = T('filesystem');
 var Geo = T('geo');
 var Prop = T('prop');
+var Cache = T('cache');
 
 var G = {};
 
-exports.methods = {};
+exports.methods = {
+	http: {},
+	sqlite: {},
+	router: {},
+	util: {},
+	logger: {},
+	prop: {},
+	filesystem: {},
+	cache: {},
+	geo: {}
+};
 
-exports.methods.http_should_parse_json = function() {
+exports.methods.http.should_parse_json = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
 			url: 'http://demo1916598.mockable.io/hello',
@@ -28,7 +38,7 @@ exports.methods.http_should_parse_json = function() {
 	});
 };
 
-exports.methods.http_ssl_pinning_should_not_affect_other_https = function() {
+exports.methods.http.ssl_pinning_should_not_affect_other_https = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
 			url: 'https://imgix.com',
@@ -38,7 +48,7 @@ exports.methods.http_ssl_pinning_should_not_affect_other_https = function() {
 	});
 };
 
-exports.methods.http_ssl_pinning_should_pass = function() {
+exports.methods.http.ssl_pinning_should_pass = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
 			url: 'https://google.com',
@@ -48,36 +58,37 @@ exports.methods.http_ssl_pinning_should_pass = function() {
 	});
 };
 
-exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
+exports.methods.http.ssl_pinning_should_fail_for_bad_cert = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
 			url: 'https://facebook.com',
 			success: reject,
 			error: function(err) {
-				console.log(err);
 				resolve();
 			}
 		});
 	});
 };
 
-exports.methods.http_should_download = function() {
+exports.methods.http.should_download = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.download('https://unsplash.it/800/800', 'test.jpg', function(file) {
-			if (file == null || !file.exists()) return reject('File not exists');
+			if (file == null || !file.exists()) {
+				return reject('File not exists');
+			}
 			resolve();
 		}, reject);
 	});
 };
 
-exports.methods.sqlite_should_open = function() {
+exports.methods.sqlite.should_open = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db = new SQLite('test');
 		resolve();
 	});
 };
 
-exports.methods.sqlite_should_execute = function() {
+exports.methods.sqlite.should_execute = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db.execute('DROP TABLE IF EXISTS x');
 		G.db.execute('CREATE TABLE x (id INTEGER PRIMARY KEY, text TEXT)');
@@ -85,7 +96,7 @@ exports.methods.sqlite_should_execute = function() {
 	});
 };
 
-exports.methods.sqlite_should_insert = function() {
+exports.methods.sqlite.should_insert = function() {
 	return Q.promise(function(resolve, reject) {
 		G.db.table('x').insert({ id: 1, text: 'trimethyl' }).exec();
 		G.db.table('x').insert({ id: 2, text: 'alloy' }).exec();
@@ -93,7 +104,7 @@ exports.methods.sqlite_should_insert = function() {
 	});
 };
 
-exports.methods.sqlite_should_select_val = function() {
+exports.methods.sqlite.should_select_val = function() {
 	return Q.promise(function(resolve, reject) {
 		var val = G.db.table('x').select('text').where({ id: 1 }).val();
 		if (val != 'trimethyl') {
@@ -103,7 +114,7 @@ exports.methods.sqlite_should_select_val = function() {
 	});
 };
 
-exports.methods.sqlite_should_select_all = function() {
+exports.methods.sqlite.should_select_all = function() {
 	return Q.promise(function(resolve, reject) {
 		var rows = G.db.table('x').select('text').orderBy('id').all();
 		if (rows[0].text != 'trimethyl' || rows[1].text != 'alloy') {
@@ -113,7 +124,7 @@ exports.methods.sqlite_should_select_all = function() {
 	});
 };
 
-exports.methods.sqlite_should_throw_errors = function() {
+exports.methods.sqlite.should_throw_errors = function() {
 	return Q.promise(function(resolve, reject) {
 		try {
 			G.db.table('notexists').select().all();
@@ -124,7 +135,7 @@ exports.methods.sqlite_should_throw_errors = function() {
 	});
 };
 
-exports.methods.routing_should_work = function() {
+exports.methods.router.should_work = function() {
 	return Q.promise(function(resolve, reject) {
 		var timeout = setTimeout(function() { reject(); }, 500);
 		Router.on('/test', function() {
@@ -135,7 +146,7 @@ exports.methods.routing_should_work = function() {
 	});
 };
 
-exports.methods.util_should_build_query = function() {
+exports.methods.util.should_build_query = function() {
 	return Q.promise(function(resolve, reject) {
 		var built = Util.buildQuery({
 			a: 1,
@@ -151,7 +162,7 @@ exports.methods.util_should_build_query = function() {
 	});
 };
 
-exports.methods.util_should_parse_as_x_callback_url = function() {
+exports.methods.util.should_parse_as_x_callback_url = function() {
 	return Q.promise(function(resolve, reject) {
 		var actual = Util.parseAsXCallbackURL('trimethyltest://tester:passtest@caffeina:26000/test?first=this&second="that"&third={what:"dunno"}');
 		var expected = {
@@ -189,7 +200,7 @@ exports.methods.util_should_parse_as_x_callback_url = function() {
 	});
 };
 
-exports.methods.logger_methods_should_work = function() {
+exports.methods.logger.methods_should_work = function() {
 	return Q.promise(function(resolve, reject) {
 		try {
 
@@ -197,7 +208,6 @@ exports.methods.logger_methods_should_work = function() {
 			Logger.info('Multiple', 'Strings');
 			Logger.debug('Undefined, null and object', null, undefined, { 0: 'an', 1: 'object' });
 			Logger.warn('Objects and array', { first: { type: "animal", name: "tapir" }, second: { type: "mineral", name: "quartz" } }, [1,7,9,0, null]);
-			Logger.error('Model', Alloy.createModel('test-model', { name: 'meerkat', type: 'animal', quantity: 1, organic: true }));
 
 			resolve();
 
@@ -207,7 +217,7 @@ exports.methods.logger_methods_should_work = function() {
 	});
 };
 
-exports.methods.filesystem_should_write = function() {
+exports.methods.filesystem.should_write = function() {
 	return Q.promise(function(resolve, reject) {
 		var test_file = Ti.Filesystem.getFile(Util.getAppDataDirectory(), 'trimethyl_test_file');
 		Filesystem.write({
@@ -219,11 +229,136 @@ exports.methods.filesystem_should_write = function() {
 	});
 };
 
-exports.methods.test_prop = function() {
+exports.methods.prop.should_getset = function() {
 	return Q.promise(function(resolve, reject) {
+
 		Prop.setString('test', 'uno');
-		var value = Prop.getString('test');
-		if (value != 'uno') return reject();
+		if (Prop.getString('test') != 'uno') {
+			return reject('Expected uno, received ' + Prop.getString('test'));
+		}
+
 		resolve();
 	});
 };
+
+exports.methods.prop.should_remove = function() {
+	return Q.promise(function(resolve, reject) {
+
+		Prop.setString('test', 'uno');
+		Prop.removeProperty('test');
+
+		if (Prop.hasProperty('test')) {
+			return reject('Expected property missing');
+		}
+
+		if (Prop.getString('test') != null) {
+			return reject('Expected null, received', Prop.getString('test'));
+		}
+
+		resolve();
+	});
+};
+
+function cache_driver_test_json(driver) {
+	return Q.promise(function(resolve, reject) {
+		var _cache = Cache.loadDriver(driver);
+
+		_cache.set('pranzo', JSON.stringify({ pasta: 'carbonara' }), 1);
+		var cache_entry = JSON.parse(_cache.get('pranzo'));
+
+		if (cache_entry == null || cache_entry.pasta != 'carbonara') {
+			return reject("Received (JSON) ", cache_entry);
+		}
+
+		resolve();
+	});	
+}
+
+function cache_driver_test_blob(driver) {
+	return Q.promise(function(resolve, reject) {
+		var _cache = Cache.loadDriver(driver);
+
+		var file = Ti.Filesystem.getFile(Ti.Filesystem.applicationCacheDirectory, 'pasta.txt');
+		file.write('carbonara');
+		_cache.set('pranzo_file', file.read(), 1);
+
+		var cache_file_entry = _cache.get('pranzo_file');
+		if (cache_file_entry == null || cache_file_entry != 'carbonara') {
+			return reject("Received (BLOB) ", cache_file_entry);
+		}
+
+		resolve();
+	});
+}
+
+function cache_driver_test_expire(driver) {
+	return Q.promise(function(resolve, reject) {
+		var _cache = Cache.loadDriver(driver);
+
+		_cache.set('cena', true, 1);
+
+		setTimeout(function() {
+			if (_cache.get('cena') != null) {
+				return reject('Expected (JSON) null, received', _cache.get('cena'));
+			}
+
+			resolve();
+		}, 2000);
+	});
+}
+
+exports.methods.cache.sqlite_should_work_with_json = function() {
+	return cache_driver_test_json('sqlite');
+};
+
+exports.methods.cache.sqlite_should_work_with_blob = function() {
+	return cache_driver_test_blob('sqlite');
+};
+
+exports.methods.cache.sqlite_should_work_expire = function() {
+	return cache_driver_test_expire('sqlite');
+};
+
+exports.methods.cache.prop_should_work_with_json = function() {
+	return cache_driver_test_json('prop');
+};
+
+exports.methods.cache.prop_should_work_with_blob = function() {
+	return cache_driver_test_blob('prop');
+};
+
+exports.methods.cache.prop_should_work_expire = function() {
+	return cache_driver_test_expire('prop');
+};
+
+exports.methods.geo.geo_should_be_authorized = function() {
+	return Q.promise(function(resolve, reject) {
+		if (Geo.isAuthorized()) return resolve();
+		reject();
+	});
+};
+
+exports.methods.geo.get_coords_should_work = function() {
+	return Q.promise(function(resolve, reject) {
+		Geo.getCurrentPosition()
+		.then(function(coords) {
+			if (coords.latitude && coords.longitude) return resolve();
+			reject();
+		})
+		.catch(reject);
+	});
+};
+
+exports.methods.geo.geocode_should_work = function() {
+	return Q.promise(function(resolve, reject) {
+		Geo.geocode({
+			address: "2300 Traverwood Dr. Ann Arbor, MI 48105"
+		})
+		.then(function(res) {
+			if (res.latitude && res.longitude) return resolve();
+			reject();
+		})
+		.catch(reject);
+	});
+};
+
