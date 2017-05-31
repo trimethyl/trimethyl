@@ -242,7 +242,16 @@ exports.geocode = function(opt) {
 			}
 			
 			_.extend(data, {
-				sensor: 'false'
+				sensor: 'false' // false should be a string to actually send 'false'
+			});
+
+			var key = exports.config.googleApiKey;
+			if (!key) {
+				throw new Error(MODULE_NAME + ': this method needs a Google Maps API key to work');
+			}
+
+			_.extend(data, {
+				key: key
 			});
 			
 			HTTP.send({
@@ -321,16 +330,22 @@ exports.reverseGeocode = function(opt) {
 			var data = _.pick(opt, ['language']);
 			
 			_.extend(data, {
-				latlng: opt.lat + ',' + opt.lng,
-				sensor: 'false'
+				latlng: (opt.latitude != null) ? (opt.latitude + ',' + opt.longitude) : (opt.lat + ',' + opt.lng),
+				sensor: 'false' // false should be a string to actually send 'false'
+			});
+
+			var key = exports.config.googleApiKey;
+			if (!key) {
+				throw new Error(MODULE_NAME + ': this method needs a Google Maps API key to work');
+			}
+
+			_.extend(data, {
+				key: key
 			});
 			
 			HTTP.send({
 				url: 'https://maps.googleapis.com/maps/api/geocode/json',
-				data: {
-					latlng: opt.lat + ',' + opt.lng,
-					sensor: 'false'
-				},
+				data: data,
 				silent: opt.silent,
 				ttl: opt.ttl,
 				format: 'json'
@@ -405,21 +420,24 @@ exports.autocomplete = function(opt) {
 			opt.ttl = CACHE_TTL;
 		}
 		
-		var key = exports.config.googleApiKey;
-		if (!key) {
-			throw new Error(MODULE_NAME + ': this method needs a Google Maps API key to work');
-		}
 		
 		if (!opt.input) {
 			throw new Error(MODULE_NAME + ': Missing required parameter "input"');
 		}
 		
 		var data = _.pick(opt, 'input', 'offset', 'location', 'radius', 'language', 'types');
+		
 		if (_.isObject(opt.components)) {
 			_.extend(data, {
 				components: parseComponents(opt.components)
 			});
 		}
+		
+		var key = exports.config.googleApiKey;
+		if (!key) {
+			throw new Error(MODULE_NAME + ': this method needs a Google Maps API key to work');
+		}
+
 		_.extend(data, {
 			key: key
 		});
