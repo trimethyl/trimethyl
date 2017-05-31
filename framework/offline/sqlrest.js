@@ -43,9 +43,6 @@ var TABLES = {
 	}
 };
 
-var Local = null;
-var Remote = null;
-
 var DB = new SQLite('_alloy_');
 
 /** Initialize the tables for sync and timestamp references */
@@ -88,8 +85,8 @@ function SQLREST(model) {
 		Ti.Network.addEventListener('change', Alloy.Globals.offline_listener);
 	}
 
-	Local = require('alloy/sync/' + this.config.localAdapter);
-	Remote = require('alloy/sync/' + this.config.remoteAdapter);
+	this.Local = require('alloy/sync/' + this.config.localAdapter);
+	this.Remote = require('alloy/sync/' + this.config.remoteAdapter);
 }
 
 function deepClone(object) {
@@ -128,21 +125,30 @@ function parseResponse(obj) {
 	return new_obj;
 }
 
-/** Get the info table row for this model */
-function getInfoForModel(model) {
-	return DB.table(exports.config.infoTableName)
-	.where({
-		m_id: String(model.id),
-		m_table: model.config.adapter.collection_name
-	})
-	.select()
-	.single();
+/** Get the info table row for this model/collection */
+function getInfo(model, opt) {
+	if (model instanceof Backbone.Collection) {
+		return DB.table(exports.config.infoTableName)
+		.where(_.extend({
+			m_table: model.config.adapter.collection_name
+		}, opt))
+		.select()
+		.all();
+	} else if (model instanceof Backbone.Model || _.isObject(model)) {
+		return DB.table(exports.config.infoTableName)
+		.where(_.extend({
+			m_id: String(model.id),
+			m_table: model.config.adapter.collection_name
+		}, opt))
+		.select()
+		.single();
+	}
 }
 
 /** Save the timestamp and offline status for a model */
 function saveModelInfo(id, config, offline) {
 	// Logger.debug('Saving ' + config.collection_name + '/' + id + ' offline ' + value + '...');
-	if (getInfoForModel({ id: id, config: {adapter: { collection_name : config.collection_name }}}) != null) {
+	if (getInfo({ id: id, config: {adapter: { collection_name : config.collection_name }}}) != null) {
 		DB.table(config.infoTableName)
 		.where({
 			m_id: String(id),
@@ -227,9 +233,9 @@ function removeSyncRow(row) {
 }
 
 /** Postponed sync call for models in the sync table */
-function postponedSync(method, model, opt) {
+function postponedSync(method, model, adapter, opt) {
 	return Q.promise(function(resolve, reject) {
-		Remote.sync(method, model, _.extend({}, opt, {
+		adapter.sync(method, model, _.extend({}, opt, {
 			success: function(response) {
 				resolve({ message: 'Success on postponed call to ' + method + ' for ' + model.id });
 			},
@@ -247,11 +253,11 @@ function postponedSync(method, model, opt) {
 }
 
 /** Get a promise for the local update of a model */
-function updateLocal(model, attributes, opt) {
+function updateLocal(model, attributes, adapter, opt) {
 	attributes = attributes || model.toJSON();
 
 	return Q.promise(function(resolve, reject) {
-		Local.sync('update', model.clone().set(stringifyResponse(attributes)), _.extend({}, opt, {
+		adapter.sync('update', model.clone().set(stringifyResponse(attributes)), _.extend({}, opt, {
 			success: resolve,
 			error: reject
 		}));
@@ -261,7 +267,7 @@ function updateLocal(model, attributes, opt) {
 /** Return true if this model is present in the sync table and valid for local fetch operations */
 SQLREST.prototype._isLocalValid = function() {
 	var self = this;
-	var info_row = getInfoForModel(self.model);
+	var info_row = getInfo(self.model);
 
 	return info_row != null && ((Boolean(info_row.offline) && info_row.timestamp != null) || info_row.timestamp + self.config.ttl > Util.now());
 };
@@ -288,7 +294,7 @@ SQLREST.prototype._push = function() {
 			Ti.API.error(LOGNAME + ' error while parsing model data: ', err);
 		}
 
-		return postponedSync(row.method, new_model, row.options)
+		return postponedSync(row.method, new_model, self.Remote, row.options)
 		.then(function(response) {
 			Ti.API.debug(LOGNAME + ': ' + response.message);
 
@@ -305,7 +311,7 @@ SQLREST.prototype._pull = function(opt) {
 	var self = this;
 
 	return Q.promise(function(resolve, reject) {
-		Remote.sync('read', self.model, _.extend({}, opt, {
+		self.Remote.sync('read', self.model, _.extend({}, opt, {
 			cache: false,
 			success: resolve,
 			error: reject
@@ -314,7 +320,7 @@ SQLREST.prototype._pull = function(opt) {
 };
 
 SQLREST.prototype._update = function(opt) {
-	return updateLocal(this.model, null, opt);
+	return updateLocal(this.model, null, this.Local, opt);
 };
 
 SQLREST.prototype._destroy = function(opt) {
@@ -328,7 +334,7 @@ SQLREST.prototype._destroy = function(opt) {
 				removeModelInfo(mod);
 				_.each(getSyncs(mod), removeSyncRow);
 
-				Local.sync('delete', mod, _.extend({}, opt, {
+				self.Local.sync('delete', mod, _.extend({}, opt, {
 					success: resolve,
 					error: reject
 				}));
@@ -341,7 +347,7 @@ SQLREST.prototype._destroy = function(opt) {
 			removeModelInfo(self.model);
 			_.each(getSyncs(self.model), removeSyncRow);
 
-			Local.sync('delete', self.model, _.extend({}, opt, {
+			self.Local.sync('delete', self.model, _.extend({}, opt, {
 				success: resolve,
 				error: reject
 			}));
@@ -351,53 +357,61 @@ SQLREST.prototype._destroy = function(opt) {
 
 /** Persist a model/collection in the local storage of choice */
 SQLREST.prototype._persist = function(response) {
-	var model = this.model;
-	var config = this.config;
+	var self = this;
+	var model = self.model;
+	var config = self.config;
 
-	var promises = null;
+	function updateInfo(response) {
+		// Update the timestamp
+		var mId = String(response[model.idAttribute || 'id']);
+		var mTable = config.collection_name;
 
-	if (model instanceof Backbone.Model) {
-		promises = [ updateLocal(model, response) ];
-	} else {
-		promises = _.map(response, function(attrs) {
-			return updateLocal(new model.model(), attrs);
-		});
+		if (getInfo({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
+			DB.table(config.infoTableName)
+			.where({
+				m_id: mId,
+				m_table: mTable
+			})
+			.update({
+				timestamp: Util.now()
+			})
+			.run();
+		} else {
+			DB.table(config.infoTableName)
+			.insert({
+				m_id: mId,
+				m_table: mTable,
+				file_name: config.file_name,
+				offline: 0,
+				timestamp: Util.now()
+			})
+			.run();
+		}
 	}
 
-	return _.reduce(_.map(promises, function(promise) {
-		return promise.then(function(response) {
+	return Q.allSettled(function() {
+		var promises = [];
 
-			// Update the timestamp
-			var mId = String(response[model.idAttribute || 'id']);
-			var mTable = config.collection_name;
+		if (model instanceof Backbone.Model) {
+			promises.push(updateLocal(model, response, self.Local)
+				.then(updateInfo));
+		} else {
+			promises = _.map(response, function(attrs) {
 
-			if (getInfoForModel({ id: mId, config: {adapter: { collection_name : mTable }}}) != null) { // Also works with an object
-				DB.table(config.infoTableName)
-				.where({
-					m_id: mId,
-					m_table: mTable
-				})
-				.update({
-					timestamp: Util.now()
-				})
-				.run();
-			} else {
-				DB.table(config.infoTableName)
-				.insert({
-					m_id: mId,
-					m_table: mTable,
-					file_name: config.file_name,
-					offline: 0,
-					timestamp: Util.now()
-				})
-				.run();
+				return updateLocal(new model.model(), attrs, self.Local)
+				.then(updateInfo);
+			});
+		}
+
+		return promises;
+	}())
+	.then(function(res_arr) {
+		_.each(res_arr, function(res) {
+			if (res.state === "rejected") {
+				Ti.API.error(LOGNAME + ': could not update the local copy of the model with name ' + config.collection_name + ': ' + res.reason);
 			}
-		})
-		.catch(function(err) {
-			Ti.API.error(LOGNAME + ': could not update the local copy of the model with name ' + config.collection_name + ': ' + err);
 		});
-	}), Q.when, Q())
-	.then(function() {
+
 		// Pass on the original response
 		return response;
 	});
@@ -411,9 +425,13 @@ SQLREST.prototype._retrieve = function(opt) {
 		return Q.promise(function(resolve, reject) {
 			// Check if we can use the local copy
 			if (self._isLocalValid()) {
-				Local.sync('read', self.model, _.extend({}, opt, {
+				self.Local.sync('read', self.model, _.extend({}, opt, {
 					success: function(response) {
-						resolve(parseResponse(response));
+						if (!_.isEmpty(response)) {
+							resolve(parseResponse(response));
+						} else {
+							reject({ message: LOGNAME + ': Model <' + self.config.collection_name + '/' + self.model.id + '> empty.' });
+						}
 					},
 					error: reject
 				}));
@@ -554,7 +572,7 @@ SQLREST.prototype.setOffline = function(value) {
 };
 
 SQLREST.prototype.isOffline = function() {
-	var row = getInfoForModel(this.model);
+	var row = getInfo(this.model);
 
 	return (row != null) && Boolean(row.offline);
 };
@@ -563,29 +581,6 @@ SQLREST.prototype.readOffline = function(opt) {
 	var self = this;
 	opt = opt || {};
 
-	var localOpt = _.extend({}, opt, {
-		query: 'SELECT target.* FROM ' + self.config.collection_name + ' target LEFT JOIN ' +
-		self.config.infoTableName + ' info ON target.' + (self.config.idAttribute || 'id') +
-		' = info.m_id WHERE info.offline = 1',
-		success: function(response) {
-			Ti.API.debug(LOGNAME + ': offline collection ' + self.config.collection_name + ' retrieved from localAdapter.');
-
-			var resp = [];
-
-			if (response.length) {
-				resp = _.map(response, parseResponse);
-			} else if (!_.isEmpty(response)) {
-				resp = [parseResponse(response)];
-			}
-
-			self.model.add(resp);
-
-			if (_.isFunction(opt.success)) {
-				opt.success(self.model);
-			}
-		}
-	});
-
 	// Fix for this adapter and the REST adapter.
 	if (self.model instanceof Backbone.Model) {
 		Ti.API.error(LOGNAME + ': method "readOffline" not supported for models.');
@@ -593,9 +588,49 @@ SQLREST.prototype.readOffline = function(opt) {
 		if (_.isFunction(opt.success)) {
 			return opt.success({});
 		}
+	} else {
+		var info_rows = getInfo(self.model, { offline: 1 });
+
+		if (_.isEmpty(info_rows)) {
+			if (_.isFunction(opt.success)) {
+				opt.success(self.model);
+			}
+
+			return;
+		}
+
+		var response = [];
+
+		var promises = _.map(info_rows, function(row) {
+			var temp_model = new self.model.model();
+			temp_model.id = row.m_id;
+
+			return Q.promise(function(resolve, reject) {
+				self.Local.sync('read', temp_model, {
+					id: row.m_id, // SQL adapter compatibility
+					success: function(res) {
+						response.push(parseResponse(res));
+						resolve();
+					},
+					error: function(err) {
+						Ti.API.error(LOGNAME + ': error reading model ' + temp_model.id + ' from localAdapter:', err);
+
+						reject(err);
+					}
+				});
+			});
+		});
+
+		Q.allSettled(promises)
+		.then(function() {
+			self.model.reset(response);
+
+			if (_.isFunction(opt.success)) {
+				opt.success(self.model);
+			}
+		});
 	}
 
-	Local.sync('read', self.model, localOpt);
 };
 
 SQLREST.prototype.destroyOffline = function(opt) {
