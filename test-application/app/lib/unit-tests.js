@@ -362,3 +362,17 @@ exports.methods.geo.geocode_should_work = function() {
 	});
 };
 
+exports.methods.geo.reversegeocode_should_work = function() {
+	return Q.promise(function(resolve, reject) {
+		Geo.reverseGeocode({
+			latitude: 42.30501176970849,
+			longitude: -83.7153608802915
+		})
+		.then(function(res) {
+			if (res.address) return resolve();
+			reject();
+		})
+		.catch(reject);
+	});
+};
+
