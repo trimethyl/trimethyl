@@ -64,7 +64,7 @@ function Router(opt) {
  * @param  {Array} opt
  * @return Router
  */
-Router.prototype.create = function(opt) {
+Router.prototype.newInstance = function(opt) {
 	return new Router(opt);
 };
 
