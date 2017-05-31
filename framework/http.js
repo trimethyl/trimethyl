@@ -106,6 +106,7 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 		return Ti.API.error(MODULE_NAME + ': SSL pinning requires appcelerator.https module');
 	}
 
+	// If sslPinning is an array, create a cert pinning entry for each entry
 	if (_.isArray(exports.config.sslPinning)) {
 		securityManager = AppcHttps.createX509CertificatePinningSecurityManager(_.map(exports.config.sslPinning, function(domain) {
 			var path = Util.getResourcesDirectory() + "certs/" + domain;
@@ -117,6 +118,8 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 				serverCertificate: path
 			};
 		}));
+
+	// otherwise, if true, configure just for the base domain in HTTP.config
 	} else if (exports.config.sslPinning == true) {
 		var domain = Util.getDomainFromURL(config.base);
 		var path = Util.getResourcesDirectory() + "certs/" + domain;
