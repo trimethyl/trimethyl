@@ -312,7 +312,6 @@ function finishInstallation(libs) {
 
 	// Change the installed version and the current installation date
 	app_trimethyl_config.version = package.version;
-	app_trimethyl_config.install_date = Date.now();
 	writeConfig();
 
 	process.stdout.write('\nInstalled version: ' + ('v' + app_trimethyl_config.version).green + '\n');
