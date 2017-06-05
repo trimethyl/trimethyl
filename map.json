@@ -115,7 +115,7 @@
 	"http":{
 		"name": "HTTP",
 		"description": "HTTP requests in a clear interface with automatic internal cache control, automatic body encoding based on content, middleware filters and optional SSL pinning.",
-		"dependencies": ["event","util","cache","ext/q","permissions/storage"],
+		"dependencies": ["event","util","ext/q","permissions/storage"],
 		"modules": ["appcelerator.https:iphone", "appcelerator.https:android"]
 	},
 	"image":{
