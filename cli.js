@@ -346,7 +346,10 @@ function install() {
 // Install command //
 /////////////////////
 
-program.command('install').alias('i').description('Install the framework files').action(function() {
+program.command('install')
+.alias('i')
+.description('Install the framework files')
+.action(function() {
 	ga.pageview("/install").send();
 
 	if (app_trimethyl_config.version == null) {
@@ -399,7 +402,10 @@ program.command('install').alias('i').description('Install the framework files')
 // List command //
 //////////////////
 
-program.command('list').alias('ls').description('List all Trimethyl available modules').action(function() {
+program.command('list')
+.alias('ls')
+.description('List all Trimethyl available modules')
+.action(function() {
 	ga.pageview("/list").send();
 
 	_.each(trimethyl_map, function(m, k) {
@@ -451,7 +457,10 @@ program.command('add [name]')
 // Remove command //
 ////////////////////
 
-program.command('remove [name]').alias('r').description('Remove a Trimethyl module to your config').action(function(name) {
+program.command('remove [name]')
+.alias('r')
+.description('Remove a Trimethyl module to your config')
+.action(function(name) {
 	ga.pageview("/remove/" + name).send();
 	name = name.replace('.', '/');
 
@@ -468,7 +477,10 @@ program.command('remove [name]').alias('r').description('Remove a Trimethyl modu
 // Update trimethyl //
 //////////////////////
 
-program.command('update').alias('r').description('Do a full upgrade of Trimethyl and its modules').action(function(name) {
+program.command('update')
+.alias('r')
+.description('Do a full upgrade of Trimethyl and its modules')
+.action(function(name) {
 	ga.pageview("/update").send();
 	child_process.exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
 });
