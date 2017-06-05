@@ -136,6 +136,7 @@ function addModule(name) {
 // If found, proceed to the installtion,
 // otherwise, ask to the user which modules wants to install
 function preInstall() {
+	var self = this;
 	ga.event("installation", "preinstall").send();
 
 	if (_.isEmpty(app_trimethyl_config.libs)) {
@@ -164,12 +165,12 @@ function preInstall() {
 			writeConfig();
 
 			// And instantly proceed with the installation
-			install();
+			install.call(self);
 
 		});
 
 	} else {
-		install();
+		install.call(self);
 	}
 }
 
@@ -208,6 +209,7 @@ function installNativeModuleViaGittio(module, platform, callback) {
 }
 
 function installNativeModule(lib, module_def, callback) {
+	var self = this;
 	module_def = module_def.split(':');
 	
 	var module = module_def[0];
@@ -225,6 +227,21 @@ function installNativeModule(lib, module_def, callback) {
 
 	if (module_already_installed) {
 		callback();
+		return;
+	}
+
+	if (self.nativeModuleSkip) {
+		callback();
+		return;
+	}
+
+	if (self.nativeModuleAdd) {
+		installNativeModuleByAdd(module, platform, callback);
+		return;
+	}
+
+	if (self.nativeModuleInstall) {
+		installNativeModuleViaGittio(module, platform, callback);
 		return;
 	}
 
@@ -266,9 +283,10 @@ function installNativeModule(lib, module_def, callback) {
 }
 
 function preInstallLib(lib, callback) {
+	var self = this;
 	// Check if the lib doesn't require any native modules that the end user doesn't have installed yet
 	async.eachSeries(lib.modules || [], function(module, callback) {
-		installNativeModule(lib, module, callback);
+		installNativeModule.call(self, lib, module, callback);
 	}, callback);
 }
 
@@ -322,6 +340,7 @@ function finishInstallation(libs) {
 
 // This function copy the files to the destination directory, building all dependencies upfront
 function install() {
+	var self = this;
 	var libs = {};
 
 	// Add trimethyl anyway, we REQUIRE it
@@ -335,8 +354,8 @@ function install() {
 	ensureFilesystemStructure();
 
 	// Now cycle (async) over all libraries and install them
-	async.eachSeries(libs, preInstallLib, function(err) {
-		async.eachSeries(libs, installLib, function(err) {
+	async.eachSeries(libs, preInstallLib.bind(self), function(err) {
+		async.eachSeries(libs, installLib.bind(self), function(err) {
 			finishInstallation(libs);
 		});
 	});
@@ -348,53 +367,66 @@ function install() {
 
 program.command('install')
 .alias('i')
+.option('--no-check-downgrade', 'Do not check for a downgrade')
+.option('--no-check-majorupgrade', 'Do not check for a major upgrade')
+.option('--native-module-skip', 'Skip the installation of all native modules')
+.option('--native-module-add', 'Add all native modules to tiapp.xml')
+.option('--native-module-install', 'Install all native modules via package manager')
 .description('Install the framework files')
 .action(function() {
+	var self = this;
+
 	ga.pageview("/install").send();
 
 	if (app_trimethyl_config.version == null) {
-		preInstall();
-		return;
+		return preInstall.call(self);
 	}
 
 	var comparision = compareVersions(package.version, app_trimethyl_config.version);
 
 	if (comparision === -1) {
-		inquirer.prompt([{
-			type: 'confirm',
-			name: 'result',
-			message: ("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?").yellow,
-			default: false
-		}], function(ans) {
-			ga.event("installation", "downgrade").send();
 
-			if (ans.result) {
-				preInstall();
-			}
-		});
+		if (self.checkDowngrade) {
+			inquirer.prompt([{
+				type: 'confirm',
+				name: 'result',
+				message: ("You are doing a downgrade from " + app_trimethyl_config.version + ' to ' + package.version + ", are you sure to install?").yellow,
+				default: false
+			}], function(ans) {
+				ga.event("installation", "downgrade").send();
+				if (ans.result) {
+					preInstall.call(self);
+				}
+			});
+		} else {
+			preInstall.call(self);
+		}
 
 	} else if (comparision === 1) {
-		if (compareMajorVersions(package.version, app_trimethyl_config.version) === 1) {
+
+		if (
+		self.checkUpgrade &&
+		compareMajorVersions(package.version, app_trimethyl_config.version) === 1
+		) {
 			inquirer.prompt([{
 				type: 'confirm',
 				name: 'result',
 				message: ("You are doing a major upgrade from " + app_trimethyl_config.version + " to " + package.version + "\nThis means that some features have changed from one release to the other, you have to check the project very carefully after doing that.\nAre you sure to install?").yellow
 			}], function(ans) {
 				ga.event("installation", "majorupgrade").send();
-
 				if (ans.result) {
-					preInstall();
+					preInstall.call(self);
 				}
 			});
-
 		} else {
 			ga.event("installation", "upgrade").send();
-			preInstall();
+			preInstall.call(self);
+
 		}
 
 	} else if (comparision === 0) {
 		ga.event("installation", "uptodate").send();
-		preInstall();
+		preInstall.call(self);
 	}
 });
 
@@ -471,18 +503,6 @@ program.command('remove [name]')
 
 	app_trimethyl_config.libs.splice(io, 1);
 	writeConfig();
-});
-
-//////////////////////
-// Update trimethyl //
-//////////////////////
-
-program.command('update')
-.alias('r')
-.description('Do a full upgrade of Trimethyl and its modules')
-.action(function(name) {
-	ga.pageview("/update").send();
-	child_process.exec('cd ' + __dirname + ' && npm install && cd ' + CWD);
 });
 
 ///////////
