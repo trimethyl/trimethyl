@@ -1,10 +1,8 @@
 {
-
 	"trimethyl":{
 		"name": "Trimethyl Bootstrap",
 		"description": "Boostrap for Trimethyl"
 	},
-
 	"animator":{
 		"name": "Animator",
 		"description": "UI animation helper, providing built-in animations.",
@@ -44,6 +42,10 @@
 		"name": "Cache.SQLite",
 		"description": "Cache driver with SQLite",
 		"dependencies": ["sqlite","util","filesystem"]
+	},
+	"cache/database": {
+		"removed": "10.0.0",
+		"note": "Use <cache/sqlite> instead"
 	},
 	"cache/prop":{
 		"name": "Cache.Prop",
@@ -161,6 +163,10 @@
 		"description": "In-app Payments for both platforms",
 		"dependencies": ["util","ext/q"],
 		"modules": ["ti.inappbilling:android", "ti.storekit:iphone"]
+	},
+	"permissions":{
+		"removed": "10.0.0",
+		"note": "Permissions has been splitted to different module for each feature"
 	},
 	"permissions/camera":{
 		"name": "Permissions.Camera",

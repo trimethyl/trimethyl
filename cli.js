@@ -47,7 +47,18 @@ function addLibraryToHashMap(libs, lib_name, lib_required_by_lib_name, no_of_tab
 
 	var lib = trimethyl_map[ lib_name ];
 	if (lib == null) {
-		error('Unable to find the referenced library "' + lib_name + '"', null, false);
+		error('Unable to find the referenced library >' + lib_name + '>\n');
+		return;
+	}
+
+	if (lib.deprecated) {
+		error("The library <" + lib_name + "> has been deprecated in v" + lib.deprecated + ": " + lib.note + "\n");
+		return;
+	}
+
+	if (lib.removed) {
+		error("The library <" + lib_name + "> has been removed in v" + lib.removed + ": " + lib.note + "\n");
+		return;
 	}
 
 	var src_file = __dirname + '/' + DEFAULT_SOURCE_PATH + '/' + lib_name + '.js';
@@ -253,7 +264,7 @@ function installNativeModule(lib, module_def, callback) {
 	inquirer.prompt([{
 		type: 'expand',
 		name: 'result',
-		message: "<" + lib.name + "> requires the native module <" + module + "> for the platform <" + platform + ">",
+		message: "Library <" + lib.name + "> (for some features) depends on <" + module + "> for the platform <" + platform + ">",
 		choices: [
 		{ key: 'a', name: 'Add to the "tiapp.xml"', value: 'add' },
 		{ key: 'i', name: 'Install via Gittio', value: 'install' },
@@ -297,7 +308,7 @@ function installLib(lib, callback) {
 		: '';
 
 	function effectiveCopy() {
-		process.stdout.write(tn.grey + 'Copying '.grey + lib.name.bold.white + (' (' + lib.size + ')\n').grey );
+		process.stdout.write(tn.grey + 'Installing '.grey + lib.name.bold.white + (' (' + lib.size + ')\n').grey );
 		var dir_name = path.dirname(lib.dst_file);
 		if (!fs.existsSync(dir_name)) {
 			fs.createDirSync(dir_name);
@@ -312,6 +323,7 @@ function installLib(lib, callback) {
 				if (err != null || (md5(src_buf) != md5(dst_buf))) {
 					effectiveCopy();	
 				} else {
+					process.stdout.write(tn.grey + 'Up-to-date '.grey + lib.name.bold.white + "\n");
 					callback();
 				}
 			});
