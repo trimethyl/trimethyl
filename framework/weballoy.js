@@ -1,6 +1,7 @@
 /**
  * @module  weballoy
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * https://github.com/appcelerator-modules/Ti.WKWebView
  */
 
 /**
@@ -16,6 +17,10 @@ var helpers = {};
 var fonts = [];
 
 var TMP_DIR = Ti.Filesystem.tempDirectory + '/weballoy';
+
+var Util = require('T/util');
+var WK_Module = Util.requireOrNull('ti.wkwebview');
+var WK = WK_Module || Ti.UI;
 
 function embedFile(f) {
 	if (_.isEmpty(f)) return null;
@@ -144,7 +149,7 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	var $ui = Ti.UI.createWebView(_.extend({
+	var $ui = WK.createWebView(_.extend({
 		disableBounce: true,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
@@ -215,7 +220,6 @@ exports.createView = function(args) {
 
 	return $ui;
 };
-
 
 /*
 Init

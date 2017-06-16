@@ -334,7 +334,9 @@
 	},
 	"weballoy":{
 		"name": "WebAlloy",
-		"description": "µ-web-framework to write Alloy apps using only web technologies (HTML/CSS/JS) but interfacing in real time with native features. Could you re-create a mini PhoneGap framework in Titanium; the answer is yes."
+		"description": "µ-web-framework to write Alloy apps using only web technologies (HTML/CSS/JS) but interfacing in real time with native features. Could you re-create a mini PhoneGap framework in Titanium; the answer is yes.",
+		"modules": ["ti.wkwebview:iphone"],
+		"dependencies": ["prop"]
 	},
 	"xmlparser": {
 		"name": "XMLParser",
