@@ -7,11 +7,16 @@
 /**
  * @property config
  * @property {String} [config.jsExt=".jslocal"] The extension to use for Javascript files
+ * @property {String} [config.dir="web"] Directory where to search weballoy files
+ * @property {Boolean} [config.useWkWebView=false] Use the new WKWebView module
  */
 exports.config = _.extend({
 	jsExt: '.jslocal',
-	dir: 'web'
+	dir: 'web',
+	useWkWebView: false
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
+
+var MODULE_NAME = 'weballoy';
 
 var libDir = [];
 var helpers = {};
@@ -20,8 +25,17 @@ var fonts = [];
 var TMP_DIR = Ti.Filesystem.tempDirectory + '/weballoy';
 
 var Util = require('T/util');
-var WK_Module = Util.requireOrNull('ti.wkwebview');
-var WK = WK_Module || Ti.UI;
+
+var WK = Ti.UI;
+
+if (config.useWkWebView) {
+	var WK_Module = Util.requireOrNull('ti.wkwebview');
+	if (WK_Module != null) {
+		WK = WK_Module;
+	} else {
+		Ti.API.warn(MODULE_NAME + ': unable to find <ti.wkwebview> module, falling back to Ti.UI');
+	}	
+}
 
 function embedFile(f) {
 	if (_.isEmpty(f)) return null;
