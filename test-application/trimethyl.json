@@ -79,7 +79,9 @@
     "ext/nlp-i18n/it",
     "support/oauth",
     "support/xmlparser/extract",
-    "support/xmlparser/proxies"
+    "support/xmlparser/proxies",
+    "ext/raven",
+    "sentry"
   ],
   "version": "8.0.0",
   "install_date": 1489676760954

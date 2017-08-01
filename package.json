@@ -51,6 +51,7 @@
     "inquirer": "^0.12.0",
     "prompt": "^0.3.0",
     "q": "^1.4.1",
+    "raven": "^2.1.1",
     "rrule": "https://github.com/trimethyl/rrule",
     "tiapp.xml": "^0.2.2",
     "underscore": "^1.8.3",
