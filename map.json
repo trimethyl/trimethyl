@@ -191,7 +191,7 @@
 	"sentry": {
 		"name": "Sentry",
 		"description": "Handles exceptions and actions to have a real time reporting on bugs",
-		"dependencies": ["ext/raven"]
+		"dependencies": ["ext/raven", "http", "util"]
 	},
 	"sharer":{
 		"name": "Sharer",
