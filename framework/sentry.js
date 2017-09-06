@@ -51,6 +51,24 @@ if (exports.config.autoInstall) {
 		Ti.API.warn(MODULE_NAME + ": You must set a dsn for Sentry");
 	} else {
 		_Raven.config(exports.config.dsn, _(exports.config).omit(["dsn", "sentry_secret"])).install();
+		Ti.API.debug("Sentry installed");
+
+
+		Ti.App.addEventListener("uncaughtException", function(e) {			
+			var error = new Error();
+			Ti.API.error(error);
+			error = _.extend(error, {
+				message: e.message,
+				type: e.type,
+				stack: e.stack,
+				column: e.column,
+				line: e.line,
+				fileName: e.sourceURL
+			});
+
+			Sentry.captureException(error);
+		});
+
 	}
 }
 
