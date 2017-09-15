@@ -11,7 +11,8 @@
  */
 exports.config = _.extend({
 	ua: null,
-	log: false
+	log: false,
+	enableAdvertisingIdCollection: false,
 }, Alloy.CFG.T ? Alloy.CFG.T.ga : {});
 
 var Util = require('T/util');
@@ -19,18 +20,23 @@ var Util = require('T/util');
 var AnalyticsGoogle = Util.requireOrNull('ti.ga');
 var tracker = null;
 
+var MODULE_NAME = 'GA';
+
 function track(method, what) {
-	if (tracker === null) return;
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
 	if (_.isEmpty(what)) return;
 
 	if (exports.config.log === true) {
-		Ti.API.trace("GA: Track", method, what);
+		Ti.API.trace(MODULE_NAME + ": Track", method, what);
 	}
 
 	try {
 		tracker['add' + method](what);
 	} catch (err) {
-		Ti.API.error('GA: Error while calling method ' + method, err);
+		Ti.API.error(MODULE_NAME + ': Error while calling method ' + method, err);
 	}
 }
 
@@ -42,7 +48,11 @@ function track(method, what) {
  * @param  {String} [val=0]	Value
  */
 exports.trackEvent = function(cat, act, lbl, val){
-	if (tracker === null) return;
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
+
 	var obj;
 
 	if (_.isObject(cat)) {
@@ -52,7 +62,7 @@ exports.trackEvent = function(cat, act, lbl, val){
 			category: cat,
 			action: act,
 			label: lbl || '',
-			value: +val || 0
+			value: +val || 0,
 		};
 	}
 
@@ -71,16 +81,24 @@ exports.event = exports.trackEvent;
  * @param  {String} name 	The screen name
  */
 exports.trackScreen = function(name) {
-	if (tracker === null) return;
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
 	var obj;
 
 	try {
-		tracker.addScreenView(name);
+		if (_.isObject(name)) {
+			tracker.addScreenView(name.name, _.omit(name, 'name'));
+		} else {
+			tracker.addScreenView(name, {});
+		}
+
 		if (exports.config.log === true) {
-			Ti.API.trace("GA: Track", "Screen", name);
+			Ti.API.trace(MODULE_NAME + ": Track", "Screen", name);
 		}
 	} catch (err) {
-		Ti.API.error('GA: Error while calling method ScreenView', err);
+		Ti.API.error(MODULE_NAME + ': Error while calling method ScreenView', err);
 	}
 };
 
@@ -98,7 +116,10 @@ exports.screen = exports.trackScreen;
  * @param  {String} [tar=""] Target
  */
 exports.trackSocial = function(net, act, tar){
-	if (tracker === null) return;
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
 	var obj;
 
 	if (_.isObject(net)) {
@@ -107,7 +128,7 @@ exports.trackSocial = function(net, act, tar){
 		obj = {
 			network: net,
 			action: act || 'share',
-			target: tar || ''
+			target: tar || '',
 		};
 	}
 
@@ -130,7 +151,10 @@ exports.social = exports.trackSocial;
  * @param  {String} [lbl=""] Label
  */
 exports.trackTiming = function(cat, time, name, lbl) {
-	if (tracker === null) return;
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
 	var obj;
 
 	if (_.isObject(cat)) {
@@ -140,7 +164,7 @@ exports.trackTiming = function(cat, time, name, lbl) {
 			category: cat,
 			time: time,
 			name: name || '',
-			label: lbl || ''
+			label: lbl || '',
 		};
 	}
 
@@ -158,7 +182,10 @@ exports.time = exports.trackTiming;
  * @param  {Boolean} [fatal=false] Indicate if the error is a fatal error
  */
 exports.trackException = function(description, fatal) {
-	if (tracker === null) return;
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
 	var obj;
 
 	if (_.isObject(description)) {
@@ -184,11 +211,37 @@ exports.exception = exports.trackException;
  * @param {String} ua
  */
 exports.setTrackerUA = function(ua) {
-	Ti.API.debug('GA: Initialized with UA = ' + ua);
+	Ti.API.debug(MODULE_NAME + ': Initialized with UA = ' + ua);
 	tracker = AnalyticsGoogle.createTracker({
 		trackingId: ua,
-		useSecure: true
+		useSecure: true,
+		enableAdvertisingIdCollection: exports.config.enableAdvertisingIdCollection,
 	});
+};
+
+/**
+ * Start a new session.
+ */
+exports.startSession = function() {
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
+
+	tracker.startSession();
+};
+
+/**
+ * Associate an user id to the GA data for the current session.
+ * @param {} id An user id
+ */
+exports.setUserID = function(id) {
+	if (tracker === null) {
+		Ti.API.error(MODULE_NAME + ': Ti.GA module not initialized.');
+		return;
+	}
+
+	tracker.setUserID(id);
 };
 
 //////////
@@ -200,8 +253,8 @@ if (exports.config.ua != null) {
 		exports.setTrackerUA(exports.config.ua);
 		AnalyticsGoogle.setTrackUncaughtExceptions();
 	} else {
-		Ti.API.error('GA: initialization failed, unable to find module');
+		Ti.API.error(MODULE_NAME + ': initialization failed, unable to find module');
 	}
 } else {
-	Ti.API.error('GA: initialization failed, invalid UA');
+	Ti.API.error(MODULE_NAME + ': initialization failed, invalid UA');
 }
