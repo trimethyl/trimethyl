@@ -79,7 +79,12 @@
     "ext/rrule",
     "ext/nlp",
     "ext/nlp-i18n/it",
-    "cache/prop"
+    "cache/prop",
+    "support/oauth",
+    "support/xmlparser/extract",
+    "support/xmlparser/proxies",
+    "ext/raven",
+    "sentry"
   ],
   "version": "10.0.0",
   "install_date": 1496246630544

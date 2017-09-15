@@ -199,6 +199,11 @@
 		"description": "You can emulate the routing concept adopted in many web framework, to handle incoming universal links and manage your app architecture.",
 		"dependencies": ["util","flow","ext/q"]
 	},
+	"sentry": {
+		"name": "Sentry",
+		"description": "Handles exceptions and actions to have a real time reporting on bugs",
+		"dependencies": ["ext/raven", "http", "util"]
+	},
 	"sharer":{
 		"name": "Sharer",
 		"description": "It provides a simple interface to share link on various social networks / chat systems like Facebook, Twitter, Telegram, WhatsApp and all you can imagine.",
@@ -382,6 +387,12 @@
 		"name": "Q",
 		"source": "/node_modules/q/q.js"
 	},
+
+	"ext/raven":{
+		"name": "Raven",
+		"dependencies": []
+	},
+	
 	"ext/underscore.string":{
 		"name": "Underscore.String",
 		"source": "/node_modules/underscore.string/dist/underscore.string.js"
