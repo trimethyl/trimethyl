@@ -3,15 +3,18 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
+var Util = require('T/util');
+
 /**
  * @property config
- * @property {String}  config.base 								The base URL of the API
+ * @property {String}  config.base 							The base URL of the API
  * @property {Number}  [config.timeout=30000] 				Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
  * @property {Object}  [config.headers={}] 					Global headers for all requests.
  * @property {Boolean} [config.log=false] 					Log the requests.
- * @property {Boolean} [config.cache=true]					Check if the response should be cached.
- * @property {Boolean} [config.bodyEncodingInJSON=false] Force to encoding in JSON of body data is the input is a JS object.
+ * @property {Boolean} [config.cache=true] 					Check if the response should be cached.
+ * @property {Boolean} [config.bodyEncodingInJSON=false] 	Force to encoding in JSON of body data is the input is a JS object.
  * @property {Boolean} [config.sslPinning=false] 			If this value is an array, it must contain the domains on which to apply SSL pinning. If this value is true, SSL pinning is applied on base HTTP domain. Certificates must be located in /app/assets/certs and named as the the domain name without extension. (example: "/app/assets/certs/youtube.com")
+ * @property {String} [config.certificatesPath] 			The path of the certificates directory
  */
 exports.config = _.extend({
 	base: '',
@@ -20,13 +23,13 @@ exports.config = _.extend({
 	log: false,
 	cache: true,
 	bodyEncodingInJSON: false,
-	sslPinning: false
+	sslPinning: false,
+	certificatesPath: Util.getResourcesDirectory() + "certs/",
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var MODULE_NAME = 'http';
 
 var Event = require('T/event');
-var Util = require('T/util');
 var Q = require('T/ext/q');
 var PermissionsStorage = require('T/permissions/storage');
 
@@ -109,7 +112,7 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 	// If sslPinning is an array, create a cert pinning entry for each entry
 	if (_.isArray(exports.config.sslPinning)) {
 		securityManager = AppcHttps.createX509CertificatePinningSecurityManager(_.map(exports.config.sslPinning, function(domain) {
-			var path = Util.getResourcesDirectory() + "certs/" + domain;
+			var path = exports.config.certificatesPath + domain;
 			if (Ti.Filesystem.getFile(path).exists() == false) {
 				throw new Error(MODULE_NAME + ': certificate for SSL pinning not found (' + domain + ')');
 			}
@@ -122,7 +125,7 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 	// otherwise, if true, configure just for the base domain in HTTP.config
 	} else if (exports.config.sslPinning == true) {
 		var domain = Util.getDomainFromURL(config.base);
-		var path = Util.getResourcesDirectory() + "certs/" + domain;
+		var path = exports.config.certificatesPath + domain;
 		if (Ti.Filesystem.getFile(path).exists() == false) {
 			throw new Error(MODULE_NAME + ': certificate for base SSL pinning not found (' + domain + ')');
 		}
@@ -273,7 +276,7 @@ HTTPRequest.prototype._send = function() {
 	var client = Ti.Network.createHTTPClient(_.extend({
 		timeout: this.timeout,
 		cache: this.cache,
-	}, 
+	},
 	this.securityManager ? { securityManager: this.securityManager } : {}
 	));
 
