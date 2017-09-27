@@ -28,13 +28,13 @@ var Util = require('T/util');
 
 var WK = Ti.UI;
 
-if (config.useWkWebView) {
+if (exports.config.useWkWebView) {
 	var WK_Module = Util.requireOrNull('ti.wkwebview');
 	if (WK_Module != null) {
 		WK = WK_Module;
 	} else {
 		Ti.API.warn(MODULE_NAME + ': unable to find <ti.wkwebview> module, falling back to Ti.UI');
-	}	
+	}
 }
 
 function embedFile(f) {
