@@ -71,8 +71,6 @@ LocalSync.prototype.read = function(model, opt) {
 	opt.error = opt.error || Alloy.Globals.noop;
 	var query = _.extend(_.omit(opt, 'success', 'error'), { query: opt.query });
 	var m_config = model.config.adapter;
-	var remote_adapter = getRemoteAdapter(model);
-	var local_adapter = getLocalAdapter(model);
 
 	// Fix for this adapter and the REST adapter.
 	if (model instanceof Backbone.Model && opt.id != null) {
@@ -96,7 +94,7 @@ LocalSync.prototype.read = function(model, opt) {
 			// Push all the pending changes and pull the new model from the remote
 			var remote_resp = null;
 			var remote_err = null;
-			return writeRemote(model, remote_adapter)
+			return writeRemote(model)
 			.then(function() {
 				return readRemote(model, query);
 			})
@@ -394,6 +392,12 @@ function writeLocal(model, attributes, opt) {
 
 function writeRemote(model) {
 	var postponed = getSyncs(model);
+	var m_config = model.config.adapter;
+
+	if (postponed.length > 1 && m_config.keepLast == true) {
+		// Keep only the last postponed call
+		_.each(postponed.splice(0, postponed.length-1), removeSyncRow);
+	}
 
 	return _.reduce(_.map(postponed, function(row) {
 		var new_model = null;
