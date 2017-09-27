@@ -378,6 +378,13 @@
 		"destination": "/app/lib/alloy/sync/offline.js"
 	},
 
+	"alloy/sync/localsync":{
+		"name": "LocalSync Alloy Adapter",
+		"description": "A configurable sync adapter for syncing remote models on a local database or storage.",
+		"dependencies": ["sqlite","ext/q"],
+		"destination": "/app/lib/alloy/sync/localSync.js"
+	},
+
 	"ext/async":{
 		"name": "Async",
 		"source": "/node_modules/async/dist/async.js"
