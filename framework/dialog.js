@@ -37,7 +37,8 @@ function dialogAlert(title, message, callback, ext) {
 	var dialog = Ti.UI.createAlertDialog(_.extend({
 		title: title,
 		message: message,
-		ok: 'OK'
+		ok: 'OK',
+		canceledOnTouchOutside: false,
 	}, ext));
 
 	if (_.isFunction(callback)) {
