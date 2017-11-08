@@ -140,7 +140,7 @@
 	"notifications":{
 		"name": "Notifications",
 		"description": "Push notifications module with interactive notification supports handling all platforms with one single interface, and communicating with several online service or with your custom server.",
-		"dependencies": ["event","util","router","ext/q"],
+		"dependencies": ["event","util","ext/q"],
 		"modules": ["ti.goosh:android"]
 	},
 	"notifications/http":{
