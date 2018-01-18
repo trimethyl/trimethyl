@@ -229,7 +229,7 @@ exports.resetFetchUserFunction = function() {
  * @return {Boolean}
  */
 exports.isTouchIDSupported = function() {
-	return exports.config.useTouchID == true && TouchID != null && TouchID.isSupported();
+	return exports.config.useTouchID == true && TouchID != null && TouchID.isSupported() && TouchID.deviceCanAuthenticate();
 };
 
 /**
