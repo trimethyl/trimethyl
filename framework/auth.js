@@ -233,7 +233,7 @@ exports.isTouchIDSupported = function() {
 };
 
 /**
- * Authenticately via TouchID.
+ * Authenticate via TouchID.
  * @param {Function} success The callback to call on success.
  * @param {Function} error The callback to call on error.
  */
@@ -247,7 +247,7 @@ exports.authenticateViaTouchID = function(opt) {
 
 	if (exports.isTouchIDSupported() && exports.userWantsToUseTouchID()) {
 
-		if (opt.timeout != null) {
+		if (opt.timeout) {
 			exports.authenticateViaTouchID.timeout = setTimeout(function() {
 				TouchID.invalidate();
 			}, opt.timeout);
@@ -505,7 +505,7 @@ exports.offlineLogin = function(opt) {
  * @param {Boolean} [opt.silent=false] Silence all global events
  * @param {Function} [opt.success=null] The success callback to invoke
  * @param {Function} [opt.error=null] The error callback to invoke
- * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error
+ * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error. Set to false to disable it.
  */
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -520,21 +520,25 @@ exports.autoLogin = function(opt) {
 	var error = opt.error;
 
 	var timeouted = false;
-	var errorTimeout = setTimeout(function() {
-		timeouted = true;
-		opt.error();
-	}, opt.timeout);
+	var errorTimeout = null;
 
-	opt.success = function() {
-		clearTimeout(errorTimeout);
-		success.apply(null, arguments);
-	};
+	if (opt.timeout) {
+		errorTimeout = setTimeout(function() {
+			timeouted = true;
+			opt.error();
+		}, opt.timeout);
 
-	opt.error = function() {
-		clearTimeout(errorTimeout);
-		success = Alloy.Globals.noop;
-		error.apply(null, arguments);
-	};
+		opt.success = function() {
+			clearTimeout(errorTimeout);
+			success.apply(null, arguments);
+		};
+
+		opt.error = function() {
+			clearTimeout(errorTimeout);
+			success = Alloy.Globals.noop;
+			error.apply(null, arguments);
+		};
+	}
 
 	if (Ti.Network.online) {
 
