@@ -334,6 +334,7 @@ module.exports = function(args) {
 
 		if (args.exitOnBack === true) {
 			$this.addEventListener('androidback', function() {
+				$this.exitOnClose = true; // Set exitOnClose to true, since every window is an activity
 				Ti.Android.currentActivity.finish();
 			});
 		}
