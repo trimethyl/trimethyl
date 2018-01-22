@@ -234,10 +234,20 @@ function getAndroidTouchIDAlert(cancelCallback) {
 	var dialog = Dialog.confirm("Touch ID", L("auth_touchid_reason"), [
 	{
 		title: L('cancel', 'Cancel'),
-		callback: cancelCallback,
+		cancel: true,
 	}
 	], {
 		androidView: wrapper,
+		canceledOnTouchOutside: false,
+		persistent: true,
+	});
+
+	dialog.addEventListener('click', function(e) {
+		// Manually listen to the "cancel" event
+		// This is to ensure that we capture both the dialog's button and the back button events
+		if (e.cancel === true && _.isFunction(cancelCallback)) {
+			cancelCallback();
+		}
 	});
 
 	dialog.showSuccess = function() {
