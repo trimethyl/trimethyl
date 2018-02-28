@@ -284,7 +284,7 @@ exports.isIOS9 = function() {
  * Check if is iOS 9
  * @return {Boolean}
  */
-exports.isIPHONEX = function() {
+exports.isIPhoneX = function() {
 	return OS_IOS && Ti.Platform.displayCaps.platformHeight === 812;
 };
 
