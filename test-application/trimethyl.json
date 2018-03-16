@@ -83,6 +83,6 @@
     "ext/raven",
     "sentry"
   ],
-  "version": "8.0.0",
-  "install_date": 1489676760954
+  "version": "9.2.0",
+  "install_date": 1519829923413
 }

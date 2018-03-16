@@ -9,6 +9,9 @@ var Moment = require('alloy/moment');
 var Dialog = T('dialog');
 var Filesystem = T('filesystem');
 var Geo = T('geo');
+var Auth = T('auth');
+
+HTTP.config.base = 'http://demo1916598.mockable.io/';
 
 var G = {};
 
@@ -17,7 +20,7 @@ exports.methods = {};
 exports.methods.http_should_parse_json = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
-			url: 'http://demo1916598.mockable.io/hello',
+			url: '/hello',
 			success: function(response) {
 				if (!_.isObject(response)) return reject('Response is not an object');
 				if (response.hello !== 'world') return reject('Response.hello is not "world"');
@@ -37,15 +40,15 @@ exports.methods.http_ssl_pinning_should_not_affect_other_https = function() {
 	});
 };
 
-exports.methods.http_ssl_pinning_should_pass = function() {
-	return Q.promise(function(resolve, reject) {
-		HTTP.send({
-			url: 'https://google.com',
-			success: resolve,
-			error: reject
-		});
-	});
-};
+// exports.methods.http_ssl_pinning_should_pass = function() {
+// 	return Q.promise(function(resolve, reject) {
+// 		HTTP.send({
+// 			url: 'https://google.com',
+// 			success: resolve,
+// 			error: reject
+// 		});
+// 	});
+// };
 
 exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
 	return Q.promise(function(resolve, reject) {
@@ -63,10 +66,10 @@ exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
 exports.methods.http_should_cache = function() {
 	return Q.promise(function(resolve, reject) {
 		var a = HTTP.send({
-			url: 'http://demo1916598.mockable.io/ttl-unit-test',
+			url: '/ttl-unit-test',
 			success: function() {
 				var b = HTTP.send({
-					url: 'http://demo1916598.mockable.io/ttl-unit-test',
+					url: '/ttl-unit-test',
 					success: function() {
 						if (b.cachedData == null) return reject('Cache is not here');
 						resolve();
@@ -137,17 +140,6 @@ exports.methods.sqlite_should_throw_errors = function() {
 		} catch (ex) {
 			resolve();
 		}
-	});
-};
-
-exports.methods.routing_should_work = function() {
-	return Q.promise(function(resolve, reject) {
-		var timeout = setTimeout(function() { reject(); }, 500);
-		Router.on('/test', function() {
-			clearTimeout(timeout);
-			if (this.data.a === 1) resolve();
-		});
-		Router.go('/test', { a:1 });
 	});
 };
 
@@ -230,6 +222,23 @@ exports.methods.filesystem_should_write = function() {
 			file: test_file,
 			data: 'test',
 			success: resolve,
+			error: reject
+		});
+	});
+};
+
+exports.methods.auth_std_should_authenticate = function() {
+	return Q.promise(function(resolve, reject) {
+		Auth.login({
+			driver: 'std',
+			data: {
+				email: 'flavio.destefano',
+				password: 'xxxxxxx'
+			},
+			success: function(user) {
+				if (user.id != 1) return reject();
+				resolve();
+			},
 			error: reject
 		});
 	});
