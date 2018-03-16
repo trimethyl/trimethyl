@@ -47,7 +47,7 @@ var Dialog = require('T/dialog');
 var Prop = require('T/prop');
 var TiIdentity = Util.requireOrNull('ti.identity');
 
-if (OS_IOS && exports.config.useBiometricIdentity == true && TiIdentity != null) {
+if (OS_IOS && exports.config.useBiometricIdentity === true && TiIdentity != null) {
 	TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS);
 }
 
@@ -207,7 +207,7 @@ exports.event = function(name, cb) {
  */
 exports.setFetchUserFunction = function(fn) {
 	if (!_.isFunction(fn)) {
-		return Ti.API.error('Passed argument in setFetchUserFunction is not a function');
+		return Ti.API.error(MODULE_NAME + ': passed argument in setFetchUserFunction is not a function');
 	}
 
 	fetchUserFunction = fn;
@@ -239,12 +239,17 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 		error: Alloy.Globals.noop
 	});
 
-	clearTimeout(exports.authenticateViaBiometricIdentity.timeout);
+	var that = exports.authenticateViaBiometricIdentity;
 
-	if (exports.isBiometricIdentitySupported() && exports.userWantsUseBiometricIdentity()) {
+	clearTimeout(that.timeout);
+
+	var wantsToUse = exports.userWantsToUseBiometricIdentity();
+	var supported = exports.isBiometricIdentitySupported();
+
+	if (true === supported && true === wantsToUse) {
 
 		if (opt.timeout != null) {
-			exports.authenticateViaBiometricIdentity.timeout = setTimeout(function() {
+			that.timeout = setTimeout(function() {
 				TiIdentity.invalidate();
 			}, opt.timeout);
 		}
@@ -252,11 +257,14 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 		return TiIdentity.authenticate({
 			reason: L('auth_biometric_reason'),
 			callback: function(e) {
-				// TiIdentity.invalidate();
+				// Call invalidate to trigger again
+				TiIdentity.invalidate();
+				clearTimeout(that.timeout);
 
 				if (e.success) {
-					clearTimeout(exports.authenticateViaBiometricIdentity.timeout);
-					opt.success({ biometric: true });
+					opt.success({ 
+						biometric: true 
+					});
 				} else {
 					opt.error({
 						biometric: e.code
@@ -268,9 +276,13 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 
 	if (exports.config.enforceBiometricIdentity == true) {
 		Ti.API.warn(MODULE_NAME + ": the user has denied access to Biometric identity or device doesn't support biometric features, but current configuration is enforcing Biometric Identity usage");
-		opt.error();
+		opt.error({
+			biometric: false
+		});
 	} else {
-		opt.success({ biometric: false });
+		opt.success({ 
+			biometric: false 
+		});
 	}
 };
 
@@ -279,11 +291,11 @@ exports.authenticateViaBiometricIdentity = function(opt) {
  * @param  {Boolean} val
  * @return {Boolean}
  */
-exports.userWantsUseBiometricIdentity = function(val) {
+exports.userWantsToUseBiometricIdentity = function(val) {
 	if (val !== undefined) {
 		Prop.setBool('auth.biometric.use', val);
 	} else {
-		return Prop.getBool('auth.biometric.use', false);
+		return Prop.getBool('auth.biometric.use', null);
 	}
 };
 
@@ -353,42 +365,64 @@ exports.login = function(opt) {
 
 	.then(function() {
 		return Q.promise(function(resolve, reject) {
-			if (
-				exports.config.useBiometricIdentityPromptConfirmation == true && 
-				exports.isBiometricIdentitySupported() && 
-				opt.stored != true				
-			) {
-				Dialog.confirm(L('auth_biometric_confirmation_title'), L('auth_biometric_confirmation_message'), [
-				{
-					title: L('yes', 'Yes'),
-					preferred: true,
-					callback: function() {
-						exports.userWantsUseBiometricIdentity(true);
-						resolve({ 
-							biometricEnrolled: true 
-						});
-					}
-				},
-				{
-					title: L('no', 'No'),
-					callback: function() {
-						exports.userWantsUseBiometricIdentity(false);
-						resolve({ 
-							biometricEnrolled: false
-						});
-					}
-				}
-				]);
-			} else {
-				resolve({
+			// Just bypass this dialog if method is stored
+			if (true == opt.stored || false == opt.remember) {
+				return resolve({
+					biometricEnrolled: null
+				});
+			}
+
+			var supported = exports.isBiometricIdentitySupported();
+
+			// Biometric not supported
+			if (false == supported) {
+				return resolve({
 					biometricEnrolled: false 
 				});
 			}
+
+			// Developer doesn't want to use dialog
+			if (false == exports.config.useBiometricIdentityPromptConfirmation) {
+				return resolve({
+					biometricEnrolled: false 
+				});
+			}
+
+			var wantsToUse = exports.userWantsToUseBiometricIdentity();
+			
+			// If is not null (true or false), ignore this step because user
+			// already specified his preference
+			if (wantsToUse !== null) {
+				return resolve({
+					biometricEnrolled: wantsToUse
+				});
+			}
+
+			Dialog.confirm(L('auth_biometric_confirmation_title'), L('auth_biometric_confirmation_message'), [
+			{
+				title: L('yes', 'Yes'),
+				preferred: true,
+				callback: function() {
+					exports.userWantsToUseBiometricIdentity(true);
+					resolve({ 
+						biometricEnrolled: true 
+					});
+				}
+			},
+			{
+				title: L('no', 'No'),
+				callback: function() {
+					exports.userWantsToUseBiometricIdentity(false);
+					resolve({ 
+						biometricEnrolled: false
+					});
+				}
+			}
+			]);
 		});
 	})
 
 	.then(function(e) {
-		if (opt.remember != true) return;
 		if (e.biometricEnrolled == true || exports.config.enforceBiometricIdentity != true) {
 			driverStoreData(opt);
 		}
@@ -537,7 +571,7 @@ exports.autoLogin = function(opt) {
 	if (Ti.Network.online) {
 
 		var driver = getStoredDriverString();
-		if (exports.config.useOAuth == true && driver === 'bypass') {
+		if (exports.config.useOAuth === true && driver === 'bypass') {
 
 			if (exports.OAuth.getAccessToken() != null) {
 				exports.authenticateViaBiometricIdentity({
@@ -546,11 +580,9 @@ exports.autoLogin = function(opt) {
 
 						(opt.fetchUserFunction || fetchUserFunction)()
 						.then(function(user) {
-							currentUser = user;
-							return Q.resolve();
-						}) 
-						.then(function() {
 							if (timeouted) return;
+							
+							currentUser = user;
 
 							var payload = {
 								id: currentUser.id,
@@ -599,7 +631,8 @@ exports.autoLogin = function(opt) {
 				});
 			} else {
 				// Not a real error, no object passing
-				opt.error();
+				Ti.API.warn(MODULE_NAME + ': stored login is not available');
+				opt.error(); // Do not pass any object here
 			}
 
 		}
@@ -621,8 +654,8 @@ exports.autoLogin = function(opt) {
 					silent: true // manage internally
 				});
 		} else {
-			// Not a real error, no object passing
-			opt.error();
+			Ti.API.warn(MODULE_NAME + ': offline login is not available');
+			opt.error(); // Do not pass any object here
 		}
 
 	}

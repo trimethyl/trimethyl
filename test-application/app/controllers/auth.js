@@ -11,8 +11,11 @@ $.btn.addEventListener('click', function() {
 		},
 		success: function(user) {
 			if (user.id != 1) {
-				alert("FAIL");
+				Ti.API.log(user);
+				return alert("FAIL");
 			}
+
+			alert("SUCCESS");
 		},
 		error: function(err) {
 			Ti.API.error(err);
@@ -23,11 +26,17 @@ $.btn.addEventListener('click', function() {
 
 $.btnAuto.addEventListener('click', function() {
 	Auth.autoLogin({
-		success: function(e) {
-			Ti.API.log(e);
+		success: function(user) {
+			if (user.id != 1) {
+				Ti.API.log(user);
+				return alert("FAIL");
+			}
+
+			alert("SUCCESS");
 		},
 		error: function(err) {
 			Ti.API.error(err);
+			alert("FAIL");
 		}
 	});
 });

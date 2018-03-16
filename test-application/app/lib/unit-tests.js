@@ -50,18 +50,18 @@ exports.methods.http_ssl_pinning_should_not_affect_other_https = function() {
 // 	});
 // };
 
-exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
-	return Q.promise(function(resolve, reject) {
-		HTTP.send({
-			url: 'https://facebook.com',
-			success: reject,
-			error: function(err) {
-				console.log(err);
-				resolve();
-			}
-		});
-	});
-};
+// exports.methods.http_ssl_pinning_should_fail_for_bad_cert = function() {
+// 	return Q.promise(function(resolve, reject) {
+// 		HTTP.send({
+// 			url: 'https://facebook.com',
+// 			success: reject,
+// 			error: function(err) {
+// 				console.log(err);
+// 				resolve();
+// 			}
+// 		});
+// 	});
+// };
 
 exports.methods.http_should_cache = function() {
 	return Q.promise(function(resolve, reject) {
@@ -222,23 +222,6 @@ exports.methods.filesystem_should_write = function() {
 			file: test_file,
 			data: 'test',
 			success: resolve,
-			error: reject
-		});
-	});
-};
-
-exports.methods.auth_std_should_authenticate = function() {
-	return Q.promise(function(resolve, reject) {
-		Auth.login({
-			driver: 'std',
-			data: {
-				email: 'flavio.destefano',
-				password: 'xxxxxxx'
-			},
-			success: function(user) {
-				if (user.id != 1) return reject();
-				resolve();
-			},
 			error: reject
 		});
 	});

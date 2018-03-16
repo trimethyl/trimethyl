@@ -4,8 +4,7 @@
 		"T":{
 			"http":{
 				"base": "http://demo1916598.mockable.io/",
-				"log": true,
-				"sslPinning": ["google.com","facebook.com"]
+				"log": true
 			},
 			"auth": {
 				"useBiometricIdentity": true,
