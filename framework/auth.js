@@ -13,9 +13,9 @@
  * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
  * @property {String} [config.oAuthClientID="app"] OAuth client ID
  * @property {String} [config.oAuthClientSecret="secret"] OAuth client secret.
- * @property {Boolean} [config.useTouchID=false] Use TouchID to protect stored/offline login.
- * @property {Boolean} [config.enforceTouchID=false] If true, disable the stored/offline login when TouchID is disabled or not supported.
- * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection after the first signup. If false, the TouchID protection is used without prompts.
+ * @property {Boolean} [config.useBiometricIdentity=false] Use Biometric identity to protect stored/offline login.
+ * @property {Boolean} [config.enforceBiometricIdentity=false] If true, disable the stored/offline login when Biometric identity is disabled or not supported.
+ * @property {Boolean} [config.useBiometricIdentityPromptConfirmation=false] Ask the user if he wants to use the Biometric identity protection after the first signup. If false, the Biometric identity protection is used without prompts.
  */
 exports.config = _.extend({
 
@@ -29,9 +29,9 @@ exports.config = _.extend({
 	oAuthClientID: 'app',
 	oAuthClientSecret: 'secret',
 
-	useTouchID: false,
-	enforceTouchID: false,
-	useTouchIDPromptConfirmation: false,
+	useBiometricIdentity: false,
+	enforceBiometricIdentity: false,
+	useBiometricIdentityPromptConfirmation: false,
 
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
@@ -45,10 +45,10 @@ var Util = require('T/util');
 var Dialog = require('T/dialog');
 
 var Prop = require('T/prop');
-var TouchID = Util.requireOrNull("ti.touchid");
+var TiIdentity = Util.requireOrNull('ti.identity');
 
-if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
-	TouchID.setAuthenticationPolicy(TouchID.AUTHENTICATION_POLICY_BIOMETRICS);
+if (OS_IOS && exports.config.useBiometricIdentity == true && TiIdentity != null) {
+	TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS);
 }
 
 var currentUser = null;
@@ -220,72 +220,70 @@ exports.resetFetchUserFunction = function() {
 	fetchUserFunction = fetchUserModel;
 };
 
-//////////////
-// Touch ID //
-//////////////
-
 /**
- * Check if the TouchID is enabled and supported on the device and configuration.
+ * Check if the Biometric identity is enabled and supported on the device and configuration.
  * @return {Boolean}
  */
-exports.isTouchIDSupported = function() {
-	return exports.config.useTouchID == true && TouchID != null && TouchID.isSupported();
+exports.isBiometricIdentitySupported = function() {
+	return exports.config.useBiometricIdentity == true && TiIdentity != null && TiIdentity.isSupported();
 };
 
 /**
- * Authenticately via TouchID.
+ * Authenticate via Biometric identity.
  * @param {Function} success The callback to call on success.
  * @param {Function} error The callback to call on error.
  */
-exports.authenticateViaTouchID = function(opt) {
+exports.authenticateViaBiometricIdentity = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop
 	});
 
-	clearTimeout(exports.authenticateViaTouchID.timeout);
+	clearTimeout(exports.authenticateViaBiometricIdentity.timeout);
 
-	if (exports.isTouchIDSupported() && exports.userWantsToUseTouchID()) {
+	if (exports.isBiometricIdentitySupported() && exports.userWantsUseBiometricIdentity()) {
 
 		if (opt.timeout != null) {
-			exports.authenticateViaTouchID.timeout = setTimeout(function() {
-				TouchID.invalidate();
+			exports.authenticateViaBiometricIdentity.timeout = setTimeout(function() {
+				TiIdentity.invalidate();
 			}, opt.timeout);
 		}
 		
-		return TouchID.authenticate({
-			reason: L('auth_touchid_reason'),
+		return TiIdentity.authenticate({
+			reason: L('auth_biometric_reason'),
 			callback: function(e) {
-				setTimeout(function(){
-					if (e.success) {
-						clearTimeout(exports.authenticateViaTouchID.timeout);
-						opt.success({ touchID: true });
-					} else {
-						opt.error();
-					}
-				}, 0);
+				// TiIdentity.invalidate();
+
+				if (e.success) {
+					clearTimeout(exports.authenticateViaBiometricIdentity.timeout);
+					opt.success({ biometric: true });
+				} else {
+					opt.error({
+						biometric: e.code
+					});
+				}
 			}
 		});
 	}
 
-	if (exports.config.enforceTouchID == true) {
-		Ti.API.warn(MODULE_NAME + ": the user has denied access to TouchID or device doesn't support TouchID, but current configuration is enforcing TouchID usage");
+	if (exports.config.enforceBiometricIdentity == true) {
+		Ti.API.warn(MODULE_NAME + ": the user has denied access to Biometric identity or device doesn't support biometric features, but current configuration is enforcing Biometric Identity usage");
 		opt.error();
 	} else {
-		opt.success({ touchID: false });
+		opt.success({ biometric: false });
 	}
 };
 
 /**
- * Set or get the TouchID use property.
+ * Set or get the Biometric Identity use property.
  * @param  {Boolean} val
  * @return {Boolean}
  */
-exports.userWantsToUseTouchID = function(val) {
+exports.userWantsUseBiometricIdentity = function(val) {
 	if (val !== undefined) {
-		Prop.setBool('auth.touchid.use', val);
+		Prop.setBool('auth.biometric.use', val);
 	} else {
-		return Prop.getBool('auth.touchid.use', false);
+		return Prop.getBool('auth.biometric.use', false);
 	}
 };
 
@@ -356,34 +354,34 @@ exports.login = function(opt) {
 	.then(function() {
 		return Q.promise(function(resolve, reject) {
 			if (
-				exports.config.useTouchIDPromptConfirmation == true && 
-				exports.isTouchIDSupported() && 
+				exports.config.useBiometricIdentityPromptConfirmation == true && 
+				exports.isBiometricIdentitySupported() && 
 				opt.stored != true				
 			) {
-				Dialog.confirm("Touch ID", L("auth_touchid_confirmation_message"), [
+				Dialog.confirm(L('auth_biometric_confirmation_title'), L('auth_biometric_confirmation_message'), [
 				{
 					title: L('yes', 'Yes'),
 					preferred: true,
 					callback: function() {
-						exports.userWantsToUseTouchID(true);
+						exports.userWantsUseBiometricIdentity(true);
 						resolve({ 
-							touchIDEnrolled: true 
+							biometricEnrolled: true 
 						});
 					}
 				},
 				{
 					title: L('no', 'No'),
 					callback: function() {
-						exports.userWantsToUseTouchID(false);
+						exports.userWantsUseBiometricIdentity(false);
 						resolve({ 
-							touchIDEnrolled: false
+							biometricEnrolled: false
 						});
 					}
 				}
 				]);
 			} else {
 				resolve({
-					touchIDEnrolled: false 
+					biometricEnrolled: false 
 				});
 			}
 		});
@@ -391,7 +389,7 @@ exports.login = function(opt) {
 
 	.then(function(e) {
 		if (opt.remember != true) return;
-		if (e.touchIDEnrolled == true || exports.config.enforceTouchID != true) {
+		if (e.biometricEnrolled == true || exports.config.enforceBiometricIdentity != true) {
 			driverStoreData(opt);
 		}
 	})
@@ -437,7 +435,7 @@ exports.storedLogin = function(opt) {
 	});
 
 	if (exports.isStoredLoginAvailable()) {
-		exports.authenticateViaTouchID({
+		exports.authenticateViaBiometricIdentity({
 			timeout: opt.timeout,
 			success: function() {
 				exports.login(_.extend(opt || {}, {
@@ -476,7 +474,7 @@ exports.offlineLogin = function(opt) {
 	});
 
 	if (exports.isOfflineLoginAvailable()) {
-		exports.authenticateViaTouchID({
+		exports.authenticateViaBiometricIdentity({
 			timeout: opt.timeout,
 			success: function() {
 				currentUser = Alloy.createModel('user', Prop.getObject('auth.me'));
@@ -542,7 +540,7 @@ exports.autoLogin = function(opt) {
 		if (exports.config.useOAuth == true && driver === 'bypass') {
 
 			if (exports.OAuth.getAccessToken() != null) {
-				exports.authenticateViaTouchID({
+				exports.authenticateViaBiometricIdentity({
 					timeout: opt.timeout,
 					success: function() {
 
