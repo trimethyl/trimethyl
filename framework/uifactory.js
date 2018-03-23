@@ -22,6 +22,12 @@ exports.createWindow = function(args) {
 
 /**
  */
+exports.createWindowV2 = function(args) {
+	return require('T/uifactory/windowv2')(args);
+};
+
+/**
+ */
 exports.createTextField = function(args) {
 	return require('T/uifactory/textfield')(args);
 };
