@@ -442,6 +442,7 @@ exports.storedLogin = function(opt) {
 			success: function() {
 				exports.login(_.extend(opt || {}, {
 					stored: true,
+					remember: false, // hack not to override already saved data with a null object
 					driver: getStoredDriverString()
 				}));
 			},
