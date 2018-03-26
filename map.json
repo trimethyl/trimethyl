@@ -306,6 +306,10 @@
 		"name": "UIFactory.YoutubeVideoWebView",
 		"description": "YoutubeVideoWebView façade"
 	},
+	"uifactory/facebookvideowebview":{
+		"name": "UIFactory.FacebookVideoWebView",
+		"description": "FacebookVideoWebView façade"
+	},
 	"uifactory/zoomimageview":{
 		"name": "UIFactory.ZoomImageView",
 		"description": "ImageView with pinch-to-zoom",
