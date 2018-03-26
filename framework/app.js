@@ -11,6 +11,7 @@
 exports.config = _.extend({
 	enqueueRouteWithUniversalLink: true,
 	enqueueRouteWithDeepLink: true,
+	autoStart: true
 }, Alloy.CFG.T ? Alloy.CFG.T.app : {});
 
 var Util = require('T/util');
@@ -139,39 +140,41 @@ exports.notifyUpdate = function(url, version_cb, success_cb) {
 // Init //
 //////////
 
-if (OS_IOS) {
+function deepLinkHandler(e) {
+	var url = Util.parseSchema();
+	var urlToRoute = exports.deepLinkToRoute(url);
 
-	if (exports.config.enqueueRouteWithDeepLink) {
-		// The "resume" event is to handle all incoming deep links
-		Ti.App.addEventListener('resumed', function() {
-			var url = Util.parseSchema();
-			Ti.API.info('App: Resumed with schema <' + url + '>');
-			
-			if (url != null) {
-				Router.enqueue( exports.deepLinkToRoute(url) );
-			}
-		});
+	if (OS_IOS && exports.config.enqueueRouteWithUniversalLink) {
+		if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
+
+		urlToRoute = !e.webpageURL || exports.universalLinkToRoute(e.webpageURL);
+	} else {
+		Ti.API.info('App: Started/Resumed with schema <' + url + '>');
 	}
 
-	if (exports.config.enqueueRouteWithUniversalLink) {
-		// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
-		Ti.App.iOS.addEventListener('continueactivity', function(e) {
-			if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
-			
-			if (e.webpageURL != null) {
-				Router.enqueue( exports.universalLinkToRoute(e.webpageURL) );
-			}
-		});
-	}
-
+	if (urlToRoute) Router.enqueue(urlToRoute);
 }
 
-var url = Util.parseSchema();
 
-if (url != null) {
-	Ti.API.info('App: Started with schema <' + url + '>');
+exports.start = function() {
 
-	if (exports.config.enqueueRouteWithDeepLink) {
-		Router.enqueue( exports.deepLinkToRoute(url) );
+	if (OS_IOS) {
+
+		if (exports.config.enqueueRouteWithDeepLink) {
+			// The "resume" event is to handle all incoming deep links
+			Ti.App.addEventListener('resumed', deepLinkHandler);
+		}
+
+		if (exports.config.enqueueRouteWithUniversalLink) {
+			// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
+			Ti.App.iOS.addEventListener('continueactivity', deepLinkHandler);
+		}
+
 	}
+
+	deepLinkHandler();
+};
+
+if (exports.config.autoStart) {
+	exports.start();
 }
