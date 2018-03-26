@@ -3,14 +3,10 @@
  * @author  Ani Sinanaj <ani.sinanaj@caffeina.com>
  */
 
-/**
- * @property config
- * @property {String} [config.email="/"] 	The driver to use
- */
-exports.config = _.extend({
+var rules = {
 	email: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
 	password: /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/
-}, Alloy.CFG.T ? Alloy.CFG.T.validator : {});
+};
 
 /**
  * isValid
@@ -19,9 +15,9 @@ exports.config = _.extend({
  * @return boolean false if the type isn't defined
  */
 exports.isValid = function(type, value) {
-	if (!exports.config[type]) {
+	if (!(type in rules)) {
 		Ti.API.warn("Validator type " + type + " not defined");
 		return false;
 	}
-	return exports.config[type].test(value);
+	return rules[type].test(value);
 };

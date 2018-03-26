@@ -1,57 +1,98 @@
 var Q = T('ext/q');
 
 var UT = require('unit-tests');
-var UTMethodsKeys = null;
+UT.labels = {};
+UT.toTest = [];
+UT.uiRows = {};
+UT.uiSections = {};
 
-function log(text, color, top) {
-	Ti.API.log(text);
-	$.sview.add($.UI.create('Label', {
+function buildUI(section, key) {
+	var text = key.split('_').join(' ');
+
+	if (UT.uiSections[section] == null) {
+		UT.uiSections[section] = Ti.UI.createTableViewSection({
+			headerTitle: section
+		});
+		$.list.appendSection(UT.uiSections[section]);
+	}
+
+	var row = Ti.UI.createTableViewRow({
+		height: 24
+	});
+	row._text = Ti.UI.createLabel({
+		left: 10,
+		right: 50,
 		text: text,
-		top: top || 1,
-		color: color
-	}));
+		font: {fontSize:12}
+	});
+	row.add(row._text);
+
+	row._loader = Ti.UI.createActivityIndicator({
+		right: 10,
+		style: Ti.UI.ActivityIndicatorStyle.DARK,
+	});
+	row.add(row._loader);
+
+	row._label = Ti.UI.createLabel({
+		right: 10,
+		opacity: 0,
+		font: {fontWeight:'bold',fontSize:12}
+	});
+	row.add(row._label);
+
+	UT.uiRows[key] = row;
+	UT.uiSections[section].add(row);
 }
 
 function doNextTest() {
-	var key = UTMethodsKeys.shift();
+	var key = UT.toTest.shift();
 	if (key == null) return;
 
-	log(key.toUpperCase(), 'white', 10);
+	Ti.API.debug('Testing ' + key);
+	
+	UT.uiRows[key[1]]._loader.show();
+	UT.uiRows[key[1]]._label.opacity = 0;
 
-	var fn = UT.methods[key];
+	UT.methods[ key[0] ][ key[1] ]()
+	.then(function(res) {
+		Ti.API.debug('Result ' + key, res);
 
-	Q.when(fn(),
-	function() {
-		log('passed', 'green');
+		UT.uiRows[key[1]]._label.applyProperties({ text: 'OK', color: 'green', opacity: 1 });
+		UT.uiRows[key[1]]._loader.hide();
+	})
+	.catch(function(err) {
+		Ti.API.error('Error ' + key, err);
+	
+		UT.uiRows[key[1]]._label.applyProperties({ text: 'FAIL', color: 'red', opacity: 1 });
+		UT.uiRows[key[1]]._loader.hide();
+	})
+	.fin(function() {
 		doNextTest();
-	},
-	function(err) {
-		Ti.API.error(err);
-		log('rejected: ' + (err.message ? err.message : err.toString()), 'red');
-		doNextTest();
-	}
-	);
+	});
 }
 
 // Configure UI tests
 
-$.window.setActivityButton( $.uiTestsBtn );
-
 $.testsBtn.addEventListener('click', function(e) {
-	$.sview.removeAllChildren();
-	UTMethodsKeys = Object.keys(UT.methods);
+	UT.toTest = [];
+	_.each(UT.methods, function(methods, section) {
+		_.each(methods, function(fn, key) {
+			UT.toTest.push([section,key]);
+		});
+	});
 	doNextTest();
 });
 
-$.uiTestsBtn.addEventListener('click', function(e) {
-	T('dialog').option('UI Tests', _.map(Alloy.CFG['ui-tests'], function(name) {
-		return {
-			title: name,
-			callback: function() {
-				$.nav.openWindow( Alloy.createController(name).getView() );
-			}
-		};
-	}).concat({ title: 'Cancel', cancel: true }));
+$.uiList.addEventListener('click', function(e) {
+	$.uiTab.open(
+		Alloy.createController(e.row.title.toLowerCase()).getView()
+	);
 });
 
-$.nav.open();
+_.each(UT.methods, function(methods, section) {
+	_.each(methods, function(fn, key) {
+		buildUI(section, key);
+	});
+});
+
+$.tab.open();

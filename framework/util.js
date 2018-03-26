@@ -3,8 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-var Permissions = require('T/permissions/phone');
-
 /**
  * Require a module, or return a null object
  * @param  {String} name
@@ -281,6 +279,14 @@ exports.isIOS9 = function() {
 };
 
 /**
+ * Check if is iOS 9
+ * @return {Boolean}
+ */
+exports.isIPhoneX = function() {
+	return OS_IOS && Ti.Platform.displayCaps.platformHeight === 812;
+};
+
+/**
  * Parse the initial arguments URL schema
  *
  * @return {String}
@@ -349,6 +355,20 @@ exports.parseJSON = function(json) {
 };
 
 /**
+ * Try to stringify a object into SON, and silently fail on error, returning a `null` in this case.
+ *
+ * @param  {String} json 		The JSON to parse.
+ * @return {Object}
+ */
+exports.stringifyJSON = function(obj) {
+	try {
+		return JSON.stringify(obj) || null;
+	} catch (ex) {
+		return null;
+	}
+};
+
+/**
  * Generate URL-encoded query string.
  *
  * @param {Object} obj 			Object key-value to parse.
@@ -410,12 +430,14 @@ exports.dial = function(tel) {
 	if (OS_IOS) {
 		exports.openURL('tel:' + telString, null, errString);
 	} else if (OS_ANDROID) {
-		Permissions.request(function() {
+		require('T/permissions/phone').request()
+		.then(function() {
 			exports.startActivity({
 				action: Ti.Android.ACTION_CALL,
 				data: 'tel:' + telString
 			}, errString);
-		}, function() {
+		})
+		.catch(function() {
 			exports.errorAlert(errString);
 		});
 	}
@@ -517,9 +539,7 @@ exports.encodeHtmlEntity = function(str) {
  * @return {String} The hash
  */
 exports.hashJavascriptObject = function(obj) {
-	if (obj == null) return 'null';
-	if (_.isArray(obj) || _.isObject(obj)) return JSON.stringify(obj);
-	return obj.toString();
+	return Ti.Utils.md5HexDigest( JSON.stringify(obj) || 'null' );
 };
 
 /**
@@ -578,8 +598,9 @@ var DATABASE_DIRECTORY = null;
  */
 exports.getDatabaseDirectoryName = exports.getDatabaseDirectory = function() {
 	if (DATABASE_DIRECTORY === null) {
-		var db = require('T/db').open('test');
-		var path = db.file.resolve().split('/'); path.pop();
+		var db = require('T/db').open('trimethyl');
+		var path = db.file.resolve().split('/'); 
+		path.pop();
 		db.close();
 		DATABASE_DIRECTORY = path.join('/') + '/';
 	}

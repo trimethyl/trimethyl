@@ -29,7 +29,6 @@ var MODULE_NAME = 'notifications';
 
 var Event = require('T/event');
 var Util = require('T/util');
-var Router = require('T/router');
 var Q = require('T/ext/q');
 
 // Because Ti.Goosh has the same syntax of Ti.Network,

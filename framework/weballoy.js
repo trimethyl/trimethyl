@@ -1,21 +1,41 @@
 /**
  * @module  weballoy
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
+ * https://github.com/appcelerator-modules/Ti.WKWebView
  */
 
 /**
  * @property config
  * @property {String} [config.jsExt=".jslocal"] The extension to use for Javascript files
+ * @property {String} [config.dir="web"] Directory where to search weballoy files
+ * @property {Boolean} [config.useWkWebView=false] Use the new WKWebView module
  */
 exports.config = _.extend({
-	jsExt: '.jslocal'
+	jsExt: '.jslocal',
+	dir: 'web',
+	useWkWebView: false
 }, Alloy.CFG.T ? Alloy.CFG.T.weballoy : {});
+
+var MODULE_NAME = 'weballoy';
 
 var libDir = [];
 var helpers = {};
 var fonts = [];
 
 var TMP_DIR = Ti.Filesystem.tempDirectory + '/weballoy';
+
+var Util = require('T/util');
+
+var WK = Ti.UI;
+
+if (exports.config.useWkWebView) {
+	var WK_Module = Util.requireOrNull('ti.wkwebview');
+	if (WK_Module != null) {
+		WK = WK_Module;
+	} else {
+		Ti.API.warn(MODULE_NAME + ': unable to find <ti.wkwebview> module, falling back to Ti.UI');
+	}
+}
 
 function embedFile(f) {
 	if (_.isEmpty(f)) return null;
@@ -67,14 +87,14 @@ function getHTML(opt) {
 	});
 
 	// Include global css
-	html += embedCSS('web/app.css');
+	html += embedCSS(exports.config.dir + '/app.css');
 	if (opt.name) {
-		html += embedCSS('web/styles/' + opt.name + '.css');
+		html += embedCSS(exports.config.dir + '/styles/' + opt.name + '.css');
 	}
 
 	html += '</head><body>';
 
-	html += _.template(getFileText('web/app.tpl'))(tpl_data);
+	html += _.template(getFileText(exports.config.dir + '/app.tpl'))(tpl_data);
 
 	// Include template
 	html += '<div id="main" class="' + (opt.htmlClass || '') + '">';
@@ -82,7 +102,7 @@ function getHTML(opt) {
 	if (opt.content) {
 		html += _.template(opt.content)(tpl_data);
 	} else if (opt.name) {
-		html += _.template(getFileText('web/views/' + opt.name + '.tpl'))(tpl_data);
+		html += _.template(getFileText(exports.config.dir + '/views/' + opt.name + '.tpl'))(tpl_data);
 	}
 
 	html += '</div>';
@@ -93,9 +113,9 @@ function getHTML(opt) {
 	});
 
 	// Include footer
-	html += embedJS('web/app' + exports.config.jsExt);
+	html += embedJS(exports.config.dir + '/app' + exports.config.jsExt);
 	if (opt.name) {
-		html += embedJS('web/controllers/' + opt.name + exports.config.jsExt);
+		html += embedJS(exports.config.dir + '/controllers/' + opt.name + exports.config.jsExt);
 	}
 
 	html += '</body></html>';
@@ -144,7 +164,7 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	var $ui = Ti.UI.createWebView(_.extend({
+	var $ui = WK.createWebView(_.extend({
 		disableBounce: true,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
@@ -216,14 +236,13 @@ exports.createView = function(args) {
 	return $ui;
 };
 
-
 /*
 Init
 */
 
-var jsFiles = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'web/lib').getDirectoryListing();
+var jsFiles = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, exports.config.dir + '/lib').getDirectoryListing();
 _.each(jsFiles, function(js) {
-	libDir.push('web/lib/' + js);
+	libDir.push(exports.config.dir + '/lib/' + js);
 });
 
 // Expose those properties in the helpers

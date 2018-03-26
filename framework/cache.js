@@ -5,22 +5,20 @@
 
 /**
  * @property config
- * @property {String} [config.driver="database"] 	The driver to use
+ * @property {String} [config.driver="sqlite"] The driver to use. Possibile values: "sqlite", "prop"
  */
 exports.config = _.extend({
-	driver: 'database'
+	driver: 'sqlite'
 }, Alloy.CFG.T ? Alloy.CFG.T.cache : {});
 
-/**
- * Load a driver
- */
-exports.loadDriver = function(name) {
+function loadDriver(name) {
 	return Alloy.Globals.Trimethyl.loadDriver('cache', name, {
 		get: function(hash) {},
-		set: function(hash, value) {},
+		set: function(hash, value, ttl) {},
 		remove: function(hash) {},
 		purge: function(hash) {},
 	});
-};
+}
 
-module.exports = exports.loadDriver(exports.config.driver);
+module.exports = loadDriver(exports.config.driver);
+module.exports.loadDriver = loadDriver;

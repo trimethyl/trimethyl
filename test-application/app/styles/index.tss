@@ -1,9 +1,8 @@
 "Label":{
 	font:{
-		fontFamily: 'Menlo',
 		fontSize: 12
 	},
 	left: 10,
 	right: 10,
 	textAlign: 'left'
-}
+},

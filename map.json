@@ -1,10 +1,8 @@
 {
-
 	"trimethyl":{
 		"name": "Trimethyl Bootstrap",
 		"description": "Boostrap for Trimethyl"
 	},
-
 	"animator":{
 		"name": "Animator",
 		"description": "UI animation helper, providing built-in animations.",
@@ -38,12 +36,21 @@
 	"cache":{
 		"name": "Cache",
 		"description": "Store informations temporarily using different storages.",
-		"dependencies": ["cache/database"]
+		"dependencies": ["cache/sqlite"]
 	},
-	"cache/database":{
-		"name": "Cache.Database",
+	"cache/sqlite":{
+		"name": "Cache.SQLite",
 		"description": "Cache driver with SQLite",
 		"dependencies": ["sqlite","util","filesystem"]
+	},
+	"cache/database": {
+		"removed": "10.0.0",
+		"note": "Use <cache/sqlite> instead"
+	},
+	"cache/prop":{
+		"name": "Cache.Prop",
+		"description": "Cache driver with Properties",
+		"dependencies": ["util","filesystem"]
 	},
 	"calendar": {
 		"name": "Calendar",
@@ -110,7 +117,7 @@
 	"http":{
 		"name": "HTTP",
 		"description": "HTTP requests in a clear interface with automatic internal cache control, automatic body encoding based on content, middleware filters and optional SSL pinning.",
-		"dependencies": ["event","util","cache","ext/q","permissions/storage"],
+		"dependencies": ["event","util","ext/q","permissions/storage"],
 		"modules": ["appcelerator.https:iphone", "appcelerator.https:android"]
 	},
 	"image":{
@@ -133,7 +140,7 @@
 	"notifications":{
 		"name": "Notifications",
 		"description": "Push notifications module with interactive notification supports handling all platforms with one single interface, and communicating with several online service or with your custom server.",
-		"dependencies": ["event","util","router","ext/q"],
+		"dependencies": ["event","util","ext/q"],
 		"modules": ["ti.goosh:android"]
 	},
 	"notifications/http":{
@@ -156,6 +163,10 @@
 		"description": "In-app Payments for both platforms",
 		"dependencies": ["util","ext/q"],
 		"modules": ["ti.inappbilling:android", "ti.storekit:iphone"]
+	},
+	"permissions":{
+		"removed": "10.0.0",
+		"note": "Permissions has been splitted to different module for each feature"
 	},
 	"permissions/camera":{
 		"name": "Permissions.Camera",
@@ -328,7 +339,9 @@
 	},
 	"weballoy":{
 		"name": "WebAlloy",
-		"description": "µ-web-framework to write Alloy apps using only web technologies (HTML/CSS/JS) but interfacing in real time with native features. Could you re-create a mini PhoneGap framework in Titanium; the answer is yes."
+		"description": "µ-web-framework to write Alloy apps using only web technologies (HTML/CSS/JS) but interfacing in real time with native features. Could you re-create a mini PhoneGap framework in Titanium; the answer is yes.",
+		"modules": ["ti.wkwebview:iphone"],
+		"dependencies": ["prop"]
 	},
 	"xmlparser": {
 		"name": "XMLParser",
@@ -363,6 +376,13 @@
 		"description": "A sync for Offline adapter.",
 		"dependencies": ["offline/sqlrest"],
 		"destination": "/app/lib/alloy/sync/offline.js"
+	},
+
+	"alloy/sync/localsync":{
+		"name": "LocalSync Alloy Adapter",
+		"description": "A configurable sync adapter for syncing remote models on a local database or storage.",
+		"dependencies": ["sqlite","ext/q"],
+		"destination": "/app/lib/alloy/sync/localSync.js"
 	},
 
 	"ext/async":{

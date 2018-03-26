@@ -15,42 +15,58 @@ var Util = require('T/util');
 var Flow = require('T/flow');
 var Q = require('T/ext/q');
 
-var routeRegistry = [];
+function Router(opt) {
+	opt = _.defaults(opt || {}, {
+		config: null
+	});
+
+	this.routeRegistry = [];
+	this.config = _.extend(exports.config, opt.config);
+
+	/**
+	 * @property queue
+	 * The route queue
+	 * @type {Array}
+	 */
+	this.queue = [];
+
+	/**
+	 * @property bypassQueue
+	 * Set this property to `true` to dispatch the enqueued url instantly.
+	 * @type {Boolean}
+	 */
+	this.bypassQueue = false;
+
+	/**
+	 * @property currentUrl
+	 * Latest URL dispatched
+	 * @type {String}
+	 */
+	this.currentUrl = null;
+
+	/**
+	 * @property currentRoute
+	 * Latest Route (not URL) dispatched
+	 * @type {Object}
+	 */
+	this.currentRoute = null;
+
+	/**
+	 * @property stack
+	 * All routes in a stack
+	 * @type {Array}
+	 */
+	this.stack = [];
+}
 
 /**
- * @property queue
- * The route queue
- * @type {Array}
+ * Create a new router
+ * @param  {Array} opt
+ * @return Router
  */
-exports.queue = [];
-
-/**
- * @property bypassQueue
- * Set this property to `true` to dispatch the enqueued url instantly.
- * @type {Boolean}
- */
-exports.bypassQueue = false;
-
-/**
- * @property currentUrl
- * Latest URL dispatched
- * @type {String}
- */
-exports.currentUrl = null;
-
-/**
- * @property currentRoute
- * Latest Route (not URL) dispatched
- * @type {Object}
- */
-exports.currentRoute = null;
-
-/**
- * @property stack
- * All routes in a stack
- * @type {Array}
- */
-exports.stack = [];
+Router.prototype.newInstance = function(opt) {
+	return new Router(opt);
+};
 
 /**
  * Register a route with defined callbacks
@@ -64,12 +80,12 @@ exports.stack = [];
  *
  * @param  {Function}	callback  		The callback
  */
-exports.on = function() {
+Router.prototype.on = function() {
 	var middlewares = _.toArray(arguments);
 	var key = middlewares.shift();
 	var callback = middlewares.pop();
 
-	routeRegistry.push({
+	this.routeRegistry.push({
 		key: key,
 		callback: callback,
 		middlewares: middlewares
@@ -89,14 +105,14 @@ exports.on = function() {
  *
  * @param  {String} url 		The route
  */
-exports.dispatch = function(url, data) {
+Router.prototype.dispatch = function(url, data) {
 	Ti.API.debug('Router: dispatching <' + url + '>');
 
 	var callbackURL = Util.parseAsXCallbackURL(url);
 	callbackURL.path = callbackURL.path.replace(/\/$/g, '');
 
-	if (callbackURL.protocol && exports.config.protocol) {
-		if (exports.config.protocol !== callbackURL.protocol) {
+	if (callbackURL.protocol && this.config.protocol) {
+		if (this.config.protocol !== callbackURL.protocol) {
 			Ti.API.warn('Router: protocol mismatch');
 			return false;
 		}
@@ -109,8 +125,8 @@ exports.dispatch = function(url, data) {
 	var routeDefinition = null;
 
 	// Check the route to dispatch
-	for (var i in routeRegistry) {
-		routeDefinition = routeRegistry[i];
+	for (var i in this.routeRegistry) {
+		routeDefinition = this.routeRegistry[i];
 
 		if (_.isString(routeDefinition.key)) {
 			// Regular string equals
@@ -134,9 +150,9 @@ exports.dispatch = function(url, data) {
 
 		if (_.isFunction(routeDefinition.callback)) {
 
-			exports.stack.push(url);
-			exports.currentUrl = url;
-			exports.currentRoute = routeDefinition;
+			this.stack.push(url);
+			this.currentUrl = url;
+			this.currentRoute = routeDefinition;
 
 			if (routeDefinition.middlewares.length > 0) {
 
@@ -157,7 +173,7 @@ exports.dispatch = function(url, data) {
 		} else if (_.isObject(routeDefinition.callback)) {
 
 			if (routeDefinition.callback.alias != null) {
-				exports.dispatch(routeDefinition.callback.alias);
+				this.dispatch(routeDefinition.callback.alias);
 			}
 
 		}
@@ -171,39 +187,38 @@ exports.dispatch = function(url, data) {
 /**
  * @link #dispatch
  */
-exports.go = exports.dispatch;
+Router.prototype.go = Router.prototype.dispatch;
 
 /**
  * @param  {String} url The route
  */
-exports.enqueue = function(url) {
+Router.prototype.enqueue = function(url) {
 	Ti.API.debug('Router: enqueuing <' + url + '>');
 
-	if (exports.bypassQueue) {
-		exports.dispatch(url);
+	if (this.bypassQueue) {
+		this.dispatch(url);
 	} else {
-		exports.queue.push(url);
+		this.queue.push(url);
 	}
 };
 
 /**
  * @param  {Array} array
  */
-exports.appendToQueue = function(array) {
-	exports.queue = exports.queue.concat(array);
+Router.prototype.appendToQueue = function(array) {
+	this.queue = this.queue.concat(array);
 };
 
 /**
  * Dispatch the queue
  * @param  {Boolean} bypassFromNow Indicate if (from now) should not enqueue routes but dispatch directly
  */
-exports.dispatchQueue = function(bypassFromNow) {
+Router.prototype.dispatchQueue = function(bypassFromNow) {
 	var e = null;
-	while ((e = exports.queue.shift()) != null) {
-		Ti.API.debug('Router: dequeuing <' + e + '>');
-		exports.dispatch(e);
+	while ((e = this.queue.shift()) != null) {
+		this.dispatch(e);
 	}
-	exports.bypassQueue = !!bypassFromNow;
+	this.bypassQueue = !!bypassFromNow;
 };
 
 /**
@@ -211,27 +226,10 @@ exports.dispatchQueue = function(bypassFromNow) {
  * @param  {String} url
  * @param  {String} newUrl
  */
-exports.alias = function(url, newUrl) {
-	exports.on(url, {
+Router.prototype.alias = function(url, newUrl) {
+	this.on(url, {
 		alias: newUrl
 	});
 };
 
-/**
- * Create the routes for a model
- * @param  {String} single The name for the model
- * @param  {String} [plural] The name for the model, plural.
- */
-exports.autoMapModel = function(single, plural) {
-	plural = plural || single+'s';
-
-	exports.on('/' + plural, function() {
-		Flow.open(plural, {}, {}, this.source);
-	});
-
-	exports.on(new RegExp('/' + plural + '/([0-9]+)'), function(id) {
-		Flow.open(single, {
-			id: id
-		}, {}, this.source);
-	});
-};
+module.exports = new Router();

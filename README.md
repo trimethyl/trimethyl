@@ -21,6 +21,8 @@ Trimethyl comes with its own package manager for the internal libraries, because
 [sudo] npm install -g trimethyl
 ```
 
+## Installation of libraries
+
 Now you have the CLI command `trimethyl`. To install your libraries, cd to your Alloy project, and just type:
 
 ```
@@ -31,6 +33,28 @@ If is the first installation, the command will prompt to add the libraries you w
 
 Otherwise, it will perform a re-installation of all libraries configured in the `trimethyl.json` file.
 
+You can pass these parameters to the install method:
+
+#### `--no-check-downgrade`
+
+Do not perform a check if current installation is a downgrade.
+
+#### `--no-check-majorupgrade`
+
+Do not perform a check if current installation is a major upgrade.
+
+#### `--native-module-skip`
+
+If a library depends on a native module, just skip the installation *of the module*.
+
+#### `--native-module-add`
+
+If a library depends on a native module, just add the native module to the *tiapp.xml*
+
+#### `--native-module-skip`
+
+If a library depends on a native module, try to install the native module via package manager (*GITTIO*).
+
 ## Configure libraries
 
 You can specify later (after installation) which libraries you want to add, just type:
@@ -39,7 +63,9 @@ You can specify later (after installation) which libraries you want to add, just
 trimethyl add {module}
 ```
 
-It will add the library to your `trimethyl.json` file, just type `trimethyl install` to perform the installation again.
+It will add the library to your `trimethyl.json` file.
+
+Now just type `trimethyl install` to perform the installation again.
 
 ## Configuration
 

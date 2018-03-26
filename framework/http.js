@@ -3,33 +3,33 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeina.com>
  */
 
+var Util = require('T/util');
+
 /**
  * @property config
- * @property {String}  config.base The base URL of the API
- * @property {Number}  [config.timeout=30000] Global timeout for the reques. after this value 
- * (express in milliseconds) the requests throw an error.
- * @property {Object}  [config.headers={}] Global headers for all requests.
- * @property {Object}  [config.useCache=true] Global cache flag.
- * @property {Object}  [config.offlineCache=false] Global offline cache.
- * @property {Boolean} [config.log=false] Log the requests.
- * @property {Boolean} [config.bodyEncodingInJSON=false] Force to encoding in JSON of body data is the input is a JS object.
- * @property {Boolean} [config.sslPinning=false] If this value is an array, it must contain the domains on which to apply SSL pinning. If this value is true, SSL pinning is applied on base HTTP domain. Certificates must be located in /app/assets/certs and named as the the domain name without extension. (example: "/app/assets/certs/youtube.com")
+ * @property {String}  config.base 							The base URL of the API
+ * @property {Number}  [config.timeout=30000] 				Global timeout for the reques. after this value (express in milliseconds) the requests throw an error.
+ * @property {Object}  [config.headers={}] 					Global headers for all requests.
+ * @property {Boolean} [config.log=false] 					Log the requests.
+ * @property {Boolean} [config.cache=true] 					Check if the response should be cached.
+ * @property {Boolean} [config.bodyEncodingInJSON=false] 	Force to encoding in JSON of body data is the input is a JS object.
+ * @property {Boolean} [config.sslPinning=false] 			If this value is an array, it must contain the domains on which to apply SSL pinning. If this value is true, SSL pinning is applied on base HTTP domain. Certificates must be located in /app/assets/certs and named as the the domain name without extension. (example: "/app/assets/certs/youtube.com")
+ * @property {String} [config.certificatesPath] 			The path of the certificates directory
  */
 exports.config = _.extend({
 	base: '',
 	timeout: 30000,
 	headers: {},
-	useCache: true,
-	offlineCache: false,
 	log: false,
+	cache: true,
 	bodyEncodingInJSON: false,
-	sslPinning: false
+	sslPinning: false,
+	certificatesPath: Util.getResourcesDirectory() + "certs/",
 }, Alloy.CFG.T ? Alloy.CFG.T.http : {});
 
 var MODULE_NAME = 'http';
 
 var Event = require('T/event');
-var Util = require('T/util');
 var Q = require('T/ext/q');
 var PermissionsStorage = require('T/permissions/storage');
 
@@ -65,6 +65,7 @@ function HTTPRequest(opt) {
 	// Construct headers: global + per-domain + local
 	this.headers = _.extend({}, exports.getHeaders(), exports.getHeaders(this.domain), opt.headers);
 	this.timeout = opt.timeout != null ? opt.timeout : exports.config.timeout;
+	this.cache = opt.cache != null ? opt.cache : exports.config.cache;
 
 	this.configureSSLPinning();
 	this.securityManager = opt.securityManager || securityManager;
@@ -108,9 +109,10 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 		return Ti.API.error(MODULE_NAME + ': SSL pinning requires appcelerator.https module');
 	}
 
+	// If sslPinning is an array, create a cert pinning entry for each entry
 	if (_.isArray(exports.config.sslPinning)) {
 		securityManager = AppcHttps.createX509CertificatePinningSecurityManager(_.map(exports.config.sslPinning, function(domain) {
-			var path = Util.getResourcesDirectory() + "certs/" + domain;
+			var path = exports.config.certificatesPath + domain;
 			if (Ti.Filesystem.getFile(path).exists() == false) {
 				throw new Error(MODULE_NAME + ': certificate for SSL pinning not found (' + domain + ')');
 			}
@@ -119,9 +121,11 @@ HTTPRequest.prototype.configureSSLPinning = function() {
 				serverCertificate: path
 			};
 		}));
+
+	// otherwise, if true, configure just for the base domain in HTTP.config
 	} else if (exports.config.sslPinning == true) {
 		var domain = Util.getDomainFromURL(config.base);
-		var path = Util.getResourcesDirectory() + "certs/" + domain;
+		var path = exports.config.certificatesPath + domain;
 		if (Ti.Filesystem.getFile(path).exists() == false) {
 			throw new Error(MODULE_NAME + ': certificate for base SSL pinning not found (' + domain + ')');
 		}
@@ -136,71 +140,17 @@ HTTPRequest.prototype.toString = function() {
 	return this.hash;
 };
 
-HTTPRequest.prototype._maybeCacheResponse = function(data) {
-	if (this.method !== 'GET') return;
-
-	if (exports.config.useCache === false) {
-		Ti.API.trace(MODULE_NAME + ': <' + this.uniqueId + '> cache has been disabled globally');
-		return;
-	}
-
-	if (this.opt.cache === false) {
-		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> set cache has been disabled for this request');
-		return;
-	}
-
-	if (this.responseInfo.ttl <= 0) {
-		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> set cache is not applicable');
-		return;
-	}
-
-	require('T/cache').set(this.hash, data, this.responseInfo.ttl, this.responseInfo);
-};
-
-HTTPRequest.prototype.getCachedResponse = function() {
-	if (this.method !== 'GET') return null;
-
-	if (exports.config.useCache === false) {
-		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> cache has been disabled globally');
-		return null;
-	}
-
-	if (this.opt.cache === false || this.opt.refresh === true) {
-		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> get cache has been disabled for this request');
-		return null;
-	}
-
-	this.cachedData = require('T/cache').get(this.hash);
-	if (this.cachedData == null) {
-		Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> cache is missing');
-		return null;
-	}
-
-	// We got cache
-
-	Ti.API.trace(MODULE_NAME + ':  <' + this.uniqueId + '> cache hit up to ' + (this.cachedData.expire - Util.now()) + 's');
-
-	if (this.cachedData.info.format === 'blob') {
-		return this.cachedData.value;
-	}
-
-	return extractHTTPText(this.cachedData.value.text, this.cachedData.info);
-};
-
 HTTPRequest.prototype._getResponseInfo = function() {
 	if (this.client == null || this.client.readyState <= 1) {
 		throw new Error(MODULE_NAME + ': Client is null or not ready');
 	}
 
 	var headers = {
-		Expires: this.client.getResponseHeader('Expires'),
 		ContentType: this.client.getResponseHeader('Content-Type'),
-		TTL: this.client.getResponseHeader('X-Cache-Ttl')
 	};
 
 	var info = {
 		format: 'blob',
-		ttl: 0
 	};
 
 	if (this.client.responseText != null) {
@@ -208,16 +158,8 @@ HTTPRequest.prototype._getResponseInfo = function() {
 		if (/^application\/json/.test(headers.ContentType)) info.format = 'json';
 	}
 
-	// Always prefer X-Cache-Ttl over Expires
-	if (headers.TTL != null) {
-		info.ttl = headers.TTL;
-	} else if (headers.Expires != null) {
-		info.ttl = Util.timestamp(headers.Expires) - Util.now();
-	}
-
 	// Override
 	if (this.opt.format != null) info.format = this.opt.format;
-	if (this.opt.ttl != null) info.ttl = this.opt.ttl;
 
 	return info;
 };
@@ -293,19 +235,14 @@ HTTPRequest.prototype._whenComplete = function(e) {
 	}
 
 	if (e.success) {
-
-		this._maybeCacheResponse(data);
 		this.defer.resolve(data);
-
 	} else {
-
 		this.defer.reject({
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
 			error: e.error,
 			code: this.client.status,
 			response: data
 		});
-
 	}
 };
 
@@ -313,7 +250,6 @@ HTTPRequest.prototype._calculateHash = function() {
 	var hash = this.url + Util.hashJavascriptObject(this.data) + Util.hashJavascriptObject(this.headers);
 	return 'http_' + Ti.Utils.md5HexDigest(hash);
 };
-
 
 HTTPRequest.prototype.send = function() {
 	var self = this;
@@ -339,8 +275,8 @@ HTTPRequest.prototype._send = function() {
 
 	var client = Ti.Network.createHTTPClient(_.extend({
 		timeout: this.timeout,
-		cache: false,
-	}, 
+		cache: this.cache,
+	},
 	this.securityManager ? { securityManager: this.securityManager } : {}
 	));
 
@@ -384,40 +320,15 @@ HTTPRequest.prototype._send = function() {
 };
 
 HTTPRequest.prototype.resolve = function() {
-	var cache = null;
-
 	if (Ti.Network.online) {
-
-		cache = this.getCachedResponse();
-		if (cache != null) {
-			this.defer.resolve(cache);
-		} else {
-			this.send();
-		}
-
+		this.send();
 	} else {
-
 		Event.trigger(MODULE_NAME + '.offline');
-
-		if (exports.config.offlineCache === true || this.opt.offlineCache === true) {
-			cache = this.getCachedResponse();
-			if (cache != null) {
-				this.defer.resolve();
-			} else {
-				this.defer.reject({
-					offline: true,
-					code: 0,
-					message: L('network_offline', 'Check your connectivity.')
-				});
-			}
-		} else {
-			this.defer.reject({
-				offline: true,
-				code: 0,
-				message: L('network_offline', 'Check your connectivity.')
-			});
-		}
-
+		this.defer.reject({
+			offline: true,
+			code: 0,
+			message: L('network_offline', 'Check your connectivity.')
+		});
 	}
 };
 
@@ -584,16 +495,15 @@ exports.resetCookies = function() {
  *
  * Create an HTTP.Request and resolve it
  *
- * @param {Object}	 opt 				The request dictionary
- * @param {String} opt.url 				The endpoint URL
- * @param {String} [opt.method="GET"] 	The HTTP method to use (GET|POST|PUT|PATCH|..)
- * @param {Object} [opt.headers=null] 		An Object key-value of additional headers
- * @param {Number} [opt.timeout=30000] 	Timeout after stopping the request and triggering an error
- * @param {Boolean} [opt.cache=true] 	Set to false to disable the cache
- * @param {Function} [opt.success] 		The success callback
- * @param {Function} [opt.error] 		The error callback
- * @param {String} [opt.format] 		Override the format for that request (like `json`)
- * @param {Number} [opt.ttl] 			Override the TTL seconds for the cache
+ * @param {Object} opt 							The request dictionary
+ * @param {String} opt.url 					The endpoint URL
+ * @param {String} [opt.method="GET"] 		The HTTP method to use (GET|POST|PUT|PATCH|..)
+ * @param {Object} [opt.headers] 			An Object key-value of additional headers
+ * @param {Number} [opt.timeout] 			Ovverride the timeout default value
+ * @param {Boolean} [opt.cache] 				Override the cache default behav
+ * @param {Function} [opt.success] 			The success callback
+ * @param {Function} [opt.error] 			The error callback
+ * @param {String} [opt.format] 				Override the format for that request (like `json`)
  * @return {HTTP.Request}
  */
 function send(opt) {
@@ -692,7 +602,7 @@ exports.download = function(url, file, success, error, ondatastream) {
 	var doDownload = function() {
 		var tiFile = null;
 		if (file == null) {
-			tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), _.uniqueId('http_'));
+			tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), Ti.Utils.md5HexDigest(url + Date.now()));
 		} else if (_.isString(file)) {
 			tiFile = Ti.Filesystem.getFile(Util.getAppDataDirectory(), file);
 		} else {
@@ -702,7 +612,6 @@ exports.download = function(url, file, success, error, ondatastream) {
 		send({
 			url: url,
 			cache: false,
-			refresh: true,
 			format: 'blob',
 			file: tiFile.resolve(),
 			ondatastream: ondatastream,

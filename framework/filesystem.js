@@ -7,10 +7,13 @@
 /*
 Include methods used in this module dynamically to avoid that Titanium 
 static analysis doesn't include native-language methods.
- */
+*/
 Ti.Filesystem;
 
+var MODULE_NAME = 'Filesystem';
+
 var Permissions = require('T/permissions/storage');
+var Q = require('T/ext/q');
 
 function recursiveIterator(file) {
 	return _.map(file.getDirectoryListing(), function(item) {
@@ -54,19 +57,19 @@ exports.listDirectoryRecursive = function(path) {
  *
  * Returns true if the operation was successful.
  *
- * @param {String} src		the path of the file/directory to move
- * @param {String} dest		the destination path
- * @param {Boolean} ow 		set to true to overwrite destination path
+ * @param {String} src The path of the file/directory to move
+ * @param {String} dest	The destination path
+ * @param {Boolean} overwrite Set to true to overwrite destination path
  * @returns {Boolean}
  */
-exports.move = function(src, dest, ow) {
+exports.move = function(src, dest, overwrite) {
 	var srcFile = Ti.Filesystem.getFile(src);
 	if (!srcFile.exists()) {
 		return false;
 	}
 
 	var destFile = Ti.Filesystem.getFile(dest);
-	if (ow === true && destFile.exists()) {
+	if (overwrite === true && destFile.exists()) {
 		destFile.deleteFile();
 	}
 
@@ -93,40 +96,59 @@ exports.getSize = function(path) {
 /**
  * Writes the specified data to a file, after checking storage permissions. This operation is asynchronous.
  * @param {Object} opt
- * @param {Titanium.Filesystem.File} opt.file 						The file to modify
- * @param {String/Titanium.Filesystem.File/Titanium.Blob} opt.data 	Data to write, as a String, Blob or File object.
- * @param {Function} [opt.success] 									The callback to invoke on success.
- * @param {Function} [opt.error] 									The callback to invoke on error.
- * @param {Boolean} [opt.append] 									If true, append the data to the end of the file.
+ * @param {Titanium.Filesystem.File} opt.file The file to modify
+ * @param {String/Titanium.Filesystem.File/Titanium.Blob} opt.data Data to write, as a String, Blob or File object.
+ * @param {Function} [opt.success] The callback to invoke on success.
+ * @param {Function} [opt.error] The callback to invoke on error.
+ * @param {Boolean} [opt.append] If true, append the data to the end of the file.
  * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-write}
  */
 exports.write = function(opt) {
+	opt = _.defaults(opt || {}, {
+		append: false
+	});
+
+	return Q.promise(function(_resolve, _reject) {
+
+		var resolve = function(e) {
+			if (opt.success) opt.success(e);
+			_resolve(e);
+		};
+
+		var reject = function(e) {
+			if (opt.error) opt.error(e);
+			_reject(e);
+		};
+
+		function writeFile() {
+			var res = opt.file.write(opt.data, !!opt.append);
+			if (res === false) return opt.error();
+			opt.success();
+		}
+
+		if (canWrite(opt.file)) {
+			writeFile();
+		} else {
+			Permissions.request(writeFile, opt.error);
+		}
+	});
+};
+
+exports.read = function(opt) {
 	_.defaults(opt, {
-		append: false,
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop
 	});
 
-	function writeFile() {
-		var res = opt.file.write(opt.data, !!opt.append);
 
-		if (res) opt.success();
-		else opt.error();
-	}
-
-	if (canWrite(opt.file)) {
-		writeFile();
-	} else {
-		Permissions.request(writeFile, opt.error);
-	}
 };
 
 /**
  * Creates a directory, after checking storage permissions. This operation is asynchronous.
  * @param {Object} opt
- * @param {Titanium.Filesystem.File} opt.file 	The file object that identifies the directory to create.
- * @param {Function} [opt.success] 				The callback to invoke on success.
- * @param {Function} [opt.error] 				The callback to invoke on error.
+ * @param {Titanium.Filesystem.File} opt.file The file object that identifies the directory to create.
+ * @param {Function} [opt.success] The callback to invoke on success.
+ * @param {Function} [opt.error] The callback to invoke on error.
  * @see {@link http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Filesystem.File-method-createDirectory}
  */
 exports.createDirectory = function(opt) {
@@ -137,7 +159,7 @@ exports.createDirectory = function(opt) {
 
 	function writeDir() {
 		if (opt.file.exists() && opt.file.isDirectory()) {
-			Ti.API.warn('Filesystem: directory already exists. Skipping.');
+			Ti.API.warn(MODULE_NAME + ': directory already exists. Skipping.');
 			opt.success();
 		} else {
 			var res = opt.file.createDirectory();
@@ -177,8 +199,8 @@ exports.deleteDirectory = function(opt) {
 	}
 
 	if (canWrite(opt.file)) {
-		if (!opt.file.exists()) {
-			Ti.API.warn('Filesystem: directory does not exist. Skipping.');
+		if ( ! opt.file.exists()) {
+			Ti.API.warn(MODULE_NAME + ': directory does not exist. Skipping.');
 			opt.success();
 		} else {
 			deleteDir();

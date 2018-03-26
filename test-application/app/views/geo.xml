@@ -1,7 +1,8 @@
 <Alloy>
 	<Window id="win" layout="vertical" title="Geo">
 		<View height="40" />
-		<Button title="Activate (in background)" id="activateBgBtn" top="10" />
-		<Button title="Activate" id="activateBtn" top="10" />
+		<Button title="Activate (in background)" id="activateBgBtn" top="5" />
+		<Button title="Activate" id="activateBtn" top="5" />
+		<Button title="Get Coords" top="20" id="geoBtn" />
 	</Window>
 </Alloy>

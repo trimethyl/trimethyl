@@ -4,7 +4,7 @@
  */
 
 /*
-Include methods used in this module dynamically to avoid that Titanium 
+Include methods used in this module dynamically to avoid that Ti 
 static analysis doesn't include native-language methods.
  */
 Ti.Media;
@@ -23,7 +23,8 @@ var Permissions = require('T/permissions/camera');
  * @param  {Function} callback  Success callback
  */
 function getPhoto(method, opt, callback) {
-	Permissions.request(function() {
+	Permissions.request()
+	.then(function() {
 
 		opt = _.extend({}, opt, {
 			mediaTypes: [ Ti.Media.MEDIA_TYPE_PHOTO ],
@@ -37,15 +38,15 @@ function getPhoto(method, opt, callback) {
 				Util.errorAlert(L('unexpected_error', 'Unexpected error'));
 			}
 		});
-		if (method == Ti.Media.showCamera) {
+
+		if (method === Ti.Media.showCamera) {
 			Ti.Media.showCamera(opt);
-		} else if (method == Ti.Media.openPhotoGallery) {
+		} else if (method === Ti.Media.openPhotoGallery) {
 			Ti.Media.openPhotoGallery(opt);
+		} else {
+			throw new Error(MODULE_NAME + ': invalid method');
 		}
 		
-	}, function(err) {
-		Ti.API.error(MODULE_NAME + ': Error', err);
-		Util.errorAlert(L('error_camera_permissions', 'Missing camera permissions'));
 	});
 }
 
@@ -56,7 +57,7 @@ function getPhoto(method, opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.takePhoto = function(opt, callback) {
-	getPhoto(Titanium.Media.showCamera, opt, callback);
+	getPhoto(Ti.Media.showCamera, opt, callback);
 };
 
 /**
@@ -66,7 +67,7 @@ exports.takePhoto = function(opt, callback) {
  * @param  {Function} callback      Success callback
  */
 exports.choosePhoto = function(opt, callback) {
-	getPhoto(Titanium.Media.openPhotoGallery, opt, callback);
+	getPhoto(Ti.Media.openPhotoGallery, opt, callback);
 };
 
 /**
