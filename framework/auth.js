@@ -51,6 +51,15 @@ if (OS_IOS && exports.config.useBiometricIdentity === true && TiIdentity != null
 	TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS);
 }
 
+var BASE64_IMAGES = {
+	// material fingerprint icon (.png 48x48 white)
+	"fingerprint": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAABhFJREFUaN7tmWtsVUUQx+fc0kJREKhiDK9aHg1VqIjENEINYqwQTSTXEkADCggaQEjUEIPvZyRKJEYFRCIoiAoaBUkVFBNBJUowyFveWAUqUlBrSx8/P+yc3PHk9npfbb90kua0/9md/c/u7OzOVqRVWiUl8dJpDMgRkQEi0ltEckSks4jUiEiViJwRkaMistfzvGMt7bhPOASMAF4D9hO//Aq8DYwH2rcE8fbA/cCRGCRPAweBQ8C5GO3+BN4CBjYX+XHAyQCJ34F3gYnA1UCnRpy+BpgMrABOBGw0AOuAvk1JPhuoNYNuAUqBNknYygBK1Jnzxub6pl6BlcAuYEwj+kygDzBcCY7WfVIIdGykTw/gZQ23yYnwSUsWAq4VkbCIFIvIYBGJtSLHRGSziGwUkY88z6tM+yzHSbotcC+wN4HsE5Rq3cBJx31SKwCMFpH5IpJr4FoR+U5EtojIHhE5IiJ/q+4CEblYRPJFZJC4lbrU9K0TkZUi8miTnhFAB2BpYBYPAfcBXRKwEwKGAcsCSaESuKOpyOcDB8xgx4C7gMxAu0ygLzBSM1QpENYU2iGK3d46KfXG9nIgK53khwAVZoBVQOfAytwDfAJU/U/c7wCeAgYExrgeOGrabYjmcDLkrwLOqtF6YIbRdQSeBP5IYgM3AB8DhcZeJ+Bz0+ZrIDsV8t2AcjVWC4w1umHA4QCpCuAdYDpwMzBYf4qAO4HngR+jOPICehgCWcB7Rr8GSDzZ6Eb7whiaanTTgDqj+wa4DciI03ZvYBH/PYE3AZeoPhMoM7pZyThwqzGw2OCzddbQ0JocpW+BzviDwBxgCm4fBTd8H2CbGed74ELVXWRW+FQyDvTDXdo2GaMjiWSL34ArTfv2SthmqqCcBl4Bepp+7XDXE1/KTDgNwW36eQk7EMWh7rhbJ7hNm290Q6Psh1hSBcwFQtq/DbDW6OekTDiKA8vUeD0wyuBhoCYQBpOAXrgbZwjIxRUv60z4oX9nmxXcbRzsl07yhSZ0lhj8OkO+ijhukrgDbbtxYq0JmSIzzup0OrBYjf4FXGZmzK/IqoERgT7dcImgVIllGV027gzw5RGj868qdaSjuMHlZf+gWmrwxwwBe7j1141oQwXdP3N9R3TzbjUTkKd4gem7IB0OlBgSI8zgfln5g9mMQ3WVYslXJu4LiJwnC8yYXyp2KB0OPGxmKVOx2w2hMYp1AH4xy/+iOjQQGIs77HxZZOyvVuy0mYiHTNv+qTqwSg1tN9gixc4Zp6aZQSdFsRMCPlV9PdBD8bGmX6FiRQYrjcUvFIcPufrdZ7DB+t3ieV6t/l6s33IRWaZEioGpQBvP8xpE5HEz7k36+1Zjt0C/xw3WU2JIPK8JfvaoiWL0gMH8jPGT53n1ujJlIpItItUislxEdopIgzqQp+1PGht+UVRtsHaproDvQL3B/Ne0swbrqt8K/dYFZ9bzvGoROaFYvmJVpo9/5+lu+trVSMoBf+ZtcXFev/auXqnfHCWGiBxW7ArTbrN+b0Rvn+LCb7SI+IdX2LTfHQfHxgX4UDfTNoPtUGy1wTYots9gr5vN3lax4YGU2jUwXlgzHjpOak8/wEtq7IzBPgjmaeBpQ6yXYrcYbIpp+6bB/wHW4+pgW+zUAsWJsY3ugE2PfRWbZbB8xYoN9oBiGUSu1wfRGhdXsCyhcTmLe7pJXXAvDL7MUCyPyHE/z5Dyi/JyEzJ2AlYEbA/FPWx9C/wMfAY8gd630ia4tx+AtQbbqNgpIvebmYbsHMVCuKLIlzdo7v8JAAt9sgYbZ0hNVywbOK5YDTBI8S5ENj644mc2eoFrDgcKcE/p9tqbpcsO7jWik+I3ELnTH0TLR9wTzJoo8V4J7AF2avv1pPKUkqBjYUPkVYM/G5jtPKMbFQipaNI8/61RQj6ZBqBEsZAJO4AzwMRAv+7ABOA5XLn6Pu6SOLPZyCuRXCIvdxVEChMPmB+Y2TJgeLMSjNOJ8YbkTj+Fqi6Me4KxsguY0NK8g048YwjmB3RdcHX1+YAjl7c0b0vSA2YAd8do0xP3Mr0fVza2TWSMVmmVJpB/AQeyDakvqRh9AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTAxLTE4VDE0OjQ4OjU1KzAwOjAwBA00zgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wMS0xOFQxNDo0ODo1NSswMDowMHVQjHIAAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stSUhQbEpYaVKfc1CLAAAAAElFTkSuQmCC",
+	// material checkmark icon (.png 48x48 white)
+	"checkmark": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAAAM1JREFUaN7tlDEOgkAQRScewZuoRL0ZpVt6J8+kobN8FlIQAmF3ic5o/mvJZt4bFsyEEEIIIf4PoAFab49a+R1w583V26dUfj+QZyli4y08ljezm5ltR4+e3m5Z8hObB7h4u0k+LJKXvOQlnz28BZoV549ANyGfviGf+mEdcKo4f/DcfBoNLYro5R9ud76/OtREuMuviQgjnxFxDi9fEhFWPicivPwgIs1E+PznKyOm3kTszRdGxJZfiPgN+ZmI35IfRKSwH6wQQgghPsgL4RJFaMiwTjgAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTgtMDEtMThUMTQ6NTA6MDgrMDA6MDD/Y8ReAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE4LTAxLTE4VDE0OjUwOjA4KzAwOjAwjj584gAAACh0RVh0c3ZnOmJhc2UtdXJpAGZpbGU6Ly8vdG1wL21hZ2ljay1xUmpVTjQwQ8xDRgMAAAAASUVORK5CYII=",
+	// exclamation mark icon by Austin Andrews (.png 48x48 white)
+	"exclamation": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAAAE1JREFUaN7t2MENgDAMBMGE/ns2b94orJBmCvBpv14LAH5snzo8M/MY2vvI1nUq4CsCagJqAmoCagJqAmoCagJqAmoCgJbPXE0AAPDCDfhxCDPL0CIIAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTAxLTE4VDE0OjUzOjMxKzAwOjAwD0M9bQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wMS0xOFQxNDo1MzozMSswMDowMH4ehdEAAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stZEtSU2J5YjC+EMF0AAAAAElFTkSuQmCC",
+};
+
 var currentUser = null;
 var fetchUserFunction = fetchUserModel;
 
@@ -177,6 +186,102 @@ function fetchUserModel(opt, dataFromServer) {
 	});
 }
 
+//////////////////////////////////////
+// Show a Material Fingerprint view //
+//////////////////////////////////////
+
+function getAndroidBiometricAlert(cancelCallback) {
+	var fingerprintView = Ti.UI.createView({
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		borderWidth: 1,
+		borderColor: "#4E6A78",
+		backgroundColor: "#4E6A78",
+	});
+	var fingerprintImage = Ti.UI.createImageView({
+		width: 24,
+		height: 24,
+		image: Ti.Utils.base64decode(BASE64_IMAGES.fingerprint),
+	});
+	var fingerprintLabel = Ti.UI.createLabel({
+		width: Ti.UI.FILL,
+		height: Ti.UI.SIZE,
+		left: 16,
+		font: {
+			fontSize: 16,
+		},
+		color: "#000000",
+		opacity: 0.54,
+		text: L("auth_biometric_touchsensor", "Touch sensor"),
+	});
+	var wrapper = Ti.UI.createView({
+		height: Ti.UI.SIZE,
+		width: Ti.UI.FILL,
+	});
+	var inner = Ti.UI.createView({
+		height: Ti.UI.SIZE,
+		width: Ti.UI.FILL,
+		left: 24,
+		right: 24,
+		top: 28,
+		layout: "horizontal",
+	});
+	fingerprintView.add(fingerprintImage);
+	inner.add(fingerprintView);
+	inner.add(fingerprintLabel);
+	wrapper.add(inner);
+	var dialog = Dialog.confirm("Touch ID", L("auth_biometric_reason"), [
+	{
+		title: L('cancel', 'Cancel'),
+		cancel: true,
+	}
+	], {
+		androidView: wrapper,
+		canceledOnTouchOutside: false,
+		persistent: true,
+	});
+
+	dialog.addEventListener('click', function(e) {
+		// Manually listen to the "cancel" event
+		// This is to ensure that we capture both the dialog's button and the back button events
+		if (e.cancel === true && _.isFunction(cancelCallback)) {
+			cancelCallback();
+		}
+	});
+
+	dialog.showSuccess = function() {
+		fingerprintLabel.applyProperties({
+			color: "#118675",
+			opacity: 1,
+			text: L("auth_biometric_success", "Fingerprint recognized"),
+		});
+		fingerprintView.applyProperties({
+			backgroundColor: "#118675",
+			borderColor: "#118675",
+		});
+		fingerprintImage.applyProperties({
+			image: Ti.Utils.base64decode(BASE64_IMAGES.checkmark),
+		});
+	};
+
+	dialog.showError = function() {
+		fingerprintLabel.applyProperties({
+			color: "#EE3918",
+			opacity: 1,
+			text: L("auth_biometric_error", "Fingerprint not recognized. Try again."),
+		});
+		fingerprintView.applyProperties({
+			backgroundColor: "#EE3918",
+			borderColor: "#EE3918",
+		});
+		fingerprintImage.applyProperties({
+			image: Ti.Utils.base64decode(BASE64_IMAGES.exclamation),
+		});
+	};
+
+	return dialog;
+}
 
 /**
  * Load a driver
@@ -247,9 +352,27 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 	var supported = exports.isBiometricIdentitySupported();
 
 	if (true === supported && true === wantsToUse) {
+		var dialog = null;
+
+		if (OS_ANDROID) {
+			dialog = getAndroidBiometricAlert(function() {
+				clearTimeout(that.timeout);
+				TiIdentity.invalidate();
+				dialog.hide();
+				opt.error();
+			});
+			dialog.show();
+		}
 
 		if (opt.timeout != null) {
 			that.timeout = setTimeout(function() {
+				if (OS_ANDROID) {
+					if (dialog) dialog.hide();
+
+					// TODO Check if this callback is still needed
+					// opt.error();
+				}
+
 				TiIdentity.invalidate();
 			}, opt.timeout);
 		}
@@ -257,21 +380,30 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 		return TiIdentity.authenticate({
 			reason: L('auth_biometric_reason'),
 			callback: function(e) {
-				// Call invalidate to trigger again
-				TiIdentity.invalidate();
-				clearTimeout(that.timeout);
-
 				if (e.success) {
-					opt.success({ 
-						biometric: true 
-					});
+					clearTimeout(that.timeout);
+
+					if (OS_ANDROID) {
+						dialog.showSuccess();
+						// Callback delayed to show success on the dialog
+						setTimeout(function() {
+							dialog.hide();
+							opt.success({ biometric: true });
+						}, 1000);
+					} else {
+						opt.success({ biometric: true });
+					}
 				} else {
-					opt.error({
-						biometric: e.code
-					});
+					if (OS_ANDROID) {
+						dialog.showError();
+					} else {
+						opt.error();
+					}
 				}
 			}
 		});
+
+		return;
 	}
 
 	if (exports.config.enforceBiometricIdentity == true) {
@@ -538,7 +670,7 @@ exports.offlineLogin = function(opt) {
  * @param {Boolean} [opt.silent=false] Silence all global events
  * @param {Function} [opt.success=null] The success callback to invoke
  * @param {Function} [opt.error=null] The error callback to invoke
- * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error
+ * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error. Set to false to disable it.
  */
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -553,21 +685,25 @@ exports.autoLogin = function(opt) {
 	var error = opt.error;
 
 	var timeouted = false;
-	var errorTimeout = setTimeout(function() {
-		timeouted = true;
-		opt.error();
-	}, opt.timeout);
+	var errorTimeout = null;
 
-	opt.success = function() {
-		clearTimeout(errorTimeout);
-		success.apply(null, arguments);
-	};
+	if (opt.timeout) {
+		errorTimeout = setTimeout(function() {
+			timeouted = true;
+			opt.error();
+		}, opt.timeout);
 
-	opt.error = function() {
-		clearTimeout(errorTimeout);
-		success = Alloy.Globals.noop;
-		error.apply(null, arguments);
-	};
+		opt.success = function() {
+			clearTimeout(errorTimeout);
+			success.apply(null, arguments);
+		};
+
+		opt.error = function() {
+			clearTimeout(errorTimeout);
+			success = Alloy.Globals.noop;
+			error.apply(null, arguments);
+		};
+	}
 
 	if (Ti.Network.online) {
 
