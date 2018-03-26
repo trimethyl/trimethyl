@@ -45,6 +45,8 @@
         <string>Hello</string>
         <key>NSPhotoLibraryUsageDescription</key>
         <string>Hello</string>
+        <key>NSPhotoLibraryAddUsageDescription</key>
+        <string>Hello</string>
         <key>NSMicrophoneUsageDescription</key>
         <string>Hello</string>
         <key>NSAppleMusicUsageDescription</key>
