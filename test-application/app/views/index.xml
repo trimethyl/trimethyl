@@ -9,6 +9,7 @@
 	 	<Tab id="uiTab" title="UI">
 	 		<Window id="uiWin" title="UI">
 	 			<TableView id="uiList">
+	 				<TableViewRow title="Auth" />
 	 				<TableViewRow title="Select" />
 	 				<TableViewRow title="Animator" />
 	 				<TableViewRow title="Camera" />

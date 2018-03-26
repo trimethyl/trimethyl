@@ -61,7 +61,10 @@ function doNextTest() {
 		UT.uiRows[key[1]]._loader.hide();
 	})
 	.catch(function(err) {
-		Ti.API.error('Error ' + key, err);
+		Ti.API.error('Error ' + key);
+		Ti.API.error(err.message ? err.message : err);
+
+		UT.uiRows[key[1]].error = err;
 	
 		UT.uiRows[key[1]]._label.applyProperties({ text: 'FAIL', color: 'red', opacity: 1 });
 		UT.uiRows[key[1]]._loader.hide();
@@ -72,6 +75,12 @@ function doNextTest() {
 }
 
 // Configure UI tests
+
+$.list.addEventListener('click', function(e) {
+	if (e.rowData.error) {
+		alert(e.rowData.error);
+	}
+});
 
 $.testsBtn.addEventListener('click', function(e) {
 	UT.toTest = [];

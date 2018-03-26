@@ -39,16 +39,6 @@ exports.methods.http.should_parse_json = function() {
 	});
 };
 
-exports.methods.http.ssl_pinning_should_not_affect_other_https = function() {
-	return Q.promise(function(resolve, reject) {
-		HTTP.send({
-			url: 'https://imgix.com',
-			success: resolve,
-			error: reject
-		});
-	});
-};
-
 exports.methods.http_should_cache = function() {
 	return Q.promise(function(resolve, reject) {
 		var a = HTTP.send({
@@ -328,7 +318,7 @@ exports.methods.geo.get_coords_should_work = function() {
 		Geo.getCurrentPosition()
 		.then(function(coords) {
 			if (coords.latitude && coords.longitude) return resolve();
-			reject();
+			reject(coords);
 		})
 		.catch(reject);
 	});
@@ -341,7 +331,7 @@ exports.methods.geo.geocode_should_work = function() {
 		})
 		.then(function(res) {
 			if (res.latitude && res.longitude) return resolve();
-			reject();
+			reject(res);
 		})
 		.catch(reject);
 	});
@@ -350,12 +340,12 @@ exports.methods.geo.geocode_should_work = function() {
 exports.methods.geo.reversegeocode_should_work = function() {
 	return Q.promise(function(resolve, reject) {
 		Geo.reverseGeocode({
-			latitude: 42.30501176970849,
-			longitude: -83.7153608802915
+			latitude: 42,
+			longitude: -83
 		})
 		.then(function(res) {
 			if (res.address) return resolve();
-			reject();
+			reject(res);
 		})
 		.catch(reject);
 	});

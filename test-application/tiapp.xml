@@ -114,6 +114,8 @@
     <module platform="iphone">ti.identity</module>
     <module platform="android">ti.identity</module>
     <module platform="android">ti.inappbilling</module>
+    <module platform="iphone">ti.storekit</module>
+    <module platform="iphone">ti.wkwebview</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>

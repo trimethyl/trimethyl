@@ -47,11 +47,6 @@
 		"removed": "10.0.0",
 		"note": "Use <cache/sqlite> instead"
 	},
-	"cache/prop":{
-		"name": "Cache.Prop",
-		"description": "Cache driver with Properties",
-		"dependencies": ["util","filesystem"]
-	},
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",

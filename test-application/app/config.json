@@ -11,18 +11,7 @@
 				"enforceBiometricIdentity": true,
 				"useBiometricIdentityPromptConfirmation": true
 			}
-		},
-		"ui-tests": [
-			"auth", 
-			"select", 
-			"calendar", 
-			"weballoy", 
-			"camera", 
-			"animator", 
-			"notifications", 
-			"geo",
-			"permissions"
-		]
+		}
 	},
 	"env:development": {},
 	"env:test": {},
