@@ -165,7 +165,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 exports.buildKeyboardToolbar = function(opt) {
 	var $doneBtn = Ti.UI.createButton({
 		title: L('done', 'Done'),
-		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+		style: Ti.UI.iOS.SystemButtonStyle.DONE
 	});
 	$doneBtn.addEventListener('click', opt.done);
 
