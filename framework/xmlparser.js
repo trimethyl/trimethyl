@@ -39,7 +39,7 @@ function parse(xml, opts) {
 	DefaultProxies.fontTransform = fontTransform;
 
 	var proxies = _.extend({}, DefaultProxies.proxies, customProxies, opts.proxies);
-	var replacers = _.extend({}, DefaultProxies.replacers);
+	var replacers = _.extend({}, DefaultProxies.replacers, opts.replacers);
 
 	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
