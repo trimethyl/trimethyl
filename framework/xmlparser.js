@@ -75,6 +75,11 @@ function parse(xml, opts) {
 
 	//finalize currentLabel if it's not null
 	finalizeLabel();
+
+	if (_.isFunction(opts.callback)) {
+		opts.callback();
+	}
+
 	return container;
 
 	/**
