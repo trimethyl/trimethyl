@@ -68,6 +68,8 @@ function parse(xml, opts) {
 		.replace(new RegExp("<\/" + type + ">" ,"g"), replacer.closeTag);
 	});
 
+	xml = removeUndefinedTags(xml, proxies);
+
 	// start processing
 	tag(xml);
 
@@ -285,6 +287,17 @@ function parse(xml, opts) {
 
 		if (e.url) Ti.Platform.openURL(e.url);
 	}
+}
+
+function removeUndefinedTags(text, proxies) {
+	text = text || "";
+	var tags = Object.keys(proxies).join('|');
+	var reOpen = new RegExp('<(?!(' + tags + '|\/))[^>]*>', 'g'); // This RegExp will select all the open tags not defined by the proxies parameter
+	var reClose = new RegExp('<\/(?!(' + tags + '))[^>]*>', 'g'); // This RegExp will select all the close tags not defined by the proxies parameter
+
+	text = text.replace(reOpen, '').replace(reClose, '');
+
+	return text;
 }
 
 /**
