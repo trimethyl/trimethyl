@@ -426,8 +426,10 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 exports.userWantsToUseBiometricIdentity = function(val) {
 	if (val !== undefined) {
 		Prop.setBool('auth.biometric.use', val);
+	} else if (Prop.hasProperty('auth.biometric.use')) {
+		return Prop.getBool('auth.biometric.use', false);
 	} else {
-		return Prop.getBool('auth.biometric.use', null);
+		return null;
 	}
 };
 
