@@ -8,6 +8,13 @@ exports.TYPE_CUSTOM 	= 1;
 exports.opts 	  		= {};
 exports.fontTransform 	= exports.opts.fontTransform || {};
 
+exports.replacers = {
+	p: {
+		openTag: '\n',
+		closeTag: '\n'
+	},
+};
+
 exports.proxies = {
 	p: {
 		type: exports.TYPE_TEXT,

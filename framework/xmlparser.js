@@ -39,6 +39,7 @@ function parse(xml, opts) {
 	DefaultProxies.fontTransform = fontTransform;
 
 	var proxies = _.extend({}, DefaultProxies.proxies, customProxies, opts.proxies);
+	var replacers = _.extend({}, DefaultProxies.replacers);
 
 	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
@@ -49,7 +50,23 @@ function parse(xml, opts) {
 
 	// strip comments and whitespaces
 	xml = xml.trim();
-	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br />');
+	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\n" ,"g"), '');
+
+	// apply replacers
+	_.each(replacers, function(replacer, type) {
+		if (replacer.openTag == null) {
+			Ti.API.error('XMLParser: a replacer has been defined for', type, 'but with no openTag attribute. Defaulting to empty string.');
+			replacer.openTag = '';
+		}
+		if (replacer.closeTag == null) {
+			Ti.API.error('XMLParser: a replacer has been defined for', type, 'but with no closeTag attribute. Defaulting to empty string.');
+			replacer.closeTag = '';
+		}
+
+		xml = xml
+		.replace(new RegExp("<" + type + "[^>]*>" ,"g"), replacer.openTag)
+		.replace(new RegExp("<\/" + type + ">" ,"g"), replacer.closeTag);
+	});
 
 	// start processing
 	tag(xml);
