@@ -141,13 +141,16 @@ HTTPRequest.prototype.toString = function() {
 };
 
 HTTPRequest.prototype._getResponseInfo = function() {
-	if (this.client == null || this.client.readyState <= 1) {
+	if (this.client == null || this.client.readyState < 1) {
 		throw new Error(MODULE_NAME + ': Client is null or not ready');
 	}
 
-	var headers = {
-		ContentType: this.client.getResponseHeader('Content-Type'),
-	};
+	var headers = {};
+	try {
+		headers.ContentType = this.client.getResponseHeader('Content-Type');
+	} catch(err) {
+		Ti.API.warn(MODULE_NAME + ': Error while getting Content-Type header: ' + err);
+	}
 
 	var info = {
 		format: 'blob',
