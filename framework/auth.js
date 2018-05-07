@@ -434,6 +434,15 @@ exports.userWantsToUseBiometricIdentity = function(val) {
 };
 
 /**
+ * Reset the choice for Biometric Identity use.
+ */
+exports.resetUserWantsToUseBiometricIdentity = function() {
+	if (Prop.hasProperty('auth.biometric.use')) {
+		Prop.removeProperty('auth.biometric.use');
+	}
+};
+
+/**
  * Get current User model
  * @return {Backbone.Model}
  */
@@ -824,6 +833,8 @@ exports.logout = function(callback) {
 			currentUser = null;
 
 			Prop.removeProperty('auth.me');
+			
+			exports.resetUserWantsToUseBiometricIdentity();
 
 			Cache.purge();
 
