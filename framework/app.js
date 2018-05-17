@@ -145,6 +145,7 @@ function deepLinkHandler(e) {
 	var urlToRoute = exports.deepLinkToRoute(url);
 
 	if (OS_IOS && exports.config.enqueueRouteWithUniversalLink) {
+		if (!e) return;
 		if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
 
 		urlToRoute = !e.webpageURL || exports.universalLinkToRoute(e.webpageURL);

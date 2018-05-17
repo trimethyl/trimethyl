@@ -809,6 +809,12 @@ exports.autoLogin = function(opt) {
 	}
 };
 
+function purgeData() {
+	currentUser = null;
+	Prop.removeProperty('auth.me');
+	Cache.purge();
+}
+
 /**
  * Logout the user
  * @param  {Function} callback Callback to invoke on completion
@@ -823,30 +829,30 @@ exports.logout = function(callback) {
 		exports.loadDriver(driver).logout();
 	}
 
-	var logoutUrl = (driver && driver.config ? driver.config.logoutUrl : null) || exports.config.logoutUrl;
+	if (exports.config.useOAuth == true) {
 
-	HTTP.send({
-		url: logoutUrl,
-		method: 'POST',
-		timeout: 3000,
-		complete: function() {
-			currentUser = null;
+		exports.OAuth.resetCredentials();
+		purgeData();
+		exports.resetUserWantsToUseBiometricIdentity();
+		if (_.isFunction(callback)) callback();
+		
+	} else {
 
-			Prop.removeProperty('auth.me');
-			
-			exports.resetUserWantsToUseBiometricIdentity();
+		var logoutUrl = (driver && driver.config ? driver.config.logoutUrl : null) || exports.config.logoutUrl;
 
-			Cache.purge();
-
-			if (exports.config.useOAuth == true) {
-				exports.OAuth.resetCredentials();
-			} else {
+		HTTP.send({
+			url: logoutUrl,
+			method: 'POST',
+			timeout: 3000,
+			complete: function() {
 				Ti.Network.removeHTTPCookiesForDomain(Util.getDomainFromURL(HTTP.config.base));
+				purgeData();
+				exports.resetUserWantsToUseBiometricIdentity();
+				if (_.isFunction(callback)) callback();
 			}
+		});
 
-			if (_.isFunction(callback)) callback();
-		}
-	});
+	}
 };
 
 //////////

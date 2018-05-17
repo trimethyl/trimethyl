@@ -15,7 +15,7 @@ module.exports = function(args) {
 		* Sets the style of the activity indicator.
 		* @property {Number} [indicatorStyle=DARK]
 		*/
-		indicatorStyle: OS_ANDROID ? Ti.UI.ActivityIndicatorStyle.DARK : Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
+		indicatorStyle: Ti.UI.ActivityIndicatorStyle.DARK,
 
 		/**
 		* Sets the message of the activity indicator.
