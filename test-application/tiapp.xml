@@ -102,12 +102,10 @@
     <module platform="iphone">dk.napp.social</module>
     <module platform="android">facebook</module>
     <module platform="android">ti.goosh</module>
-    <module platform="iphone">ti.touchid</module>
-    <module platform="android">ti.touchid</module>
     <module platform="iphone">bencoding.securely</module>
     <module platform="android">bencoding.securely</module>
     <module platform="android">appcelerator.https</module>
-    <!--     <module platform="android">lucadamico.android.calendar</module> -->
+    <!-- <module platform="android">lucadamico.android.calendar</module> -->
     <module platform="android">ti.map</module>
     <module platform="android">org.iotashan.TiTouchImageView</module>
     <module platform="android">ti.ga</module>
@@ -115,7 +113,11 @@
     <module platform="android">lucadamico.android.calendar</module>
     <module platform="iphone">appcelerator.encrypteddatabase</module>
     <module platform="android">appcelerator.encrypteddatabase</module>
+    <module platform="iphone">ti.identity</module>
+    <module platform="android">ti.identity</module>
     <module platform="android">ti.inappbilling</module>
+    <module platform="iphone">ti.storekit</module>
+    <module platform="iphone">ti.wkwebview</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>
@@ -124,7 +126,7 @@
     <target device="mobileweb">false</target>
     <target device="windows">false</target>
   </deployment-targets>
-  <sdk-version>6.0.4.CAFFEINA-1</sdk-version>
+  <sdk-version>7.0.1.GA</sdk-version>
   <plugins>
     <plugin version="1.0">ti.alloy</plugin>
   </plugins>

@@ -1,3 +1,6 @@
+"TableView": {
+	rowHeight: 50
+},
 "Label":{
 	font:{
 		fontSize: 12

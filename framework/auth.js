@@ -13,9 +13,9 @@
  * @property {String} [config.oAuthAccessTokenURL="/oauth/access_token"] OAuth endpoint to retrieve access token.
  * @property {String} [config.oAuthClientID="app"] OAuth client ID
  * @property {String} [config.oAuthClientSecret="secret"] OAuth client secret.
- * @property {Boolean} [config.useTouchID=false] Use TouchID to protect stored/offline login.
- * @property {Boolean} [config.enforceTouchID=false] If true, disable the stored/offline login when TouchID is disabled or not supported.
- * @property {Boolean} [config.useTouchIDPromptConfirmation=false] Ask the user if he wants to use the TouchID protection after the first signup. If false, the TouchID protection is used without prompts.
+ * @property {Boolean} [config.useBiometricIdentity=false] Use Biometric identity to protect stored/offline login.
+ * @property {Boolean} [config.enforceBiometricIdentity=false] If true, disable the stored/offline login when Biometric identity is disabled or not supported.
+ * @property {Boolean} [config.useBiometricIdentityPromptConfirmation=false] Ask the user if he wants to use the Biometric identity protection after the first signup. If false, the Biometric identity protection is used without prompts.
  */
 exports.config = _.extend({
 
@@ -29,9 +29,9 @@ exports.config = _.extend({
 	oAuthClientID: 'app',
 	oAuthClientSecret: 'secret',
 
-	useTouchID: false,
-	enforceTouchID: false,
-	useTouchIDPromptConfirmation: false,
+	useBiometricIdentity: false,
+	enforceBiometricIdentity: false,
+	useBiometricIdentityPromptConfirmation: false,
 
 }, Alloy.CFG.T ? Alloy.CFG.T.auth : {});
 
@@ -45,11 +45,20 @@ var Util = require('T/util');
 var Dialog = require('T/dialog');
 
 var Prop = require('T/prop');
-var TouchID = Util.requireOrNull("ti.touchid");
+var TiIdentity = Util.requireOrNull('ti.identity');
 
-if (OS_IOS && exports.config.useTouchID == true && TouchID != null) {
-	TouchID.setAuthenticationPolicy(TouchID.AUTHENTICATION_POLICY_BIOMETRICS);
+if (OS_IOS && exports.config.useBiometricIdentity === true && TiIdentity != null) {
+	TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS);
 }
+
+var BASE64_IMAGES = {
+	// material fingerprint icon (.png 48x48 white)
+	"fingerprint": "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",
+	// material checkmark icon (.png 48x48 white)
+	"checkmark": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAAAM1JREFUaN7tlDEOgkAQRScewZuoRL0ZpVt6J8+kobN8FlIQAmF3ic5o/mvJZt4bFsyEEEIIIf4PoAFab49a+R1w583V26dUfj+QZyli4y08ljezm5ltR4+e3m5Z8hObB7h4u0k+LJKXvOQlnz28BZoV549ANyGfviGf+mEdcKo4f/DcfBoNLYro5R9ud76/OtREuMuviQgjnxFxDi9fEhFWPicivPwgIs1E+PznKyOm3kTszRdGxJZfiPgN+ZmI35IfRKSwH6wQQgghPsgL4RJFaMiwTjgAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTgtMDEtMThUMTQ6NTA6MDgrMDA6MDD/Y8ReAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE4LTAxLTE4VDE0OjUwOjA4KzAwOjAwjj584gAAACh0RVh0c3ZnOmJhc2UtdXJpAGZpbGU6Ly8vdG1wL21hZ2ljay1xUmpVTjQwQ8xDRgMAAAAASUVORK5CYII=",
+	// exclamation mark icon by Austin Andrews (.png 48x48 white)
+	"exclamation": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAAASAAAAEgARslrPgAAAE1JREFUaN7t2MENgDAMBMGE/ns2b94orJBmCvBpv14LAH5snzo8M/MY2vvI1nUq4CsCagJqAmoCagJqAmoCagJqAmoCgJbPXE0AAPDCDfhxCDPL0CIIAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTAxLTE4VDE0OjUzOjMxKzAwOjAwD0M9bQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wMS0xOFQxNDo1MzozMSswMDowMH4ehdEAAAAodEVYdHN2ZzpiYXNlLXVyaQBmaWxlOi8vL3RtcC9tYWdpY2stZEtSU2J5YjC+EMF0AAAAAElFTkSuQmCC",
+};
 
 var currentUser = null;
 var fetchUserFunction = fetchUserModel;
@@ -177,6 +186,102 @@ function fetchUserModel(opt, dataFromServer) {
 	});
 }
 
+//////////////////////////////////////
+// Show a Material Fingerprint view //
+//////////////////////////////////////
+
+function getAndroidBiometricAlert(cancelCallback) {
+	var fingerprintView = Ti.UI.createView({
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		borderWidth: 1,
+		borderColor: "#4E6A78",
+		backgroundColor: "#4E6A78",
+	});
+	var fingerprintImage = Ti.UI.createImageView({
+		width: 24,
+		height: 24,
+		image: Ti.Utils.base64decode(BASE64_IMAGES.fingerprint),
+	});
+	var fingerprintLabel = Ti.UI.createLabel({
+		width: Ti.UI.FILL,
+		height: Ti.UI.SIZE,
+		left: 16,
+		font: {
+			fontSize: 16,
+		},
+		color: "#000000",
+		opacity: 0.54,
+		text: L("auth_biometric_touchsensor", "Touch sensor"),
+	});
+	var wrapper = Ti.UI.createView({
+		height: Ti.UI.SIZE,
+		width: Ti.UI.FILL,
+	});
+	var inner = Ti.UI.createView({
+		height: Ti.UI.SIZE,
+		width: Ti.UI.FILL,
+		left: 24,
+		right: 24,
+		top: 28,
+		layout: "horizontal",
+	});
+	fingerprintView.add(fingerprintImage);
+	inner.add(fingerprintView);
+	inner.add(fingerprintLabel);
+	wrapper.add(inner);
+	var dialog = Dialog.confirm("Touch ID", L("auth_biometric_reason"), [
+	{
+		title: L('cancel', 'Cancel'),
+		cancel: true,
+	}
+	], {
+		androidView: wrapper,
+		canceledOnTouchOutside: false,
+		persistent: true,
+	});
+
+	dialog.addEventListener('click', function(e) {
+		// Manually listen to the "cancel" event
+		// This is to ensure that we capture both the dialog's button and the back button events
+		if (e.cancel === true && _.isFunction(cancelCallback)) {
+			cancelCallback();
+		}
+	});
+
+	dialog.showSuccess = function() {
+		fingerprintLabel.applyProperties({
+			color: "#118675",
+			opacity: 1,
+			text: L("auth_biometric_success", "Fingerprint recognized"),
+		});
+		fingerprintView.applyProperties({
+			backgroundColor: "#118675",
+			borderColor: "#118675",
+		});
+		fingerprintImage.applyProperties({
+			image: Ti.Utils.base64decode(BASE64_IMAGES.checkmark),
+		});
+	};
+
+	dialog.showError = function() {
+		fingerprintLabel.applyProperties({
+			color: "#EE3918",
+			opacity: 1,
+			text: L("auth_biometric_error", "Fingerprint not recognized. Try again."),
+		});
+		fingerprintView.applyProperties({
+			backgroundColor: "#EE3918",
+			borderColor: "#EE3918",
+		});
+		fingerprintImage.applyProperties({
+			image: Ti.Utils.base64decode(BASE64_IMAGES.exclamation),
+		});
+	};
+
+	return dialog;
+}
 
 /**
  * Load a driver
@@ -207,7 +312,7 @@ exports.event = function(name, cb) {
  */
 exports.setFetchUserFunction = function(fn) {
 	if (!_.isFunction(fn)) {
-		return Ti.API.error('Passed argument in setFetchUserFunction is not a function');
+		return Ti.API.error(MODULE_NAME + ': passed argument in setFetchUserFunction is not a function');
 	}
 
 	fetchUserFunction = fn;
@@ -220,72 +325,120 @@ exports.resetFetchUserFunction = function() {
 	fetchUserFunction = fetchUserModel;
 };
 
-//////////////
-// Touch ID //
-//////////////
-
 /**
- * Check if the TouchID is enabled and supported on the device and configuration.
+ * Check if the Biometric identity is enabled and supported on the device and configuration.
  * @return {Boolean}
  */
-exports.isTouchIDSupported = function() {
-	return exports.config.useTouchID == true && TouchID != null && TouchID.isSupported();
+exports.isBiometricIdentitySupported = function() {
+	return exports.config.useBiometricIdentity == true && TiIdentity != null && TiIdentity.isSupported();
 };
 
 /**
- * Authenticately via TouchID.
+ * Authenticate via Biometric identity.
  * @param {Function} success The callback to call on success.
  * @param {Function} error The callback to call on error.
  */
-exports.authenticateViaTouchID = function(opt) {
+exports.authenticateViaBiometricIdentity = function(opt) {
 	opt = _.defaults(opt || {}, {
 		success: Alloy.Globals.noop,
 		error: Alloy.Globals.noop
 	});
 
-	clearTimeout(exports.authenticateViaTouchID.timeout);
+	var that = exports.authenticateViaBiometricIdentity;
 
-	if (exports.isTouchIDSupported() && exports.userWantsToUseTouchID()) {
+	clearTimeout(that.timeout);
+
+	var wantsToUse = exports.userWantsToUseBiometricIdentity();
+	var supported = exports.isBiometricIdentitySupported();
+
+	if (true === supported && true === wantsToUse) {
+		var dialog = null;
+
+		if (OS_ANDROID) {
+			dialog = getAndroidBiometricAlert(function() {
+				clearTimeout(that.timeout);
+				TiIdentity.invalidate();
+				dialog.hide();
+				opt.error();
+			});
+			dialog.show();
+		}
 
 		if (opt.timeout != null) {
-			exports.authenticateViaTouchID.timeout = setTimeout(function() {
-				TouchID.invalidate();
+			that.timeout = setTimeout(function() {
+				if (OS_ANDROID) {
+					if (dialog) dialog.hide();
+
+					// TODO Check if this callback is still needed
+					// opt.error();
+				}
+
+				TiIdentity.invalidate();
 			}, opt.timeout);
 		}
 		
-		return TouchID.authenticate({
-			reason: L('auth_touchid_reason'),
+		return TiIdentity.authenticate({
+			reason: L('auth_biometric_reason'),
 			callback: function(e) {
-				setTimeout(function(){
-					if (e.success) {
-						clearTimeout(exports.authenticateViaTouchID.timeout);
-						opt.success({ touchID: true });
+				if (e.success) {
+					clearTimeout(that.timeout);
+
+					if (OS_ANDROID) {
+						dialog.showSuccess();
+						// Callback delayed to show success on the dialog
+						setTimeout(function() {
+							dialog.hide();
+							opt.success({ biometric: true });
+						}, 1000);
+					} else {
+						opt.success({ biometric: true });
+					}
+				} else {
+					if (OS_ANDROID) {
+						dialog.showError();
 					} else {
 						opt.error();
 					}
-				}, 0);
+				}
 			}
 		});
+
+		return;
 	}
 
-	if (exports.config.enforceTouchID == true) {
-		Ti.API.warn(MODULE_NAME + ": the user has denied access to TouchID or device doesn't support TouchID, but current configuration is enforcing TouchID usage");
-		opt.error();
+	if (exports.config.enforceBiometricIdentity == true) {
+		Ti.API.warn(MODULE_NAME + ": the user has denied access to Biometric identity or device doesn't support biometric features, but current configuration is enforcing Biometric Identity usage");
+		opt.error({
+			biometric: false
+		});
 	} else {
-		opt.success({ touchID: false });
+		opt.success({ 
+			biometric: false 
+		});
 	}
 };
 
 /**
- * Set or get the TouchID use property.
+ * Set or get the Biometric Identity use property.
  * @param  {Boolean} val
  * @return {Boolean}
  */
-exports.userWantsToUseTouchID = function(val) {
+exports.userWantsToUseBiometricIdentity = function(val) {
 	if (val !== undefined) {
-		Prop.setBool('auth.touchid.use', val);
+		Prop.setBool('auth.biometric.use', val);
+	} else if (Prop.hasProperty('auth.biometric.use')) {
+		return Prop.getBool('auth.biometric.use', false);
 	} else {
-		return Prop.getBool('auth.touchid.use', false);
+		return null;
+	}
+};
+
+/**
+ * Reset the choice for Biometric Identity use.
+ */
+exports.resetUserWantsToUseBiometricIdentity = function() {
+	if (Prop.hasProperty('auth.biometric.use')) {
+		Prop.removeProperty('auth.biometric.use');
 	}
 };
 
@@ -355,43 +508,65 @@ exports.login = function(opt) {
 
 	.then(function() {
 		return Q.promise(function(resolve, reject) {
-			if (
-				exports.config.useTouchIDPromptConfirmation == true && 
-				exports.isTouchIDSupported() && 
-				opt.stored != true				
-			) {
-				Dialog.confirm("Touch ID", L("auth_touchid_confirmation_message"), [
-				{
-					title: L('yes', 'Yes'),
-					preferred: true,
-					callback: function() {
-						exports.userWantsToUseTouchID(true);
-						resolve({ 
-							touchIDEnrolled: true 
-						});
-					}
-				},
-				{
-					title: L('no', 'No'),
-					callback: function() {
-						exports.userWantsToUseTouchID(false);
-						resolve({ 
-							touchIDEnrolled: false
-						});
-					}
-				}
-				]);
-			} else {
-				resolve({
-					touchIDEnrolled: false 
+			// Just bypass this dialog if method is stored
+			if (true == opt.stored || false == opt.remember) {
+				return resolve({
+					biometricEnrolled: null
 				});
 			}
+
+			var supported = exports.isBiometricIdentitySupported();
+
+			// Biometric not supported
+			if (false == supported) {
+				return resolve({
+					biometricEnrolled: false 
+				});
+			}
+
+			// Developer doesn't want to use dialog
+			if (false == exports.config.useBiometricIdentityPromptConfirmation) {
+				return resolve({
+					biometricEnrolled: false 
+				});
+			}
+
+			var wantsToUse = exports.userWantsToUseBiometricIdentity();
+			
+			// If is not null (true or false), ignore this step because user
+			// already specified his preference
+			if (wantsToUse !== null) {
+				return resolve({
+					biometricEnrolled: wantsToUse
+				});
+			}
+
+			Dialog.confirm(L('auth_biometric_confirmation_title'), L('auth_biometric_confirmation_message'), [
+			{
+				title: L('yes', 'Yes'),
+				preferred: true,
+				callback: function() {
+					exports.userWantsToUseBiometricIdentity(true);
+					resolve({ 
+						biometricEnrolled: true 
+					});
+				}
+			},
+			{
+				title: L('no', 'No'),
+				callback: function() {
+					exports.userWantsToUseBiometricIdentity(false);
+					resolve({ 
+						biometricEnrolled: false
+					});
+				}
+			}
+			]);
 		});
 	})
 
 	.then(function(e) {
-		if (opt.remember != true) return;
-		if (e.touchIDEnrolled == true || exports.config.enforceTouchID != true) {
+		if (e.biometricEnrolled == true || exports.config.enforceBiometricIdentity != true) {
 			driverStoreData(opt);
 		}
 	})
@@ -437,7 +612,7 @@ exports.storedLogin = function(opt) {
 	});
 
 	if (exports.isStoredLoginAvailable()) {
-		exports.authenticateViaTouchID({
+		exports.authenticateViaBiometricIdentity({
 			timeout: opt.timeout,
 			success: function() {
 				exports.login(_.extend(opt || {}, {
@@ -477,7 +652,7 @@ exports.offlineLogin = function(opt) {
 	});
 
 	if (exports.isOfflineLoginAvailable()) {
-		exports.authenticateViaTouchID({
+		exports.authenticateViaBiometricIdentity({
 			timeout: opt.timeout,
 			success: function() {
 				currentUser = Alloy.createModel('user', Prop.getObject('auth.me'));
@@ -506,7 +681,7 @@ exports.offlineLogin = function(opt) {
  * @param {Boolean} [opt.silent=false] Silence all global events
  * @param {Function} [opt.success=null] The success callback to invoke
  * @param {Function} [opt.error=null] The error callback to invoke
- * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error
+ * @param {Function} [opt.timeout=10000] Timeout after the auto login will cause an error. Set to false to disable it.
  */
 exports.autoLogin = function(opt) {
 	opt = _.defaults(opt || {}, {
@@ -521,39 +696,41 @@ exports.autoLogin = function(opt) {
 	var error = opt.error;
 
 	var timeouted = false;
-	var errorTimeout = setTimeout(function() {
-		timeouted = true;
-		opt.error();
-	}, opt.timeout);
+	var errorTimeout = null;
 
-	opt.success = function() {
-		clearTimeout(errorTimeout);
-		success.apply(null, arguments);
-	};
+	if (opt.timeout) {
+		errorTimeout = setTimeout(function() {
+			timeouted = true;
+			opt.error();
+		}, opt.timeout);
 
-	opt.error = function() {
-		clearTimeout(errorTimeout);
-		success = Alloy.Globals.noop;
-		error.apply(null, arguments);
-	};
+		opt.success = function() {
+			clearTimeout(errorTimeout);
+			success.apply(null, arguments);
+		};
+
+		opt.error = function() {
+			clearTimeout(errorTimeout);
+			success = Alloy.Globals.noop;
+			error.apply(null, arguments);
+		};
+	}
 
 	if (Ti.Network.online) {
 
 		var driver = getStoredDriverString();
-		if (exports.config.useOAuth == true && driver === 'bypass') {
+		if (exports.config.useOAuth === true && driver === 'bypass') {
 
 			if (exports.OAuth.getAccessToken() != null) {
-				exports.authenticateViaTouchID({
+				exports.authenticateViaBiometricIdentity({
 					timeout: opt.timeout,
 					success: function() {
 
 						(opt.fetchUserFunction || fetchUserFunction)()
 						.then(function(user) {
-							currentUser = user;
-							return Q.resolve();
-						}) 
-						.then(function() {
 							if (timeouted) return;
+							
+							currentUser = user;
 
 							var payload = {
 								id: currentUser.id,
@@ -602,7 +779,8 @@ exports.autoLogin = function(opt) {
 				});
 			} else {
 				// Not a real error, no object passing
-				opt.error();
+				Ti.API.warn(MODULE_NAME + ': stored login is not available');
+				opt.error(); // Do not pass any object here
 			}
 
 		}
@@ -624,8 +802,8 @@ exports.autoLogin = function(opt) {
 					silent: true // manage internally
 				});
 		} else {
-			// Not a real error, no object passing
-			opt.error();
+			Ti.API.warn(MODULE_NAME + ': offline login is not available');
+			opt.error(); // Do not pass any object here
 		}
 
 	}
@@ -655,6 +833,7 @@ exports.logout = function(callback) {
 
 		exports.OAuth.resetCredentials();
 		purgeData();
+		exports.resetUserWantsToUseBiometricIdentity();
 		if (_.isFunction(callback)) callback();
 		
 	} else {
@@ -668,6 +847,7 @@ exports.logout = function(callback) {
 			complete: function() {
 				Ti.Network.removeHTTPCookiesForDomain(Util.getDomainFromURL(HTTP.config.base));
 				purgeData();
+				exports.resetUserWantsToUseBiometricIdentity();
 				if (_.isFunction(callback)) callback();
 			}
 		});

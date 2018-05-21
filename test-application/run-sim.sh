@@ -2,4 +2,4 @@
 
 trimethyl add --all
 trimethyl install
-ti build -p ios
+ti build -p ios --shadow

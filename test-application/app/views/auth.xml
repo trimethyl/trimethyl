@@ -1,0 +1,6 @@
+<Alloy>
+	<Window id="win" backgroundColor="#fff" title="Auth" layout="vertical">
+		<Button id="btn" title="Login" top="30" />
+		<Button id="btnAuto" title="Trigger Auto-Login" top="30" />
+	</Window>
+</Alloy>

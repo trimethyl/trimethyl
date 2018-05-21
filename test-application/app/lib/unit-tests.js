@@ -8,6 +8,7 @@ var Logger = T('logger');
 var Dialog = T('dialog');
 var Filesystem = T('filesystem');
 var Geo = T('geo');
+var Auth = T('auth');
 var Prop = T('prop');
 var Cache = T('cache');
 
@@ -28,7 +29,7 @@ exports.methods = {
 exports.methods.http.should_parse_json = function() {
 	return Q.promise(function(resolve, reject) {
 		HTTP.send({
-			url: 'http://demo1916598.mockable.io/hello',
+			url: '/hello',
 			success: function(response) {
 				if (!_.isObject(response)) return reject('Response is not an object');
 				if (response.hello !== 'world') return reject('Response.hello is not "world"');
@@ -38,33 +39,18 @@ exports.methods.http.should_parse_json = function() {
 	});
 };
 
-exports.methods.http.ssl_pinning_should_not_affect_other_https = function() {
+exports.methods.http_should_cache = function() {
 	return Q.promise(function(resolve, reject) {
-		HTTP.send({
-			url: 'https://imgix.com',
-			success: resolve,
-			error: reject
-		});
-	});
-};
-
-exports.methods.http.ssl_pinning_should_pass = function() {
-	return Q.promise(function(resolve, reject) {
-		HTTP.send({
-			url: 'https://google.com',
-			success: resolve,
-			error: reject
-		});
-	});
-};
-
-exports.methods.http.ssl_pinning_should_fail_for_bad_cert = function() {
-	return Q.promise(function(resolve, reject) {
-		HTTP.send({
-			url: 'https://facebook.com',
-			success: reject,
-			error: function(err) {
-				resolve();
+		var a = HTTP.send({
+			url: '/ttl-unit-test',
+			success: function() {
+				var b = HTTP.send({
+					url: '/ttl-unit-test',
+					success: function() {
+						if (b.cachedData == null) return reject('Cache is not here');
+						resolve();
+					}
+				});
 			}
 		});
 	});
@@ -132,17 +118,6 @@ exports.methods.sqlite.should_throw_errors = function() {
 		} catch (ex) {
 			resolve();
 		}
-	});
-};
-
-exports.methods.router.should_work = function() {
-	return Q.promise(function(resolve, reject) {
-		var timeout = setTimeout(function() { reject(); }, 500);
-		Router.on('/test', function() {
-			clearTimeout(timeout);
-			if (this.data.a === 1) resolve();
-		});
-		Router.go('/test', { a:1 });
 	});
 };
 
@@ -343,7 +318,7 @@ exports.methods.geo.get_coords_should_work = function() {
 		Geo.getCurrentPosition()
 		.then(function(coords) {
 			if (coords.latitude && coords.longitude) return resolve();
-			reject();
+			reject(coords);
 		})
 		.catch(reject);
 	});
@@ -356,7 +331,7 @@ exports.methods.geo.geocode_should_work = function() {
 		})
 		.then(function(res) {
 			if (res.latitude && res.longitude) return resolve();
-			reject();
+			reject(res);
 		})
 		.catch(reject);
 	});
@@ -365,12 +340,12 @@ exports.methods.geo.geocode_should_work = function() {
 exports.methods.geo.reversegeocode_should_work = function() {
 	return Q.promise(function(resolve, reject) {
 		Geo.reverseGeocode({
-			latitude: 42.30501176970849,
-			longitude: -83.7153608802915
+			latitude: 42,
+			longitude: -83
 		})
 		.then(function(res) {
 			if (res.address) return resolve();
-			reject();
+			reject(res);
 		})
 		.catch(reject);
 	});
