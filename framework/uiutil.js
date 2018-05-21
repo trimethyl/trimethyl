@@ -179,7 +179,7 @@ exports.buildKeyboardToolbar = function(opt) {
 		borderBottom: true,
 		items:[
 		$cancelBtn,
-		Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+		Ti.UI.createButton({ systemButton: Ti.UI.iOS.SystemButton.FLEXIBLE_SPACE }),
 		$doneBtn
 		]
 	});
