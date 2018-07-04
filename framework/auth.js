@@ -28,6 +28,7 @@ exports.config = _.extend({
 	oAuthAccessTokenURL: '/oauth/access_token',
 	oAuthClientID: 'app',
 	oAuthClientSecret: 'secret',
+	oAuthDomains: null,
 
 	useBiometricIdentity: false,
 	enforceBiometricIdentity: false,
