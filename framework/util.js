@@ -59,22 +59,17 @@ exports.openURL = function(url, fallback, error) {
  * @param  {String} url
  */
 exports.openHTTPLink = function(url) {
-	if (OS_IOS) {
-
-		var SD = exports.requireOrNull('ti.safaridialog');
-
-		if (SD != null && SD.isSupported()) {
-			SD.open({ url:url });
-
-			return SD;
-		} else {
-			require('T/dialog').confirmYes(L('confirm_openlink_leave_app', 'Leave application?'), L('confirm_openlink_browser_alert', 'The link will be open in the browser'), function() {
-				Ti.Platform.openURL(url);
-			}, L('yes', 'Yes'));
-		}
-
+	var webDialog = exports.requireOrNull('ti.webdialog');
+	if (webDialog != null && webDialog.isSupported()) {
+		webDialog.open({
+			url: url,
+			animated: true,
+			entersReaderIfAvailable: false
+		})
 	} else {
-		Ti.Platform.openURL(url);
+		require('T/dialog').confirmYes(L('confirm_openlink_leave_app', 'Leave application?'), L('confirm_openlink_browser_alert', 'The link will be open in the browser'), function() {
+			Ti.Platform.openURL(url);
+		}, L('yes', 'Yes'));
 	}
 };
 

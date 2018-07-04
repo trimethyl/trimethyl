@@ -326,7 +326,7 @@
 		"name": "Util",
 		"description": "Simply, utilities.",
 		"dependencies": ["dialog", "permissions/phone"],
-		"modules": ["ti.safaridialog:iphone"]
+		"modules": ["ti.webdialog:iphone","ti.webdialog:android"]
 	},
 	"validator":{
 		"name": "Validator",
