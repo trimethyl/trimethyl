@@ -4,7 +4,6 @@
  */
 
 var isRequestingToken = false;
-var baseDomain = null;
 
 var MODULE_NAME = 'oauth';
 
@@ -17,6 +16,10 @@ exports.__setParent = function(parent) {
 var Q = require('T/ext/q');
 var Util = require('T/util');
 var HTTP = require('T/http');
+
+exports.getDomains = function() {
+	return exports.__parent.config.oAuthDomains || [ Util.getDomainFromURL(exports.__parent.config.base) ];
+}
 
 exports.getClientID = function() {
 	return exports.__parent.config.oAuthClientID;
@@ -47,8 +50,7 @@ function hydratateRequest(req) {
 exports.httpFilter = function(httpRequest) {
 	if (isRequestingToken) return;
 
-	baseDomain = baseDomain || Util.getDomainFromURL(HTTP.config.base);
-	if (httpRequest.domain !== baseDomain) return;
+	if (exports.getDomains().indexOf(httpRequest.domain) === -1) return;
 
 	var access_token = exports.getAccessToken();
 	if (access_token == null) return;
