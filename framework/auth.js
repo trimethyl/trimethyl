@@ -232,7 +232,7 @@ function getAndroidBiometricAlert(cancelCallback) {
 	inner.add(fingerprintView);
 	inner.add(fingerprintLabel);
 	wrapper.add(inner);
-	var dialog = Dialog.confirm("Touch ID", L("auth_biometric_reason"), [
+	var dialog = Dialog.confirm(exports.getBiometryTypeName(), L("auth_biometric_reason"), [
 	{
 		title: L('cancel', 'Cancel'),
 		cancel: true,
@@ -440,6 +440,43 @@ exports.userWantsToUseBiometricIdentity = function(val) {
 exports.resetUserWantsToUseBiometricIdentity = function() {
 	if (Prop.hasProperty('auth.biometric.use')) {
 		Prop.removeProperty('auth.biometric.use');
+	}
+};
+
+/**
+ * Get the biometric authentication type in use.
+ * @return {Number} On iOS, it returns TiIdentity.BIOMETRY_TYPE_NONE, TiIdentity.BIOMETRY_TYPE_FACE_ID, or TiIdentity.BIOMETRY_TYPE_TOUCH_ID. On Android, it returns null.
+ */
+exports.getBiometryType = function() {
+	if (TiIdentity == null) return null;
+
+	if (OS_IOS) {
+		return TiIdentity.biometryType;
+	} else {
+		return null;
+	}
+};
+
+
+/**
+ * Get the name of the biometric authentication type in use.
+ * @return {String}
+ */
+exports.getBiometryTypeName = function() {
+	var biometryType = exports.getBiometryType();
+
+	if (OS_IOS) {
+		switch (biometryType) {
+			case TiIdentity.BIOMETRY_TYPE_TOUCH_ID:
+				return "Touch ID";
+			case TiIdentity.BIOMETRY_TYPE_FACE_ID:
+				return "Face ID";
+			default:
+				return "None";
+		}
+	} else {
+		// TiIdentity doesn't have constants for the biometry type on Android (yet).
+		return "Fingerprint";
 	}
 };
 
