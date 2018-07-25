@@ -15,6 +15,7 @@ var DefaultProxies = require('T/support/xmlparser/proxies');
  */
 var viewCount = 0; // just a counter to have the number of created views
 var customProxies = {};
+var customReplacers = {};
 var container = null;
 
 /**
@@ -39,7 +40,7 @@ function parse(xml, opts) {
 	DefaultProxies.fontTransform = fontTransform;
 
 	var proxies = _.extend({}, DefaultProxies.proxies, customProxies, opts.proxies);
-	var replacers = _.extend({}, DefaultProxies.replacers, opts.replacers);
+	var replacers = _.extend({}, DefaultProxies.replacers, customReplacers, opts.replacers);
 
 	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
@@ -317,6 +318,11 @@ exports.process = parse;
 // Use this method to set your own proxies
 exports.overrideProxies = function(p) {
 	_.extend(customProxies, p);
+};
+
+// Use this method to set your own replacers
+exports.overrideReplacers = function(r) {
+	_.extend(customReplacers, r);
 };
 
 // Use this method to set your own container view
