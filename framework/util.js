@@ -684,9 +684,16 @@ exports.rot13 = function(s) {
  */
 exports.getFirstLocalizedString = exports.FL = function(ids, defaultString) {
 	ids = ids || [];
-	defaultString = defaultString || "";
+	defaultString = defaultString || '';
+	var str = null;
 
-	return _.find(ids, function(id) {
-		return !_.isEmpty(L(id));
-	}) || defaultString;
+	for (var i = 0; i < ids.length; i++) {
+		str = L(ids[i], '');
+
+		if (!_.isEmpty(str)) {
+			return str;
+		}
+	}
+
+	return defaultString;
 };
