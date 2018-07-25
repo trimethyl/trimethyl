@@ -56,11 +56,11 @@ function parse(xml, opts) {
 	// apply replacers
 	_.each(replacers, function(replacer, type) {
 		if (replacer.openTag == null) {
-			Ti.API.error('XMLParser: a replacer has been defined for', type, 'but with no openTag attribute. Defaulting to empty string.');
+			Ti.API.warn('XMLParser: a replacer has been defined for', type, 'but with no openTag attribute. Defaulting to empty string.');
 			replacer.openTag = '';
 		}
 		if (replacer.closeTag == null) {
-			Ti.API.error('XMLParser: a replacer has been defined for', type, 'but with no closeTag attribute. Defaulting to empty string.');
+			Ti.API.warn('XMLParser: a replacer has been defined for', type, 'but with no closeTag attribute. Defaulting to empty string.');
 			replacer.closeTag = '';
 		}
 
