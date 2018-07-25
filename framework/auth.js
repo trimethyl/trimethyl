@@ -233,15 +233,14 @@ function getAndroidBiometricAlert(cancelCallback) {
 	inner.add(fingerprintLabel);
 	wrapper.add(inner);
 
-	var dialogTitle = L("auth_biometric_fingerprint_title");
-	var dialogDescription = L("auth_biometric_fingerprint_reason");
-
-	if (_.isEmpty(dialogTitle)) {
-		dialogTitle = L("auth_biometric_title");
-	}
-	if (_.isEmpty(dialogDescription)) {
-		dialogDescription = L("auth_biometric_reason");
-	}
+	var dialogTitle = Util.getFirstLocalizedString([
+		"auth_biometric_fingerprint_title",
+		"auth_biometric_title",
+	]);
+	var dialogDescription = Util.getFirstLocalizedString([
+		"auth_biometric_fingerprint_reason",
+		"auth_biometric_reason",
+	]);
 
 	var dialog = Dialog.confirm(dialogTitle, dialogDescription, [
 	{
@@ -927,7 +926,7 @@ exports.logout = function(callback) {
 		purgeData();
 		exports.resetUserWantsToUseBiometricIdentity();
 		if (_.isFunction(callback)) callback();
-		
+
 	} else {
 
 		var logoutUrl = (driver && driver.config ? driver.config.logoutUrl : null) || exports.config.logoutUrl;
