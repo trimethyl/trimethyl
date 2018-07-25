@@ -9,6 +9,7 @@
     "auth/std",
     "cache",
     "cache/sqlite",
+    "cache/database",
     "calendar",
     "camera",
     "db",
@@ -31,6 +32,7 @@
     "notifications/cloud",
     "offline/sqlrest",
     "payments",
+    "permissions",
     "permissions/camera",
     "permissions/contacts",
     "permissions/phone",
@@ -38,6 +40,7 @@
     "permissions/calendar",
     "prop",
     "router",
+    "sentry",
     "sharer",
     "sounds",
     "spotlight",
@@ -73,19 +76,14 @@
     "alloy/sync/hateoas",
     "alloy/sync/rest",
     "alloy/sync/offline",
+    "alloy/sync/localsync",
     "ext/async",
     "ext/q",
+    "ext/raven",
     "ext/underscore.string",
     "ext/rrule",
     "ext/nlp",
-    "ext/nlp-i18n/it",
-    "cache/prop",
-    "support/oauth",
-    "support/xmlparser/extract",
-    "support/xmlparser/proxies",
-    "ext/raven",
-    "sentry"
+    "ext/nlp-i18n/it"
   ],
-  "version": "10.0.0",
-  "install_date": 1496246630544
+  "version": "10.0.0"
 }

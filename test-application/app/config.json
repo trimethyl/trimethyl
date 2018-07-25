@@ -3,8 +3,13 @@
 		"initController": "",
 		"T":{
 			"http":{
-				"log": true,
-				"sslPinning": ["google.com","facebook.com"]
+				"base": "http://demo1916598.mockable.io/",
+				"log": true
+			},
+			"auth": {
+				"useBiometricIdentity": true,
+				"enforceBiometricIdentity": true,
+				"useBiometricIdentityPromptConfirmation": true
 			}
 		}
 	},

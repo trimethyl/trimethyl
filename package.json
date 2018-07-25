@@ -28,7 +28,8 @@
     "toolchain",
     "framework",
     "ios",
-    "android"
+    "android",
+    "titanium-module"
   ],
   "bugs": {
     "url": "https://github.com/trimethyl/trimethyl/issues"

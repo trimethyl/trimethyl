@@ -17,7 +17,7 @@
 		"name": "Auth",
 		"description": "Authentication with a web server using Backbone User model, supporting cookie-based and OAuth 2 via social logins.",
 		"dependencies": ["http","event","dialog","ext/q","auth/bypass","support/oauth"],
-		"modules": ["ti.touchid:iphone","ti.touchid:android"]
+		"modules": ["ti.identity:iphone","ti.identity:android"]
 	},
 	"auth/bypass":{
 		"name": "Auth.Bypass",
@@ -46,11 +46,6 @@
 	"cache/database": {
 		"removed": "10.0.0",
 		"note": "Use <cache/sqlite> instead"
-	},
-	"cache/prop":{
-		"name": "Cache.Prop",
-		"description": "Cache driver with Properties",
-		"dependencies": ["util","filesystem"]
 	},
 	"calendar": {
 		"name": "Calendar",
@@ -331,7 +326,7 @@
 		"name": "Util",
 		"description": "Simply, utilities.",
 		"dependencies": ["dialog", "permissions/phone"],
-		"modules": ["ti.safaridialog:iphone"]
+		"modules": ["ti.webdialog:iphone","ti.webdialog:android"]
 	},
 	"validator":{
 		"name": "Validator",

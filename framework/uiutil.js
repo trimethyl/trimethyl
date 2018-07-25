@@ -165,7 +165,7 @@ exports.setBackgroundCoverForView = function($this, url, callback) {
 exports.buildKeyboardToolbar = function(opt) {
 	var $doneBtn = Ti.UI.createButton({
 		title: L('done', 'Done'),
-		style: Ti.UI.iPhone.SystemButtonStyle.DONE
+		style: Ti.UI.iOS.SystemButtonStyle.DONE
 	});
 	$doneBtn.addEventListener('click', opt.done);
 
@@ -179,7 +179,7 @@ exports.buildKeyboardToolbar = function(opt) {
 		borderBottom: true,
 		items:[
 		$cancelBtn,
-		Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+		Ti.UI.createButton({ systemButton: Ti.UI.iOS.SystemButton.FLEXIBLE_SPACE }),
 		$doneBtn
 		]
 	});

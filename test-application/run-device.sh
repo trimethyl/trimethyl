@@ -2,4 +2,4 @@
 
 trimethyl add --all
 trimethyl install
-tn ios
+tn ios --shadow

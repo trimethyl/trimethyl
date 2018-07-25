@@ -106,7 +106,7 @@ var UIPickers = {
 		var $toolbar = Ti.UI.iOS.createToolbar({
 			items: [
 				buttons.cancel,
-				Ti.UI.createButton({ systemButton: Ti.UI.iPhone.SystemButton.FLEXIBLE_SPACE }),
+				Ti.UI.createButton({ systemButton: Ti.UI.iOS.SystemButton.FLEXIBLE_SPACE }),
 				buttons.done
 			],
 			borderTop: true,
