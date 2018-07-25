@@ -675,3 +675,18 @@ exports.getPlatformFullName = function() {
 exports.rot13 = function(s) {
 	return s.replace(/[a-zA-Z]/g,function(c){return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);});
 };
+
+/**
+ * Get the first non-empty localized string from a list of string IDs
+ * @param {Array<String>} ids an array of IDs of strings that may or may not be in the `strings.xml` file.
+ * @param {String} [defaultString=""] a fallback string to show when none of the given IDs have a corresponding entry in `strings.xml`.
+ * @return {String}
+ */
+exports.getFirstLocalizedString = exports.FL = function(ids, defaultString) {
+	ids = ids || [];
+	defaultString = defaultString || "";
+
+	return _.find(ids, function(id) {
+		return !_.isEmpty(L(id));
+	}) || defaultString;
+};
