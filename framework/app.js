@@ -17,6 +17,8 @@ exports.config = _.extend({
 var Util = require('T/util');
 var Router = require('T/router');
 
+var wasPaused = false;
+
 /**
  * A static method used to convert a Universal link to a route
  * With its default implementation, the original incoming string is return.
@@ -36,7 +38,7 @@ exports.universalLinkToRoute = function(url) { return url; };
 exports.deepLinkToRoute = function(url) { return url; };
 
 /**
- * Check if the first opening of the app.  
+ * Check if the first opening of the app.
  * Call {@link setFirstUse} to set the first use of the app.
  * @param {String} [prefix=""] A prefix to apply
  * @return {Boolean}
@@ -60,7 +62,7 @@ exports.setFirstUse = function(prefix) {
  * Check on the App/Play store (or on a your distributed URL) if new version of this app has been released.
  * If it is, a dialog is shown to prompt the user for the update.
  * On iOS, all three parameters are auto-generated based on the app ID to check against the App Store.
- * On Android, there's no a reliable method to check this on the Play Store, so you have to 
+ * On Android, there's no a reliable method to check this on the Play Store, so you have to
  * specify it manually the URL (maybe on a server where you handle the current version) and the other two parameters.
  * For In-House applications or Development application, you have to do the same.
  * @param  {String} 		[url=null]					The URL to use to check for the update.
@@ -145,32 +147,37 @@ function deepLinkHandler(e) {
 	var urlToRoute = exports.deepLinkToRoute(url);
 
 	if (OS_IOS && exports.config.enqueueRouteWithUniversalLink) {
-		if (!e) return;
-		if (e.activityType !== 'NSUserActivityTypeBrowsingWeb') return;
-
-		urlToRoute = !e.webpageURL || exports.universalLinkToRoute(e.webpageURL);
+		if (e && e.activityType === 'NSUserActivityTypeBrowsingWeb') {
+			urlToRoute = !e.webpageURL || exports.universalLinkToRoute(e.webpageURL);
+		}
 	} else {
 		Ti.API.info('App: Started/Resumed with schema <' + url + '>');
 	}
 
-	if (urlToRoute) Router.enqueue(urlToRoute);
+	Router.enqueue(urlToRoute);
 }
 
 
 exports.start = function() {
-
 	if (OS_IOS) {
-
 		if (exports.config.enqueueRouteWithDeepLink) {
 			// The "resume" event is to handle all incoming deep links
-			Ti.App.addEventListener('resumed', deepLinkHandler);
+			Ti.App.addEventListener("resumed", function(e) {
+				if (wasPaused) {
+					wasPaused = false;
+					deepLinkHandler(e);
+				}
+			});
+
+			Ti.App.addEventListener("paused", function (e) {
+				wasPaused = true;
+			});
 		}
 
 		if (exports.config.enqueueRouteWithUniversalLink) {
 			// This one "continueactivity.NSUserActivityTypeBrowsingWeb", handle Universal Links
-			Ti.App.iOS.addEventListener('continueactivity', deepLinkHandler);
+			Ti.App.iOS.addEventListener("continueactivity", deepLinkHandler);
 		}
-
 	}
 
 	deepLinkHandler();
