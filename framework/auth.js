@@ -232,7 +232,17 @@ function getAndroidBiometricAlert(cancelCallback) {
 	inner.add(fingerprintView);
 	inner.add(fingerprintLabel);
 	wrapper.add(inner);
-	var dialog = Dialog.confirm("Touch ID", L("auth_biometric_reason"), [
+
+	var dialogTitle = Util.getFirstLocalizedString([
+		"auth_biometric_fingerprint_title",
+		"auth_biometric_title",
+	]);
+	var dialogDescription = Util.getFirstLocalizedString([
+		"auth_biometric_fingerprint_reason",
+		"auth_biometric_reason",
+	]);
+
+	var dialog = Dialog.confirm(dialogTitle, dialogDescription, [
 	{
 		title: L('cancel', 'Cancel'),
 		cancel: true,
@@ -377,9 +387,25 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 				TiIdentity.invalidate();
 			}, opt.timeout);
 		}
-		
+
+		var biometricReason;
+
+		switch (exports.getBiometryType()) {
+			case TiIdentity.BIOMETRY_TYPE_FACE_ID:
+				biometricReason = L('auth_biometric_faceid_reason');
+				break;
+			case TiIdentity.BIOMETRY_TYPE_TOUCH_ID:
+				biometricReason = L('auth_biometric_touchid_reason');
+				break;
+			default:
+		}
+
+		if (_.isEmpty(biometricReason)) {
+			biometricReason = L('auth_biometric_reason');
+		}
+
 		return TiIdentity.authenticate({
-			reason: L('auth_biometric_reason'),
+			reason: biometricReason,
 			callback: function(e) {
 				if (e.success) {
 					clearTimeout(that.timeout);
@@ -413,8 +439,8 @@ exports.authenticateViaBiometricIdentity = function(opt) {
 			biometric: false
 		});
 	} else {
-		opt.success({ 
-			biometric: false 
+		opt.success({
+			biometric: false
 		});
 	}
 };
@@ -440,6 +466,43 @@ exports.userWantsToUseBiometricIdentity = function(val) {
 exports.resetUserWantsToUseBiometricIdentity = function() {
 	if (Prop.hasProperty('auth.biometric.use')) {
 		Prop.removeProperty('auth.biometric.use');
+	}
+};
+
+/**
+ * Get the biometric authentication type in use.
+ * @return {Number} On iOS, it returns TiIdentity.BIOMETRY_TYPE_NONE, TiIdentity.BIOMETRY_TYPE_FACE_ID, or TiIdentity.BIOMETRY_TYPE_TOUCH_ID. On Android, it returns null.
+ */
+exports.getBiometryType = function() {
+	if (TiIdentity == null) return null;
+
+	if (OS_IOS) {
+		return TiIdentity.biometryType;
+	} else {
+		return null;
+	}
+};
+
+
+/**
+ * Get the name of the biometric authentication type in use.
+ * @return {String}
+ */
+exports.getBiometryTypeName = function() {
+	var biometryType = exports.getBiometryType();
+
+	if (OS_IOS) {
+		switch (biometryType) {
+			case TiIdentity.BIOMETRY_TYPE_TOUCH_ID:
+				return "Touch ID";
+			case TiIdentity.BIOMETRY_TYPE_FACE_ID:
+				return "Face ID";
+			default:
+				return "None";
+		}
+	} else {
+		// TiIdentity doesn't have constants for the biometry type on Android (yet).
+		return "Fingerprint";
 	}
 };
 
@@ -501,7 +564,7 @@ exports.login = function(opt) {
 
 	.then(function(user) {
 		currentUser = user;
-	}) 
+	})
 
 	.then(function() {
 		Prop.setString('auth.driver', opt.driver);
@@ -521,19 +584,19 @@ exports.login = function(opt) {
 			// Biometric not supported
 			if (false == supported) {
 				return resolve({
-					biometricEnrolled: false 
+					biometricEnrolled: false
 				});
 			}
 
 			// Developer doesn't want to use dialog
 			if (false == exports.config.useBiometricIdentityPromptConfirmation) {
 				return resolve({
-					biometricEnrolled: false 
+					biometricEnrolled: false
 				});
 			}
 
 			var wantsToUse = exports.userWantsToUseBiometricIdentity();
-			
+
 			// If is not null (true or false), ignore this step because user
 			// already specified his preference
 			if (wantsToUse !== null) {
@@ -542,14 +605,41 @@ exports.login = function(opt) {
 				});
 			}
 
-			Dialog.confirm(L('auth_biometric_confirmation_title'), L('auth_biometric_confirmation_message'), [
+			var dialogTitle;
+			var dialogMessage;
+
+			if (OS_IOS) {
+				switch (exports.getBiometryType()) {
+					case TiIdentity.BIOMETRY_TYPE_FACE_ID:
+						dialogTitle = L('auth_biometric_faceid_confirmation_title');
+						dialogMessage = L('auth_biometric_faceid_confirmation_message');
+						break;
+					case TiIdentity.BIOMETRY_TYPE_TOUCH_ID:
+						dialogTitle = L('auth_biometric_touchid_confirmation_title');
+						dialogMessage = L('auth_biometric_touchid_confirmation_message');
+						break;
+					default:
+				}
+			} else {
+				dialogTitle = L('auth_biometric_fingerprint_confirmation_title');
+				dialogMessage = L('auth_biometric_fingerprint_confirmation_message');
+			}
+
+			if (_.isEmpty(dialogTitle)) {
+				dialogTitle = L('auth_biometric_confirmation_title');
+			}
+			if (_.isEmpty(dialogTitle)) {
+				dialogMessage = L('auth_biometric_confirmation_message');
+			}
+
+			Dialog.confirm(dialogTitle, dialogMessage, [
 			{
 				title: L('yes', 'Yes'),
 				preferred: true,
 				callback: function() {
 					exports.userWantsToUseBiometricIdentity(true);
-					resolve({ 
-						biometricEnrolled: true 
+					resolve({
+						biometricEnrolled: true
 					});
 				}
 			},
@@ -557,7 +647,7 @@ exports.login = function(opt) {
 				title: L('no', 'No'),
 				callback: function() {
 					exports.userWantsToUseBiometricIdentity(false);
-					resolve({ 
+					resolve({
 						biometricEnrolled: false
 					});
 				}
@@ -730,7 +820,7 @@ exports.autoLogin = function(opt) {
 						(opt.fetchUserFunction || fetchUserFunction)()
 						.then(function(user) {
 							if (timeouted) return;
-							
+
 							currentUser = user;
 
 							var payload = {
@@ -836,7 +926,7 @@ exports.logout = function(callback) {
 		purgeData();
 		exports.resetUserWantsToUseBiometricIdentity();
 		if (_.isFunction(callback)) callback();
-		
+
 	} else {
 
 		var logoutUrl = (driver && driver.config ? driver.config.logoutUrl : null) || exports.config.logoutUrl;
