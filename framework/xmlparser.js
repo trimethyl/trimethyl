@@ -15,6 +15,7 @@ var DefaultProxies = require('T/support/xmlparser/proxies');
  */
 var viewCount = 0; // just a counter to have the number of created views
 var customProxies = {};
+var customReplacers = {};
 var container = null;
 
 /**
@@ -39,6 +40,7 @@ function parse(xml, opts) {
 	DefaultProxies.fontTransform = fontTransform;
 
 	var proxies = _.extend({}, DefaultProxies.proxies, customProxies, opts.proxies);
+	var replacers = _.extend({}, DefaultProxies.replacers, customReplacers, opts.replacers);
 
 	container = opts.container || container || Ti.UI.createScrollView({layout: "vertical", height: Ti.UI.SIZE, width: Ti.UI.SIZE});
 	var currentLabel; // variable to use for constucting multi style labels
@@ -49,13 +51,36 @@ function parse(xml, opts) {
 
 	// strip comments and whitespaces
 	xml = xml.trim();
-	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\\n" ,"g"), '<br />');
+	xml = xml.replace(/<!--[\s\S]*?-->/g, '').replace(new RegExp("\n" ,"g"), '');
+
+	// apply replacers
+	_.each(replacers, function(replacer, type) {
+		if (replacer.openTag == null) {
+			Ti.API.warn('XMLParser: a replacer has been defined for', type, 'but with no openTag attribute. Defaulting to empty string.');
+			replacer.openTag = '';
+		}
+		if (replacer.closeTag == null) {
+			Ti.API.warn('XMLParser: a replacer has been defined for', type, 'but with no closeTag attribute. Defaulting to empty string.');
+			replacer.closeTag = '';
+		}
+
+		xml = xml
+		.replace(new RegExp("<" + type + "[^>]*>" ,"g"), replacer.openTag)
+		.replace(new RegExp("<\/" + type + ">" ,"g"), replacer.closeTag);
+	});
+
+	xml = removeUndefinedTags(xml, proxies);
 
 	// start processing
 	tag(xml);
 
 	//finalize currentLabel if it's not null
 	finalizeLabel();
+
+	if (_.isFunction(opts.callback)) {
+		opts.callback();
+	}
+
 	return container;
 
 	/**
@@ -270,6 +295,17 @@ function parse(xml, opts) {
 	}
 }
 
+function removeUndefinedTags(text, proxies) {
+	text = text || "";
+	var tags = Object.keys(proxies).join('|');
+	var reOpen = new RegExp('<(?!(' + tags + '|\/))[^>]*>', 'g'); // This RegExp will select all the open tags not defined by the proxies parameter
+	var reClose = new RegExp('<\/(?!(' + tags + '))[^>]*>', 'g'); // This RegExp will select all the close tags not defined by the proxies parameter
+
+	text = text.replace(reOpen, '').replace(reClose, '');
+
+	return text;
+}
+
 /**
  * Expose `parse`.
  */
@@ -282,6 +318,11 @@ exports.process = parse;
 // Use this method to set your own proxies
 exports.overrideProxies = function(p) {
 	_.extend(customProxies, p);
+};
+
+// Use this method to set your own replacers
+exports.overrideReplacers = function(r) {
+	_.extend(customReplacers, r);
 };
 
 // Use this method to set your own container view
