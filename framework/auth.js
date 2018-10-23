@@ -515,6 +515,13 @@ exports.getUser = function(){
 };
 
 /**
+ * Reset current User model
+ */
+exports.resetUser = function(){
+	currentUser = null;
+};
+
+/**
  * Check if the user is logged in
  * @return {Boolean}
  */
