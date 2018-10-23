@@ -537,6 +537,8 @@ exports.resetCookies = function() {
  * @param {Function} [opt.success] 			The success callback
  * @param {Function} [opt.error] 			The error callback
  * @param {String} [opt.format] 				Override the format for that request (like `json`)
+ * @param {(Boolean|Array)} [opt.suppressFilters]	Prevent calling some or all of the filters added previously
+ * @param {(Boolean|Array)} [opt.suppressHooks]		Prevent calling some or all of the hooks added previously
  * @return {HTTP.Request}
  */
 function send(opt) {
