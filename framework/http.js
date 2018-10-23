@@ -209,6 +209,7 @@ HTTPRequest.prototype._onFinally = function() {
 };
 
 HTTPRequest.prototype._whenComplete = function(e) {
+	var self = this;
 	this.endTime = Date.now();
 	exports.removeFromQueue(this);
 
@@ -237,16 +238,26 @@ HTTPRequest.prototype._whenComplete = function(e) {
 		data = extractHTTPText(this.client.responseText, this.responseInfo);
 	}
 
+	var returnData = data;
 	if (e.success) {
-		this.defer.resolve(data);
+		this.defer.resolve(returnData);
 	} else {
-		this.defer.reject({
+		returnData = {
 			message: (this.opt.format === 'blob') ? null : Util.getErrorMessage(data),
 			error: e.error,
 			code: this.client.status,
 			response: data
-		});
+		};
+
+		this.defer.reject(returnData);
 	}
+
+	_.each(hooks, function(hook, name) {
+		if (self.opt.suppressHooks == true) return;
+		if (_.isArray(self.opt.suppressHooks) && self.opt.suppressHooks.indexOf(name) >= 0) return;
+
+		hook(returnData);
+	});
 };
 
 HTTPRequest.prototype._calculateHash = function() {
@@ -377,6 +388,25 @@ exports.addFilter = function(name, func) {
  */
 exports.removeFilter = function(name, func) {
 	delete filters[name];
+};
+
+
+var hooks = {};
+
+/**
+ * Add a method to be called at each HTTP call completion
+ * @param {String} 	name 	The name of the callback
+ * @param {Function} func  The function. It will be invoked with the result of the HTTP call as parameter.
+ */
+exports.addHook = function(name, func) {
+	hooks[name] = func;
+};
+
+/**
+ * @param {String} 	name 	The name of the callback
+ */
+exports.removeHook = function(name, func) {
+	delete hooks[name];
 };
 
 /**
