@@ -164,7 +164,7 @@ exports.startup = function(controller, nav, win, controllerName, controllerArgs)
 	// Reset variables
 	windowsStack = [];
 
-	exports.setCurrentWindow(win, '/' + controllerName);
+	exports.setCurrentWindow(win, controllerName);
 	exports.setCurrentController(controller, controllerName, controllerArgs);
 	exports.setNavigationController(nav, true);
 };
