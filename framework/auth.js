@@ -177,7 +177,9 @@ function fetchUserModel(opt, dataFromServer) {
 				cache: false,
 			},
 			success: function() {
-				Prop.setObject('auth.me', user.toJSON());
+				if (opt.remember) {
+					Prop.setObject('auth.me', user.toJSON());
+				}
 				resolve(user);
 			},
 			error: function(model, err) {
@@ -574,7 +576,9 @@ exports.login = function(opt) {
 	})
 
 	.then(function() {
-		Prop.setString('auth.driver', opt.driver);
+		if (opt.remember) {
+			Prop.setString('auth.driver', opt.driver);
+		}
 	})
 
 	.then(function() {
