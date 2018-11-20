@@ -144,7 +144,7 @@ function parse(xml, opts) {
 				tag(block.content);
 
 			} else {
-				el = proxy(block); // create proxy∑
+				el = proxy(block); // create proxy
 			}
 		}
 
@@ -204,7 +204,10 @@ function parse(xml, opts) {
 			tempAttributes = concatAttributes(tempAttributes, e.attributes);
 
 			_.each(tempAttributes, function(a) {
-				a.range = [start, length];
+				if (a.range == null) {
+					a.range = [start, length];
+				}
+
 				currentLabel.attributes.push(a);
 			});
 
@@ -280,6 +283,7 @@ function parse(xml, opts) {
 		if (container.addTo) container.addTo.add(label);
 		else container.add(label);
 
+		tempAttributes = [];
 		currentLabel = null;
 		androidHtml = "";
 		label = null;
