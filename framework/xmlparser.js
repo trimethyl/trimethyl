@@ -197,7 +197,7 @@ function parse(xml, opts) {
 	}
 
 	function cascadingAttributes(e, element) {
-		if (e.text == "") {
+		if (e.text.replace(/^\s+|\s+$/g, '') == "") {
 			tempAttributes = concatAttributes(tempAttributes, e.attributes);
 		} else {
 			var start = currentLabel.text.length - e.text.length, length = e.text.length;
