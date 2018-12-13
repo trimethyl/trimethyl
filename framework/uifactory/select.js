@@ -317,7 +317,7 @@ var UIPickers = {
 				typeString: Ti.UI.PICKER_TYPE_DATE,
 			})
 			).showDatePickerDialog({
-				value: $this.getValue(),
+				value: $this.getValue() == null ? new Date() : $this.getValue(),
 				callback: function(e) {
 					if (e.value == null || e.cancel) return;
 					Data[ $this._uid ].value = e.value;
