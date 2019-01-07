@@ -308,7 +308,7 @@ SQLite.prototype.getExequery = function() {
 
 		case 'truncate':
 		return [
-			'TRUNCATE TABLE [' + this.query.table + ']'
+			'DELETE FROM [' + this.query.table + ']'
 		];
 
 		case 'insert':
