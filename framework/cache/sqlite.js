@@ -41,9 +41,9 @@ exports.get = function(hash) {
  */
 exports.set = function(hash, value, ttl) {
 	var DB = getDatabase();
-	DB.run('INSERT OR REPLACE INTO ' + TABLE + ' (hash, expire, value) VALUES (?, ?, ?)', 
+	DB.run('INSERT OR REPLACE INTO ' + TABLE + ' (hash, expire, value) VALUES (?, ?, ?)',
 		hash,
-		Util.fromNow(ttl || 0), 
+		Util.fromNow(ttl || 0),
 		value
 	);
 };
@@ -63,7 +63,7 @@ exports.remove = function(hash) {
  */
 exports.purge = function() {
 	var DB = getDatabase();
-	DB.run('TRUNCATE TABLE ' + TABLE);
+	DB.run('DELETE FROM ' + TABLE);
 };
 
 /**
