@@ -27,7 +27,6 @@ exports.config = _.extend({
 
 var Event = require('T/event');
 var Router = require('T/router');
-var Q = require('T/ext/q');
 
 // 3DTouch
 

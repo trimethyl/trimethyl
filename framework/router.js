@@ -15,7 +15,6 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.router : {});
 
 var Util = require('T/util');
-var Flow = require('T/flow');
 var Q = require('T/ext/q');
 
 function Router(opt) {

@@ -18,10 +18,8 @@ var _ = require('alloy/underscore')._;
 exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.calendar : {});
 
-var Util = require('T/util');
 var Moment = require('alloy/moment');
 var Permissions = require('T/permissions/calendar');
-var Dialog = require('T/dialog');
 
 var RRule = require('T/ext/rrule');
 

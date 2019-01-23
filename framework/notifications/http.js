@@ -21,8 +21,6 @@ exports.config = _.extend({
 var HTTP = require('T/http');
 var Util = require('T/util');
 
-var deploy_type = (Ti.App.deployType === 'production' ? 'production' : 'development');
-
 exports.subscribe = function(opt) {
 	if (exports.config.subscribeEndpoint == null) {
 		throw new Error("Notifications.HTTP: Invalid HTTP endpoint");

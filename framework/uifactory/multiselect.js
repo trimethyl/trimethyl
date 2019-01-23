@@ -3,7 +3,6 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
-var Dialog = require('T/dialog');
 var Alloy = require('alloy');
 var _ = require('alloy/underscore')._;
 
