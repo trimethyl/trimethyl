@@ -3,6 +3,9 @@
  * @author  Ani Sinanaj <ani.sinanaj@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  */

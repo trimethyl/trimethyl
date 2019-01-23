@@ -3,6 +3,8 @@
  * @module support/xmlparser/proxies
  */
 
+var _ = require('alloy/underscore')._;
+
 exports.TYPE_TEXT 		= 0;
 exports.TYPE_CUSTOM 	= 1;
 exports.opts 	  		= {};

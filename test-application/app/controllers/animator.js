@@ -1,5 +1,5 @@
-var Animator = T('animator');
-var Dialog = T('dialog');
+var Animator = require('T/animator');
+var Dialog = require('T/dialog');
 
 Dialog.option('Select an animation', [
 	{

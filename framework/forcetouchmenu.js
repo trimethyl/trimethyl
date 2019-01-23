@@ -3,6 +3,9 @@
  * @author  Ani Sinanaj <ani.sinanaj@caffeina.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * This module manages the dynamically created forcetouch links
  * @uses Q

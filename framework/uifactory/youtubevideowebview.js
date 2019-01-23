@@ -13,6 +13,9 @@
  *
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 module.exports = function(args) {
 	_.defaults(args, {
 

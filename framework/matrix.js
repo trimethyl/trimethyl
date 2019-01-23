@@ -3,6 +3,8 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+
 var Matrix2D = function(){
 	this.matrix = Ti.UI.create2DMatrix();
 };

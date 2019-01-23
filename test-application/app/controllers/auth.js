@@ -1,5 +1,5 @@
-var HTTP = T('http');
-var Auth = T('auth');
+var HTTP = require('T/http');
+var Auth = require('T/auth');
 
 $.btn.addEventListener('click', function() {
 	Auth.login({

@@ -3,8 +3,11 @@
  */
 
 var LOGNAME = 'LocalSync';
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+var Backbone = require('alloy/backbone');
 var SQLite = require('T/sqlite');
-var Q = T('ext/q');
+var Q = require('T/ext/q');
 
 exports.config = _.extend({
 	remoteAdapter: 'rest',

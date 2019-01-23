@@ -3,6 +3,9 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+var Backbone = require('alloy/backbone');
 var HTTP = require('T/http');
 var Util = require('T/util');
 

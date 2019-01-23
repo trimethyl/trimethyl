@@ -2,6 +2,10 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+var Backbone = require('alloy/backbone');
+
 exports.config = _.extend({
 	ttl: 30,
 	remoteAdapter: 'rest',

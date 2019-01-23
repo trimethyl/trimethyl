@@ -6,6 +6,7 @@
 
 var MODULE_NAME = 'permissions.camera';
 
+var _ = require('alloy/underscore')._;
 var Q = require('T/ext/q');
 
 exports.request = function(success, error) {

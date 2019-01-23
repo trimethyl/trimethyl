@@ -4,6 +4,9 @@
  * https://github.com/appcelerator-modules/Ti.WKWebView
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  * @property {String} [config.jsExt=".jslocal"] The extension to use for Javascript files

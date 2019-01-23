@@ -3,8 +3,10 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var _ = require('alloy/underscore')._;
 var Image = require('T/image');
 var HTTP = require('T/http');
+var Backbone = require('alloy/backbone');
 
 /**
  * Parse an array or a Backbone.Collection and populate a ListView with this values.

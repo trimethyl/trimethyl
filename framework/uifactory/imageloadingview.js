@@ -3,6 +3,8 @@
 * @author  	Andrea Jonus <andrea.jonus@caffeina.it>
 */
 
+var _ = require('alloy/underscore')._;
+
 module.exports = function(args) {
 	var hasWidth = args.width ? true : false;
 	var hasHeight = args.height ? true : false;

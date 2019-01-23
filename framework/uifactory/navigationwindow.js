@@ -5,6 +5,8 @@
  * Simple stack of `Ti.UI.iOS.NavigationWindow`
  */
 
+var _ = require('alloy/underscore')._;
+
 function NavigationWindow(args) {
 	this.windows = [];
 	this.window = args.window || null;

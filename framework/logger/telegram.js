@@ -3,6 +3,9 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  * @property {String} [config.token=null]					The authorization token for a Telegram bot

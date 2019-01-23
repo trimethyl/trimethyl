@@ -23,6 +23,8 @@
  *
  */
 
+var _ = require('alloy/underscore')._;
+
 // Thanks to @lastguest: https://gist.github.com/lastguest/10277461
 function simpleHTMLParser(text) {
 	var tags_rx = /<\s*(\/?\s*[^>]+)(\s+[^>]+)?\s*>/gm, partial, tag, temp_style;

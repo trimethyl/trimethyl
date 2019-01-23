@@ -3,6 +3,8 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var _ = require('alloy/underscore')._;
+
 module.exports = function(args) {
 	args = args || {};
 

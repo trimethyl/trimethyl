@@ -1,16 +1,17 @@
-var Q = T('ext/q');
+var Q = require('T/ext/q');
+var _ = require('alloy/underscore')._;
 
-var HTTP = T('http');
-var SQLite = T('sqlite');
-var Router = T('router');
-var Util = T('util');
-var Logger = T('logger');
-var Dialog = T('dialog');
-var Filesystem = T('filesystem');
-var Geo = T('geo');
-var Auth = T('auth');
-var Prop = T('prop');
-var Cache = T('cache');
+var HTTP = require('T/http');
+var SQLite = require('T/sqlite');
+var Router = require('T/router');
+var Util = require('T/util');
+var Logger = require('T/logger');
+var Dialog = require('T/dialog');
+var Filesystem = require('T/filesystem');
+var Geo = require('T/geo');
+var Auth = require('T/auth');
+var Prop = require('T/prop');
+var Cache = require('T/cache');
 
 var G = {};
 
