@@ -5,7 +5,7 @@
  */
 
 exports.cliVersion = '>=3.X';
-exports.version = '1.0.0';
+exports.version = '1.0.1';
 var SILENT = true;
 
 exports.init = function (logger, config, cli, appc) {
@@ -54,6 +54,10 @@ exports.init = function (logger, config, cli, appc) {
 			// turn off all logging output for code analyzer build hook
 			config.noBanner = 'true';
 			config.logLevel = '-1';
+		}
+
+		if (cli.argv.theme) {
+			config.theme = cli.argv.theme;
 		}
 
 		config = Object.keys(config).map(function (c) {
@@ -152,10 +156,9 @@ exports.init = function (logger, config, cli, appc) {
 						cmd.map(function(a) {
 							if (/^[^"].* .*[^"]/.test(a)) return '"' + a + '"'; return a;
 						}).join(' ') + '"'].join(' ')], {
-							stdio: 'inherit',
-							windowsVerbatimArguments: true
-						}
-					);
+						stdio: 'inherit',
+						windowsVerbatimArguments: true
+					});
 				} else {
 					logger.info(__('Executing Alloy compile: %s', cmd.join(' ').cyan));
 					child = spawn(cmd.shift(), cmd);

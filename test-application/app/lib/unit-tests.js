@@ -35,14 +35,15 @@ exports.methods.http.should_parse_json = function() {
 				if (!_.isObject(response)) return reject('Response is not an object');
 				if (response.hello !== 'world') return reject('Response.hello is not "world"');
 				resolve();
-			}
+			},
+			error: reject,
 		});
 	});
 };
 
 exports.methods.http_should_cache = function() {
 	return Q.promise(function(resolve, reject) {
-		var a = HTTP.send({
+		HTTP.send({
 			url: '/ttl-unit-test',
 			success: function() {
 				var b = HTTP.send({
@@ -50,9 +51,11 @@ exports.methods.http_should_cache = function() {
 					success: function() {
 						if (b.cachedData == null) return reject('Cache is not here');
 						resolve();
-					}
+					},
+					error: reject,
 				});
-			}
+			},
+			error: reject,
 		});
 	});
 };
@@ -247,7 +250,7 @@ function cache_driver_test_json(driver) {
 		}
 
 		resolve();
-	});	
+	});
 }
 
 function cache_driver_test_blob(driver) {

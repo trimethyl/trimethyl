@@ -1,24 +1,28 @@
 <Alloy>
-	 <TabGroup id="tab" backgroundColor="white" >
-	 	<Tab title="Unit">
-	 		<Window id="unitWin" title="Unit">
-	 			<RightNavButton><Button title="Start" id="testsBtn" /></RightNavButton>
-	 			<TableView id="list" />
-	 		</Window>
-	 	</Tab>
-	 	<Tab id="uiTab" title="UI">
-	 		<Window id="uiWin" title="UI">
-	 			<TableView id="uiList">
-	 				<TableViewRow title="Auth" />
-	 				<TableViewRow title="Select" />
-	 				<TableViewRow title="Animator" />
-	 				<TableViewRow title="Camera" />
-	 				<TableViewRow title="Geo" />
-	 				<TableViewRow title="Notifications" />
-	 				<TableViewRow title="Permissions" />
-	 				<TableViewRow title="WebAlloy" />
-	 			</TableView>
-	 		</Window>
-	 	</Tab>
+	<TabGroup id="tab">
+		<Menu platform="android">
+			<MenuItem title="Start" onClick="startTests" showAsAction="Ti.Android.SHOW_AS_ACTION_ALWAYS" />
+		</Menu>
+
+		<Tab title="Unit">
+			<Window id="unitWin" title="Unit">
+				<RightNavButton platform="ios"><Button title="Start" onClick="startTests" /></RightNavButton>
+				<TableView id="list" />
+			</Window>
+		</Tab>
+		<Tab id="uiTab" title="UI">
+			<Window id="uiWin" title="UI">
+				<TableView id="uiList">
+					<TableViewRow title="Auth" />
+					<TableViewRow title="Select" />
+					<TableViewRow title="Animator" />
+					<TableViewRow title="Camera" />
+					<TableViewRow title="Geo" />
+					<TableViewRow title="Notifications" />
+					<TableViewRow title="Permissions" />
+					<TableViewRow title="WebAlloy" />
+				</TableView>
+			</Window>
+		</Tab>
 	</TabGroup>
 </Alloy>
