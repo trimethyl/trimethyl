@@ -1,0 +1,8 @@
+<Alloy>
+	<Window id="win" layout="vertical" title="FCMNotifications">
+		<View height="40" />
+		<Button title="Activate" id="activateBtn" top="10" />
+		<Button title="Subscribe" id="subscribeBtn" top="10" />
+		<Button title="Unsubscribe" id="unsubscribeBtn" top="10" />
+	</Window>
+</Alloy>

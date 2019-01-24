@@ -118,6 +118,11 @@
     <module platform="android">ti.inappbilling</module>
     <module platform="iphone">ti.storekit</module>
     <module platform="iphone">ti.wkwebview</module>
+    <module platform="android">firebase.core</module>
+    <module platform="iphone">firebase.core</module>
+    <module platform="android">firebase.cloudmessaging</module>
+    <module platform="iphone">firebase.cloudmessaging</module>
+    <module platform="android" version="11.0.40">ti.playservices</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>
