@@ -147,7 +147,7 @@ exports.activate = function (opt) {
 				resolve(exports.getDeviceToken());
 			} else {
 				if (OS_IOS) {
-					registerForPushNotifications({
+					Ti.Network.registerForPushNotifications({
 						success: function(e) {
 							registered_for_push_notifications = true;
 							resolve(exports.getDeviceToken());
@@ -442,6 +442,11 @@ if (OS_IOS) {
 // Called when direct messages arrive. Note that these are different from push notifications
 // TODO check intent and FCM.lastData for notifications
 FCM.addEventListener('didReceiveMessage', notificationsCallback);
+
+if (OS_IOS) {
+	Ti.App.iOS.addEventListener('notification', notificationsCallback);
+	Ti.App.iOS.addEventListener('remotenotificationaction', notificationsCallback);
+}
 
 if (exports.config.autoReset === true) {
 	exports.resetBadge();

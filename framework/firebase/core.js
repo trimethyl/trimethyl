@@ -14,6 +14,7 @@ var _ = require('alloy/underscore')._;
  * @property {String} 	[config.databaseURL]
  * @property {String} 	[config.storageBucket]
  * @property {String} 	config.applicationID 		**Android only.**
+ * @property {String} 	config.googleAppID 			**iOS only.**
  * @property {String} 	config.bundleID 			**iOS only.**
  * @property {String} 	config.clientID 			**iOS only.**
  * @property {String} 	config.trackingID 			**iOS only.**
