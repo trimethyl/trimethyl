@@ -15,9 +15,10 @@ var _ = require('alloy/underscore')._;
 
 /**
  * @property config
- * @property {String} 	[config.driver="http"] 					The driver to use.
- * @property {Boolean} 	[config.autoReset=true] 				If true, set the badge count to 0 when you open/resume the application.
- * @property {Boolean}  [config.fakeDeviceToken=false] 	A fake device token.
+ * @property {String} 	[config.driver="http"] 			The driver to use.
+ * @property {Boolean} 	[config.autoReset=true] 		If true, set the badge count to 0 when you open/resume the application.
+ * @property {Boolean} 	[config.fakeDeviceToken=false] 	A fake device token.
+ * @property {Array} 	[config.channels] 				**Android only** A list of channels to create when subscribing to Firebase notifications.
  * @type {Object}
  */
 exports.config = _.extend({
@@ -120,7 +121,7 @@ exports.activate = function (opt) {
 		error: Alloy.Globals.noop
 	});
 
-	return Q.promise(function (_resolve, _reject) {
+	return Q.promise(function(_resolve, _reject) {
 
 		var resolve = function (e) {
 			Ti.API.debug(MODULE_NAME + ': activation success', e);
@@ -161,14 +162,14 @@ exports.activate = function (opt) {
 						],
 					});
 				} else if (OS_ANDROID) {
-					// TODO see if we need parameters here
-					FCM.createNotificationChannel(/*{
-						sound: 'warn_sound',
-						channelId: 'general',
-						channelName: 'General Notifications', // TODO get from strings
-						importance: 'high' //will pop in from the top and make a sound
-					}*/);
-					// TODO listeners
+					if (exports.config.channels && exports.config.channels.length > 0) {
+						_.each(exports.config.channels, function(channel) {
+							FCM.createNotificationChannel(channel);
+						});
+					} else {
+						FCM.createNotificationChannel({}); // create a default notification channel
+					}
+
 					FCM.registerForPushNotifications();
 				} else {
 					reject(Error("platform not supported"));
@@ -242,16 +243,20 @@ exports.subscribe = function (topic, data, opt) {
 
 		exports.activate()
 			.then(function(deviceToken) {
-				// TODO use driver only if defined, use subscribeToTopic otherwise
 				var driver = exports.loadDriver(exports.config.driver);
 
-				driver.subscribe(_.extend({}, opt, {
-					deviceToken: deviceToken,
-					topic: topic,
-					data: data,
-					success: resolve,
-					error: reject
-				}));
+				if (driver) {
+					driver.subscribe(_.extend({}, opt, {
+						deviceToken: deviceToken,
+						topic: topic,
+						data: data,
+						success: resolve,
+						error: reject
+					}));
+				} else {
+					FCM.subscribeToTopic(topic);
+					resolve();
+				}
 			})
 			.fail(reject);
 	});
@@ -291,17 +296,21 @@ exports.unsubscribe = function (topic, data, opt) {
 			});
 		}
 
-		// TODO use driver only if defined, use unsubscribeFromTopic otherwise
 		var driver = exports.loadDriver(exports.config.driver);
-		var device_token = exports.getDeviceToken();
+		var deviceToken = exports.getDeviceToken();
 
-		driver.unsubscribe(_.extend({}, opt, {
-			deviceToken: device_token,
-			topic: topic,
-			data: data,
-			success: resolve,
-			error: reject
-		}));
+		if (driver) {
+			driver.unsubscribe(_.extend({}, opt, {
+				deviceToken: deviceToken,
+				topic: topic,
+				data: data,
+				success: resolve,
+				error: reject
+			}));
+		} else {
+			FCM.unsubscribeFromTopic(topic);
+			resolve();
+		}
 	});
 };
 
