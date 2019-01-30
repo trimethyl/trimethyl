@@ -22,7 +22,7 @@ var _ = require('alloy/underscore')._;
  * @type {Object}
  */
 exports.config = _.extend({
-	driver: 'http',
+	driver: null,
 	autoReset: true,
 	fakeDeviceToken: false
 }, (Alloy.CFG.T && Alloy.CFG.T.firebase) ? Alloy.CFG.T.firebase.cloudmessaging : {});
@@ -57,6 +57,16 @@ function notificationsCallback(e) {
 	exports.trigger('received', e);
 };
 
+/**
+ * Load a driver of current module
+ */
+function loadDriver(name) {
+	return Alloy.Globals.Trimethyl.loadDriver(MODULE_NAME, name, {
+		subscribe: function (opt) { },
+		unsubscribe: function (opt) { }
+	});
+};
+
 var interactiveCategories = [];
 var interactiveCategoriesCallbacks = {};
 
@@ -68,16 +78,6 @@ var interactiveCategoriesCallbacks = {};
  */
 exports.onReceived = function (e) {
 	Ti.API.info(MODULE_NAME + ': Received', e);
-};
-
-/**
- * Load a driver of current module
- */
-exports.loadDriver = function (name) {
-	return Alloy.Globals.Trimethyl.loadDriver(MODULE_NAME, name, {
-		subscribe: function (opt) { },
-		unsubscribe: function (opt) { }
-	});
 };
 
 /**
@@ -154,12 +154,7 @@ exports.activate = function (opt) {
 							resolve(exports.getDeviceToken());
 						},
 						error: reject,
-						callback: notificationsCallback,
-						types: [
-							Ti.Network.NOTIFICATION_TYPE_BADGE,
-							Ti.Network.NOTIFICATION_TYPE_ALERT,
-							Ti.Network.NOTIFICATION_TYPE_SOUND,
-						],
+						callback: notificationsCallback
 					});
 				} else if (OS_ANDROID) {
 					if (exports.config.channels && exports.config.channels.length > 0) {
@@ -243,10 +238,8 @@ exports.subscribe = function (topic, data, opt) {
 
 		exports.activate()
 			.then(function(deviceToken) {
-				var driver = exports.loadDriver(exports.config.driver);
-
-				if (driver) {
-					driver.subscribe(_.extend({}, opt, {
+				if (exports.config.driver != null) {
+					loadDriver(exports.config.driver).subscribe(_.extend({}, opt, {
 						deviceToken: deviceToken,
 						topic: topic,
 						data: data,
@@ -296,11 +289,10 @@ exports.unsubscribe = function (topic, data, opt) {
 			});
 		}
 
-		var driver = exports.loadDriver(exports.config.driver);
 		var deviceToken = exports.getDeviceToken();
 
-		if (driver) {
-			driver.unsubscribe(_.extend({}, opt, {
+		if (exports.config.driver != null) {
+			loadDriver(exports.config.driver).unsubscribe(_.extend({}, opt, {
 				deviceToken: deviceToken,
 				topic: topic,
 				data: data,
