@@ -3,6 +3,8 @@
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
 var Matrix = require('T/matrix');
 
 /**

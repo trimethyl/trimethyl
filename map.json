@@ -50,7 +50,7 @@
 	"calendar": {
 		"name": "Calendar",
 		"description": "Calendar related utilities",
-		"dependencies": ["permissions/calendar","util","ext/rrule"],
+		"dependencies": ["permissions/calendar","ext/rrule"],
 		"modules": ["lucadamico.android.calendar:android"],
 		"minsdk": "6.0.0"
 	},
@@ -96,7 +96,7 @@
 	"forcetouchmenu":{
 		"name": "ForceTouchMenu",
 		"description": "Creation of the forcetouch app icon menus programmatically",
-		"dependencies": ["router","ext/q","event"]
+		"dependencies": ["router","event"]
 	},
 	"ga":{
 		"name": "GA",
@@ -135,7 +135,7 @@
 	"notifications":{
 		"name": "Notifications",
 		"description": "Push notifications module with interactive notification supports handling all platforms with one single interface, and communicating with several online service or with your custom server.",
-		"dependencies": ["event","util","ext/q"],
+		"dependencies": ["event","ext/q"],
 		"modules": ["ti.goosh:android"]
 	},
 	"notifications/http":{
@@ -192,7 +192,7 @@
 	"router":{
 		"name": "Router",
 		"description": "You can emulate the routing concept adopted in many web framework, to handle incoming universal links and manage your app architecture.",
-		"dependencies": ["util","flow","ext/q"]
+		"dependencies": ["util","ext/q"]
 	},
 	"sentry": {
 		"name": "Sentry",
@@ -237,8 +237,7 @@
 	},
 	"uifactory/dateselect":{
 		"name": "UIFactory.DateSelect",
-		"description": "Date select façade",
-		"dependencies": ["dialog","util"]
+		"description": "Date select façade"
 	},
 	"uifactory/iframe":{
 		"name": "UIFactory.Iframe",
@@ -263,8 +262,7 @@
 	},
 	"uifactory/multiselect":{
 		"name": "UIFactory.MultiSelect",
-		"description": "Multicolumn select façade",
-		"dependencies": ["dialog"]
+		"description": "Multicolumn select façade"
 	},
 	"uifactory/navigationwindow":{
 		"name": "UIFactory.NavigationWindow",
@@ -272,8 +270,7 @@
 	},
 	"uifactory/select":{
 		"name": "UIFactory.Select",
-		"description": "Select façade",
-		"dependencies": ["dialog","util"]
+		"description": "Select façade"
 	},
 	"uifactory/soundcloudclassicwebview":{
 		"name": "UIFactory.SoundCloudClassicWebView",
@@ -295,8 +292,7 @@
 	},
 	"uifactory/timeselect":{
 		"name": "UIFactory.TimeSelect",
-		"description": "Time select façade",
-		"dependencies": ["dialog","util"]
+		"description": "Time select façade"
 	},
 	"uifactory/view":{
 		"name": "UIFactory.View",

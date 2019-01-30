@@ -3,6 +3,9 @@
 * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
 */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * * @property {String} [config.password=null] Password used to encrypt the database. If a password is supplied, the database will be encrypted
  */

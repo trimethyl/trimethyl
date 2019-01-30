@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  * @property {String} [config.loginUrl=false] Override URL to login-in
@@ -21,7 +24,6 @@ exports.__setParent = function(parent) {
 	exports.__parent = parent;
 };
 
-var Util = require('T/util');
 var _FB = require('T/fb'); // Use FB as an accessor
 
 var localOptions = null;

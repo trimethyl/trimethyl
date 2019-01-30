@@ -4,6 +4,8 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var _ = require('alloy/underscore')._;
+
 module.exports = function(args) {
 	args = _.defaults(args || {}, {
 		imageSize: 24,

@@ -4,10 +4,14 @@
 */
 
 /*
-Include methods used in this module dynamically to avoid that Titanium 
+Include methods used in this module dynamically to avoid that Titanium
 static analysis doesn't include native-language methods.
 */
 Ti.Geolocation;
+
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+var Backbone = require('alloy/backbone');
 
 /**
 * @property config

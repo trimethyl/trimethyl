@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  * @property {String} config.protocol  			Force all protocol different from this to be discarded
@@ -12,7 +15,6 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.router : {});
 
 var Util = require('T/util');
-var Flow = require('T/flow');
 var Q = require('T/ext/q');
 
 function Router(opt) {

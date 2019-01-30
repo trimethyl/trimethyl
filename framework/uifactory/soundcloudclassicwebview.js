@@ -10,13 +10,15 @@
  * @usage
  *
  * // calling module passing all the properties. url overrides audioId and props
- *	var audio = T('uifactory/soundcloudclassicwebview');
+ *	var audio = require('T/uifactory/soundcloudclassicwebview');
  *	container.add(audio({
  *		audioId: id,
  *		//url: e.attributes["data-url"],
  *		//soundcloud: props
  *	}));
  */
+
+var _ = require('alloy/underscore')._;
 
 module.exports = function(args) {
 	_.defaults(args, {

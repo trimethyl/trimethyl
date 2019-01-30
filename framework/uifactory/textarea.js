@@ -6,6 +6,7 @@
  *
  */
 
+var _ = require('alloy/underscore')._;
 var UIUtil = require('T/uiutil');
 
 function onTextAreaFocus(e) {

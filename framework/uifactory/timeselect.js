@@ -3,9 +3,9 @@
  * @author  Andrea Jonus <andrea.jonus@caffeina.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
 var Moment = require('alloy/moment');
-var Util = require('T/util');
-var Dialog = require('T/dialog');
 
 var Data = {};
 

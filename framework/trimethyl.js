@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 Ti.Trimethyl = true;
 Alloy.CFG.T = Alloy.CFG.T || {};
 

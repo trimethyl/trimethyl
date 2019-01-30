@@ -4,6 +4,7 @@
  * @author  Flavio De Stefano <andrea.jonus@caffeina.com>
  */
 
+var _ = require('alloy/underscore')._;
 var UIUtil = require('T/uiutil');
 var ABX = null;
 

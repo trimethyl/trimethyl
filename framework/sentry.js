@@ -4,6 +4,8 @@
  * @author  Ani Sinanaj <ani.sinanaj@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
 var _Raven = require("T/ext/raven");
 var Util   = require("T/util");
 var HTTP   = require("T/http");

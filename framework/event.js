@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var _ = require('alloy/underscore')._;
+var Backbone = require('alloy/backbone');
+
 var Event = _.extend({
 
 	/**

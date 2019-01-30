@@ -5,6 +5,9 @@
  * An ImageView with the pinch-to-zoom feature included.
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 module.exports = function(args) {
 	_.defaults(args, {
 

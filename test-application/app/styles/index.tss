@@ -1,11 +1,16 @@
-"TableView": {
+"TableView" : {
 	rowHeight: 50
 },
-"Label":{
+"TableViewRow": {
+	color: 'black',
+},
+"Label" : {
 	font:{
 		fontSize: 12
 	},
-	left: 10,
-	right: 10,
-	textAlign: 'left'
+	textAlign: 'left',
+	color: 'black',
+},
+"#tab" : {
+	backgroundColor: 'white',
 },

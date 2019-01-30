@@ -29,7 +29,7 @@ Now you have the CLI command `trimethyl`. To install your libraries, cd to your 
 trimethyl install
 ```
 
-If is the first installation, the command will prompt to add the libraries you want to use. 
+If is the first installation, the command will prompt to add the libraries you want to use.
 
 Otherwise, it will perform a re-installation of all libraries configured in the `trimethyl.json` file.
 
@@ -99,31 +99,26 @@ For example to set the base URL for the HTTP library, configure the *T* section 
 
 ## Initialization of the libraries
 
-The first thing you have to do is, in your *app/alloy.js* file, to require the framework bootstrap and define a global helper `T`:
+The first thing you have to do is, in your *app/alloy.js* file, to require the framework bootstrap:
 
 ```javascript
-// Global T helper to load internal Trimethyl libraries
-var T = function (name) { return require('T/' + name); }
-
 // Bootstrap Trimethyl
-T('trimethyl');
+require('T/trimethyl');
 ```
 
-Requiring **trimethyl** using the code `T('trimethyl')` on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` variables.
+Requiring **trimethyl** using the code `require('T/trimethyl')` on startup will bootstrap some important framework files, set prototypes, TSS vars and `Alloy.Globals` variables.
 
-You have to do that, otherwise some libraries will break up.
+You have to do that, otherwise some libraries will throw exception.
 
 ## Libraries
 
-To use a library, just require with `T` helper.
+To use a library, just require it like so:
 
 ```javascript
-var Util = T('util');
+var Util = require('T/util');
 ```
 
-It's useful to declare global modules that you'll use in the entire app in the `alloy.js` file to make them available through the variable name.
-
-Otherwise, just like all CommonJS modules, you can require them later in your controllers.
+**Note:** Since Titanium 7.5.0, you have to explicitly require Trimethyl libraries when you need them, instead of declaring them globally in the `alloy.js` file. See https://docs.axway.com/bundle/Titanium_SDK_allOS_en/page/titanium_sdk_7_5_0_functionality_update.html
 
 ## UIFactory library
 

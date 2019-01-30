@@ -5,13 +5,15 @@
 */
 
 /*
-Include methods used in this module dynamically to avoid that Titanium 
+Include methods used in this module dynamically to avoid that Titanium
 static analysis doesn't include native-language methods.
 */
 Ti.Filesystem;
 
 var MODULE_NAME = 'Filesystem';
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
 var Permissions = require('T/permissions/storage');
 var Q = require('T/ext/q');
 

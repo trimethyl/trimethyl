@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  * @property {String} config.subscribeEndpoint		URL for subscription
@@ -17,8 +20,6 @@ exports.config = _.extend({
 
 var HTTP = require('T/http');
 var Util = require('T/util');
-
-var deploy_type = (Ti.App.deployType === 'production' ? 'production' : 'development');
 
 exports.subscribe = function(opt) {
 	if (exports.config.subscribeEndpoint == null) {

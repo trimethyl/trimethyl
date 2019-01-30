@@ -3,6 +3,9 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property config
  * @property [config.antiBounce=true] 	Add an anti bounce to avoid double triggering of open windows

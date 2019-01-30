@@ -4,13 +4,14 @@
  */
 
 /*
-Include methods used in this module dynamically to avoid that Ti 
+Include methods used in this module dynamically to avoid that Ti
 static analysis doesn't include native-language methods.
  */
 Ti.Media;
 
 var MODULE_NAME = 'camera';
 
+var _ = require('alloy/underscore')._;
 var Dialog = require('T/dialog');
 var Util = require('T/util');
 var Permissions = require('T/permissions/camera');

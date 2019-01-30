@@ -4,10 +4,13 @@
  */
 
 /*
-Include methods used in this module dynamically to avoid that Titanium 
+Include methods used in this module dynamically to avoid that Titanium
 static analysis doesn't include native-language methods.
  */
 Titanium.Calendar;
+
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
 
 /**
  * @property config
@@ -15,10 +18,8 @@ Titanium.Calendar;
 exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.calendar : {});
 
-var Util = require('T/util');
 var Moment = require('alloy/moment');
 var Permissions = require('T/permissions/calendar');
-var Dialog = require('T/dialog');
 
 var RRule = require('T/ext/rrule');
 

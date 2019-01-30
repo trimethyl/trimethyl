@@ -1,4 +1,4 @@
-var selectA = T('uifactory').createSelect({
+var selectA = require('T/uifactory').createSelect({
 	columns: [
 		[1,2,{title:'3',value:3},4],
 		[
@@ -22,7 +22,7 @@ selectA.addEventListener('change', function(e) {
 
 $.win.add( selectA );
 
-var selectB = T('uifactory').createSelect({
+var selectB = require('T/uifactory').createSelect({
 	values: [
 		{ title: 'null value', value: null },
 		{ title: 'Frog', value: 'frog' },
@@ -44,7 +44,7 @@ selectB.addEventListener('change', function(e) {
 
 $.win.add( selectB );
 
-var selectDate = T('uifactory').createSelect({
+var selectDate = require('T/uifactory').createSelect({
 	type: 'date',
 	value: new Date('2015-12-12'),
 	left: 20,
@@ -87,7 +87,7 @@ $.win.add($.UI.create('Label', {
 }));
 
 // Set/Get test
-var selectC = T('uifactory').createSelect({
+var selectC = require('T/uifactory').createSelect({
 	left: 20,
 	hintText: 'Set/Get Test',
 	right: 20,
@@ -137,7 +137,7 @@ if (_.isEqual(values, current_values)) {
 }
 
 // Set invalid value
-var selectD = T('uifactory').createSelect({
+var selectD = require('T/uifactory').createSelect({
 	left: 20,
 	hintText: 'Set Invalid Test',
 	right: 20,

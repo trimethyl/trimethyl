@@ -3,6 +3,10 @@
  * @author 	Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+var Backbone = require('alloy/backbone');
+
 /**
  * @property config
  * @property {Array} [config.permissions=[]] Array of permissions

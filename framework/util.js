@@ -3,6 +3,8 @@
  * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
  */
 
+var _ = require('alloy/underscore')._;
+
 /**
  * Require a module, or return a null object
  * @param  {String} name

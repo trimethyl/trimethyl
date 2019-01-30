@@ -18,6 +18,8 @@ var customProxies = {};
 var customReplacers = {};
 var container = null;
 
+var _ = require('alloy/underscore')._;
+
 /**
  * Parse the given string of `xml`.
  *

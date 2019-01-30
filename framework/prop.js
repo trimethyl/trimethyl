@@ -3,6 +3,9 @@
 * @author  Flavio De Stefano <flavio.destefano@caffeinalab.com>
 */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * @property {String} [config.encryptionKey=null] Secret to use to encrypt data
  * @property {Bool} [config.allowSync=true] Whether to sync data with iCloud (only available on iOS)

@@ -3,6 +3,9 @@
  * @author  Ani Sinanaj <ani.sinanaj@caffeina.com>
  */
 
+var Alloy = require('alloy');
+var _ = require('alloy/underscore')._;
+
 /**
  * This module manages the dynamically created forcetouch links
  * @uses Q
@@ -24,7 +27,6 @@ exports.config = _.extend({
 
 var Event = require('T/event');
 var Router = require('T/router');
-var Q = require('T/ext/q');
 
 // 3DTouch
 
