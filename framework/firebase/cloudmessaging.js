@@ -38,10 +38,6 @@ var registered_for_push_notifications = false;
 
 // The listeners for all received notification
 function notificationsCallback(e) {
-
-	// TODO check data structure on Android and iOS
-	Ti.API.warn('NOTIFICATION', e);
-
 	// Auto-reset the badge when a notification is received
 	// We are sure the the app is in foreground, otherwise this function is never called on background/killed state.
 	if (exports.config.autoReset === true) {
@@ -69,6 +65,8 @@ function loadDriver(name) {
 
 var interactiveCategories = [];
 var interactiveCategoriesCallbacks = {};
+
+exports.PushModule = FCM;
 
 /**
  * @property onReceived
@@ -352,15 +350,7 @@ exports.getDeviceToken = function () {
 		return exports.config.fakeDeviceToken;
 	}
 
-	// TODO could we use only the fcmToken?
-	if (OS_IOS) {
-		return FCM.apnsToken;
-	} else if (OS_ANDROID) {
-		return FCM.fcmToken;
-	} else {
-		Ti.API.error(MODULE_NAME + ': platform not supported.');
-		return;
-	}
+	return FCM.fcmToken;
 };
 
 /**
@@ -441,7 +431,6 @@ if (OS_IOS) {
 }
 
 // Called when direct messages arrive. Note that these are different from push notifications
-// TODO check intent and FCM.lastData for notifications
 FCM.addEventListener('didReceiveMessage', notificationsCallback);
 
 if (OS_IOS) {
