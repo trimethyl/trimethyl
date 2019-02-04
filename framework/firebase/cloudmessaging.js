@@ -36,10 +36,11 @@ var FCM = require('firebase.cloudmessaging');
 
 var registered_for_push_notifications = false;
 
-// The listeners for all received notification
+var dataFields = {};
+
+// The listener for all received notification messages
 function notificationsCallback(e) {
 	// Auto-reset the badge when a notification is received
-	// We are sure the the app is in foreground, otherwise this function is never called on background/killed state.
 	if (exports.config.autoReset === true) {
 		exports.resetBadge();
 	}
@@ -49,9 +50,37 @@ function notificationsCallback(e) {
 		exports.onReceived(e);
 	}
 
+	// Handle data fields if any
+	if (OS_IOS && e != null) {
+		// iOS only supports notifications or mixed notification + data messages
+		dataCallback(e.data);
+	} else if (OS_ANDROID && e && e.message && e.message.data) {
+		// This is a data message or a mixed notification + data message
+		dataCallback(e.message.data);
+	}
+
 	// And trigger a global event with the payload
 	exports.trigger('received', e);
-};
+}
+
+// The listener for all received data messages
+function dataCallback(data) {
+	var fields = {};
+
+	if (data != null) {
+		_.each(dataFields, function(value, key) {
+			if (!value) return;
+
+			if (data[key] !== undefined) {
+				fields[key] = data[key];
+			}
+		});
+	}
+
+	if (!_.isEmpty(fields)) {
+		exports.onDataReceived(fields);
+	}
+}
 
 /**
  * Load a driver of current module
@@ -76,6 +105,16 @@ exports.PushModule = FCM;
  */
 exports.onReceived = function (e) {
 	Ti.API.info(MODULE_NAME + ': Received', e);
+};
+
+/**
+ * @property onDataReceived
+ * A callback called when one or more data fields are received.
+ * You can override this to handle incoming data messages.
+ * To listen for a data field, use {@link addDataFields}.
+ */
+exports.onDataReceived = function (e) {
+	Ti.API.info(MODULE_NAME + ': Received data', e);
 };
 
 /**
@@ -152,7 +191,7 @@ exports.activate = function (opt) {
 							resolve(exports.getDeviceToken());
 						},
 						error: reject,
-						callback: notificationsCallback
+						callback: notificationsCallback,
 					});
 				} else if (OS_ANDROID) {
 					if (exports.config.channels && exports.config.channels.length > 0) {
@@ -164,6 +203,11 @@ exports.activate = function (opt) {
 					}
 
 					FCM.registerForPushNotifications();
+
+					// lastData always contains "inBackground" and "fullscreen"
+					if (exports.PushModule.lastData != null && _.keys(exports.PushModule.lastData).length > 2) {
+						dataCallback(exports.PushModule.lastData);
+					}
 				} else {
 					reject(Error("platform not supported"));
 				}
@@ -368,6 +412,49 @@ exports.areRemoteNotificationsEnabled = function () {
 		return false;
 	}
 };
+
+/**
+ * When a notification is received, check if it has the given data field(s). These will be returned by the `onDataReceived` method
+ * @param {String|String[]} data the fields (or fields) to check. Can be a single field, an array of fields or a space separated list.
+ */
+exports.addDataFields = function(data) {
+	if (_.isEmpty(data)) return;
+
+	var fields;
+
+	if (_.isArray(data)) {
+		fields = data;
+	} else {
+		fields = data.split(' ');
+	}
+
+	_.each(fields, function(field) {
+		dataFields[field] = true;
+	});
+}
+
+/**
+ * Stop checking for one or more fields in the incoming notifications.
+ * @param {String|String[]} data the field (or fields) to remove.
+ */
+exports.removeDataFields = function(data) {
+	if (_.isEmpty(data)) return;
+
+	var fields;
+
+	if (_.isArray(data)) {
+		fields = data;
+	} else {
+		fields = data.split(' ');
+	}
+
+	_.each(fields, function(field) {
+		if (dataFields[field] !== undefined) {
+			delete dataFields[field];
+		}
+	});
+}
+
 
 
 ///////////////////////////////
