@@ -5,6 +5,8 @@ UT.toTest = [];
 UT.uiRows = {};
 UT.uiSections = {};
 
+FCM = require('T/firebase/cloudmessaging');
+
 function buildUI(section, key) {
 	var text = key.split('_').join(' ');
 
@@ -124,6 +126,25 @@ _.each(UT.methods, function(methods, section) {
 	_.each(methods, function(fn, key) {
 		buildUI(section, key);
 	});
+});
+
+FCM.onReceived = function(e) {
+	Ti.UI.createAlertDialog({
+		title: "Notification Message Received",
+		message: JSON.stringify(e)
+	}).show();
+};
+FCM.onDataReceived = function(e) {
+	Ti.UI.createAlertDialog({
+		title: "Data Message Received",
+		message: JSON.stringify(e)
+	}).show();
+};
+
+$.tab.addEventListener("open", function() {
+	if (FCM.areRemoteNotificationsEnabled()) {
+		FCM.activate();
+	}
 });
 
 $.tab.open();
