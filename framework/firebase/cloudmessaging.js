@@ -18,7 +18,8 @@ var _ = require('alloy/underscore')._;
  * @property {String} 	[config.driver="http"] 			The driver to use.
  * @property {Boolean} 	[config.autoReset=true] 		If true, set the badge count to 0 when you open/resume the application.
  * @property {Boolean} 	[config.fakeDeviceToken=false] 	A fake device token.
- * @property {Array} 	[config.channels] 				**Android only** A list of channels to create when subscribing to Firebase notifications.
+ * @property {Object[]} [config.channels] 				**Android only** A list of channels to create when subscribing to Firebase notifications.
+ * @property {String[]} [config.dataFields] 			A list of data fields to check when receiving a data message.
  * @type {Object}
  */
 exports.config = _.extend({
@@ -457,7 +458,7 @@ exports.removeDataFields = function(data) {
 	});
 }
 
-
+exports.addDataFields(exports.config.dataFields);
 
 ///////////////////////////////
 // Interactive notifications //
