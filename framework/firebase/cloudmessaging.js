@@ -204,6 +204,8 @@ exports.activate = function (opt) {
 
 					FCM.registerForPushNotifications();
 
+					resolve(exports.getDeviceToken());
+
 					// lastData always contains "inBackground" and "fullscreen"
 					if (exports.PushModule.lastData != null && _.keys(exports.PushModule.lastData).length > 2) {
 						dataCallback(exports.PushModule.lastData);
