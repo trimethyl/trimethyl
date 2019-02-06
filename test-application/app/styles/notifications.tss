@@ -1,4 +1,10 @@
 
 ".container" : {
-  
+
+}
+
+"#tokenLabel" : {
+	font: {
+		fontSize: 11,
+	}
 }

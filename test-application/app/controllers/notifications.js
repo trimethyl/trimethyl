@@ -1,32 +1,47 @@
 // Arguments passed into this controller can be accessed via the `$.args` object directly or:
 var args = $.args;
 
-var Notifications = require('T/notifications');
+function setActive(val) {
+	val = !!val;
 
-Notifications.onReceived = function(e) {
-	alert(e.data.alert);
-};
+	$.activeLbl.applyProperties({
+		color: val ? 'green' : 'red',
+		text: val ? 'Active' : 'Inactive',
+	});
+	$.activateBtn.enabled = !val;
+}
+
+function activate() {
+	FCM.addDataFields(['test1', 'test2']);
+	FCM.removeDataFields('test1');
+	FCM.activate()
+		.then(function() {
+			setActive(true);
+			$.tokenLabel.text = "" + FCM.getDeviceToken();
+		})
+		.catch(Ti.API.error);
+}
+
+$.tokenLabel.addEventListener('click', function() {
+	Ti.UI.Clipboard.clearText();
+	Ti.UI.Clipboard.setText($.tokenLabel.text);
+	Ti.UI.createAlertDialog({ message: 'Token copied in the clipboard' }).show();
+});
 
 $.subscribeBtn.addEventListener('click', function(e) {
-	Notifications.subscribe();
+	FCM.subscribe();
 });
 
 $.unsubscribeBtn.addEventListener('click', function(e) {
-	Notifications.unsubscribe();
+	FCM.unsubscribe();
 });
 
-$.activateBtn.addEventListener('click', function(e) {
-	Notifications.activate();
-});
+$.activateBtn.addEventListener('click', activate);
 
-$.deactivateBtn.addEventListener('click', function(e) {
-	Notifications.deactivate();
-});
-
-Notifications.addInteractiveNotificationCategory("test", [
-	{ 
-		id: "view", 
-		title: "View", 
+FCM.addInteractiveNotificationCategory("test", [
+	{
+		id: "view",
+		title: "View",
 		callback: function(e) {
 			console.log(e);
 			alert("Hello!");
@@ -34,4 +49,9 @@ Notifications.addInteractiveNotificationCategory("test", [
 	}
 ]);
 
-Notifications.activate();
+if (FCM.areRemoteNotificationsEnabled() && FCM.getDeviceToken() != null) {
+	setActive(true);
+	$.tokenLabel.text = "" + FCM.getDeviceToken();
+} else {
+	setActive(false);
+}

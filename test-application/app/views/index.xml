@@ -19,7 +19,6 @@
 					<TableViewRow title="Camera" />
 					<TableViewRow title="Geo" />
 					<TableViewRow title="Notifications" />
-					<TableViewRow title="FCMNotifications" />
 					<TableViewRow title="Permissions" />
 					<TableViewRow title="WebAlloy" />
 				</TableView>
