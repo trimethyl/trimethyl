@@ -16,9 +16,35 @@
 	"env:development": {},
 	"env:test": {},
 	"env:production": {},
-	"os:android": {},
+	"os:android": {
+		"T": {
+			"firebase": {
+				"core": {
+					"GCMSenderID": "<SENDER ID>",
+					"APIKey": "<API KEY>",
+					"projectID": "<PROJECT ID>",
+					"applicationID": "<FIREBASE ANDROID APP ID>"
+				},
+				"cloudmessaging": {
+					"dataFields": ["test1","test2"]
+				}
+			}
+		}
+	},
 	"os:blackberry": {},
-	"os:ios": {},
+	"os:ios": {
+		"T": {
+			"firebase": {
+				"core": {
+					"GCMSenderID": "<SENDER ID>",
+					"googleAppID": "<FIREBASE IOS APP ID>"
+				},
+				"cloudmessaging": {
+					"dataFields": ["test1","test2"]
+				}
+			}
+		}
+	},
 	"os:mobileweb": {},
 	"os:windows": {},
 	"dependencies": {}
