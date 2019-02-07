@@ -88,6 +88,12 @@
 		"description": "The main module for any project that uses Firebase.",
 		"modules": ["firebase.core:android","firebase.core:iphone"]
 	},
+	"firebase/analytics":{
+		"name": "Firebase.Analytics",
+		"description": "Measure app events and views through Firebase.",
+		"modules": ["firebase.analytics:android","firebase.analytics:iphone"],
+		"dependencies": ["firebase/core","util"]
+	},
 	"firebase/cloudmessaging":{
 		"name": "Firebase.CloudMessaging",
 		"description": "Receive push notifications through Firebase.",
