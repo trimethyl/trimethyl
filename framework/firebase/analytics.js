@@ -97,12 +97,12 @@ exports.screen = exports.trackScreen;
 
 
 /**
- * Track a social action.
+ * Track a social share action.
  * @see the `share` event in {@link https://support.google.com/firebase/answer/6317498?hl=en&ref_topic=6317484}
  * @param  {String} network 		The social network name, or an object containing the `content_type` and `item_id` attributes.
  * @param  {String} [itemId=""] 	The ID or value of the content that has been shared. Can be up to 100 characters long.
  */
-exports.trackSocial = function(network, itemId){
+exports.trackSocialShare = function(network, itemId){
 	if (!checkModules()) return;
 	var params = {};
 
@@ -121,7 +121,7 @@ exports.trackSocial = function(network, itemId){
 /**
  * @link #trackSocial
  */
-exports.social = exports.trackSocial;
+exports.socialShare = exports.trackSocialShare;
 
 
 //////////

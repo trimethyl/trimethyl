@@ -53,13 +53,6 @@ Ti.App.addEventListener('openURL', function(e){
 	Ti.Platform.openURL(e.url);
 });
 
-if (!ENV_DEVELOPMENT) {
-	Ti.App.addEventListener('uncaughtException', function(e) {
-		Ti.API.error(e.message + ' @ ' + e.source + ':' + e.line);
-		require('T/ga').exception(e.message + ' @ ' + e.source + ':' + e.line);
-	});
-}
-
 /////////////////////////////////////////////
 // Extend underscore with awesome features //
 /////////////////////////////////////////////

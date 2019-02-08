@@ -17,6 +17,7 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 
 var Event = require('T/event');
+var FA = require('T/firebase/analytics');
 
 var Navigator = null;
 var windowsStack = [];
@@ -45,18 +46,13 @@ exports.event = function(name, cb) {
 
 function track($window, route) {
 	// Track screen with GA
-	require('T/ga').trackScreen(route);
+	FA.trackScreen(route);
 
 	// Track timing with GA
 	var startFocusTime = null;
 
 	$window.addEventListener('focus', function(){
 		startFocusTime = Date.now();
-	});
-
-	$window.addEventListener('blur', function(){
-		if (startFocusTime === null) return;
-		require('T/ga').trackTiming(route, Date.now() - startFocusTime);
 	});
 }
 

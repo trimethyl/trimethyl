@@ -68,16 +68,16 @@ exports.setFirstUse = function(prefix) {
  * On Android, there's no a reliable method to check this on the Play Store, so you have to
  * specify it manually the URL (maybe on a server where you handle the current version) and the other two parameters.
  * For In-House applications or Development application, you have to do the same.
- * @param  {String} 		[url=null]					The URL to use to check for the update.
- * @param  {Function} 	[version_cb=null]			The function to call that handle the parsing of the response: it must returns the version.
- * @param  {Function} 	[success_cb=null]			The function to call when the user click: "Update"
+ * @param  {String} 	[url=null] 			The URL to use to check for the update.
+ * @param  {Function} 	[version_cb=null] 	The function to call that handles the parsing of the response. It must returns the version.
+ * @param  {Function} 	[success_cb=null] 	The function to call when the user clicks: "Update"
+ * @param  {Function} 	[cancel_cb=null] 	The function to call when the user clicks: "Cancel"
  */
-exports.notifyUpdate = function(url, version_cb, success_cb) {
+exports.notifyUpdate = function(url, version_cb, success_cb, cancel_cb) {
 	if (!Ti.Network.online) return;
 
 	var HTTP = require('T/http');
 	var Dialog = require('T/dialog');
-	var GA = require('T/ga');
 
 	if (url == null) {
 		if (OS_IOS) {
@@ -102,12 +102,17 @@ exports.notifyUpdate = function(url, version_cb, success_cb) {
 		})() );
 	};
 
+	cancel_cb = cancel_cb || Alloy.Globals.noop;
+
 	HTTP.send({
 		url: url,
 		cache: false,
 		format: 'json',
 		success: function(response) {
-			if (response == null || !_.isObject(response)) return;
+			if (response == null || !_.isObject(response)) {
+				cancel_cb({ error: true });
+				return;
+			}
 
 			var new_version = version_cb(response);
 			var version_compare = Util.compareVersions(new_version, Ti.App.version);
@@ -123,14 +128,13 @@ exports.notifyUpdate = function(url, version_cb, success_cb) {
 				{
 					title: L('app_new_version_button_later', 'Later'),
 					callback: function() {
-						GA.trackEvent('updatedialog', 'later');
+						cancel_cb(response);
 					}
 				},
 				{
 					title: L('app_new_version_button_update', 'Update'),
 					preferred: true,
 					callback: function() {
-						GA.trackEvent('updatedialog', 'doit');
 						success_cb(response);
 					}
 				}
