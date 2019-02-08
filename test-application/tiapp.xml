@@ -93,7 +93,6 @@
   </android>
   <modules>
     <module platform="iphone">ti.safaridialog</module>
-    <module platform="iphone">ti.ga</module>
     <module platform="iphone">facebook</module>
     <module platform="iphone">ti.map</module>
     <module platform="commonjs">ti.cloud</module>
@@ -107,7 +106,6 @@
     <!-- <module platform="android">lucadamico.android.calendar</module> --> <!-- Module removed from the store -->
     <module platform="android">ti.map</module>
     <module platform="android">org.iotashan.TiTouchImageView</module>
-    <module platform="android">ti.ga</module>
     <!-- <module platform="iphone">appcelerator.https</module> --> <!-- Axway Enterprise module -->
     <!-- <module platform="iphone">appcelerator.encrypteddatabase</module> --> <!-- Axway Enterprise module -->
     <!-- <module platform="android">appcelerator.encrypteddatabase</module> --> <!-- Axway Enterprise module -->
@@ -120,6 +118,8 @@
     <module platform="iphone">firebase.core</module>
     <module platform="android">firebase.cloudmessaging</module>
     <module platform="iphone">firebase.cloudmessaging</module>
+    <module platform="android">firebase.analytics</module>
+    <module platform="iphone">firebase.analytics</module>
     <module platform="android" version="11.0.40">ti.playservices</module>
   </modules>
   <deployment-targets>
