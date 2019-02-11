@@ -225,22 +225,6 @@ exports.email = exports.mail = function(args) {
 
 
 /**
- * Share on Google Plus
- * @param {Object} args
- */
-exports.googleplus = function(args) {
-	args = parseArgs(args);
-	GA.social('googleplus', 'share', args.url);
-
-	Ti.Platform.openURL('https://plus.google.com/share' + Util.buildQuery({
-		url: args.url
-	}));
-
-	return true;
-};
-
-
-/**
  * Share via Whatsapp
  * @param {Object} args
  */
