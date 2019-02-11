@@ -10,41 +10,31 @@
 				"useBiometricIdentity": true,
 				"enforceBiometricIdentity": true,
 				"useBiometricIdentityPromptConfirmation": true
+			},
+			"firebase": {
+				"core": {
+					"GCMSenderID": "<SENDER ID>",
+					"android": {
+						"APIKey": "<API KEY>",
+						"projectID": "<PROJECT ID>",
+						"applicationID": "<FIREBASE ANDROID APP ID>"
+					},
+					"ios": {
+						"googleAppID": "<FIREBASE IOS APP ID>"
+					}
+				},
+				"cloudmessaging": {
+					"dataFields": ["test1","test2"]
+				}
 			}
 		}
 	},
 	"env:development": {},
 	"env:test": {},
 	"env:production": {},
-	"os:android": {
-		"T": {
-			"firebase": {
-				"core": {
-					"GCMSenderID": "<SENDER ID>",
-					"APIKey": "<API KEY>",
-					"projectID": "<PROJECT ID>",
-					"applicationID": "<FIREBASE ANDROID APP ID>"
-				},
-				"cloudmessaging": {
-					"dataFields": ["test1","test2"]
-				}
-			}
-		}
-	},
+	"os:android": {},
 	"os:blackberry": {},
-	"os:ios": {
-		"T": {
-			"firebase": {
-				"core": {
-					"GCMSenderID": "<SENDER ID>",
-					"googleAppID": "<FIREBASE IOS APP ID>"
-				},
-				"cloudmessaging": {
-					"dataFields": ["test1","test2"]
-				}
-			}
-		}
-	},
+	"os:ios": {},
 	"os:mobileweb": {},
 	"os:windows": {},
 	"dependencies": {}
