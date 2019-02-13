@@ -44,18 +44,6 @@ exports.event = function(name, cb) {
 	Event.on('flow.' + name, cb);
 };
 
-function track($window, route) {
-	// Track screen with GA
-	FA.trackScreen(route);
-
-	// Track timing with GA
-	var startFocusTime = null;
-
-	$window.addEventListener('focus', function(){
-		startFocusTime = Date.now();
-	});
-}
-
 function open(name, args, openArgs, route, useNav) {
 	args = args || {};
 	openArgs = openArgs || {};
@@ -245,8 +233,17 @@ exports.setCurrentWindow = function($window, route) {
 	$window._route = route;
 	windowsStack.push($window);
 
-	// Track with GA
-	track($window, route);
+	$window.addEventListener('open', function track() {
+		$window.removeEventListener('open', track);
+
+		if (OS_ANDROID) {
+			$window.activity.onResume = function() {
+				FA.trackScreen(route);
+			}
+		} else {
+			FA.trackScreen(route);
+		}
+	});
 
 	// Add listener
 	$window.addEventListener('close', onWindowClose);

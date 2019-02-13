@@ -71,7 +71,7 @@ exports.event = exports.trackEvent;
  * @param  {String} screenName
  * @param  {String} [screenClass]
  */
-exports.trackScreen = function(screenName, className) {
+exports.trackScreen = function(screenName, screenClass) {
 	if (!checkModules()) return;
 	if (_.isEmpty(screenName)) {
 		Ti.API.error(MODULE_NAME + ': the screen\'s name cannot be empty.');
@@ -79,9 +79,8 @@ exports.trackScreen = function(screenName, className) {
 
 	var obj = {
 		screenName: screenName,
+		screenClass: screenClass,
 	};
-
-	if (className != null) obj.screenClass = screenClass;
 
 	if (exports.config.log === true) {
 		Ti.API.trace(MODULE_NAME + ": Set screen name and class", JSON.stringify(obj));
