@@ -83,6 +83,22 @@
 		"modules": ["facebook:iphone","facebook:android"],
 		"dependencies": ["util"]
 	},
+	"firebase/core":{
+		"name": "Firebase.Core",
+		"description": "The main module for any project that uses Firebase.",
+		"modules": ["firebase.core:android","firebase.core:iphone"]
+	},
+	"firebase/cloudmessaging":{
+		"name": "Firebase.CloudMessaging",
+		"description": "Receive push notifications through Firebase.",
+		"modules": ["firebase.cloudmessaging:android","firebase.cloudmessaging:iphone"],
+		"dependencies": ["firebase/core","event","ext/q"]
+	},
+	"firebase/cloudmessaging/http":{
+		"name": "Firebase.CloudMessaging.HTTP",
+		"description": "Firebase Cloud Messaging driver based on HTTP.",
+		"dependencies": ["http","util"]
+	},
 	"filesystem":{
 		"name": "Filesystem",
 		"description": "Filesystem proxy adding convenience methods about directories.",
@@ -390,12 +406,12 @@
 		"name": "Raven",
 		"dependencies": []
 	},
-	
+
 	"ext/underscore.string":{
 		"name": "Underscore.String",
 		"source": "/node_modules/underscore.string/dist/underscore.string.js"
 	},
-	
+
 	"ext/rrule":{
 		"name": "RRule",
 		"source": "/node_modules/rrule/lib/rrule.js",

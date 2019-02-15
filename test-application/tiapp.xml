@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ti:app
   xmlns:ti="http://ti.appcelerator.org">
-  <id>it.caffeina.test</id>
+  <id>com.caffeina.trimethyl.test</id>
   <name>TrimethylTestApplication</name>
   <version>2.0.0</version>
   <publisher>not specified</publisher>
@@ -14,7 +14,6 @@
   <analytics>true</analytics>
   <guid>d2b2e1a3-5bfa-428d-b244-0350bca59c4d</guid>
   <property name="ti.ui.defaultunit" type="string">dp</property>
-  <property name="gcm.senderid">465195233279</property>
   <ios>
     <plist>
       <dict>
@@ -104,20 +103,24 @@
     <module platform="android">ti.goosh</module>
     <module platform="iphone">bencoding.securely</module>
     <module platform="android">bencoding.securely</module>
-    <module platform="android">appcelerator.https</module>
-    <!-- <module platform="android">lucadamico.android.calendar</module> -->
+    <!-- <module platform="android">appcelerator.https</module> --> <!-- Axway Enterprise module -->
+    <!-- <module platform="android">lucadamico.android.calendar</module> --> <!-- Module removed from the store -->
     <module platform="android">ti.map</module>
     <module platform="android">org.iotashan.TiTouchImageView</module>
     <module platform="android">ti.ga</module>
-    <module platform="iphone">appcelerator.https</module>
-    <module platform="android">lucadamico.android.calendar</module>
-    <module platform="iphone">appcelerator.encrypteddatabase</module>
-    <module platform="android">appcelerator.encrypteddatabase</module>
+    <!-- <module platform="iphone">appcelerator.https</module> --> <!-- Axway Enterprise module -->
+    <!-- <module platform="iphone">appcelerator.encrypteddatabase</module> --> <!-- Axway Enterprise module -->
+    <!-- <module platform="android">appcelerator.encrypteddatabase</module> --> <!-- Axway Enterprise module -->
     <module platform="iphone">ti.identity</module>
     <module platform="android">ti.identity</module>
     <module platform="android">ti.inappbilling</module>
     <module platform="iphone">ti.storekit</module>
     <module platform="iphone">ti.wkwebview</module>
+    <module platform="android">firebase.core</module>
+    <module platform="iphone">firebase.core</module>
+    <module platform="android">firebase.cloudmessaging</module>
+    <module platform="iphone">firebase.cloudmessaging</module>
+    <module platform="android" version="11.0.40">ti.playservices</module>
   </modules>
   <deployment-targets>
     <target device="android">true</target>

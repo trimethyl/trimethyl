@@ -10,6 +10,22 @@
 				"useBiometricIdentity": true,
 				"enforceBiometricIdentity": true,
 				"useBiometricIdentityPromptConfirmation": true
+			},
+			"firebase": {
+				"core": {
+					"GCMSenderID": "<SENDER ID>",
+					"android": {
+						"APIKey": "<API KEY>",
+						"projectID": "<PROJECT ID>",
+						"applicationID": "<FIREBASE ANDROID APP ID>"
+					},
+					"ios": {
+						"googleAppID": "<FIREBASE IOS APP ID>"
+					}
+				},
+				"cloudmessaging": {
+					"dataFields": ["test1","test2"]
+				}
 			}
 		}
 	},
