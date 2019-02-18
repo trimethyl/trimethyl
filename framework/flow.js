@@ -304,3 +304,28 @@ exports.closeAllWindowsExceptFirst = function() {
 	}
 	wins[wins.length-1].close();
 };
+
+
+/**
+ * Close a portion of the windows stack.
+ * @param {Number} start the index of the first window to close.
+ * @param {Number} end the index of the last window to close.
+ */
+exports.closeWindows = function(start, end) {
+	var wins = _.clone(windowsStack);
+	var s = Math.max(0, start);
+	var e = Math.min(end, wins.length-1);
+
+	for (var i = end-1; i >= start; i--) {
+		wins[i].close({ animated: false });
+	}
+	wins[end].close();
+};
+
+
+/**
+ * Close all the windows of the stack except the first and the last.
+ */
+exports.closeAllInnerWindows = function() {
+	exports.closeWindows(1, windowsStack.length-2);
+}
