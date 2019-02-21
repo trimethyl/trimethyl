@@ -43,13 +43,13 @@ function requestPermissions(permissions, success, error) {
 			return resolve();
 		}
 
-		return permissions.map(function(permission) {
-			if (Ti.Android.hasPermission(permission)) return Q.resolve();
+		var toRequest = _.reject(permissions, Ti.Android.hasPermission);
 
-			return Ti.Android.requestPermissions(permission, requestHandler);
-		})
-		.reduce(Q.when, Q())
-		.then(resolve);
+		if (toRequest.length > 0) {
+			Ti.Android.requestPermissions(toRequest, requestHandler);
+		} else {
+			resolve();
+		}
 	});
 }
 
