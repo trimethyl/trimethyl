@@ -6,6 +6,7 @@
 
 var _ = require('alloy/underscore')._;
 var UIUtil = require('T/uiutil');
+var Util = require('T/util');
 var ABX = null;
 
 var LOGNAME = "UIFactory/Window";
