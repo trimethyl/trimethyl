@@ -29,12 +29,12 @@ var TMP_DIR = Ti.Filesystem.tempDirectory + '/weballoy';
 
 var Util = require('T/util');
 
-var WK = Ti.UI;
+var createWebView = Ti.UI.createWebView;
 
 if (exports.config.useWkWebView) {
 	var WK_Module = Util.requireOrNull('ti.wkwebview');
 	if (WK_Module != null) {
-		WK = WK_Module;
+		createWebView = WK_Module.createWebView;
 	} else {
 		Ti.API.warn(MODULE_NAME + ': unable to find <ti.wkwebview> module, falling back to Ti.UI');
 	}
@@ -167,7 +167,7 @@ exports.createView = function(args) {
 	args = args || {};
 	args.uniqid = _.uniqueId();
 
-	var $ui = WK.createWebView(_.extend({
+	var $ui = createWebView(_.extend({
 		disableBounce: true,
 		enableZoomControls: false,
 		hideLoadIndicator: true,
