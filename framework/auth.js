@@ -671,7 +671,7 @@ exports.login = function(opt) {
 	})
 
 	.then(function(e) {
-		if (e.biometricEnrolled == true || exports.config.enforceBiometricIdentity != true) {
+		if (opt.remember != false && (e.biometricEnrolled == true || exports.config.enforceBiometricIdentity != true)) {
 			driverStoreData(opt);
 		}
 	})
