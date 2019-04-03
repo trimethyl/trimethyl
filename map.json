@@ -88,6 +88,12 @@
 		"description": "The main module for any project that uses Firebase.",
 		"modules": ["firebase.core:android","firebase.core:iphone"]
 	},
+	"firebase/analytics":{
+		"name": "Firebase.Analytics",
+		"description": "Measure app events and views through Firebase.",
+		"modules": ["firebase.analytics:android","firebase.analytics:iphone"],
+		"dependencies": ["firebase/core","util"]
+	},
 	"firebase/cloudmessaging":{
 		"name": "Firebase.CloudMessaging",
 		"description": "Receive push notifications through Firebase.",
@@ -107,7 +113,7 @@
 	"flow":{
 		"name": "Flow",
 		"description": "Manages the app windows flow using a global navigator and exposing informations about opened controller and windows. It also tracks the screen view and timing automatically.",
-		"dependencies": ["event","ga"]
+		"dependencies": ["event","firebase/analytics"]
 	},
 	"forcetouchmenu":{
 		"name": "ForceTouchMenu",
@@ -218,7 +224,7 @@
 	"sharer":{
 		"name": "Sharer",
 		"description": "It provides a simple interface to share link on various social networks / chat systems like Facebook, Twitter, Telegram, WhatsApp and all you can imagine.",
-		"dependencies": ["fb","ga","util","dialog"],
+		"dependencies": ["fb","firebase/analytics","util","dialog"],
 		"modules": ["bencoding.sms:iphone","dk.napp.social:iphone"]
 	},
 	"sounds":{

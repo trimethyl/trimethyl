@@ -86,6 +86,40 @@
       <uses-sdk android:targetSdkVersion="26" android:minSdkVersion="16"/>
       <supports-screens android:xlargeScreens="false" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true"/>
       <application android:hardwareAccelerated="true">
+        <activity android:name="com.facebook.FacebookActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:label="TrimethylTestApplication" android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation" />
+
+        <service android:name="com.google.android.gms.measurement.AppMeasurementService" android:enabled="true" android:exported="false" />
+
+        <service android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE" android:enabled="true" android:exported="false" />
+
+        <service android:name="MY_PACKAGE_NAME.gcm.RegistrationIntentService" android:exported="false" />
+
+        <receiver android:name="com.google.android.gms.measurement.AppMeasurementReceiver" android:enabled="true">
+          <intent-filter>
+            <action android:name="com.google.android.gms.measurement.UPLOAD" />
+          </intent-filter>
+        </receiver>
+
+        <!-- Only add the GCM-related tags if you are using push notifications as well -->
+        <service android:name="MY_PACKAGE_NAME.gcm.GcmIntentService" android:exported="false">
+          <intent-filter>
+            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+          </intent-filter>
+        </service>
+
+        <service android:name="MY_PACKAGE_NAME.gcm.GcmIntentService" android:exported="false">
+          <intent-filter>
+            <action android:name="com.google.android.c2dm.intent.SEND" />
+          </intent-filter>
+        </service>
+
+        <service android:name="MY_PACKAGE_NAME.gcm.GcmIDListenerService" android:exported="false">
+          <intent-filter>
+            <action android:name="com.google.android.gms.iid.InstanceID" />
+          </intent-filter>
+        </service>
+
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/app_id"/>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
         <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyBxPIXPSmEDxWsDS0h3B_Q0pBu0UCxx0ys"/>
       </application>
@@ -93,7 +127,6 @@
   </android>
   <modules>
     <module platform="iphone">ti.safaridialog</module>
-    <module platform="iphone">ti.ga</module>
     <module platform="iphone">facebook</module>
     <module platform="iphone">ti.map</module>
     <module platform="commonjs">ti.cloud</module>
@@ -107,7 +140,6 @@
     <!-- <module platform="android">lucadamico.android.calendar</module> --> <!-- Module removed from the store -->
     <module platform="android">ti.map</module>
     <module platform="android">org.iotashan.TiTouchImageView</module>
-    <module platform="android">ti.ga</module>
     <!-- <module platform="iphone">appcelerator.https</module> --> <!-- Axway Enterprise module -->
     <!-- <module platform="iphone">appcelerator.encrypteddatabase</module> --> <!-- Axway Enterprise module -->
     <!-- <module platform="android">appcelerator.encrypteddatabase</module> --> <!-- Axway Enterprise module -->
@@ -120,6 +152,8 @@
     <module platform="iphone">firebase.core</module>
     <module platform="android">firebase.cloudmessaging</module>
     <module platform="iphone">firebase.cloudmessaging</module>
+    <module platform="android">firebase.analytics</module>
+    <module platform="iphone">firebase.analytics</module>
     <module platform="android" version="11.0.40">ti.playservices</module>
   </modules>
   <deployment-targets>

@@ -14,7 +14,7 @@ exports.config = _.extend({
 
 
 var Util = require('T/util');
-var GA = require('T/ga');
+var FA = require('T/firebase/analytics');
 var Dialog = require('T/dialog');
 
 var globalCallback = null; // Handle all callbacks
@@ -85,7 +85,7 @@ function parseArgs(args) {
  */
 exports.facebook = function(args) {
 	args = parseArgs(args);
-	GA.social('facebook', 'share', args.url);
+	FA.socialShare('facebook', args.url);
 
 	// Native iOS dialog
 	if (OS_IOS && (dkNappSocial != null && dkNappSocial.isFacebookSupported()) &&
@@ -140,7 +140,7 @@ exports.facebook = function(args) {
  */
 exports.twitter = function(args) {
 	args = parseArgs(args);
-	GA.social('twitter', 'share', args.url);
+	FA.socialShare('twitter', args.url);
 
 	var text = (args.tweetText || args.text);
 	var textWithUrl = text;
@@ -194,7 +194,7 @@ exports.twitter = function(args) {
  */
 exports.email = exports.mail = function(args) {
 	args = parseArgs(args);
-	GA.social('email', 'sent', args.url);
+	FA.socialShare('email', args.url);
 
 	var $dialog = Ti.UI.createEmailDialog({
 		subject: args.subject || args.title,
@@ -230,7 +230,7 @@ exports.email = exports.mail = function(args) {
  */
 exports.whatsapp = function(args) {
 	args = parseArgs(args);
-	GA.social('whatsapp', 'share', args.url);
+	FA.socialShare('whatsapp', args.url);
 
 	// Native protocol binding
 	if (OS_IOS) {
@@ -272,7 +272,7 @@ exports.whatsapp = function(args) {
  */
 exports.telegram = function(args) {
 	args = parseArgs(args);
-	GA.social('telegram', 'share', args.url);
+	FA.socialShare('telegram', args.url);
 
 	Ti.Platform.openURL('https://telegram.me/share/url' + Util.buildQuery({
 		url: args.url,
@@ -289,7 +289,7 @@ exports.telegram = function(args) {
  */
 exports.message = exports.sms = function(args) {
 	args = parseArgs(args);
-	GA.social('message', 'sent', args.url);
+	FA.socialShare('message', args.url);
 
 	// iOS Native modal
 	if (OS_IOS && benCodingSMS !== null) {

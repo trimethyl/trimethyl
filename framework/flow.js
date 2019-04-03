@@ -17,6 +17,7 @@ exports.config = _.extend({
 }, Alloy.CFG.T ? Alloy.CFG.T.flow : {});
 
 var Event = require('T/event');
+var FA = require('T/firebase/analytics');
 
 var Navigator = null;
 var windowsStack = [];
@@ -42,23 +43,6 @@ exports.currentControllerArgs = null;
 exports.event = function(name, cb) {
 	Event.on('flow.' + name, cb);
 };
-
-function track($window, route) {
-	// Track screen with GA
-	require('T/ga').trackScreen(route);
-
-	// Track timing with GA
-	var startFocusTime = null;
-
-	$window.addEventListener('focus', function(){
-		startFocusTime = Date.now();
-	});
-
-	$window.addEventListener('blur', function(){
-		if (startFocusTime === null) return;
-		require('T/ga').trackTiming(route, Date.now() - startFocusTime);
-	});
-}
 
 function open(name, args, openArgs, route, useNav) {
 	args = args || {};
@@ -249,8 +233,17 @@ exports.setCurrentWindow = function($window, route) {
 	$window._route = route;
 	windowsStack.push($window);
 
-	// Track with GA
-	track($window, route);
+	$window.addEventListener('open', function track() {
+		$window.removeEventListener('open', track);
+
+		if (OS_ANDROID) {
+			$window.activity.onResume = function() {
+				FA.trackScreen(route);
+			}
+		} else {
+			FA.trackScreen(route);
+		}
+	});
 
 	// Add listener
 	$window.addEventListener('close', onWindowClose);
