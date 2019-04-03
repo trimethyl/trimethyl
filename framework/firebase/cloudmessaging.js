@@ -397,7 +397,7 @@ exports.getDeviceToken = function () {
 		return exports.config.fakeDeviceToken;
 	}
 
-	return FCM.fcmToken;
+	return OS_ANDROID ? FCM.fcmToken : Ti.Network.remoteDeviceUUID;
 };
 
 /**
