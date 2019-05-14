@@ -52,10 +52,10 @@ exports.trackEvent = function(name, parameters){
 	}
 
 	if (exports.config.log === true) {
-		Ti.API.trace(MODULE_NAME + ": Track event", JSON.stringify(obj));
+		Ti.API.trace(MODULE_NAME + ": Track event", name, JSON.stringify(parameters || {}));
 	}
 
-	FA.log(name, parameters);
+	FA.log(name, parameters || {});
 };
 
 
