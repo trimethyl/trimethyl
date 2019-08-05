@@ -216,11 +216,15 @@ Router.prototype.appendToQueue = function(array) {
  * @param  {Boolean} bypassFromNow Indicate if (from now) should not enqueue routes but dispatch directly
  */
 Router.prototype.dispatchQueue = function(bypassFromNow) {
-	var e = null;
-	while ((e = this.queue.shift()) != null) {
-		this.dispatch(e);
-	}
-	this.bypassQueue = !!bypassFromNow;
+	var self = this;
+
+	self.queue.forEach(function(route) {
+		self.dispatch(route);
+	});
+
+	self.queue = [];
+
+	self.bypassQueue = !!bypassFromNow;
 };
 
 /**

@@ -161,7 +161,9 @@ function deepLinkHandler(e) {
 		Ti.API.info('App: Started/Resumed with schema <' + url + '>');
 	}
 
-	Router.enqueue(urlToRoute);
+	if (urlToRoute != null) {
+		Router.enqueue(urlToRoute);
+	}
 }
 
 
