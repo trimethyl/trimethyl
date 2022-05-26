@@ -1,3 +1,8 @@
+# Archived
+
+This repo has been archived and is not being maintained.
+
+
 ![image](logo.jpg)
 
 Trimethyl is a framework we built for our purposes. We built it on top of **Appcelerator Titanium**.
