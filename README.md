@@ -1,7 +1,4 @@
-# Archived
-
-This repo has been archived and is not being maintained.
-
+# Archived - This repo has been archived and is not being maintained.
 
 ![image](logo.jpg)
 
